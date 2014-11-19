@@ -1,4 +1,4 @@
-#include "processing\LocalUndistortion.h"	
+#include "processing/LocalUndistortion.h"	
 #include "ui/ProgressDialog.h"
 #include "ui/MainWindow.h"
 #include "core/Project.h"
@@ -364,8 +364,8 @@ void LocalUndistortion::createLookupTable(cv::Mat &controlPts, cv::Mat &A, cv::M
 			denominator = 0.0;
 
 			//for (i=0; i <controlPts_Mat.rows; i++) {
-			for(xg = max( floor( ((double ) x_out ) / gridSize) - 1 , 0.0 ) ; xg < min ( ceil( ((double ) x_out) / gridSize) + 1, ceil( ((double )m_width) / gridSize) ); xg ++){
-				for(yg = max( floor( ((double ) y_out) / gridSize) - 1 , 0.0 ) ; yg < min ( ceil( ((double ) y_out) / gridSize) + 1, ceil( ((double )m_height) / gridSize) ); yg ++){
+			for(xg = std::max( floor( ((double ) x_out ) / gridSize) - 1 , 0.0 ) ; xg < std::min ( ceil( ((double ) x_out) / gridSize) + 1, ceil( ((double )m_width) / gridSize) ); xg ++){
+				for(yg = std::max( floor( ((double ) y_out) / gridSize) - 1 , 0.0 ) ; yg < std::min ( ceil( ((double ) y_out) / gridSize) + 1, ceil( ((double )m_height) / gridSize) ); yg ++){
 					for (unsigned int p=0; p <grid_pts[xg][yg].size(); p++) {
 						i = grid_pts[xg][yg][p];
 						//without ptrs

@@ -69,7 +69,7 @@ class Camera{
 		void loadCameraMatrix( QString filename);
 
 		void getMayaCam(double * out, int frame);
-		void Camera::getDLT(double * out, int frame);
+		void getDLT(double * out, int frame);
 
 		void reset();
 		void deleteFrame(int id);

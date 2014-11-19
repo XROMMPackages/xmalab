@@ -21,9 +21,9 @@ WizardDockWidget::WizardDockWidget(QWidget *parent) :
 }
 
 bool WizardDockWidget::checkForPendingChanges(){
-	if(State::getInstance()->getWorkspace() == work_state::UNDISTORTION){
+	if(State::getInstance()->getWorkspace() == UNDISTORTION){
 		return undistortionFrame->checkForPendingChanges();
-	}else if(State::getInstance()->getWorkspace() == work_state::CALIBRATION){
+	}else if(State::getInstance()->getWorkspace() == CALIBRATION){
 		return calibrationFrame->checkForPendingChanges();
 	}										
 }
@@ -54,8 +54,8 @@ void WizardDockWidget::addCalibrationReference(double x, double y){
 }
 
 void WizardDockWidget::draw(){
-	if(State::getInstance()->getWorkspace() == work_state::UNDISTORTION){
-	}else if(State::getInstance()->getWorkspace() == work_state::CALIBRATION){
+	if(State::getInstance()->getWorkspace() == UNDISTORTION){
+	}else if(State::getInstance()->getWorkspace() == CALIBRATION){
 		calibrationFrame->draw();
 	}
 }
@@ -65,10 +65,10 @@ void WizardDockWidget::updateFrames(){
 }
 
 void WizardDockWidget::workspaceChanged(work_state workspace){
-	if(workspace == work_state::UNDISTORTION){
+	if(workspace == UNDISTORTION){
 		undistortionFrame->show();
 		calibrationFrame->hide();
-	}else if(workspace == work_state::CALIBRATION){
+	}else if(workspace == CALIBRATION){
 		undistortionFrame->hide();
 		calibrationFrame->show();
 	}

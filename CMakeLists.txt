@@ -1,4 +1,4 @@
-PROJECT(Calibration)
+PROJECT(XMALab)
 
 #SET BUILD-TYPE TO RELEASE IF NOT DEFINED
 if(NOT CMAKE_BUILD_TYPE)
@@ -42,7 +42,7 @@ SET(CMAKE_AUTOMOC ON)
 set(PROJECT_VERSION_MAJOR "0")
 set(PROJECT_VERSION_MINOR "1")
 set(PROJECT_VERSION_PATCH "0")
-set(PROJECT_VERSION_COUNT 3)
+set(PROJECT_VERSION_COUNT 1)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 set(PROJECT_VENDOR "Brown University")
 set(PROJECT_COPYRIGHT_YEAR "2014")
@@ -52,9 +52,6 @@ set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 
 if(CMAKE_COMPILER_IS_GNUCXX OR APPLE)
         add_definitions(-Wall -Wextra)
-        if(CMAKE_BUILD_RELEASE)
-                add_definitions(-Werror)
-        endif()
 endif()
 
 ADD_DEFINITIONS(${QT_DEFINITIONS})
@@ -124,7 +121,7 @@ SET(Calibration_FORMS_HEADERS
 	src/ui/SettingsDialog.h
 )
 SET(Calibration_FORMS_SOURCES
-		src/core/main.cpp
+		src/ui/main.cpp
      	src/ui/MainWindow.cpp
      	src/ui/ErrorDialog.cpp
 		src/ui/ConfirmationDialog.cpp

@@ -1,4 +1,4 @@
-#include "processing\BlobDetection.h"	
+#include "processing/BlobDetection.h"	
 #include "ui/ProgressDialog.h"
 #include "ui/MainWindow.h"
 #include "core/Project.h"

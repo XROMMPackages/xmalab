@@ -66,29 +66,29 @@ void WorkspaceNavigationFrame::removeCamera(int idx){
 }
 
 void WorkspaceNavigationFrame::workspaceChanged(work_state workspace){
-	if(workspace == work_state::UNDISTORTION){
+	if(workspace == UNDISTORTION){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion") );
-	}else if(workspace == work_state::CALIBRATION){
+	}else if(workspace == CALIBRATION){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration") );
 	}
 }
 
 void WorkspaceNavigationFrame::displayChanged(ui_state display){
-	if(display == ui_state::ALL_CAMERAS_FULL_HEIGHT){
+	if(display == ALL_CAMERAS_FULL_HEIGHT){
 		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText("All Cameras - Full Height") );
-	}else if(display == ui_state::ALL_CAMERAS_1ROW_SCALED){
+	}else if(display == ALL_CAMERAS_1ROW_SCALED){
 		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText("All Cameras - 1 Row Scaled") );
-	}else if(display == ui_state::ALL_CAMERAS_2ROW_SCALED){
+	}else if(display == ALL_CAMERAS_2ROW_SCALED){
 		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText("All Cameras - 2 Row Scaled") );
-	}else if(display == ui_state::ALL_CAMERAS_3ROW_SCALED){
+	}else if(display == ALL_CAMERAS_3ROW_SCALED){
 		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText("All Cameras - 3 Row Scaled") );
-	}else if(display == ui_state::SINGLE_CAMERA){
+	}else if(display == SINGLE_CAMERA){
 		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getName()) );
 	}
 }  
 
 void WorkspaceNavigationFrame::activeCameraChanged(int activeCamera){
-	if(State::getInstance()->getDisplay() == ui_state::SINGLE_CAMERA){
+	if(State::getInstance()->getDisplay() == SINGLE_CAMERA){
 		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText(Project::getInstance()->getCameras()[activeCamera]->getName()) );
 	}
 }  
@@ -97,10 +97,10 @@ void WorkspaceNavigationFrame::on_comboBoxWorkspace_currentIndexChanged(QString 
 	if(currentComboBoxWorkspaceIndex != frame->comboBoxWorkspace->currentIndex()){
 		if(WizardDockWidget::getInstance()->checkForPendingChanges()){
 			if(value == "Undistortion"){
-				State::getInstance()->changeWorkspace(work_state::UNDISTORTION);
+				State::getInstance()->changeWorkspace(UNDISTORTION);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
 			}else if(value == "Calibration"){
-				State::getInstance()->changeWorkspace(work_state::CALIBRATION);
+				State::getInstance()->changeWorkspace(CALIBRATION);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
 			}
 		}else{
@@ -111,20 +111,20 @@ void WorkspaceNavigationFrame::on_comboBoxWorkspace_currentIndexChanged(QString 
 
 void WorkspaceNavigationFrame::on_comboBoxViewspace_currentIndexChanged(QString value){
 	if(value == "All Cameras - Full Height"){
-		State::getInstance()->changeDisplay(ui_state::ALL_CAMERAS_FULL_HEIGHT);	
+		State::getInstance()->changeDisplay(ALL_CAMERAS_FULL_HEIGHT);
 	}else if(value == "All Cameras - 1 Row Scaled"){
-		State::getInstance()->changeDisplay(ui_state::ALL_CAMERAS_1ROW_SCALED);	
+		State::getInstance()->changeDisplay(ALL_CAMERAS_1ROW_SCALED);
 	}else if(value == "All Cameras - 2 Row Scaled"){
-		State::getInstance()->changeDisplay(ui_state::ALL_CAMERAS_2ROW_SCALED);	
+		State::getInstance()->changeDisplay(ALL_CAMERAS_2ROW_SCALED);
 	}else if(value == "All Cameras - 3 Row Scaled"){
-		State::getInstance()->changeDisplay(ui_state::ALL_CAMERAS_3ROW_SCALED);	
+		State::getInstance()->changeDisplay(ALL_CAMERAS_3ROW_SCALED);
 	}else{
 		//Single cameras
 		int count = 0;
 		for(std::vector <Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it){
 			if( (*it)->getName() == value ){
 				State::getInstance()->changeActiveCamera(count);
-				State::getInstance()->changeDisplay(ui_state::SINGLE_CAMERA);
+				State::getInstance()->changeDisplay(SINGLE_CAMERA);
 				return;
 			}
 			count ++;
@@ -133,9 +133,9 @@ void WorkspaceNavigationFrame::on_comboBoxViewspace_currentIndexChanged(QString 
 }
 
 void WorkspaceNavigationFrame::setWorkState(work_state workspace){
-	if(workspace == work_state::UNDISTORTION){
+	if(workspace == UNDISTORTION){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion"));
-	}else if(workspace == work_state::CALIBRATION){
+	}else if(workspace == CALIBRATION){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration"));
 	}
 }

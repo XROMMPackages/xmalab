@@ -3,13 +3,13 @@
 #endif
 
 
-#include "ui\MainWindow.h"
+#include "ui/MainWindow.h"
 #include "ui_MainWindow.h"
-#include "ui\CameraViewWidget.h"
-#include "ui\GLSharedWidget.h"
-#include "ui\WorkspaceNavigationFrame.h"
+#include "ui/CameraViewWidget.h"
+#include "ui/GLSharedWidget.h"
+#include "ui/WorkspaceNavigationFrame.h"
 #include "ui_WorkspaceNavigationFrame.h"
-#include "ui\SequenceNavigationFrame.h"
+#include "ui/SequenceNavigationFrame.h"
 #include "ui_SequenceNavigationFrame.h"
 #include "ui/NewProjectDialog.h"
 #include "ui/ErrorDialog.h"
@@ -26,14 +26,14 @@
 
 #include <iostream>
 
-#include "core\Project.h"
-#include "core\Camera.h"
-#include "core\CalibrationImage.h"
-#include "core\UndistortionObject.h"
+#include "core/Project.h"
+#include "core/Camera.h"
+#include "core/CalibrationImage.h"
+#include "core/UndistortionObject.h"
 #include "core/Settings.h"
 
-#include "processing\BlobDetection.h"
-#include "processing\LocalUndistortion.h"
+#include "processing/BlobDetection.h"
+#include "processing/LocalUndistortion.h"
 
 #ifdef WIN32
 #define OS_SEP "\\"
@@ -89,7 +89,7 @@ MainWindow* MainWindow::getInstance()
 }
 
 void MainWindow::resizeDone(){
-	if(State::getInstance()->getDisplay() == ui_state::ALL_CAMERAS_FULL_HEIGHT){
+	if(State::getInstance()->getDisplay() == ALL_CAMERAS_FULL_HEIGHT){
 		for (int i = 0 ; i < cameraViews.size();i++){
 			cameraViews[i]->setMinimumWidthGL(true);
 		}
@@ -189,7 +189,7 @@ void MainWindow::relayoutCameras(){
 	
 	clearSplitters();
 	
-	if(State::getInstance()->getDisplay() == ui_state::SINGLE_CAMERA){
+	if(State::getInstance()->getDisplay() == SINGLE_CAMERA){
 		ui->imageScrollArea->setVisible(false);
 		ui->imageMainFrame->setVisible(true);
 
@@ -198,7 +198,7 @@ void MainWindow::relayoutCameras(){
 		}
 		ui->gridLayout_4->addWidget(cameraViews[State::getInstance()->getActiveCamera()]);
 	}
-	else if(State::getInstance()->getDisplay() == ui_state::ALL_CAMERAS_FULL_HEIGHT){
+	else if(State::getInstance()->getDisplay() == ALL_CAMERAS_FULL_HEIGHT){
 		ui->imageScrollArea->setVisible(true);
 		ui->imageMainFrame->setVisible(false);
 		for (int i = 0 ; i < cameraViews.size();i++){
@@ -212,9 +212,9 @@ void MainWindow::relayoutCameras(){
 
 		int rows = 1;
 
-		if(State::getInstance()->getDisplay() == ui_state::ALL_CAMERAS_2ROW_SCALED){
+		if(State::getInstance()->getDisplay() == ALL_CAMERAS_2ROW_SCALED){
 			rows = 2;
-		}else if(State::getInstance()->getDisplay() == ui_state::ALL_CAMERAS_3ROW_SCALED){
+		}else if(State::getInstance()->getDisplay() == ALL_CAMERAS_3ROW_SCALED){
 			rows = 3;
 		}
 
@@ -355,7 +355,7 @@ void MainWindow::UndistortionAfterloadProjectFinished(){
 			}
 		}
 	}
-	if(allCamerasUndistorted) State::getInstance()->changeUndistortion(undistortion_state::UNDISTORTED);
+	if(allCamerasUndistorted) State::getInstance()->changeUndistortion(UNDISTORTED);
 
 	for(std::vector <Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it){
 		bool calibrated = false;
@@ -387,7 +387,7 @@ void MainWindow::closeProject(){
 		delete project;
 		project = NULL;
 	}
-	State::getInstance()->changeUndistortion(undistortion_state::NOTUNDISTORTED);
+	State::getInstance()->changeUndistortion(NOTUNDISTORTED);
 	WizardDockWidget::getInstance()->hide();
 }
 
@@ -435,11 +435,11 @@ void MainWindow::redrawGL(){
 }
 
 void MainWindow::setCameraViewWidgetTitles(){
-	if(State::getInstance()->getWorkspace() == work_state::CALIBRATION){
+	if(State::getInstance()->getWorkspace() == CALIBRATION){
 		for (unsigned int i = 0; i < cameraViews.size(); i++) {
 			cameraViews[i]->setImageName(Project::getInstance()->getCameras()[i]->getCalibrationImages()[State::getInstance()->getActiveFrame()]->getFilename());
 		}
-	}else if(State::getInstance()->getWorkspace() == work_state::UNDISTORTION){
+	}else if(State::getInstance()->getWorkspace() == UNDISTORTION){
 		for (unsigned int i = 0; i < cameraViews.size(); i++) {
 			if(Project::getInstance()->getCameras()[i]->hasUndistortion()){
 				cameraViews[i]->setImageName(Project::getInstance()->getCameras()[i]->getUndistortionObject()->getFilename());
@@ -456,7 +456,7 @@ UI - SLOTS
 
 //custom slots for state
 void MainWindow::workspaceChanged(work_state workspace){
-	if(workspace == work_state::CALIBRATION && project->getNbImages() > 1) {
+	if(workspace == CALIBRATION && project->getNbImages() > 1) {
 		ui->sequenceNavigationFrame->setVisible(true);
 	}else{
 		ui->sequenceNavigationFrame->setVisible(false);
@@ -471,7 +471,7 @@ void MainWindow::displayChanged(ui_state display){
 }
 
 void MainWindow::activeCameraChanged(int activeCamera){
-	if(State::getInstance()->getDisplay() == ui_state::SINGLE_CAMERA){
+	if(State::getInstance()->getDisplay() == SINGLE_CAMERA){
 		relayoutCameras();
 	}
 	redrawGL();

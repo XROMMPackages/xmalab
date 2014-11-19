@@ -12,12 +12,12 @@
 #include "ui/ConfirmationDialog.h"
 #include "ui/WizardDockWidget.h"
 
-#include "core\Project.h"
-#include "core\Camera.h"
-#include "core\Settings.h"
-#include "core\UndistortionObject.h"
-#include "processing\BlobDetection.h"
-#include "processing\LocalUndistortion.h"
+#include "core/Project.h"
+#include "core/Camera.h"
+#include "core/Settings.h"
+#include "core/UndistortionObject.h"
+#include "processing/BlobDetection.h"
+#include "processing/LocalUndistortion.h"
 
 
 WizardUndistortionFrame::WizardUndistortionFrame(QWidget *parent) :
@@ -25,7 +25,7 @@ WizardUndistortionFrame::WizardUndistortionFrame(QWidget *parent) :
 												frame(new Ui::WizardUndistortionFrame){
 
 	frame->setupUi(this);
-	undistortionChanged(undistortion_state::NOTUNDISTORTED);
+	undistortionChanged(NOTUNDISTORTED);
 	connect(State::getInstance(), SIGNAL(undistortionChanged(undistortion_state)), this, SLOT(undistortionChanged(undistortion_state)));
 }
 
@@ -34,7 +34,7 @@ WizardUndistortionFrame::~WizardUndistortionFrame(){
 }
 
 void WizardUndistortionFrame::undistortionChanged(undistortion_state undistortion){
-	if(undistortion == undistortion_state::NOTUNDISTORTED){
+	if(undistortion == NOTUNDISTORTED){
 		frame->label->setText("You first need to perform an Undistortion");
 		frame->radioButtonMouseClickOutlier->hide();
 		frame->groupBoxVisualization->hide();
@@ -124,33 +124,33 @@ void WizardUndistortionFrame::on_comboBoxPoints_currentIndexChanged(int idx){
 }
 
 void WizardUndistortionFrame::on_radioButtonMouseClickCenter_clicked(bool checked){
-	if(State::getInstance()->getUndistortion() == undistortion_state::UNDISTORTED){
+	if(State::getInstance()->getUndistortion() == UNDISTORTED){
 		if(ConfirmationDialog::getInstance()->showConfirmationDialog("Warning: Setting a new Center will reset all inliers. Are you sure you want to proceed?")){
-			State::getInstance()->changeUndistortionMouseMode(undistortionMouseMode_state::UNDISTSETCENTER);
+			State::getInstance()->changeUndistortionMouseMode(UNDISTSETCENTER);
 		}else{
-			if(State::getInstance()->getUndistortionMouseMode() == undistortionMouseMode_state::UNDISTTOGGLEOUTLIER){
+			if(State::getInstance()->getUndistortionMouseMode() == UNDISTTOGGLEOUTLIER){
 				frame->radioButtonMouseClickOutlier->click();
-			}else if(State::getInstance()->getUndistortionMouseMode() == undistortionMouseMode_state::UNDISTNOMOUSEMODE){
+			}else if(State::getInstance()->getUndistortionMouseMode() == UNDISTNOMOUSEMODE){
 				frame->radioButtonMouseClickNone->click();
 			} 
 		}
 	}else{
-		State::getInstance()->changeUndistortionMouseMode(undistortionMouseMode_state::UNDISTSETCENTER);
+		State::getInstance()->changeUndistortionMouseMode(UNDISTSETCENTER);
 	}
 	MainWindow::getInstance()->redrawGL();
 } 
 
 void WizardUndistortionFrame::on_radioButtonMouseClickOutlier_clicked(bool checked){
-	State::getInstance()->changeUndistortionMouseMode(undistortionMouseMode_state::UNDISTTOGGLEOUTLIER);
+	State::getInstance()->changeUndistortionMouseMode(UNDISTTOGGLEOUTLIER);
 	MainWindow::getInstance()->redrawGL();
 }
 void WizardUndistortionFrame::on_radioButtonMouseClickNone_clicked(bool checked){
-	State::getInstance()->changeUndistortionMouseMode(undistortionMouseMode_state::UNDISTNOMOUSEMODE);
+	State::getInstance()->changeUndistortionMouseMode(UNDISTNOMOUSEMODE);
 	MainWindow::getInstance()->redrawGL();
 }
 
 void WizardUndistortionFrame::on_pushButton_clicked(){
-	if(State::getInstance()->getUndistortion() == undistortion_state::NOTUNDISTORTED){	
+	if(State::getInstance()->getUndistortion() == NOTUNDISTORTED){	
 		for(int i = 0; i < Project::getInstance()->getCameras().size(); i++){
 			if(Project::getInstance()->getCameras()[i]->hasUndistortion()){
 				BlobDetection * blobdetection = new BlobDetection(i,-1);
@@ -158,7 +158,7 @@ void WizardUndistortionFrame::on_pushButton_clicked(){
 				blobdetection->detectBlobs();
 			}
 		}
-	}else if(State::getInstance()->getUndistortion() == undistortion_state::UNDISTORTED){
+	}else if(State::getInstance()->getUndistortion() == UNDISTORTED){
 		recomputeUndistortion();
 	}
 }
@@ -174,7 +174,7 @@ void WizardUndistortionFrame::computeUndistortion(){
 }
 
 void WizardUndistortionFrame::undistortionFinished(){
-	State::getInstance()->changeUndistortion(undistortion_state::UNDISTORTED);
+	State::getInstance()->changeUndistortion(UNDISTORTED);
 	MainWindow::getInstance()->redrawGL();
 
 	WizardDockWidget::getInstance()->update();
