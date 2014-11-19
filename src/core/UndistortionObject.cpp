@@ -710,7 +710,7 @@ void UndistortionObject::loadPoints(cv::vector <cv::Point2d> &points, QString fi
         for (double value; in >> value; comma(in)) {
             tmp.push_back(value);
         }
-        values.push_back(tmp);
+        if(tmp.size()>0) values.push_back(tmp);
     }
 	fin.close();
 	
@@ -750,7 +750,7 @@ void UndistortionObject::loadGridPointsInlier( QString filename){
         for (double value; in >> value; comma(in)) {
             tmp.push_back(value);
         }
-        values.push_back(tmp);
+        if(tmp.size()>0) values.push_back(tmp);
     }
 	fin.close();
 	

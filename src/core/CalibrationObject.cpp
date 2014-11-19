@@ -73,7 +73,7 @@ int CalibrationObject::loadCoords(QString pointsfilename , QString references)
         for (double value; in >> value; comma(in)) {
             tmp.push_back(value);
         }
-		frameSpecifications.push_back(cv::Point3d(tmp[0],tmp[1],tmp[2]));
+		if(tmp.size()>0) frameSpecifications.push_back(cv::Point3d(tmp[0],tmp[1],tmp[2]));
 		line.clear();
     }
 	fin.close();
@@ -84,7 +84,7 @@ int CalibrationObject::loadCoords(QString pointsfilename , QString references)
         for (double value; in >> value; comma(in)) {
             tmp.push_back(value);
         }
-		frameSpecifications.push_back(cv::Point3d(tmp[0],tmp[1],tmp[2]));
+		if(tmp.size()>0) frameSpecifications.push_back(cv::Point3d(tmp[0],tmp[1],tmp[2]));
 		line.clear();
 	}
 

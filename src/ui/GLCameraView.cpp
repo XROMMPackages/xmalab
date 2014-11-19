@@ -92,11 +92,11 @@ void GLCameraView::mouseMoveEvent(QMouseEvent *e)
 void GLCameraView::mouseDoubleClickEvent ( QMouseEvent * e ){
 	State::getInstance()->changeActiveCamera(this->camera->getID());
 	if(e->buttons() & Qt::LeftButton){
-		if(State::getInstance()->getWorkspace() == work_state::CALIBRATION
+		if(State::getInstance()->getWorkspace() == CALIBRATION
 			&& camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->isCalibrated() > 0){
 				double x =  zoomRatio * (e->posF().x()) - ((window_width ) * zoomRatio * 0.5 + x_offset);
 				double y =  zoomRatio * ((window_height) - e->posF().y()) - ((window_height) * zoomRatio * 0.5 - y_offset) - 0.5;
-				camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->toggleInlier(x, y , State::getInstance()->getCalibrationVisImage() == calibrationVisImage_state::DISTORTEDCALIBIMAGE);
+				camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->toggleInlier(x, y , State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
 			updateGL();
 		}
 	}
@@ -113,7 +113,7 @@ void GLCameraView::mousePressEvent(QMouseEvent *e)
 
 		 double x =  zoomRatio * (e->posF().x()) - ((window_width ) * zoomRatio * 0.5 + x_offset);
 		 double y =  zoomRatio * ((window_height) - e->posF().y()) - ((window_height) * zoomRatio * 0.5 - y_offset) - 0.5;
-		 if(State::getInstance()->getWorkspace() == work_state::UNDISTORTION){
+		 if(State::getInstance()->getWorkspace() == UNDISTORTION){
 			if(camera->hasUndistortion()){
 				int clickmode = State::getInstance()->State::getInstance()->getUndistortionMouseMode();
 				if(clickmode == 1)
@@ -135,12 +135,12 @@ void GLCameraView::mousePressEvent(QMouseEvent *e)
 				
 				}
 			}
-		 }else if(State::getInstance()->getWorkspace() == work_state::CALIBRATION){
+		 }else if(State::getInstance()->getWorkspace() == CALIBRATION){
 			 if(camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->isCalibrated() <= 0){
 				WizardDockWidget::getInstance()->addCalibrationReference(x, y);
 			 }else{
 				 if(e->modifiers().testFlag(Qt::ControlModifier)){
-					camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->setPointManual(x, y , State::getInstance()->getCalibrationVisImage() == calibrationVisImage_state::DISTORTEDCALIBIMAGE);
+					camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->setPointManual(x, y , State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
 					updateGL();
 				 }
 			 }
@@ -244,14 +244,14 @@ void GLCameraView::paintGL()
 	bool drawImage = true;
 	bool noDraw = false;
 	glEnable(GL_TEXTURE_2D);
-	if(State::getInstance()->getWorkspace() == work_state::UNDISTORTION){
+	if(State::getInstance()->getWorkspace() == UNDISTORTION){
 		if(camera->hasUndistortion()){
 			camera->getUndistortionObject()->bindTexture(State::getInstance()->getUndistortionVisImage());
 		}else{
 			drawImage = false;
 			renderTextCentered("No undistortion grid loaded");
 		}
-	}else if(State::getInstance()->getWorkspace() == work_state::CALIBRATION){
+	}else if(State::getInstance()->getWorkspace() == CALIBRATION){
 		camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->bindTexture(State::getInstance()->getCalibrationVisImage());
 	}
 
@@ -273,7 +273,7 @@ void GLCameraView::paintGL()
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	if(State::getInstance()->getWorkspace() == work_state::UNDISTORTION){
+	if(State::getInstance()->getWorkspace() == UNDISTORTION){
 		if(camera->hasUndistortion()){
 			camera->getUndistortionObject()->drawData(State::getInstance()->getUndistortionVisPoints());
 		}

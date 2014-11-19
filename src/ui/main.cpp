@@ -7,7 +7,7 @@
 
 #include "ui/MainWindow.h"
 #include "ui/ErrorDialog.h"
-#include "core\Settings.h"
+#include "core/Settings.h"
 
 #include <iostream>
 #include <opencv/cv.h>

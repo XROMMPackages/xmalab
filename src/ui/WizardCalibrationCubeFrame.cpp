@@ -12,14 +12,14 @@
 #include "ui/ErrorDialog.h"
 #include "ui/ConfirmationDialog.h"
 
-#include "core\Project.h"
-#include "core\Camera.h"
-#include "core\Settings.h"
-#include "core\CalibrationImage.h"
-#include "core\CalibrationObject.h"
-#include "processing\BlobDetection.h"
-#include "processing\CubeCalibration.h"
-#include "processing\Calibration.h"
+#include "core/Project.h"
+#include "core/Camera.h"
+#include "core/Settings.h"
+#include "core/CalibrationImage.h"
+#include "core/CalibrationObject.h"
+#include "processing/BlobDetection.h"
+#include "processing/CubeCalibration.h"
+#include "processing/Calibration.h"
 
 #include <QInputDialog>
 

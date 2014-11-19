@@ -157,7 +157,7 @@ cv::Mat Camera::getCameraMatrix(){
 }
 
 QString Camera::getFilenameCameraMatrix(){
-	return this->getName() + "_CameraMatrixcsv";
+	return this->getName() + "_CameraMatrix.csv";
 }
 void Camera::saveCameraMatrix( QString filename){
 	std::ofstream outfile (filename.toAscii().data());
@@ -196,7 +196,7 @@ void Camera::loadCameraMatrix( QString filename){
         for (double value; in >> value; comma(in)) {
             tmp.push_back(value);
         }
-        values.push_back(tmp);
+		if(tmp.size()>0) values.push_back(tmp);
     }
 	fin.close();
 
@@ -312,6 +312,5 @@ void Camera::getDLT(double * out, int frame){
 		out[i]		= (out[i]		+ out[i + 8]) / out[11]; // (+1 for x coordinates from 1)
 		out[i + 4]  = (out[i + 4]   + out[i + 8]) / out[11]; // (+1 for x coordinates from 1)
 		out[i + 8]  =  out[i + 8]				  / out[11];
-		fprintf(stderr, "%lf %lf %lf \n",out[i],out[i + 4],out[i + 8] );
 	}
 }

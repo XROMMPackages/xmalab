@@ -438,7 +438,7 @@ void CalibrationImage::loadPoints(cv::vector <cv::Point2d> &points, QString file
         for (double value; in >> value; comma(in)) {
             tmp.push_back(value);
         }
-        values.push_back(tmp);
+        if(tmp.size()>0) values.push_back(tmp);
     }
 	fin.close();
 	
@@ -468,7 +468,7 @@ void CalibrationImage::loadPointsInlier( QString filename){
         for (double value; in >> value; comma(in)) {
             tmp.push_back(value);
         }
-        values.push_back(tmp);
+        if(tmp.size()>0) values.push_back(tmp);
     }
 	fin.close();
 	
@@ -505,7 +505,7 @@ void CalibrationImage::loadRotationMatrix( QString filename){
         for (double value; in >> value; comma(in)) {
             tmp.push_back(value);
         }
-        values.push_back(tmp);
+        if(tmp.size()>0) values.push_back(tmp);
     }
 	fin.close();
 
@@ -539,7 +539,7 @@ void CalibrationImage::loadTranslationVector( QString filename){
         for (double value; in >> value; comma(in)) {
             tmp.push_back(value);
         }
-        values.push_back(tmp);
+        if(tmp.size()>0) values.push_back(tmp);
     }
 	fin.close();
 

@@ -83,7 +83,7 @@ void Project::exportDLT(QString foldername){
 
 		if(allCamsSet){
 			std::ofstream outfile ((foldername + OS_SEP + "MergedDlts_Frame" + QString::number(frame) +".csv").toAscii().data() );
-			for(unsigned int i = 0; i < 12 ; i++){
+			for(unsigned int i = 0; i < 11 ; i++){
 				for(unsigned int c = 0; c < dlts.size() ; c++){	
 					outfile << dlts[c][i];
 					if(c == dlts.size()-1) {
