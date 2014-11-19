@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="images">
+    <file>resource-files/icons/Alert.png</file>
+    <file>resource-files/icons/Error.png</file>
+    <file>resource-files/icons/arrow_out_longer.png</file>
+  </qresource>
+</RCC>

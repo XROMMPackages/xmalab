@@ -1,0 +1,53 @@
+/*
+ * ConfirmationDialog.cpp
+ *
+ *  Created on: Nov 19, 2013
+ *      Author: ben
+ */
+
+
+#include "ui/ConfirmationDialog.h"
+#include "ui_ConfirmationDialog.h"
+
+ConfirmationDialog* ConfirmationDialog::instance = NULL;
+
+ConfirmationDialog::ConfirmationDialog(QWidget *parent) :
+												QDialog(parent),
+												diag(new Ui::ConfirmationDialog){
+
+	diag->setupUi(this);
+}
+
+ConfirmationDialog::~ConfirmationDialog(){
+	delete diag;
+	instance = NULL;
+}
+
+ConfirmationDialog* ConfirmationDialog::getInstance()
+{
+	if(!instance) 
+	{
+		instance = new ConfirmationDialog();
+	}
+	return instance;
+}
+
+bool ConfirmationDialog::showConfirmationDialog(QString message)
+{
+	diag->message->setText(message);
+	this->exec();
+
+	if(result()){
+		return true;
+	}else{
+		return false;
+	}
+}
+
+void ConfirmationDialog::on_pushButton_OK_clicked(){
+	this->accept();
+}
+
+void ConfirmationDialog::on_pushButton_Cancel_clicked(){
+	this->reject();
+}
