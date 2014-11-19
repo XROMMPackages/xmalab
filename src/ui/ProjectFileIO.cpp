@@ -277,6 +277,8 @@ bool ProjectFileIO::readProjectFile(QString filename){
 							if(cam->isCalibrated()){
 								QXmlStreamAttributes attr = xml.attributes() ;
 								text = attr.value("CameraMatrix").toString();
+								text.replace("\\",OS_SEP);
+								text.replace("/",OS_SEP);
 								cam->loadCameraMatrix( basedir + OS_SEP + text);
 							}
 
@@ -287,6 +289,8 @@ bool ProjectFileIO::readProjectFile(QString filename){
 									{
 										QXmlStreamAttributes attr = xml.attributes() ;
 										text = attr.value("Filename").toString();
+										text.replace("\\",OS_SEP);
+										text.replace("/",OS_SEP);
 										cam->loadUndistortionImage( basedir + OS_SEP + text);
 										cam->getUndistortionObject()->setComputed(attr.value("isComputed").toString().toInt());
 										while(!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "UndistortionGrid")) {
@@ -297,18 +301,26 @@ bool ProjectFileIO::readProjectFile(QString filename){
 												}else if (xml.name() == "PointsDetected"){
 													QXmlStreamAttributes attr = xml.attributes() ;
 													text = attr.value("Filename").toString();
+													text.replace("\\",OS_SEP);
+													text.replace("/",OS_SEP);
 													cam->getUndistortionObject()->loadPointsDetected( basedir + OS_SEP + text);
 												}else if(xml.name() == "GridPointsDistorted"){
 													QXmlStreamAttributes attr = xml.attributes() ;
 													text = attr.value("Filename").toString();
+													text.replace("\\",OS_SEP);
+													text.replace("/",OS_SEP);
 													cam->getUndistortionObject()->loadGridPointsDistorted( basedir + OS_SEP  + text);
 												}else if(xml.name() == "GridPointsReferences"){
 													QXmlStreamAttributes attr = xml.attributes() ;
 													text = attr.value("Filename").toString();
+													text.replace("\\",OS_SEP);
+													text.replace("/",OS_SEP);
 													cam->getUndistortionObject()->loadGridPointsReferences( basedir + OS_SEP + text);
 												}else if(xml.name() == "GridPointsInlier"){
 													QXmlStreamAttributes attr = xml.attributes() ;
 													text = attr.value("Filename").toString();
+													text.replace("\\",OS_SEP);
+													text.replace("/",OS_SEP);
 													cam->getUndistortionObject()->loadGridPointsInlier( basedir + OS_SEP + text);
 												}
 											}
@@ -325,22 +337,32 @@ bool ProjectFileIO::readProjectFile(QString filename){
 												if (xml.name() == "PointsDetectedAll"){
 													QXmlStreamAttributes attr = xml.attributes() ;
 													text = attr.value("Filename").toString();
+													text.replace("\\",OS_SEP);
+													text.replace("/",OS_SEP);
 													image->loadPointsDetectedAll( basedir + OS_SEP + text);
 												}else if(xml.name() == "PointsDetected"){
 													QXmlStreamAttributes attr = xml.attributes() ;
 													text = attr.value("Filename").toString();
+													text.replace("\\",OS_SEP);
+													text.replace("/",OS_SEP);
 													image->loadPointsDetected( basedir + OS_SEP  + text);
 												}else if(xml.name() == "Inlier"){
 													QXmlStreamAttributes attr = xml.attributes() ;
 													text = attr.value("Filename").toString();
+													text.replace("\\",OS_SEP);
+													text.replace("/",OS_SEP);
 													image->loadPointsInlier( basedir + OS_SEP + text);
 												}else if(xml.name() == "RotationMatrix"){
 													QXmlStreamAttributes attr = xml.attributes() ;
 													text = attr.value("Filename").toString();
+													text.replace("\\",OS_SEP);
+													text.replace("/",OS_SEP);
 													image->loadRotationMatrix( basedir + OS_SEP  + text);
 												}else if(xml.name() == "TranslationVector"){
 													QXmlStreamAttributes attr = xml.attributes() ;
 													text = attr.value("Filename").toString();
+													text.replace("\\",OS_SEP);
+													text.replace("/",OS_SEP);
 													image->loadTranslationVector( basedir + OS_SEP + text);
 												}
 											}
@@ -370,10 +392,13 @@ bool ProjectFileIO::readProjectFile(QString filename){
 										attr.value("SquareSize").toString().toInt()
 									);
 							}else{
-								CalibrationObject::getInstance()->loadCoords(
-										basedir + OS_SEP + attr.value("FrameSpecifications").toString(),
-										basedir + OS_SEP + attr.value("References").toString()
-									);
+								QString frameSpec = basedir + OS_SEP + attr.value("FrameSpecifications").toString();
+								QString references =basedir + OS_SEP + attr.value("References").toString();
+								references.replace("\\",OS_SEP);
+								references.replace("/",OS_SEP);
+								frameSpec.replace("\\",OS_SEP);
+								frameSpec.replace("/",OS_SEP);
+								CalibrationObject::getInstance()->loadCoords(frameSpec,references);
 							}
 						}
 					}
