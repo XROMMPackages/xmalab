@@ -39,9 +39,10 @@ WizardCalibrationCubeFrame::WizardCalibrationCubeFrame(QWidget *parent) :
 												frame(new Ui::WizardCalibrationCubeFrame){
 
 	frame->setupUi(this);
-#ifndef __APPLE__
-	frame->label_placeholder->hide();
+#ifdef __APPLE__
+	frame->pushButton->setMinimumHeight(26);
 #endif
+
 	setDialog();
 	frame->comboBoxPoints->setCurrentIndex(2);
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
