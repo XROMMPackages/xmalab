@@ -493,8 +493,13 @@ void MainWindow::on_actionClose_Project_triggered(bool checked){
 	closeProject();
 }
 void MainWindow::on_actionSave_Project_triggered(bool checked){
-	saveProject();
+	if(project->getProjectFilename().isEmpty()){
+		saveProjectAs();
+	}else{
+		saveProject();
+	}
 }
+
 void MainWindow::on_actionSave_Project_as_triggered(bool checked){
 	saveProjectAs();
 }
