@@ -25,6 +25,9 @@ WizardUndistortionFrame::WizardUndistortionFrame(QWidget *parent) :
 												frame(new Ui::WizardUndistortionFrame){
 
 	frame->setupUi(this);
+#ifndef __APPLE__
+	frame->label_placeholder->hide();
+#endif
 	undistortionChanged(NOTUNDISTORTED);
 	connect(State::getInstance(), SIGNAL(undistortionChanged(undistortion_state)), this, SLOT(undistortionChanged(undistortion_state)));
 }

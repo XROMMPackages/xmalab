@@ -21,7 +21,6 @@ WorkspaceNavigationFrame::WorkspaceNavigationFrame(QWidget *parent) :
 												frame(new Ui::WorkspaceNavigationFrame){
 
 	frame->setupUi(this);
-
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(State::getInstance(), SIGNAL(displayChanged(ui_state)), this, SLOT(displayChanged(ui_state)));
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));

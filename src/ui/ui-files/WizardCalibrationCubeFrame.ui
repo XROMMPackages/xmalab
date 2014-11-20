@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>468</width>
-    <height>496</height>
+    <height>507</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,6 +20,26 @@
    <enum>QFrame::Raised</enum>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QPushButton" name="pushButton">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
    <item row="3" column="0">
     <widget class="QFrame" name="frameModifyCalibration">
      <property name="frameShape">
@@ -432,26 +452,6 @@
      </layout>
     </widget>
    </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string/>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QPushButton" name="pushButton">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
    <item row="4" column="0">
     <widget class="QGroupBox" name="groupBoxDelete">
      <property name="title">
@@ -480,6 +480,13 @@
        </widget>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_placeholder">
+     <property name="text">
+      <string/>
+     </property>
     </widget>
    </item>
   </layout>
