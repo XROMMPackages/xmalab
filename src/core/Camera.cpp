@@ -238,7 +238,7 @@ void Camera::getMayaCam(double * out, int frame)
 
 	//Invert Transformation
 	rotTmp = rotTmp.inv();
-	transTmp = rotTmp * transTmp;
+	transTmp = -rotTmp * transTmp;
 
 	//0-2 Translation
 	out[0] = transTmp.at<double>(0,0);
@@ -297,7 +297,7 @@ void Camera::getDLT(double * out, int frame){
 	projectionmatrix.create(3,4,CV_64F);
 	rotTmp.copyTo(tmp);
 	cv::hconcat(tmp,transTmp,tmp);
-	projectionmatrix = cameramatrix * tmp;
+	projectionmatrix = camTmp * tmp;
 	int count = 0;
 	for(unsigned int i = 0 ; i < 3; i++){
 		for(unsigned int j = 0; j < 4; j ++){
