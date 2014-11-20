@@ -4,6 +4,8 @@
 #include "ui/WizardUndistortionFrame.h"
 #include "ui/WizardCalibrationCubeFrame.h"
 
+#include <QLabel>
+
 WizardDockWidget* WizardDockWidget::instance = NULL;
 
 WizardDockWidget::WizardDockWidget(QWidget *parent) :
@@ -16,6 +18,13 @@ WizardDockWidget::WizardDockWidget(QWidget *parent) :
 	calibrationFrame = new WizardCalibrationCubeFrame(this);
 	dock->gridLayout->addWidget(undistortionFrame, 0, 0, 1, 1);
 	dock->gridLayout->addWidget(calibrationFrame, 1, 0, 1, 1);
+#ifdef __APPLE__
+	label = new QLabel(this);
+    label->setObjectName(QString::fromUtf8("label"));
+	dock->gridLayout->addWidget(label,2, 0, 1, 1);
+	label->setText(QApplication::translate("WizardDockWidget", "", 0, QApplication::UnicodeUTF8));
+#endif
+
 	dock->gridLayout->setSizeConstraint(QLayout::SetFixedSize);
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 }

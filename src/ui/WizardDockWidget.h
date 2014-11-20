@@ -17,6 +17,7 @@ namespace Ui {
 
 class WizardUndistortionFrame;
 class WizardCalibrationCubeFrame;
+class QLabel;
 
 class WizardDockWidget : public QDockWidget{
 
@@ -39,7 +40,9 @@ class WizardDockWidget : public QDockWidget{
 
 		WizardUndistortionFrame * undistortionFrame;
 		WizardCalibrationCubeFrame * calibrationFrame;
-
+#ifdef __APPLE__
+		QLabel *label;
+#endif
 	public slots:
 		void workspaceChanged(work_state workspace);
 
