@@ -18,13 +18,12 @@ WorldViewDockWidget::WorldViewDockWidget(QWidget *parent):QDockWidget(parent)
 	openGL = new WorldViewDockGLWidget(this);
 	setFeatures(QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable);
 	setAllowedAreas(Qt::AllDockWidgetAreas);
-	setMinimumSize(0,0);
-	this->resize(500,500);
+	resize(500, 500);
     layout = new QGridLayout;
     layout->addWidget(openGL, 0, 0);
 	setWidget(openGL);
-	setWindowTitle(QApplication::translate("WorldViewDockWidget", "3D view", 0, QApplication::UnicodeUTF8));
-    
+	setWindowTitle(QApplication::translate("WorldViewDockWidget", "External view", 0, QApplication::UnicodeUTF8));
+	
 }
 
 void  WorldViewDockWidget::resizeEvent ( QResizeEvent * event )

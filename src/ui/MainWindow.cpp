@@ -74,9 +74,10 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect( &resizeTimer, SIGNAL(timeout()), SLOT(resizeDone()) );
 
 	GLSharedWidget::getInstance();
+	worldViewDockWidget = new WorldViewDockWidget(this);
+    addDockWidget(Qt::LeftDockWidgetArea, worldViewDockWidget);
 	WizardDockWidget::getInstance();
 	ProgressDialog::getInstance();
-	worldViewDockWidget = new WorldViewDockWidget(this);
 	worldViewDockWidget->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());	
 
 	restoreGeometry(Settings::getUIGeometry("XMALab"));
@@ -97,6 +98,7 @@ MainWindow::~MainWindow(){
 	closeProject();
 	delete GLSharedWidget::getInstance();
 	delete WizardDockWidget::getInstance();
+	delete worldViewDockWidget;
 	instance = NULL;
 }
 
@@ -124,7 +126,6 @@ void MainWindow::resizeEvent(QResizeEvent *event){
 } 
 
 void MainWindow::closeEvent (QCloseEvent * event){
-	//glwindow->close();
 	Settings::setUIGeometry("XMALab",saveGeometry());
     Settings::setUIState("XMALab", saveState(UI_VERSION));
     QMainWindow::closeEvent(event);
