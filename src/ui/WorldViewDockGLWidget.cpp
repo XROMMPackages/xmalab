@@ -309,6 +309,9 @@ void WorldViewDockGLWidget::drawCamerasCalibration(){
 			camTmp.release();
 			rotTmp.release();
 			transTmp.release();
+
+			glDisable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, 0);
 		}	
 	}
 }

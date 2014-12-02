@@ -91,7 +91,8 @@ class MainWindow : public QMainWindow{
 		void on_actionSettings_triggered(bool checked);
 		void on_actionAbout_triggered(bool checked);
 		void on_action3D_world_view_triggered(bool checked);
-
+		void on_actionConsole_triggered(bool checked);
+		
 		//startMainFrameButtons
 		void on_pushButtonNew_Project_clicked();
 		void on_pushButtonLoad_Project_clicked();

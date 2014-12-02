@@ -425,7 +425,7 @@ void CubeCalibration::setupCorrespondancesRansac(unsigned int loop_max, double t
 	cv::Mat tmp_projection;
 	tmp_projection.create(3, 4, CV_64F);
 	maxinlier = 0;
-
+	fprintf(stderr,"Start Ransac\n", maxinlier);
 	for(unsigned int loop = 0; loop < loop_max; loop ++){
 		//Vector for points
 		cv::vector<cv::Point2d> pt2d;
@@ -981,7 +981,7 @@ void CubeCalibration::setupCorrespondancesRansacPose(unsigned int loop_max, doub
 
 	cv::vector<cv::Point2d> pt2d_best;
 	cv::vector<cv::Point3d> pt3d_best;
-
+	fprintf(stderr,"Start Ransac\n", maxinlier);
 	for(unsigned int loop = 0; loop < loop_max; loop ++){
 		//Vector for points
 		cv::vector<cv::Point2d> pt2d;

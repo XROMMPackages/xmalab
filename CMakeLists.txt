@@ -144,6 +144,7 @@ SET(Calibration_FORMS_HEADERS
 	src/ui/AboutDialog.h
 	src/ui/WorldViewDockGLWidget.h
 	src/ui/WorldViewDockWidget.h
+	src/ui/ConsoleDockWidget.h	
 )
 
 SET(Calibration_FORMS_SOURCES
@@ -171,6 +172,7 @@ SET(Calibration_FORMS_SOURCES
 		src/ui/AboutDialog.cpp	
 		src/ui/WorldViewDockGLWidget.cpp	
 		src/ui/WorldViewDockWidget.cpp	
+		src/ui/ConsoleDockWidget.cpp	
 )
 
 SOURCE_GROUP(_UI FILES ${Calibration_FORMS_HEADERS} ${Calibration_FORMS_SOURCES})
@@ -194,6 +196,7 @@ SET(Calibration_FORMS
 		src/ui/ui-files/UndistortionInfoFrame.ui
 		src/ui/ui-files/ProgressDockWidget.ui
 		src/ui/ui-files/AboutDialog.ui
+		src/ui/ui-files/ConsoleDockWidget.ui
 )
 
 #Only for groupinh
@@ -216,6 +219,7 @@ SET(Calibration_FORMS_MOC
 		build/ui_CalibrationInfoFrame.h
 		build/ui_UndistortionInfoFrame.h
 		build/ui_AboutDialog.h
+		build/ui_ConsoleDockWidget.h
 )
 
 SOURCE_GROUP(UI_Generated FILES ${Calibration_FORMS} ${Calibration_FORMS_MOC})

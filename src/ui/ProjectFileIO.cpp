@@ -11,6 +11,7 @@
 #include "ui/ErrorDialog.h"
 #include "ui/ProgressDialog.h"
 #include "ui/State.h"
+#include "ui/ConsoleDockWidget.h"
 
 #include <QDir>
 #include <QXmlStreamWriter>
@@ -112,6 +113,9 @@ bool ProjectFileIO::saveProject(QString filename){
 		}
 	}
 
+	//save Log
+	ConsoleDockWidget::getInstance()->save(tmpDir_path + OS_SEP + "log.html");
+
 	zipFromFolderToFile(filename, tmpDir_path,"XROMM Project File");
 
 	removeDir(tmpDir_path);
@@ -126,6 +130,9 @@ bool ProjectFileIO::loadProject(QString filename){
 
 	unzipFromFileToFolder(filename,tmpDir_path);
 	readProjectFile(tmpDir_path + OS_SEP + "project.xml");
+	
+	ConsoleDockWidget::getInstance()->load(tmpDir_path + OS_SEP + "log.html");
+	
 
 	removeDir(tmpDir_path);
 

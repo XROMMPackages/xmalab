@@ -17,6 +17,7 @@
 #include "ui/ProjectFileIO.h"
 #include "ui/ProgressDialog.h"
 #include "ui/WizardDockWidget.h"
+#include "ui/ConsoleDockWidget.h"
 #include "ui/UndistortSequenceDialog.h"
 #include "ui/SettingsDialog.h"
 #include "ui/WorldViewDockWidget.h"
@@ -24,7 +25,6 @@
 #include <QSplitter>
 #include <QFileDialog>
 #include <QtCore>
-
 
 #include <iostream>
 
@@ -73,12 +73,15 @@ MainWindow::MainWindow(QWidget *parent) :
 	resizeTimer.setSingleShot( true );
 	connect( &resizeTimer, SIGNAL(timeout()), SLOT(resizeDone()) );
 
-	GLSharedWidget::getInstance();
+	GLSharedWidget::getInstance()->makeGLCurrent();
 	worldViewDockWidget = new WorldViewDockWidget(this);
     addDockWidget(Qt::LeftDockWidgetArea, worldViewDockWidget);
 	WizardDockWidget::getInstance();
 	ProgressDialog::getInstance();
+
 	worldViewDockWidget->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());	
+	
+	ConsoleDockWidget::getInstance();
 
 	restoreGeometry(Settings::getUIGeometry("XMALab"));
 	if(Settings::getUIState("XMALab").size()<0 ||
@@ -86,9 +89,11 @@ MainWindow::MainWindow(QWidget *parent) :
 		WizardDockWidget::getInstance()->setFloating(true);
 		ProgressDialog::getInstance()->setFloating(true);
 		worldViewDockWidget->setFloating(true);	
+		ConsoleDockWidget::getInstance()->setFloating(true);	
 	}
 	
 	WizardDockWidget::getInstance()->hide();
+	ConsoleDockWidget::getInstance()->hide();
 	worldViewDockWidget->hide();
 	ProgressDialog::getInstance()->hide();
 }
@@ -138,7 +143,6 @@ void MainWindow::recountFrames(){
 }
 
 void MainWindow::setupProjectUI(){
-	fprintf(stderr, "setup Project\n" );
 	State::getInstance()->changeActiveCamera(0);
 	State::getInstance()->changeActiveFrame(0);
 
@@ -396,6 +400,8 @@ void MainWindow::UndistortionAfterloadProjectFinished(){
 		}
 	}
 
+	ConsoleDockWidget::getInstance()->afterLoad();
+
 	WizardDockWidget::getInstance()->update();
 
 	MainWindow::getInstance()->redrawGL();
@@ -418,7 +424,9 @@ void MainWindow::closeProject(){
 	State::getInstance()->changeUndistortion(NOTUNDISTORTED);
 	WizardDockWidget::getInstance()->hide();
 	this->setWindowTitle("XMALab");
+	ConsoleDockWidget::getInstance()->clear();
 }
+
 
 void MainWindow::saveProject(){
 	if(WizardDockWidget::getInstance()->checkForPendingChanges()){
@@ -611,4 +619,9 @@ void MainWindow::on_pushButtonLoad_Project_clicked(){
 void MainWindow::on_action3D_world_view_triggered(bool checked){
 	if(checked)worldViewDockWidget->show();
 	else worldViewDockWidget->hide();
+}
+
+void MainWindow::on_actionConsole_triggered(bool checked){
+	if(checked)ConsoleDockWidget::getInstance()->show();
+	else ConsoleDockWidget::getInstance()->hide();
 }
