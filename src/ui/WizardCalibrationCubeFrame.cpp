@@ -41,6 +41,9 @@ WizardCalibrationCubeFrame::WizardCalibrationCubeFrame(QWidget *parent) :
 	frame->setupUi(this);
 #ifdef __APPLE__
 	frame->pushButton->setMinimumHeight(26);
+	frame->pushButtonDeleteFrame->setMinimumHeight(26);
+	frame->pushButtonResetCamera->setMinimumHeight(26);
+	frame->pushButtonResetFrame->setMinimumHeight(26);
 #endif
 
 	setDialog();
