@@ -29,7 +29,7 @@ class ConsoleDockWidget : public QDockWidget{
 		~ConsoleDockWidget();
 		static ConsoleDockWidget* getInstance();
 
-		void ConsoleDockWidget::writeLog(QString message,unsigned int level = 0);
+		void writeLog(QString message, unsigned int level = 0);
 		void save(QString file);
 		void load(QString file);
 		void clear();
