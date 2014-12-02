@@ -14,6 +14,7 @@ Settings::~Settings(){
 void Settings::setup(){
 	QCoreApplication::setOrganizationName("XROMM");
     QCoreApplication::setApplicationName("XMALab");
+	QSettings::setDefaultFormat(QSettings::IniFormat);
 }
 
 void Settings::setLastUsedDirectory(QString filename, bool directory){
