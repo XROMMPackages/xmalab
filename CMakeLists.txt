@@ -39,8 +39,9 @@ set(QT_USE_QTOPENGL TRUE)
 INCLUDE(${QT_USE_FILE})
 SET(CMAKE_AUTOMOC ON)
 
-set(PROJECT_VERSION_MAJOR "0")
-set(PROJECT_VERSION_MINOR "1")
+set(PROJECT_BUILD_TIME "12/01/2014")
+set(PROJECT_VERSION_MAJOR "1")
+set(PROJECT_VERSION_MINOR "0")
 set(PROJECT_VERSION_PATCH "0")
 set(PROJECT_VERSION_COUNT 1)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
@@ -50,12 +51,31 @@ set(PROJECT_DOMAIN_FIRST "xromm")
 set(PROJECT_DOMAIN_SECOND "org")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 
+
+# Set some Win32 Specific Settings
+IF(WIN32)
+	SET(GUI_TYPE WIN32)
+	SET(QT_USE_QMAIN true)
+	INCLUDE(${QT_USE_FILE})
+ENDIF(WIN32)
+
+IF (APPLE)
+	SET(GUI_TYPE MACOSX_BUNDLE)
+	set( MACOSX_BUNDLE_ICON_FILE XMALab-Icon.icns )
+	# Allows for bundle re-creation just by running "make". Also installs bundle icon
+	add_custom_target(osx_bundle_dirs
+		COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources
+		COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/MacOS
+		COMMAND cp ${CMAKE_SOURCE_DIR}/src/ui/resource-files/icons/${MACOSX_BUNDLE_ICON_FILE}
+            ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources/${MACOSX_BUNDLE_ICON_FILE})
+ENDIF (APPLE)
+
 if(CMAKE_COMPILER_IS_GNUCXX OR APPLE)
         add_definitions(-Wall -Wextra)
 endif()
 
 ADD_DEFINITIONS(${QT_DEFINITIONS})
-ADD_DEFINITIONS(-DPROJECT_VERSION=\"${PROJECT_VERSION}\")
+ADD_DEFINITIONS(-DPROJECT_VERSION=\"${PROJECT_VERSION}\" -DPROJECT_BUILD_TIME=\"${PROJECT_BUILD_TIME}\")
 
 SET(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${QUAZIP_INCLUDE_DIRS})
@@ -119,7 +139,13 @@ SET(Calibration_FORMS_HEADERS
 	src/ui/WizardCalibrationCubeFrame.h
 	src/ui/UndistortSequenceDialog.h
 	src/ui/SettingsDialog.h
+	src/ui/CalibrationInfoFrame.h
+	src/ui/UndistortionInfoFrame.h
+	src/ui/AboutDialog.h
+	src/ui/WorldViewDockGLWidget.h
+	src/ui/WorldViewDockWidget.h
 )
+
 SET(Calibration_FORMS_SOURCES
 		src/ui/main.cpp
      	src/ui/MainWindow.cpp
@@ -140,6 +166,11 @@ SET(Calibration_FORMS_SOURCES
 		src/ui/WizardCalibrationCubeFrame.cpp
 		src/ui/UndistortSequenceDialog.cpp
 		src/ui/SettingsDialog.cpp
+		src/ui/CalibrationInfoFrame.cpp
+		src/ui/UndistortionInfoFrame.cpp	
+		src/ui/AboutDialog.cpp	
+		src/ui/WorldViewDockGLWidget.cpp	
+		src/ui/WorldViewDockWidget.cpp	
 )
 
 SOURCE_GROUP(_UI FILES ${Calibration_FORMS_HEADERS} ${Calibration_FORMS_SOURCES})
@@ -149,7 +180,6 @@ SET(Calibration_FORMS
 		src/ui/ui-files/MainWindow.ui
 		src/ui/ui-files/ErrorDialog.ui
 		src/ui/ui-files/ConfirmationDialog.ui
-		src/ui/ui-files/ProgressDialog.ui
 		src/ui/ui-files/NewProjectDialog.ui
 		src/ui/ui-files/CameraBox.ui
 		src/ui/ui-files/CameraViewWidget.ui
@@ -160,15 +190,19 @@ SET(Calibration_FORMS
 		src/ui/ui-files/WizardCalibrationCubeFrame.ui
 		src/ui/ui-files/UndistortSequenceDialog.ui
 		src/ui/ui-files/SettingsDialog.ui
+		src/ui/ui-files/CalibrationInfoFrame.ui
+		src/ui/ui-files/UndistortionInfoFrame.ui
+		src/ui/ui-files/ProgressDockWidget.ui
+		src/ui/ui-files/AboutDialog.ui
 )
 
 #Only for groupinh
 SET(Calibration_FORMS_MOC
-		build/Calibration_automoc.cpp
+		build/XMALab_automoc.cpp
 		build/ui_MainWindow.h
 		build/ui_ErrorDialog.h
 		build/ui_ConfirmationDialog.h
-		build/ui_ProgressDialog.h
+		build/ui_ProgressDockWidget.h
 		build/ui_NewProjectDialog.h
 		build/ui_CameraBox.h
 		build/ui_CameraViewWidget.h
@@ -179,6 +213,9 @@ SET(Calibration_FORMS_MOC
 		build/ui_WizardCalibrationCubeFrame.h
 		build/ui_UndistortSequenceDialog.h
 		build/ui_SettingsDialog.h
+		build/ui_CalibrationInfoFrame.h
+		build/ui_UndistortionInfoFrame.h
+		build/ui_AboutDialog.h
 )
 
 SOURCE_GROUP(UI_Generated FILES ${Calibration_FORMS} ${Calibration_FORMS_MOC})
@@ -188,7 +225,7 @@ SET(Calibration_RESOURCE_FILES
 		src/ui//calibrationtool_resources.qrc
 )
 
-SOURCE_GROUP(RESOURCE FILES ${Calibration_RESOURCE_FILES})
+SOURCE_GROUP(RESOURCE FILES ${Calibration_RESOURCE_FILES} src/ui/calibrationtool_resources.rc)
 
 
 #SETTING UP QT FORMS
@@ -204,7 +241,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 
 #BUILD AND LINK
-ADD_EXECUTABLE(${PROJECT_NAME} WIN32 MACOSX_BUNDLE 
+ADD_EXECUTABLE(${PROJECT_NAME} ${GUI_TYPE}
 		${Calibration_SOURCES} 
 		${Calibration_HEADERS}
 		${Processing_SOURCES} 
@@ -213,6 +250,10 @@ ADD_EXECUTABLE(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
 		${Calibration_FORMS_HEADERS}
 		${Calibration_FORMS_HEADERS_GEN} 
     	${Calibration_RESOURCES_RCC}
+		src/ui/calibrationtool_resources.rc
 )
 
+IF (APPLE)
+  add_dependencies(${PROJECT_NAME} osx_bundle_dirs )
+ENDIF (APPLE)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OpenCV_LIBS} ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${QUAZIP_LIBRARIES})

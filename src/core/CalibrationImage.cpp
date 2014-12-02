@@ -229,6 +229,36 @@ void CalibrationImage::draw(int type){
 	}
 }
 
+void CalibrationImage::getDrawTextData(int type, bool distorted, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text, std::vector<bool>& inlier){
+	x.clear();
+	y.clear();
+	text.clear();
+	inlier.clear();
+
+	for(int i = 0 ; i < Inlier.size(); i++){		
+		if(Inlier[i] == 1){
+			inlier.push_back(true);
+		}else{
+			inlier.push_back(false);
+			if(Inlier[i] < 0) text.push_back("");
+		}
+
+		if(distorted){
+			x.push_back(projectedPoints[i].x);
+			y.push_back(projectedPoints[i].y);
+			if(type >= 2 && Inlier[i] >=0) text.push_back(QString::number(error[i],'f',2));
+		}else{
+			x.push_back(projectedPointsUndistorted[i].x);
+			y.push_back(projectedPointsUndistorted[i].y);
+			if(type >= 2 && Inlier[i] >=0) text.push_back(QString::number(errorUndistorted[i],'f',2));
+		}
+
+		if(type == 1 && Inlier[i] >=0) text.push_back(QString::number(i+1));
+		
+	}
+}
+		
+
 cv::Mat CalibrationImage::getTransformationMatrix(){
 	cv::Mat trans;
 	trans.create(4,4,CV_64FC1);

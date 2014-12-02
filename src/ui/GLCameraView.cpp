@@ -44,7 +44,7 @@ GLCameraView::GLCameraView(QWidget *parent)
     setAutoFillBackground(false);
 	x_offset = 0;
 	y_offset = 0;
-
+	this->setCursor( QCursor( Qt::CrossCursor ));
 	setZoomRatio(1.0,true);
 }
 
@@ -66,11 +66,11 @@ void GLCameraView::clampXY(){
 	}
 
 	if(camera_height < window_height * zoomRatio){
-		if(y_offset > 0.5 * (zoomRatio * window_height)) y_offset = 0.5 * (zoomRatio * window_height);
-		if(y_offset < camera_height - 0.5 * (zoomRatio * window_height)) y_offset = camera_height - 0.5 * (zoomRatio * window_height);
+		if(y_offset < -0.5 * (zoomRatio * window_height)) y_offset = -0.5 * (zoomRatio * window_height);
+		if(y_offset > -camera_height + 0.5 * (zoomRatio * window_height)) y_offset = -camera_height + 0.5 * (zoomRatio * window_height);
 	}else{
-		if(y_offset < 0.5 * (zoomRatio * window_height)) y_offset = 0.5 * (zoomRatio * window_height);
-		if(y_offset > camera_height - 0.5 * (zoomRatio * window_height)) y_offset = camera_height - 0.5 * (zoomRatio * window_height);
+		if(y_offset > -0.5 * (zoomRatio * window_height)) y_offset = -0.5 * (zoomRatio * window_height);
+		if(y_offset < -camera_height + 0.5 * (zoomRatio * window_height)) y_offset = -camera_height + 0.5 * (zoomRatio * window_height);
 	}
 }
 
@@ -94,8 +94,8 @@ void GLCameraView::mouseDoubleClickEvent ( QMouseEvent * e ){
 	if(e->buttons() & Qt::LeftButton){
 		if(State::getInstance()->getWorkspace() == CALIBRATION
 			&& camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->isCalibrated() > 0){
-				double x =  zoomRatio * (e->posF().x()) - ((window_width ) * zoomRatio * 0.5 + x_offset);
-				double y =  zoomRatio * ((window_height) - e->posF().y()) - ((window_height) * zoomRatio * 0.5 - y_offset) - 0.5;
+				double x =  zoomRatio * (e->posF().x()) - ((window_width)  * zoomRatio * 0.5 + x_offset);
+				double y =  zoomRatio * (e->posF().y()) - ((window_height) * zoomRatio * 0.5 + y_offset);
 				camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->toggleInlier(x, y , State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
 			updateGL();
 		}
@@ -111,8 +111,8 @@ void GLCameraView::mousePressEvent(QMouseEvent *e)
 		 prev_x = zoomRatio * e->posF().x();
 	 }else if(e->buttons() & Qt::LeftButton){
 
-		 double x =  zoomRatio * (e->posF().x()) - ((window_width ) * zoomRatio * 0.5 + x_offset);
-		 double y =  zoomRatio * ((window_height) - e->posF().y()) - ((window_height) * zoomRatio * 0.5 - y_offset) - 0.5;
+		 double x =  zoomRatio * (e->posF().x()) - ((window_width ) * zoomRatio * 0.5 + x_offset) - 0.5;
+		 double y =  zoomRatio * (e->posF().y()) - ((window_height) * zoomRatio * 0.5 + y_offset) - 0.5;
 		 if(State::getInstance()->getWorkspace() == UNDISTORTION){
 			if(camera->hasUndistortion()){
 				int clickmode = State::getInstance()->State::getInstance()->getUndistortionMouseMode();
@@ -174,6 +174,7 @@ void GLCameraView::setAutoZoom(bool on){
 	if(on){
 		setZoomRatio(zoomRatio,true);
 		setZoomToFit();
+		
 	}else{
 		setZoomRatio(zoomRatio,false);
 	}
@@ -188,8 +189,8 @@ void GLCameraView::setZoom(int value){
 void GLCameraView::setZoomToFit(){
 	setZoomRatio((((double) camera_width) / window_width > ((double) camera_height) / window_height ) ? ((double) camera_width) / window_width : ((double) camera_height) / window_height,autozoom);
 
-	x_offset = -0.5 * (zoomRatio * window_width);
-	y_offset =  0.5 * (zoomRatio * window_height);
+	x_offset =  -0.5 * (zoomRatio * window_width);
+	y_offset =  -0.5 * (zoomRatio * window_height);
 
 	update();
 }
@@ -213,7 +214,6 @@ void GLCameraView::resizeGL(int _w, int _h){
 	window_height = _h;
 	
 	glViewport(0,0,window_width,window_height);	
-
 	if(autozoom)setZoomToFit();
 }
 
@@ -221,18 +221,55 @@ void GLCameraView::renderTextCentered(QString string){
 	setFont(QFont(this->font().family(), 24));
 	qglColor(QColor(255, 0, 0));
 	QFontMetrics fm(this->font());
-	renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, y_offset - zoomRatio * fm.height() * 0.5 , 0.0, string);
+	renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, - zoomRatio * fm.height() * 0.5 - y_offset, 0.0, string);
+}
+
+void GLCameraView::renderPointText(){
+	std::vector<double> x;
+	std::vector<double> y;
+	std::vector<QString> text;
+	std::vector<bool> inlier;
+
+	camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->getDrawTextData(State::getInstance()->getCalibrationVisText(), State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE, x, y, text, inlier);
+	setFont(QFont(this->font().family(), 15.0 ));
+	QFontMetrics fm(this->font());
+	if(State::getInstance()->getCalibrationVisText() < 3){
+		for(int i = 0 ; i < x.size(); i++){
+			if(inlier[i]) {
+				qglColor(QColor(0, 255, 0));
+			}else{
+				qglColor(QColor(255, 0, 0));
+			}
+			renderText(x[i] + 3, y[i], 0.0, text[i]);
+		}
+	}else{
+		double max = 0;
+		for(int i = 0 ; i < text.size(); i++){
+			if(text[i].toDouble() > max) max = text[i].toDouble();
+		}
+		for(int i = 0 ; i < x.size(); i++){
+			double val = text[i].toDouble();
+			qglColor(QColor(255.0 * val / max, 255.0 * (1.0 - val / max), 0));
+			renderText(x[i] + 3, y[i], 0.0, text[i]);
+		}
+	}
+
+	x.clear();
+	y.clear();
+	inlier.clear();
+	text.clear();
 }
 
 void GLCameraView::paintGL()
-{
+{	
+	glDisable(GL_DEPTH_TEST);	
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity();
 
 	glOrtho(-0.5 * (zoomRatio * window_width) - x_offset - 0.5, 
 			 0.5 * (zoomRatio * window_width) - x_offset - 0.5,
-			-0.5 * (zoomRatio * window_height) + y_offset - 0.5,
-			 0.5 * (zoomRatio * window_height) + y_offset - 0.5,
+			 0.5 * (zoomRatio * window_height) - y_offset - 0.5,
+			 -0.5 * (zoomRatio * window_height) - y_offset - 0.5,
 			-1000,1000);
 
 	gluLookAt (0, 0,1, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
@@ -279,12 +316,15 @@ void GLCameraView::paintGL()
 		}
 	}else{
 		camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->draw(State::getInstance()->getCalibrationVisPoints());
+		if(State::getInstance()->getCalibrationVisText() > 0){
+			renderPointText();
+		}
 	}
 
 	if(State::getInstance()->getActiveCamera() == this->camera->getID()){
 		WizardDockWidget::getInstance()->draw();
 	}
-
+ 
 	glFlush ();
 }
 

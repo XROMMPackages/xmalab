@@ -1,0 +1,314 @@
+/*
+ * ProgressDialog.cpp
+ *
+ *  Created on: Nov 19, 2013
+ *      Author: ben
+ */
+
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#include "core/Project.h"
+#include "core/CalibrationImage.h"
+#include "core/Camera.h"
+#include "core/CalibrationObject.h"
+#include "core/UndistortionObject.h"
+#include "ui/State.h"
+
+#include "ui/WorldViewDockGLWidget.h"
+#include <QtGui/QApplication>
+#include <QMouseEvent>
+
+
+#ifndef _PI
+#define _PI 3.141592653
+#endif
+
+GLfloat LightAmbient[]=  { 0.3f, 0.3f, 0.3f, 1.0f };     // Ambient Light Values
+GLfloat LightDiffuse[]=  { 0.5f, 0.5f, 0.5f, 1.0f };     // Diffuse Light Values
+GLfloat LightPosition[]= { 0.0f, 10.0f, 0.0f, 1.0f };    // Light Position
+
+WorldViewDockGLWidget::WorldViewDockGLWidget(QWidget *parent)
+    : QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
+{
+	eyedistance = 500.0;
+	azimuth = 135.0;
+	polar = 0.0;
+
+	w=50;
+	h=50;
+    setMinimumSize(50, 50);
+    setAutoFillBackground(false);
+	opengl_initialised = false;
+}
+
+void WorldViewDockGLWidget::animate()
+{
+//    repaint();
+}
+
+WorldViewDockGLWidget::~WorldViewDockGLWidget()
+{
+	if(opengl_initialised)gluDeleteQuadric(sphere_quadric);  
+}
+
+void WorldViewDockGLWidget::mouseMoveEvent(QMouseEvent *e)
+{
+     if(e->buttons() & Qt::LeftButton)
+     {
+		 azimuth -= prev_azi - e->posF().y();
+		 polar -= prev_pol - e->posF().x();
+
+		 azimuth = (azimuth > 180) ? 180.0 : azimuth;
+		 azimuth = (azimuth < 0) ? 0.0 : azimuth;
+
+		 while (polar > 360) polar = polar - 360.0;
+		 while (polar < 0) polar = polar + 360.0;
+
+		 prev_azi = e->posF().y();
+		 prev_pol = e->posF().x();
+         updateGL();
+     }
+}
+ 
+
+void WorldViewDockGLWidget::mousePressEvent(QMouseEvent *e)
+{
+     if(e->buttons() & Qt::LeftButton)
+     {
+		 prev_azi = e->posF().y();
+		 prev_pol = e->posF().x();
+     }
+}
+
+void WorldViewDockGLWidget::wheelEvent(QWheelEvent *e){
+	eyedistance += e->delta()/12.0;
+    updateGL();
+}
+
+void WorldViewDockGLWidget::initializeGL(){
+	glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
+	glClearDepth(1.0f);									// Depth Buffer Setup
+	glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
+	glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
+
+	glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient);		// Setup The Ambient Light
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse);		// Setup The Diffuse Light
+	glLightfv(GL_LIGHT1, GL_POSITION,LightPosition);	// Position The Light
+	glEnable(GL_LIGHT1);								
+	glEnable(GL_LIGHTING);
+	
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT,GL_AMBIENT_AND_DIFFUSE);
+}
+
+void WorldViewDockGLWidget::resizeGL(int _w, int _h){
+	w = _w;
+	h = _h;
+
+	glViewport(0,0,w,h);
+}
+
+void WorldViewDockGLWidget::paintGL()
+{
+	glMatrixMode (GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(25.0, (double (w))/h, 1.0, 100000.0);
+
+	double e_z = eyedistance * cos(polar * _PI / 180.0) * sin(azimuth * _PI / 180.0);
+	double e_x = eyedistance * sin(polar * _PI / 180.0) * sin(azimuth * _PI / 180.0);
+	double e_y = eyedistance * cos(azimuth * _PI / 180.0);
+
+	gluLookAt (e_x, e_y, e_z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glMatrixMode (GL_MODELVIEW);
+	glLoadIdentity();
+
+	glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glLineWidth(2.5); 
+	glColor3f(1.0, 0.0, 0.0);
+	glBegin(GL_LINES);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(100.0, 0, 0);
+	glEnd(); 
+
+	glColor3f(0.0, 1.0, 0.0);
+	glBegin(GL_LINES);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(0, 100.0, 0);
+	glEnd(); 
+
+	glColor3f(0.0, 0.0, 1.0);
+	glBegin(GL_LINES);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(0, 0, 100.0);
+	glEnd(); 
+
+//////////DRAW
+	if(State::getInstance()->getWorkspace() == CALIBRATION){
+		drawCalibrationCube();
+		drawCamerasCalibration();
+	}
+
+	glFlush ();
+}
+
+void WorldViewDockGLWidget::drawCalibrationCube(){
+	if(!opengl_initialised){
+		sphere_quadric=gluNewQuadric();					 // Create A Pointer To The Quadric Object ( NEW )
+		gluQuadricNormals(sphere_quadric, GLU_SMOOTH);   // Create Smooth Normals ( NEW )
+		gluQuadricTexture(sphere_quadric, GL_TRUE);      // Create Texture Coords ( NEW )
+	}
+
+	if(CalibrationObject::getInstance()->isInitialised() && !CalibrationObject::getInstance()->isPlanar()){
+		for (unsigned int i=0; i<CalibrationObject::getInstance()->getFrameSpecifications().size(); i++){
+			glPushMatrix();
+			if( i == CalibrationObject::getInstance()->getReferenceIDs()[0]) {glColor3f(1.0,0.0,0.0);}
+			else if ( i == CalibrationObject::getInstance()->getReferenceIDs()[1]) {glColor3f(0.0,1.0,0.0);}
+			else if ( i == CalibrationObject::getInstance()->getReferenceIDs()[2]) {glColor3f(0.0,0.0,1.0);}
+			else if ( i == CalibrationObject::getInstance()->getReferenceIDs()[3]) {glColor3f(1.0,1.0,0.0);}
+			else {glColor3f(1.0,1.0,1.0);}
+
+			glTranslated(CalibrationObject::getInstance()->getFrameSpecifications()[i].x,
+						CalibrationObject::getInstance()->getFrameSpecifications()[i].y,
+						CalibrationObject::getInstance()->getFrameSpecifications()[i].z);
+
+			gluSphere(sphere_quadric,0.3f,32,32);  
+		
+			glPopMatrix();
+		}
+	}
+}
+
+void WorldViewDockGLWidget::drawCamerasCalibration(){
+	for(int cam = 0 ; cam < Project::getInstance()->getCameras().size(); cam++){
+		if(Project::getInstance()->getCameras()[cam]->isCalibrated()
+			&& Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrame()]->isCalibrated()){
+
+			glPushMatrix();
+			double m [16];
+			//inversere Rotation = transposed rotation
+			//and opengl requires transposed, so we set R
+			cv::Mat transTmp;
+			cv::Mat rotTmp;
+			cv::Mat camTmp;
+			camTmp.create(3, 3, CV_64F);
+			rotTmp.create(3, 3, CV_64F);
+			transTmp.create(3, 1, CV_64F);
+
+			camTmp =  Project::getInstance()->getCameras()[cam]->getCameraMatrix().clone();
+			transTmp = Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrame()]->getTranslationVector();
+			cv::Rodrigues(Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrame()]->getRotationVector(), rotTmp);
+
+			//adjust y - inversion
+			transTmp.at<double>(0,0) = -transTmp.at<double>(0,0);
+			transTmp.at<double>(0,2) = -transTmp.at<double>(0,2);
+			for(int i = 0; i < 3 ; i ++){
+				rotTmp.at<double>(0,i) = -rotTmp.at<double>(0,i);
+				rotTmp.at<double>(2,i) = -rotTmp.at<double>(2,i);
+			}	
+			camTmp.at<double>(1,2) = (Project::getInstance()->getCameras()[cam]->getHeight() - 1) - camTmp.at<double>(1,2);
+
+			for (unsigned int y = 0 ; y <3 ; y ++)
+			{
+				m[y*4] =   rotTmp.at<double>(y,0);
+				m[y*4 + 1] = rotTmp.at<double>(y,1);
+				m[y*4 + 2] =  rotTmp.at<double>(y,2);
+				m[y*4 + 3] = 0.0;
+			}
+			
+			//inverse translation = translation rotated with inverse rotation/transposed rotation
+			//R-1 * -t = R^tr * -t
+			m[12] = m[0] * -transTmp.at<double>(0,0) 
+				+ m[4] * - transTmp.at<double>(1,0) 
+				+ m[8] * - transTmp.at<double>(2,0);
+			m[13] = m[1] * - transTmp.at<double>(0,0) 
+				+ m[5] * - transTmp.at<double>(1,0) 
+				+ m[9] * - transTmp.at<double>(2,0);
+			m[14] = m[2] * - transTmp.at<double>(0,0) 
+				+ m[6] * - transTmp.at<double>(1,0) 
+				+ m[10] * - transTmp.at<double>(2,0);
+			m[15] = 1.0;
+			glMultMatrixd(m);
+		
+			//Draw CO
+			glColor3f(1.0, 0.0, 0.0);
+			glBegin(GL_LINES);
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(10.0, 0, 0);
+			glEnd(); 
+
+			glColor3f(0.0, 1.0, 0.0);
+			glBegin(GL_LINES);
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(0, 10.0, 0);
+			glEnd(); 
+
+			glColor3f(0.0, 0.0, 1.0);
+			glBegin(GL_LINES);
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(0, 0, 10.0);
+			glEnd(); 
+		
+
+			//Draw Boundaries
+			double x_min = (0 - camTmp.at<double>(0,2) ) / camTmp.at<double>(0,0);
+			double x_max = (  Project::getInstance()->getCameras()[cam]->getWidth() - camTmp.at<double>(0,2) ) / camTmp.at<double>(0,0);
+			double y_min = (0 - camTmp.at<double>(1,2) ) / camTmp.at<double>(1,1);
+			double y_max = ( Project::getInstance()->getCameras()[cam]->getHeight() - camTmp.at<double>(1,2)) / camTmp.at<double>(1,1);
+			
+			double z = -200.0;
+
+			glColor3f(1.0, 1.0, 1.0);
+			glBegin(GL_LINES);
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(z * x_min, z * y_min, z);
+		
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(z * x_min, z * y_max, z);
+		
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(z * x_max, z * y_min, z);
+		
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(z * x_max, z * y_max, z);
+			glEnd(); 
+
+			glBegin (GL_LINE_LOOP);
+			glVertex3f(z * x_min, z * y_min, z);
+			glVertex3f(z * x_min, z * y_max, z);
+			glVertex3f(z * x_max, z * y_max, z);
+			glVertex3f(z * x_max, z * y_min, z);
+			glEnd(); 
+
+			glEnable(GL_TEXTURE_2D);
+
+			Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrame()]->bindTexture(State::getInstance()->getCalibrationVisImage());
+
+			glBegin(GL_QUADS);
+			glTexCoord2f (0.0f,1.0f);
+			glVertex3f(z * x_min, z * y_min, z); // bottom left
+			glTexCoord2f (1.0f,1.0f);
+			glVertex3f(z * x_max, z * y_min, z); // bottom right
+			glTexCoord2f (1.0f,0.0f);
+			glVertex3f(z * x_max, z * y_max, z);// top right
+			glTexCoord2f (0.0f,0.0f);
+			glVertex3f(z * x_min, z * y_max, z); // top left
+			glEnd();
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glDisable(GL_TEXTURE_2D);
+		
+			glPopMatrix();
+
+			camTmp.release();
+			rotTmp.release();
+			transTmp.release();
+		}	
+	}
+}

@@ -17,7 +17,8 @@ class Project{
 
 		const std::vector <Camera *>& getCameras(){return cameras;}
 		QString getProjectFilename(){return projectFilename;}
-	
+		QString getProjectBasename();
+
 		int getNbImages(){return nbImages;}
 
 		void addCamera(Camera * cam);

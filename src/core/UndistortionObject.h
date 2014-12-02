@@ -56,6 +56,9 @@ class UndistortionObject{
 		void setRecalibrationRequired(int value){requiresRecalibration = value;}
 		int isRecalibrationRequired(){return requiresRecalibration;}
 		
+		void setUpdateInfoRequired(bool value){updateInfoRequired = value;}
+		int isUpdateInfoRequired(){return updateInfoRequired;}
+		
 		QString getFilename();
 		QString getFilenameBase();
 		QString getFilenamePointsDetected();
@@ -81,6 +84,9 @@ class UndistortionObject{
 		void drawData(int type);
 		void bindTexture(int type);
 
+		cv::vector<bool> &getInlier(){return points_grid_inlier;}
+		cv::vector<double> &getError(){return error;}
+
 	private:
 		//Camera
 		Camera* camera;
@@ -103,6 +109,7 @@ class UndistortionObject{
 		cv::vector <cv::Point2d> points_grid_undistorted;
 		cv::vector<bool> points_grid_inlier;
 		cv::vector <cv::Point2d> points_grid_references;
+		cv::vector<double> error;
 
 		cv::Mat undistortionMapX;
 		cv::Mat undistortionMapY;
@@ -123,6 +130,7 @@ class UndistortionObject{
 		void loadPoints(cv::vector <cv::Point2d> &points, QString filename);
 		void drawPoints(std::vector <cv::Point2d> &points);
 		int findClosestPoint(std::vector <cv::Point2d> &points, double x, double y);
+		void computeError();
 
 		cv::Point2d transformLWM(cv::Point2d &ptIn, cv::Mat &controlPts, cv::Mat &A, cv::Mat &B, cv::Mat &radii);
 		void computeTmpImage(int type);
@@ -135,6 +143,8 @@ class UndistortionObject{
 		cv::Point2d center;
 		bool centerSet;
 		int requiresRecalibration;
+
+		bool updateInfoRequired;
 };
 
 

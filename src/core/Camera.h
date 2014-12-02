@@ -63,6 +63,9 @@ class Camera{
 
 		void setRecalibrationRequired(int value){requiresRecalibration = value;}
 		int isRecalibrationRequired(){return requiresRecalibration;}
+
+		void setUpdateInfoRequired(bool value){updateInfoRequired = value;}
+		int isUpdateInfoRequired(){return updateInfoRequired;}
 		
 		QString getFilenameCameraMatrix();
 		void saveCameraMatrix( QString filename);
@@ -88,6 +91,8 @@ class Camera{
 		//Calibrated Camera parameters
 		bool calibrated;
 		int requiresRecalibration;
+		bool updateInfoRequired;
+
 
 		cv::Mat cameramatrix;
 

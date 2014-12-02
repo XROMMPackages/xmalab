@@ -72,6 +72,7 @@ void Calibration::computeCameraPosesAndCam(){
 
 void Calibration::computeCameraPosesAndCam_threadFinished(){
 	Project::getInstance()->getCameras()[m_camera]->setRecalibrationRequired(0);
+	Project::getInstance()->getCameras()[m_camera]->setUpdateInfoRequired(true);
 
 	delete m_FutureWatcher;
 	nbInstances--;

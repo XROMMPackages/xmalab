@@ -8,19 +8,19 @@
 #ifndef PROGRESSDIALOG_H_
 #define PROGRESSDIALOG_H_
 
-#include <QDialog>
+#include <QDockWidget>
 
 
 namespace Ui {
-	class ProgressDialog;
+	class ProgressDockWidget;
 }
 
-class ProgressDialog : public QDialog{
+class ProgressDialog : public QDockWidget{
 
 	Q_OBJECT
 
 	private:
-		Ui::ProgressDialog *diag;
+		Ui::ProgressDockWidget *diag;
 		static ProgressDialog* instance;
 
 	protected:

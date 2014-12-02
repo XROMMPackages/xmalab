@@ -55,6 +55,7 @@ class WizardCalibrationCubeFrame : public QFrame{
 		void on_pushButton_clicked();
 		void on_comboBoxImage_currentIndexChanged(int idx);
 		void on_comboBoxPoints_currentIndexChanged(int idx);
+		void on_comboBoxText_currentIndexChanged(int idx);
 
 		void on_toolButtonReference1_clicked();
 		void on_toolButtonReference2_clicked();

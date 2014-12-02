@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>XMALab</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../calibrationtool_resources.qrc">
+    <normaloff>:/images/resource-files/icons/XMALab-Icon.png</normaloff>:/images/resource-files/icons/XMALab-Icon.png</iconset>
+  </property>
   <property name="dockOptions">
    <set>QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks|QMainWindow::ForceTabbedDocks</set>
   </property>
@@ -599,8 +603,11 @@
    </property>
   </action>
   <action name="action3D_world_view">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>3D world view</string>
@@ -618,7 +625,7 @@
   </action>
   <action name="actionAbout">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>About</string>
@@ -638,6 +645,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../calibrationtool_resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

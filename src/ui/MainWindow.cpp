@@ -19,6 +19,8 @@
 #include "ui/WizardDockWidget.h"
 #include "ui/UndistortSequenceDialog.h"
 #include "ui/SettingsDialog.h"
+#include "ui/WorldViewDockWidget.h"
+#include "ui/AboutDialog.h"
 #include <QSplitter>
 #include <QFileDialog>
 #include <QtCore>
@@ -48,15 +50,20 @@ MainWindow::MainWindow(QWidget *parent) :
 												ui(new Ui::MainWindow){
 
 	//To prevent endless looping when accesing MainWindow::getInstance in constructors
+	worldViewDockWidget = NULL;
 	if(!instance) instance = this;
 
 	ui->setupUi(this);
-	
+	this->statusBar()->hide();
+
 	ui->imageMainFrame->setVisible(false);
 	WorkspaceNavigationFrame::getInstance()->setObjectName(QString::fromUtf8("workspaceNavigationFrame"));
     WorkspaceNavigationFrame::getInstance()->setFrameShape(QFrame::StyledPanel);
     WorkspaceNavigationFrame::getInstance()->setFrameShadow(QFrame::Raised);
+	ui->gridLayout_2->removeWidget(ui->imageScrollArea);
 	ui->gridLayout_2->addWidget(WorkspaceNavigationFrame::getInstance(), 0, 0, 1, 1);
+	ui->gridLayout_2->addWidget(ui->imageScrollArea, 1, 0, 1, 1);
+
 	WorkspaceNavigationFrame::getInstance()->setVisible(false);
 
 	ui->sequenceNavigationFrame->setVisible(false);
@@ -68,8 +75,23 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	GLSharedWidget::getInstance();
 	WizardDockWidget::getInstance();
-}
+	ProgressDialog::getInstance();
+	worldViewDockWidget = new WorldViewDockWidget(this);
+	worldViewDockWidget->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());	
+
+	restoreGeometry(Settings::getUIGeometry("XMALab"));
+	if(Settings::getUIState("XMALab").size()<0 ||
+		!restoreState(Settings::getUIState("XMALab"),UI_VERSION)){
+		WizardDockWidget::getInstance()->setFloating(true);
+		ProgressDialog::getInstance()->setFloating(true);
+		worldViewDockWidget->setFloating(true);	
+	}
 	
+	WizardDockWidget::getInstance()->hide();
+	worldViewDockWidget->hide();
+	ProgressDialog::getInstance()->hide();
+}
+
 
 MainWindow::~MainWindow(){
 	closeProject();
@@ -103,7 +125,10 @@ void MainWindow::resizeEvent(QResizeEvent *event){
 
 void MainWindow::closeEvent (QCloseEvent * event){
 	//glwindow->close();
-	QApplication::quit() ;
+	Settings::setUIGeometry("XMALab",saveGeometry());
+    Settings::setUIState("XMALab", saveState(UI_VERSION));
+    QMainWindow::closeEvent(event);
+	QApplication::quit();
 }	
 
 void MainWindow::recountFrames(){
@@ -343,6 +368,8 @@ void MainWindow::loadProjectFinished(){
 		MainWindow::getInstance()->redrawGL();
 		UndistortionAfterloadProjectFinished();
 	}
+
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab");
 }
 
 void MainWindow::UndistortionAfterloadProjectFinished(){
@@ -389,6 +416,7 @@ void MainWindow::closeProject(){
 	}
 	State::getInstance()->changeUndistortion(NOTUNDISTORTED);
 	WizardDockWidget::getInstance()->hide();
+	this->setWindowTitle("XMALab");
 }
 
 void MainWindow::saveProject(){
@@ -426,12 +454,15 @@ void MainWindow::saveProjectAs(){
 void MainWindow::saveProjectFinished(){
 	delete m_FutureWatcher;
 	ProgressDialog::getInstance()->closeProgressbar();
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab");
 }
 
 void MainWindow::redrawGL(){
 	for (unsigned int i = 0; i < cameraViews.size(); i++) {
 		cameraViews[i]->draw();
+		cameraViews[i]->updateInfo();
     }
+	if(worldViewDockWidget)worldViewDockWidget->draw();
 }
 
 void MainWindow::setCameraViewWidgetTitles(){
@@ -560,6 +591,13 @@ void MainWindow::on_actionSettings_triggered(bool checked){
 	delete diag;
 }
 
+
+void MainWindow::on_actionAbout_triggered(bool checked){
+	AboutDialog * diag = new AboutDialog(this);
+	diag->exec();
+	delete diag;
+}
+
 //startMainFrameButtons
 void MainWindow::on_pushButtonNew_Project_clicked(){
 	newProject();
@@ -567,4 +605,9 @@ void MainWindow::on_pushButtonNew_Project_clicked(){
 
 void MainWindow::on_pushButtonLoad_Project_clicked(){
 	loadProject();
+}
+
+void MainWindow::on_action3D_world_view_triggered(bool checked){
+	if(checked)worldViewDockWidget->show();
+	else worldViewDockWidget->hide();
 }

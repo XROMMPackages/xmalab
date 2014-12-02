@@ -4,6 +4,8 @@
 #include <QString>
 #include <QSettings>
 
+#define UI_VERSION 0
+
 class Settings{
 	
 	public:
@@ -16,6 +18,12 @@ class Settings{
 		//Filename
 		static void setLastUsedDirectory(QString Filename, bool directory = false);  
 		static QString getLastUsedDirectory();
+
+		//UI
+		static void setUIGeometry(QString windowTitle, QByteArray geometry);
+		static QByteArray getUIGeometry(QString windowTitle);
+		static void setUIState(QString windowTitle, QByteArray state);
+		static QByteArray getUIState(QString windowTitle);
 
 		//Workflow
 		static void setAutoConfirmPendingChanges(bool value);

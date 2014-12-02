@@ -11,6 +11,7 @@ CameraBox::CameraBox(QWidget *parent) :
 												QWidget(parent),
 												widget(new Ui::CameraBox){
 	widget->setupUi(this);
+	widget->radioButtonLightCamera->hide();
 }
 
 CameraBox::~CameraBox(){

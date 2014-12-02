@@ -28,6 +28,7 @@ UndistortionObject::UndistortionObject(Camera* _camera, QString _imageFileName){
 	tmpImageType = 0;
 	centerSet = false;
 	requiresRecalibration = 0;
+	updateInfoRequired = false;
 }
 
 UndistortionObject::~UndistortionObject(){
@@ -193,6 +194,7 @@ void UndistortionObject::undistortPoints(){
 	for(std::vector <cv::Point2d>::const_iterator it = points_grid_distorted.begin(); it != points_grid_distorted.end(); ++it){
 		points_grid_undistorted.push_back(transformPoint((*it), true));
 	}
+	computeError();
 }
 
 cv::Point2d UndistortionObject::transformLWM(cv::Point2d & ptIn, cv::Mat &controlPts, cv::Mat &A, cv::Mat &B, cv::Mat &radii){
@@ -771,3 +773,15 @@ void UndistortionObject::loadGridPointsInlier( QString filename){
 	}
 	values.clear();
 }
+
+void UndistortionObject::computeError(){
+	error.clear();
+
+	cv::Point2d diff;
+	for (unsigned int i = 0 ; i <  points_grid_references.size() ; i++){
+		diff = points_grid_undistorted[i] - points_grid_references[i];
+		error.push_back(cv::sqrt(diff.x*diff.x + diff.y*diff.y));
+	}
+}
+
+

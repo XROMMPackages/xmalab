@@ -14,6 +14,7 @@ class Project;
 class CameraViewWidget;
 class NewProjectDialog;
 class WizardDockWidget;
+class WorldViewDockWidget;
 
 class MainWindow : public QMainWindow{
 
@@ -49,7 +50,7 @@ class MainWindow : public QMainWindow{
 
 		QFutureWatcher<bool>* m_FutureWatcher;
 		NewProjectDialog * newProjectdialog;
-
+		WorldViewDockWidget* worldViewDockWidget;
 		
 
 	protected:
@@ -88,6 +89,8 @@ class MainWindow : public QMainWindow{
 		void on_actionUndistort_sequence_triggered(bool checked);
 
 		void on_actionSettings_triggered(bool checked);
+		void on_actionAbout_triggered(bool checked);
+		void on_action3D_world_view_triggered(bool checked);
 
 		//startMainFrameButtons
 		void on_pushButtonNew_Project_clicked();

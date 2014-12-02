@@ -41,6 +41,7 @@ Camera::Camera(QString cameraName, int _id){
 	calibrated = false;
 	cameramatrix.create(3, 3, CV_64F);
 	requiresRecalibration = 0;
+	updateInfoRequired = false;
 }
 
 Camera::~Camera(){
@@ -58,6 +59,7 @@ void Camera::reset(){
 	cameramatrix.create(3, 3, CV_64F);
 	setCalibrated(false);
 	setRecalibrationRequired(0);
+	setUpdateInfoRequired(true);
 	for(std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it){
 		(*it)->reset();
 	}

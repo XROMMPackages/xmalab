@@ -16,6 +16,10 @@
   <property name="windowTitle">
    <string>Error</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../calibrationtool_resources.qrc">
+    <normaloff>:/images/resource-files/icons/XMALab-Icon.png</normaloff>:/images/resource-files/icons/XMALab-Icon.png</iconset>
+  </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
   </property>

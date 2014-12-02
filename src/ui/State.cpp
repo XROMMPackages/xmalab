@@ -13,6 +13,7 @@ State::State(){
 	undistortionMouseMode = UNDISTNOMOUSEMODE;
 	calibrationVisImage = DISTORTEDCALIBIMAGE;
 	calibrationVisPoints = NOCALIBPOINTS;
+	calibrationVisText = NOCALIBTEXT;
 }
 
 State::~State(){
@@ -96,5 +97,12 @@ void State::changeCalibrationVisPoints(calibrationVisPoints_state newCalibration
 	if(calibrationVisPoints != newCalibrationVisPoints){
 		calibrationVisPoints = newCalibrationVisPoints;
 		emit calibrationVisPointsChanged(newCalibrationVisPoints);
+	}
+}
+
+void State::changeCalibrationVisText(calibrationVisText_state newCalibrationVisText){
+	if(calibrationVisText != newCalibrationVisText){
+		calibrationVisText = newCalibrationVisText;
+		emit calibrationVisTextChanged(newCalibrationVisText);
 	}
 }

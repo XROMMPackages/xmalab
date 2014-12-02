@@ -1,0 +1,202 @@
+/*
+ * UndistortionInfoFrame.cpp
+ *
+ *  Created on: Nov 19, 2013
+ *      Author: ben
+ */
+
+
+#include "ui/CalibrationInfoFrame.h"
+#include "ui_CalibrationInfoFrame.h"
+#include "core/Camera.h"
+#include "core/CalibrationImage.h"
+#include "ui/State.h"
+CalibrationInfoFrame::CalibrationInfoFrame(QWidget *parent) :
+												QFrame(parent),
+												frame(new Ui::CalibrationInfoFrame){
+	frame->setupUi(this);
+}
+
+CalibrationInfoFrame::~CalibrationInfoFrame(){
+	delete frame;
+}
+
+void CalibrationInfoFrame::update(Camera * camera){
+	if(camera->isCalibrated()){
+		if(camera->isUpdateInfoRequired()){
+			QString CameraCenter;
+			QString FocalLength;
+			QString FramesCalibrated;
+			QString ErrorAllDist;		
+			QString ErrorAllUndist;
+
+
+
+			getCameraInfo(camera, CameraCenter, FocalLength, FramesCalibrated, ErrorAllDist, ErrorAllUndist);
+			frame->label_CameraCenter->setText(CameraCenter);
+			frame->label_FocalLength->setText(FocalLength);
+			frame->label_FramesCalibrated->setText(FramesCalibrated);
+			frame->label_ErrorAllDist->setText(ErrorAllDist);
+			frame->label_ErrorAllUndist->setText(ErrorAllUndist);
+
+			updateFrame(camera);
+
+			camera->setUpdateInfoRequired(false);
+		}
+	}
+	else{
+		frame->label_CameraCenter->setText("");
+		frame->label_FocalLength->setText("");
+		frame->label_FramesCalibrated->setText("");
+		frame->label_ErrorAllDist->setText("");
+		frame->label_ErrorAllUndist->setText("");
+	}
+}
+
+void CalibrationInfoFrame::getCameraInfo(Camera * camera, QString & CameraCenter, QString & FocalLength, QString & FramesCalibrated, QString & ErrorAllDist, QString & ErrorAllUndist){
+	FocalLength = QString::number(camera->getCameraMatrix().at<double>(0,0) ,'f', 2) + QString(" , ") + 
+									QString::number(camera->getCameraMatrix().at<double>(1,1), 'f', 2);
+
+	CameraCenter = QString::number(camera->getCameraMatrix().at<double>(0,2), 'f', 2) + QString(" , ") + 
+									QString::number(camera->getCameraMatrix().at<double>(1,2) ,'f', 2);
+
+	int countFrames = 0;
+	int countInlier = 0;
+	double meanDist= 0;
+	double meanUndist = 0;
+
+	for(int f = 0; f < camera->getCalibrationImages().size(); f++){
+		if(camera->getCalibrationImages()[f]->isCalibrated()){
+			countFrames++;
+			for (int pt = 0 ; pt < camera->getCalibrationImages()[f]->getInliers().size(); pt ++){
+				if(camera->getCalibrationImages()[f]->getInliers()[pt] > 0){
+					countInlier ++;
+
+					meanDist += camera->getCalibrationImages()[f]->getErrorDist()[pt];
+					meanUndist += camera->getCalibrationImages()[f]->getErrorUndist()[pt];
+				}
+			}
+		}
+	}
+
+
+	if(countInlier > 0) meanDist = meanDist / countInlier;
+	if(countInlier > 0) meanUndist = meanUndist / countInlier;
+
+	countInlier = 0; 
+	double sdDist = 0;
+	double sdUndist = 0;
+	for(int f = 0; f < camera->getCalibrationImages().size(); f++){
+		if(camera->getCalibrationImages()[f]->isCalibrated()){
+			for (int pt = 0 ; pt < camera->getCalibrationImages()[f]->getInliers().size(); pt ++){
+				if(camera->getCalibrationImages()[f]->getInliers()[pt] > 0){
+					countInlier ++;
+
+					sdDist += (meanDist - camera->getCalibrationImages()[f]->getErrorDist()[pt]) * (meanDist - camera->getCalibrationImages()[f]->getErrorDist()[pt]);
+					sdUndist += (meanUndist - camera->getCalibrationImages()[f]->getErrorUndist()[pt]) * (meanUndist - camera->getCalibrationImages()[f]->getErrorUndist()[pt]);
+				}
+			}
+		}
+	}
+
+	if(countInlier > 0) sdDist = sdDist / countInlier;
+	if(countInlier > 0) sdUndist = sdUndist / countInlier;
+
+	FramesCalibrated = QString::number(countFrames) + " of " + QString::number(camera->getCalibrationImages().size() );  
+	ErrorAllUndist =  QString::number(meanUndist,'f',2) + " +/- " + QString::number(sdUndist,'f',2);
+	ErrorAllDist =  QString::number(meanDist,'f',2) + " +/- " + QString::number(sdDist,'f',2);
+}
+
+void CalibrationInfoFrame::updateFrame(Camera * camera){
+	if(camera->isCalibrated() && camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->isCalibrated()){
+		QString ErrorCurrentDist;
+		QString ErrorCurrentUndist;
+		QString RotationVector;
+		QString TranslationVector;
+
+		getInfoFrame(camera, State::getInstance()->getActiveFrame(),ErrorCurrentDist, ErrorCurrentUndist, RotationVector, TranslationVector);
+
+		frame->label_ErrorCurrentDist->setText(ErrorCurrentDist);
+		frame->label_ErrorCurrentUndist->setText(ErrorCurrentUndist);
+		frame->label_RotationVector->setText(RotationVector);
+		frame->label_TranslationVector->setText(TranslationVector);
+
+		frame->label_Inlier->setText(getInfoInlier(camera, State::getInstance()->getActiveFrame()));
+	}
+	else{
+
+		frame->label_Inlier->setText(getInfoInlier(camera, State::getInstance()->getActiveFrame()));
+
+		frame->label_ErrorCurrentDist->setText("");
+		frame->label_ErrorCurrentUndist->setText("");
+		frame->label_RotationVector->setText("");
+		frame->label_TranslationVector->setText("");
+	}
+}
+
+void CalibrationInfoFrame::getInfoFrame(Camera * camera, int frame, QString & ErrorCurrentDist, QString &  ErrorCurrentUndist,QString &  RotationVector, QString & TranslationVector){
+	RotationVector = QString::number(camera->getCalibrationImages()[frame]->getRotationVector().at<double>(0,0) ,'f', 2) + QString(" , ") + 
+					QString::number(camera->getCalibrationImages()[frame]->getRotationVector().at<double>(1,0) ,'f', 2) + QString(" , ") + 
+					QString::number(camera->getCalibrationImages()[frame]->getRotationVector().at<double>(2,0) ,'f', 2);
+
+	TranslationVector = QString::number(camera->getCalibrationImages()[frame]->getTranslationVector().at<double>(0,0) ,'f', 2) + QString(" , ") + 
+					QString::number(camera->getCalibrationImages()[frame]->getTranslationVector().at<double>(1,0) ,'f', 2) + QString(" , ") + 
+					QString::number(camera->getCalibrationImages()[frame]->getTranslationVector().at<double>(2,0) ,'f', 2);
+
+	int countInlier = 0;
+	double meanDist= 0;
+	double meanUndist = 0;
+
+	if(camera->getCalibrationImages()[frame]->isCalibrated()){
+		for (int pt = 0 ; pt < camera->getCalibrationImages()[frame]->getInliers().size(); pt ++){
+			if(camera->getCalibrationImages()[frame]->getInliers()[pt] > 0){
+				countInlier ++;
+
+				meanDist += camera->getCalibrationImages()[frame]->getErrorDist()[pt];
+				meanUndist += camera->getCalibrationImages()[frame]->getErrorUndist()[pt];
+			}
+		}
+	}
+	
+
+	if(countInlier > 0) meanDist = meanDist / countInlier;
+	if(countInlier > 0) meanUndist = meanUndist / countInlier;
+
+	countInlier = 0; 
+	double sdDist = 0;
+	double sdUndist = 0;
+	if(camera->getCalibrationImages()[frame]->isCalibrated()){
+		for (int pt = 0 ; pt < camera->getCalibrationImages()[frame]->getInliers().size(); pt ++){
+			if(camera->getCalibrationImages()[frame]->getInliers()[pt] > 0){
+				countInlier ++;
+
+				sdDist += (meanDist - camera->getCalibrationImages()[frame]->getErrorDist()[pt]) * (meanDist - camera->getCalibrationImages()[frame]->getErrorDist()[pt]);
+				sdUndist += (meanUndist - camera->getCalibrationImages()[frame]->getErrorUndist()[pt]) * (meanUndist - camera->getCalibrationImages()[frame]->getErrorUndist()[pt]);
+			}
+		}
+	}
+	
+
+	if(countInlier > 0) sdDist = sdDist / countInlier;
+	if(countInlier > 0) sdUndist = sdUndist / countInlier;
+
+	ErrorCurrentUndist =  QString::number(meanUndist,'f',2) + " +/- " + QString::number(sdUndist,'f',2);
+	ErrorCurrentDist =  QString::number(meanDist,'f',2) + " +/- " + QString::number(sdDist,'f',2);
+}
+
+
+QString CalibrationInfoFrame::getInfoInlier(Camera * camera, int frame){
+	int countInlierAll = 0;
+	int countInlier = 0;
+	for(int f = 0; f < camera->getCalibrationImages().size(); f++){
+		if(camera->getCalibrationImages()[f]->isCalibrated()){
+			for (int pt = 0 ; pt < camera->getCalibrationImages()[f]->getInliers().size(); pt ++){
+				if(camera->getCalibrationImages()[f]->getInliers()[pt] > 0){
+					countInlierAll ++;
+					if(frame == f) countInlier++;
+				}
+			}
+		}
+	}
+	return QString::number(countInlier) + " / " + QString::number(countInlierAll);  
+}

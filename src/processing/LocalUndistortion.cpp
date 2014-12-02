@@ -82,6 +82,8 @@ void LocalUndistortion::localUndistortion_thread(){
 	Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->setLWMMatrices(_A,_B,_radii,controlPts,A_inverse,B_inverse,radii_inverse,controlPts_inverse);
 	Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->undistortPoints();
 	Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->setRecalibrationRequired(0);
+	Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->setUpdateInfoRequired(true);
+
 	Project::getInstance()->getCameras()[m_camera]->undistort();
 }
 

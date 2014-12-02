@@ -9,6 +9,7 @@
 #include "core/UndistortionObject.h"
 
 #include <QApplication>
+#include <QFileInfo>
 
 #ifdef WIN32
 #define OS_SEP "\\"
@@ -41,6 +42,14 @@ Project* Project::getInstance()
 		instance = new Project();
 	}
 	return instance;
+}
+
+QString Project::getProjectBasename(){
+	if(projectFilename.isEmpty())
+		return "";
+
+	QFileInfo info(projectFilename);
+	return info.completeBaseName(); 
 }
 
 void Project::addCamera(Camera * cam){

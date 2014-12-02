@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>583</width>
-    <height>471</height>
+    <width>630</width>
+    <height>604</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -122,6 +122,41 @@
         </property>
        </widget>
       </item>
+      <item row="0" column="8">
+       <widget class="QToolButton" name="toolButtonInfo">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../calibrationtool_resources.qrc">
+          <normaloff>:/images/resource-files/icons/About.png</normaloff>:/images/resource-files/icons/About.png</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="9">
+       <widget class="QFrame" name="frameInfo">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -133,6 +168,7 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <zorder>frameInfo</zorder>
     </widget>
    </item>
   </layout>

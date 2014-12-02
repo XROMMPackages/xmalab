@@ -219,6 +219,11 @@ void WizardCalibrationCubeFrame::on_comboBoxPoints_currentIndexChanged(int idx){
 	MainWindow::getInstance()->redrawGL();
 }
 
+void WizardCalibrationCubeFrame::on_comboBoxText_currentIndexChanged(int idx){
+	State::getInstance()->changeCalibrationVisText(calibrationVisText_state(idx));
+	MainWindow::getInstance()->redrawGL();
+}
+
 void WizardCalibrationCubeFrame::addCalibrationReference(double x, double y){
 	if(frame->radioButtonReference1->isChecked()){
 		selectedReferencePoints[0].x = x;

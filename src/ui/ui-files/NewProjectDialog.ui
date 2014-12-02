@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Create a new project</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../calibrationtool_resources.qrc">
+    <normaloff>:/images/resource-files/icons/XMALab-Icon.png</normaloff>:/images/resource-files/icons/XMALab-Icon.png</iconset>
+  </property>
   <layout class="QGridLayout" name="gridLayout_4">
    <item row="2" column="1">
     <widget class="QPushButton" name="pushButton_Cancel">
@@ -354,7 +358,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../calibrationtool_resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>radioButtonCube</sender>

@@ -11,8 +11,9 @@
 
 #include <iostream>
 #include <opencv/cv.h>
+
 #ifdef _MSC_VER
-#        pragma comment(linker, "/SUBSYSTEM:CONSOLE")
+	#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
 class MApplication : public QApplication

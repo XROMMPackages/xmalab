@@ -42,6 +42,8 @@ class CalibrationImage{
 		void setDetectedPoints(cv::vector <cv::Point2d> &points);
 		cv::vector <cv::Point2d>& getDetectedPointsAll(){return detectedPoints_ALL;}
 		cv::vector <int>& getInliers(){return Inlier;}
+		cv::vector <double>& getErrorDist(){return error;}
+		cv::vector <double>& getErrorUndist(){return errorUndistorted;}
 		cv::vector <cv::Point2d>& getDetectedPointsUndistorted(){return detectedPointsUndistorted;}
 
 		void setPointsUndistorted(cv::vector <cv::Point2d> & _detectedPoints,cv::vector <cv::Point2d> & _projectedPoints,cv::vector <bool> & _Inlier);
@@ -53,6 +55,7 @@ class CalibrationImage{
 		cv::Mat getTranslationVector ();
 
 		void draw(int type);
+		void getDrawTextData(int type, bool distorted, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text, std::vector<bool>& inlier);
 		void bindTexture(int type);
 
 		cv::Mat getTransformationMatrix();

@@ -3,6 +3,7 @@
 #include <QSettings>
 #include <QFileInfo>
 
+
 Settings::Settings(){
 }
 
@@ -12,7 +13,7 @@ Settings::~Settings(){
 
 void Settings::setup(){
 	QCoreApplication::setOrganizationName("XROMM");
-    QCoreApplication::setApplicationName("Calibration");
+    QCoreApplication::setApplicationName("XMALab");
 }
 
 void Settings::setLastUsedDirectory(QString filename, bool directory){
@@ -28,6 +29,26 @@ void Settings::setLastUsedDirectory(QString filename, bool directory){
 QString Settings::getLastUsedDirectory(){
 	QSettings settings;
 	return settings.value("lastDirectoryUsed").toString();
+}
+
+void Settings::setUIGeometry(QString windowTitle, QByteArray geometry){
+	QSettings settings;
+	settings.setValue("UIGeometry_" + windowTitle, geometry);
+}
+
+QByteArray Settings::getUIGeometry(QString windowTitle){
+	QSettings settings;
+	return settings.value("UIGeometry_" + windowTitle,"").toByteArray();
+}
+
+void Settings::setUIState(QString windowTitle, QByteArray state){
+	QSettings settings;
+	settings.setValue("UIState_" + windowTitle, state);
+}
+
+QByteArray Settings::getUIState(QString windowTitle){
+	QSettings settings;
+	return settings.value("UIState_" + windowTitle,"").toByteArray();
 }
 
 void Settings::setUndistortNamingPattern(QString pattern){

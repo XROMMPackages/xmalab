@@ -42,7 +42,6 @@ private:
 	Camera * camera;
 	void clampXY();
 
-
 	int window_width,window_height;
 	int camera_width,camera_height;
 	double x_offset,y_offset;
@@ -54,6 +53,7 @@ private:
 	void setZoomRatio(double newZoomRation, bool autozoom = false);
 
 	void renderTextCentered(QString string);
+	void renderPointText();
 
 	double x_test,y_test;
 

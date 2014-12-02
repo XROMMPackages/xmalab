@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Settings</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../calibrationtool_resources.qrc">
+    <normaloff>:/images/resource-files/icons/XMALab-Icon.png</normaloff>:/images/resource-files/icons/XMALab-Icon.png</iconset>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="5" column="0" colspan="3">
     <spacer name="horizontalSpacer">
@@ -186,6 +190,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../calibrationtool_resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -10,6 +10,7 @@ enum undistortionVisImage_state {DISTORTEDUNDISTIMAGE = 0, UNDISTORTEDUNDISTIMAG
 enum undistortionVisPoints_state {NOUNDISTPOINTS = 0 , DETECTEDUNDISTPOINTS = 1, GRIDDISTORTEDUNDISTPOINTS = 2, GRIDUNDISTORTEDUNDISTPOINTS = 3, REFERENCEUNDISTPOINTS = 4};
 enum calibrationVisImage_state {DISTORTEDCALIBIMAGE = 0, UNDISTORTEDCALIBIMAGE = 1};
 enum calibrationVisPoints_state {NOCALIBPOINTS = 0 , DETECTEDALLCALIBPOINTS = 1, DETCUBEDISTORTEDCALIBPOINTS = 2, DETCUBEUNDISTORTEDCALIBPOINTS = 3, PROJCUBEDISTORTEDCALIBPOINTS = 4, PROJCUBEUNDISTORTEDCALIBPOINTS = 5};
+enum calibrationVisText_state {NOCALIBTEXT = 0 , IDCALIBTEXT = 1, ERRORCALIBTEXT = 2, ERRORCOLORCALIBTEXT = 3};
 
 enum ui_state {SINGLE_CAMERA = 0, ALL_CAMERAS_FULL_HEIGHT = 1, ALL_CAMERAS_1ROW_SCALED = 2, ALL_CAMERAS_2ROW_SCALED = 3, ALL_CAMERAS_3ROW_SCALED = 4};
 
@@ -31,6 +32,7 @@ class State : public QObject{
 		void changeUndistortionMouseMode(undistortionMouseMode_state newUndistortionMouseMode);
 		void changeCalibrationVisImage(calibrationVisImage_state newCalibrationVisImage);
 		void changeCalibrationVisPoints(calibrationVisPoints_state newCalibrationVisPoints);
+		void changeCalibrationVisText(calibrationVisText_state newCalibrationVisText);
 
 		work_state getWorkspace(){return workspace;}
 		ui_state getDisplay(){return display;}
@@ -42,6 +44,7 @@ class State : public QObject{
 		undistortionMouseMode_state getUndistortionMouseMode(){return undistortionMouseMode;}
 		calibrationVisPoints_state getCalibrationVisPoints(){return calibrationVisPoints;}
 		calibrationVisImage_state getCalibrationVisImage(){return calibrationVisImage;}
+		calibrationVisText_state getCalibrationVisText(){return calibrationVisText;}
 		
 	signals:
 		void workspaceChanged(work_state workspace);  
@@ -54,6 +57,7 @@ class State : public QObject{
 		void undistortionMouseModeChanged(undistortionMouseMode_state undistortionMouseMode);  
 		void calibrationVisImageChanged(calibrationVisImage_state calibrationVisImage);  
 		void calibrationVisPointsChanged(calibrationVisPoints_state calibrationVisPoints);  
+		void calibrationVisTextChanged(calibrationVisText_state calibrationVisText);  
 		
 	private :
 		work_state workspace;
@@ -64,6 +68,7 @@ class State : public QObject{
 		undistortionMouseMode_state undistortionMouseMode;
 		calibrationVisImage_state calibrationVisImage;
 		calibrationVisPoints_state calibrationVisPoints;
+		calibrationVisText_state calibrationVisText;
 		int activeFrame;
 		int activeCamera;
 
