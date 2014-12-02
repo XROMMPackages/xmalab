@@ -70,7 +70,7 @@ void Image::setImage(cv::Mat &_image, bool _color){
 
 void Image::loadTexture(){
 	if(!textureLoaded || image_reset){
-		//((QGLContext*) (GLSharedWidget::getInstance()->getQGLContext()))->makeCurrent();
+		((QGLContext*) (GLSharedWidget::getInstance()->getQGLContext()))->makeCurrent();
 
 		cv::Mat imageOut;	
 		if(!color){
