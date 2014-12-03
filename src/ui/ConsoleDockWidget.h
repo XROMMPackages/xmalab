@@ -34,6 +34,7 @@ class ConsoleDockWidget : public QDockWidget{
 		void load(QString file);
 		void clear();
 		void afterLoad();
+		void prepareSave();
 
 	private:
 		Ui::ConsoleDockWidget *dock;

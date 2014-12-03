@@ -41,11 +41,17 @@ void ConsoleDockWidget::clear(){
 	mutex.unlock();
 }
 
+void ConsoleDockWidget::prepareSave(){
+	mutex.lock();
+	LoadText = dock->console->toHtml();
+	mutex.unlock();
+}
+
 void ConsoleDockWidget::save(QString filename){
 	QFile file(filename);
 	if (file.open(QIODevice::ReadWrite)) {
 		QTextStream stream(&file); 
-		stream << dock->console->toHtml();
+		stream << LoadText;
 		file.flush();
 		file.close();
 	}
@@ -110,15 +116,17 @@ void ConsoleDockWidget::logTimer()
  
     // if there is stuff in the buffer, send it as errorMessage signal and clear the buffer
     if(strlen(errorBuffer) > 0){
-		writeLog(errorBuffer,3);
-        memset(errorBuffer, 0, sizeof(errorBuffer));
+		QString tmp = errorBuffer;
+		memset(errorBuffer, 0, sizeof(errorBuffer));
+		writeLog(tmp,3);  
     }
 
 	fflush(stdout);
  
     // if there is stuff in the buffer, send it as errorMessage signal and clear the buffer
     if(strlen(outputBuffer) > 0){
-		writeLog(outputBuffer,2);
-        memset(outputBuffer, 0, sizeof(outputBuffer));
+		QString tmp = outputBuffer;
+		memset(outputBuffer, 0, sizeof(outputBuffer));
+		writeLog(tmp,2);
     }
 }

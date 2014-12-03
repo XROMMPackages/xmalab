@@ -445,6 +445,8 @@ void MainWindow::saveProjectAs(){
 		QString fileName = QFileDialog::getSaveFileName(this,
 			tr("Save Project File as"), project->getProjectFilename().isEmpty() ? Settings::getLastUsedDirectory() : project->getProjectFilename(),tr("Project zip File (*.zip)"));
 
+		ConsoleDockWidget::getInstance()->prepareSave();
+
 		if ( fileName.isNull() == false )
 		{
 			Settings::setLastUsedDirectory(fileName);
