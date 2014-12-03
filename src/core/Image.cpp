@@ -70,14 +70,14 @@ void Image::setImage(cv::Mat &_image, bool _color){
 
 void Image::loadTexture(){
 	if(!textureLoaded || image_reset){
-		((QGLContext*) (GLSharedWidget::getInstance()->getQGLContext()))->makeCurrent();
+		
+		if(!textureLoaded)((QGLContext*) (GLSharedWidget::getInstance()->getQGLContext()))->makeCurrent();
 
 		cv::Mat imageOut;	
 		if(!color){
 			imageOut.create( image.rows,  image.cols, CV_8UC(3) );
 			cvtColor( image, imageOut, CV_GRAY2RGB);
 		}else{
-			fprintf(stderr,"Reload Color\n");
 			imageOut = image.clone();
 		}
 		glEnable(GL_TEXTURE_2D);
@@ -87,7 +87,6 @@ void Image::loadTexture(){
 		}
 			
 		glBindTexture(GL_TEXTURE_2D, texture);
-
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -101,7 +100,6 @@ void Image::loadTexture(){
 		imageOut.release();
 		textureLoaded = true;
 		image_reset = false;
-
 	}
 }
 
