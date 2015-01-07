@@ -14,6 +14,9 @@ else()
         set(CMAKE_BUILD_RELEASE FALSE)
 endif()
 
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+
 if(APPLE AND CMAKE_INSTALL_PREFIX MATCHES "/usr/local")
         set(CMAKE_INSTALL_PREFIX "/Applications")
 endif()
@@ -28,6 +31,7 @@ cmake_minimum_required(VERSION 2.8.8)
 #ADD OPENCV SUPPORT
 FIND_PACKAGE( OpenCV REQUIRED )
 FIND_PACKAGE( OpenGL )
+FIND_PACKAGE( GLEW REQUIRED )
 
 #Shared Libs off
 #set(OpenCV_SHARED OFF)
@@ -54,8 +58,8 @@ set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 
 # Set some Win32 Specific Settings
 IF(WIN32)
-	SET(GUI_TYPE WIN32)
-	SET(QT_USE_QMAIN true)
+	#SET(GUI_TYPE WIN32)
+	#SET(QT_USE_QMAIN true)
 	INCLUDE(${QT_USE_FILE})
 ENDIF(WIN32)
 
@@ -78,10 +82,10 @@ ADD_DEFINITIONS(${QT_DEFINITIONS})
 ADD_DEFINITIONS(-DPROJECT_VERSION=\"${PROJECT_VERSION}\" -DPROJECT_BUILD_TIME=\"${PROJECT_BUILD_TIME}\")
 
 SET(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${QUAZIP_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${QUAZIP_INCLUDE_DIRS} ${GLEW_INCLUDE_DIR} ${OPENCV_INCLUDE_DIRS})
 
 #SET GENERIC HEADER AND SOURCE FILES
-SET(Calibration_HEADERS 
+SET(XMALab_HEADERS 
 	src/core/Project.h
 	src/core/Settings.h
 	src/core/Camera.h
@@ -89,9 +93,12 @@ SET(Calibration_HEADERS
 	src/core/CalibrationImage.h
 	src/core/UndistortionObject.h
 	src/core/CalibrationObject.h
+	src/core/Trial.h
+	src/core/Marker.h
+	src/core/RigidBody.h
 )
 
-SET(Calibration_SOURCES
+SET(XMALab_SOURCES
 	src/core/Project.cpp
 	src/core/Settings.cpp
 	src/core/Camera.cpp
@@ -99,9 +106,12 @@ SET(Calibration_SOURCES
 	src/core/CalibrationImage.cpp
 	src/core/UndistortionObject.cpp
 	src/core/CalibrationObject.cpp
+	src/core/Trial.cpp
+	src/core/Marker.cpp
+	src/core/RigidBody.cpp
 )
 
-SOURCE_GROUP(_CORE FILES ${Calibration_HEADERS} ${Calibration_SOURCES})
+SOURCE_GROUP(_CORE FILES ${XMALab_HEADERS} ${XMALab_SOURCES})
 
 SET(Processing_HEADERS 
 	src/processing/BlobDetection.h
@@ -120,7 +130,7 @@ SET(Processing_SOURCES
 SOURCE_GROUP(_PROCESSING FILES ${Processing_HEADERS} ${Processing_SOURCES})
 
 #HEADER AND SOURCE FILES FOR UI
-SET(Calibration_FORMS_HEADERS 
+SET(XMALab_FORMS_HEADERS 
 	src/ui/MainWindow.h
 	src/ui/ErrorDialog.h
 	src/ui/ConfirmationDialog.h
@@ -145,9 +155,16 @@ SET(Calibration_FORMS_HEADERS
 	src/ui/WorldViewDockGLWidget.h
 	src/ui/WorldViewDockWidget.h
 	src/ui/ConsoleDockWidget.h	
+	src/ui/WizardDigitizationFrame.h	
+	src/ui/CameraBoxTrial.h
+	src/ui/NewTrialDialog.h
+	src/ui/MarkerTreeWidget.h
+	src/ui/PointsDockWidget.h
+	src/ui/CameraViewDetailWidget.h
+	src/ui/DetailViewDockWidget.h
 )
 
-SET(Calibration_FORMS_SOURCES
+SET(XMALab_FORMS_SOURCES
 		src/ui/main.cpp
      	src/ui/MainWindow.cpp
      	src/ui/ErrorDialog.cpp
@@ -173,12 +190,19 @@ SET(Calibration_FORMS_SOURCES
 		src/ui/WorldViewDockGLWidget.cpp	
 		src/ui/WorldViewDockWidget.cpp	
 		src/ui/ConsoleDockWidget.cpp	
+		src/ui/WizardDigitizationFrame.cpp	
+		src/ui/CameraBoxTrial.cpp
+		src/ui/NewTrialDialog.cpp
+		src/ui/MarkerTreeWidget.cpp
+		src/ui/PointsDockWidget.cpp
+		src/ui/CameraViewDetailWidget.cpp
+		src/ui/DetailViewDockWidget.cpp
 )
 
-SOURCE_GROUP(_UI FILES ${Calibration_FORMS_HEADERS} ${Calibration_FORMS_SOURCES})
+SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
 
 #QT DESIGNER UI FILES
-SET(Calibration_FORMS 
+SET(XMALab_FORMS 
 		src/ui/ui-files/MainWindow.ui
 		src/ui/ui-files/ErrorDialog.ui
 		src/ui/ui-files/ConfirmationDialog.ui
@@ -196,68 +220,82 @@ SET(Calibration_FORMS
 		src/ui/ui-files/UndistortionInfoFrame.ui
 		src/ui/ui-files/ProgressDockWidget.ui
 		src/ui/ui-files/AboutDialog.ui
+		src/ui/ui-files/WizardDigitizationFrame.ui
 		src/ui/ui-files/ConsoleDockWidget.ui
-)
+		src/ui/ui-files/CameraBoxTrial.ui
+		src/ui/ui-files/NewTrialDialog.ui
+		src/ui/ui-files/PointsDockWidget.ui
+		src/ui/ui-files/CameraViewDetailWidget.ui
+		src/ui/ui-files/DetailViewDockWidget.ui
+		)
+
+SOURCE_GROUP(UI_Files FILES ${XMALab_FORMS})
 
 #Only for groupinh
-SET(Calibration_FORMS_MOC
-		build/XMALab_automoc.cpp
-		build/ui_MainWindow.h
-		build/ui_ErrorDialog.h
-		build/ui_ConfirmationDialog.h
-		build/ui_ProgressDockWidget.h
-		build/ui_NewProjectDialog.h
-		build/ui_CameraBox.h
-		build/ui_CameraViewWidget.h
-		build/ui_SequenceNavigationFrame.h
-		build/ui_WorkspaceNavigationFrame.h
-		build/ui_WizardDockWidget.h
-		build/ui_WizardUndistortionFrame.h
-		build/ui_WizardCalibrationCubeFrame.h
-		build/ui_UndistortSequenceDialog.h
-		build/ui_SettingsDialog.h
-		build/ui_CalibrationInfoFrame.h
-		build/ui_UndistortionInfoFrame.h
-		build/ui_AboutDialog.h
-		build/ui_ConsoleDockWidget.h
+SET(XMALab_FORMS_MOC
+		${CMAKE_CURRENT_BINARY_DIR}/XMALab_automoc.cpp
+		${CMAKE_CURRENT_BINARY_DIR}/ui_MainWindow.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_ErrorDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_ConfirmationDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_ProgressDockWidget.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_NewProjectDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_CameraBox.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_CameraViewWidget.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_SequenceNavigationFrame.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_WorkspaceNavigationFrame.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_WizardDockWidget.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_WizardUndistortionFrame.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_WizardCalibrationCubeFrame.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_UndistortSequenceDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_SettingsDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_CalibrationInfoFrame.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_UndistortionInfoFrame.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_AboutDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_WizardDigitizationFrame.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_ConsoleDockWidget.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_CameraBoxTrial.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_NewTrialDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_PointsDockWidget.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_CameraViewDetailWidget.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_DetailViewDockWidget.h
 )
 
-SOURCE_GROUP(UI_Generated FILES ${Calibration_FORMS} ${Calibration_FORMS_MOC})
+SOURCE_GROUP(UI_Generated FILES ${XMALab_FORMS_MOC})
 
-SET(Calibration_RESOURCE_FILES
-		build/qrc_calibrationtool_resources.cxx
+SET(XMALab_RESOURCE_FILES
+		${CMAKE_CURRENT_BINARY_DIR}/qrc_calibrationtool_resources.cxx
 		src/ui//calibrationtool_resources.qrc
 )
 
-SOURCE_GROUP(RESOURCE FILES ${Calibration_RESOURCE_FILES} src/ui/calibrationtool_resources.rc)
+SOURCE_GROUP(RESOURCE FILES ${XMALab_RESOURCE_FILES} src/ui/calibrationtool_resources.rc )
 
 
 #SETTING UP QT FORMS
-#QT4_WRAP_CPP(Calibration_HEADERS_MOC ${Calibration_HEADERS} )
-QT4_WRAP_UI(Calibration_FORMS_HEADERS_GEN ${Calibration_FORMS})
+#QT4_WRAP_CPP(XMALab_HEADERS_MOC ${XMALab_HEADERS} )
+QT4_WRAP_UI(XMALab_FORMS_HEADERS_GEN ${XMALab_FORMS})
 
-SET(Calibration_RESOURCES
+SET(XMALab_RESOURCES
 		src/ui/calibrationtool_resources.qrc
 )
-QT4_ADD_RESOURCES(Calibration_RESOURCES_RCC ${Calibration_RESOURCES})
+QT4_ADD_RESOURCES(XMALab_RESOURCES_RCC ${XMALab_RESOURCES})
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 
 #BUILD AND LINK
 ADD_EXECUTABLE(${PROJECT_NAME} ${GUI_TYPE}
-		${Calibration_SOURCES} 
-		${Calibration_HEADERS}
+		${XMALab_SOURCES} 
+		${XMALab_HEADERS}
 		${Processing_SOURCES} 
 		${Processing_HEADERS}
-		${Calibration_FORMS_SOURCES} 
-		${Calibration_FORMS_HEADERS}
-		${Calibration_FORMS_HEADERS_GEN} 
-    	${Calibration_RESOURCES_RCC}
+		${XMALab_FORMS_SOURCES} 
+		${XMALab_FORMS_HEADERS}
+		${XMALab_FORMS_HEADERS_GEN} 
+    	${XMALab_RESOURCES_RCC}
 		src/ui/calibrationtool_resources.rc
 )
 
 IF (APPLE)
   add_dependencies(${PROJECT_NAME} osx_bundle_dirs )
 ENDIF (APPLE)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OpenCV_LIBS} ${OPENGL_LIBRARIES} ${QT_LIBRARIES} ${QUAZIP_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OpenCV_LIBS} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${QT_LIBRARIES} ${QUAZIP_LIBRARIES})

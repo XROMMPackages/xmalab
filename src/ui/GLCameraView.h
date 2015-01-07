@@ -1,69 +1,72 @@
-/*
- * ProgressDialog.h
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
 #ifndef GLWIDGET_H_
 #define GLWIDGET_H_
 
 #include <QGLWidget>
 
-class Camera;
+namespace xma{
+	class Camera;
 
-class GLCameraView : public QGLWidget
-{
-    Q_OBJECT
+	class GLCameraView : public QGLWidget
+	{
+		Q_OBJECT
 
-public:
-    GLCameraView(QWidget *parent);
-	void setCamera(Camera * _camera);
+	public:
+		GLCameraView(QWidget *parent);
+		void setCamera(Camera * _camera);
 
-	void setMinimumWidthGL(bool set);
-	void setAutoZoom(bool on);
-	void setZoom(int value);	
+		void setMinimumWidthGL(bool set);
+		void setAutoZoom(bool on);
+		void setZoom(int value);
 
-protected:
-    void paintGL();
-	void initializeGL();
-    void resizeGL(int w, int h);
+		void setDetailedView();
 
-	void mouseMoveEvent(QMouseEvent *e);
-	void mousePressEvent(QMouseEvent *e);
-	void wheelEvent(QWheelEvent *event);
-	void mouseDoubleClickEvent ( QMouseEvent * event );
-	
-	void setZoomToFit();
-	void setZoomTo100();
-	
+		void setScale(double value);
+		void setBias(double value);
 
-private:
-	Camera * camera;
-	void clampXY();
+	protected:
+		void paintGL();
+		void initializeGL();
+		void resizeGL(int w, int h);
 
-	int window_width,window_height;
-	int camera_width,camera_height;
-	double x_offset,y_offset;
-	double prev_x,prev_y;
+		void mouseMoveEvent(QMouseEvent *e);
+		void mousePressEvent(QMouseEvent *e);
+		void wheelEvent(QWheelEvent *event);
+		void mouseDoubleClickEvent(QMouseEvent * event);
 
-	double zoomRatio;
-	bool autozoom;
-
-	void setZoomRatio(double newZoomRation, bool autozoom = false);
-
-	void renderTextCentered(QString string);
-	void renderPointText();
-
-	double x_test,y_test;
-
-public: 
-signals:
-	
-	void autozoomChanged(bool on);  
-	void zoomChanged(int zoom); 
-};
+		void setZoomToFit();
+		void setZoomTo100();
 
 
+	private:
+		bool detailedView;
+		Camera * camera;
+		void clampXY();
+
+		int window_width, window_height;
+		int camera_width, camera_height;
+		double x_offset, y_offset;
+		double prev_x, prev_y;
+
+		double zoomRatio;
+		bool autozoom;
+
+		void setZoomRatio(double newZoomRation, bool autozoom = false);
+
+		void renderTextCentered(QString string);
+		void renderPointText();
+		void drawTexture();
+		void drawQuad();
+
+		double x_test, y_test;
+		double bias;
+		double scale;
+
+	public:
+	signals :
+
+		void autozoomChanged(bool on);
+			void zoomChanged(int zoom);
+	};
+}
 
 #endif /* PROGRESSDIALOG_H_ */

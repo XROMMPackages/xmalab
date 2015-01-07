@@ -1,18 +1,27 @@
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include "ui/UndistortSequenceDialog.h"
 #include "ui_UndistortSequenceDialog.h"
+
+#include "ui/ErrorDialog.h"
+#include "ui/ConfirmationDialog.h"
+
 #include "core/Settings.h"
 #include "core/Project.h"
 #include "core/Camera.h"
 #include "core/UndistortionObject.h"
-#include "ui/ErrorDialog.h"
-#include "ui/ConfirmationDialog.h"
+
 #include <QFileDialog>
 
+
 #ifdef WIN32
-#define OS_SEP "\\"
+	#define OS_SEP "\\"
 #else
-#define OS_SEP "/"
+	#define OS_SEP "/"
 #endif
+
+using namespace xma;
 
 UndistortSequenceDialog::UndistortSequenceDialog(QWidget *parent) :
 												QDialog(parent),

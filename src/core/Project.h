@@ -4,24 +4,30 @@
 #include <vector>
 #include <QString>
 
-class Camera;
+namespace xma{
+	class Camera;
+	class Trial;
 
-class Project{
-	friend class ProjectFileIO;
+	class Project
+	{
+		friend class ProjectFileIO;
 
 	public:
 		static Project* getInstance();
-		~Project();
+		virtual ~Project();
 
 		bool createNew();
 
-		const std::vector <Camera *>& getCameras(){return cameras;}
-		QString getProjectFilename(){return projectFilename;}
+		const std::vector<Camera *>& getCameras();
+		const std::vector<Trial *>& getTrials();
+		QString getProjectFilename();
 		QString getProjectBasename();
+		int getNbImagesCalibration();
+		bool isCalibrated();
+		void checkCalibration();
 
-		int getNbImages(){return nbImages;}
-
-		void addCamera(Camera * cam);
+		void addCamera(Camera* cam);
+		void addTrial(Trial* trial);
 		void loadTextures();
 		void exportDLT(QString foldername);
 		void exportMayaCam(QString foldername);
@@ -29,16 +35,18 @@ class Project{
 		void recountFrames();
 
 	private:
-		bool valid;
+		Project();
+		static Project* instance;
+
 		QString projectFilename;
 
-		Project();
-		static Project* instance;		
-		std::vector <Camera *> cameras;
-		int nbImages;
-};
+		int nbImagesCalibration;
+		bool calibrated;
 
+		std::vector<Camera *> cameras;
+		std::vector<Trial *> trials;
+	};
+}
 
-	
+#endif // PROJECT_H
 
-#endif  // PROJECT_H

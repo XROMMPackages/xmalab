@@ -1,13 +1,11 @@
-/*
- * ConfirmationDialog.cpp
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "ui/ConfirmationDialog.h"
 #include "ui_ConfirmationDialog.h"
+
+using namespace xma;
 
 ConfirmationDialog* ConfirmationDialog::instance = NULL;
 

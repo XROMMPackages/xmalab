@@ -1,10 +1,3 @@
-/*
- * ConfirmationDialog.h
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
 #ifndef CONFIRMATIONDIALOG_H_
 #define CONFIRMATIONDIALOG_H_
 
@@ -15,9 +8,10 @@ namespace Ui {
 	class ConfirmationDialog;
 }
 
-class ConfirmationDialog : public QDialog{
+namespace xma{
+	class ConfirmationDialog : public QDialog{
 
-	Q_OBJECT
+		Q_OBJECT
 
 	private:
 		Ui::ConfirmationDialog *diag;
@@ -27,17 +21,16 @@ class ConfirmationDialog : public QDialog{
 		ConfirmationDialog(QWidget *parent = 0);
 
 	public:
-		~ConfirmationDialog();
+		virtual ~ConfirmationDialog();
 		static ConfirmationDialog* getInstance();
 
 		bool showConfirmationDialog(QString message);
 
-
-	public slots:
+		public slots:
 		void on_pushButton_OK_clicked();
 		void on_pushButton_Cancel_clicked();
-};
-
+	};
+}
 
 
 #endif /* CONFIRMATIONDIALOG_H_ */

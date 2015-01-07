@@ -1,7 +1,6 @@
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
 #endif
-
 
 #include "ui/MainWindow.h"
 #include "ui_MainWindow.h"
@@ -12,24 +11,23 @@
 #include "ui/SequenceNavigationFrame.h"
 #include "ui_SequenceNavigationFrame.h"
 #include "ui/NewProjectDialog.h"
+#include "ui/NewTrialDialog.h"
 #include "ui/ErrorDialog.h"
 #include "ui/ConfirmationDialog.h"
 #include "ui/ProjectFileIO.h"
 #include "ui/ProgressDialog.h"
 #include "ui/WizardDockWidget.h"
 #include "ui/ConsoleDockWidget.h"
+#include "ui/DetailViewDockWidget.h"
+#include "PointsDockWidget.h"
 #include "ui/UndistortSequenceDialog.h"
 #include "ui/SettingsDialog.h"
 #include "ui/WorldViewDockWidget.h"
 #include "ui/AboutDialog.h"
-#include <QSplitter>
-#include <QFileDialog>
-#include <QtCore>
-
-#include <iostream>
 
 #include "core/Project.h"
 #include "core/Camera.h"
+#include "core/Trial.h"
 #include "core/CalibrationImage.h"
 #include "core/UndistortionObject.h"
 #include "core/Settings.h"
@@ -37,11 +35,19 @@
 #include "processing/BlobDetection.h"
 #include "processing/LocalUndistortion.h"
 
+#include <QSplitter>
+#include <QFileDialog>
+#include <QtCore>
+
+#include <iostream>
+
 #ifdef WIN32
 #define OS_SEP "\\"
 #else
 #define OS_SEP "/"
 #endif
+
+using namespace xma;
 
 MainWindow* MainWindow::instance = NULL;
 
@@ -68,6 +74,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	ui->sequenceNavigationFrame->setVisible(false);
 	ui->imageScrollArea->setVisible(false);
+	ui->startTrialFrame->setVisible(false);
+	ui->actionDetailed_View->setChecked(Settings::getShowDetailView());
+	ui->actionDetailed_View->setEnabled(false);
+
 	project = NULL;
 
 	resizeTimer.setSingleShot( true );
@@ -76,13 +86,13 @@ MainWindow::MainWindow(QWidget *parent) :
 	GLSharedWidget::getInstance()->makeGLCurrent();
 	worldViewDockWidget = new WorldViewDockWidget(this);
     addDockWidget(Qt::LeftDockWidgetArea, worldViewDockWidget);
+	worldViewDockWidget->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());
+
 	WizardDockWidget::getInstance();
-	ProgressDialog::getInstance();
-
-	worldViewDockWidget->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());	
-	
+	ProgressDialog::getInstance();	
 	ConsoleDockWidget::getInstance();
-
+	PointsDockWidget::getInstance();
+	DetailViewDockWidget::getInstance();
 	restoreGeometry(Settings::getUIGeometry("XMALab"));
 	if(Settings::getUIState("XMALab").size()<0 ||
 		!restoreState(Settings::getUIState("XMALab"),UI_VERSION)){
@@ -90,12 +100,22 @@ MainWindow::MainWindow(QWidget *parent) :
 		ProgressDialog::getInstance()->setFloating(true);
 		worldViewDockWidget->setFloating(true);	
 		ConsoleDockWidget::getInstance()->setFloating(true);	
+		DetailViewDockWidget::getInstance()->setFloating(true);
 	}
 	
 	WizardDockWidget::getInstance()->hide();
 	ConsoleDockWidget::getInstance()->hide();
 	worldViewDockWidget->hide();
 	ProgressDialog::getInstance()->hide();
+	PointsDockWidget::getInstance()->hide();
+	DetailViewDockWidget::getInstance()->hide();
+
+	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
+	connect(State::getInstance(), SIGNAL(displayChanged(ui_state)), this, SLOT(displayChanged(ui_state)));
+	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
+	connect(State::getInstance(), SIGNAL(activeFrameCalibrationChanged(int)), this, SLOT(activeFrameCalibrationChanged(int)));
+	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameTrialChanged(int)));
+	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 }
 
 
@@ -139,12 +159,12 @@ void MainWindow::closeEvent (QCloseEvent * event){
 
 void MainWindow::recountFrames(){
 	project->recountFrames();
-	ui->sequenceNavigationFrame->setNbImages(project->getNbImages());
+	ui->sequenceNavigationFrame->setNbImages(project->getNbImagesCalibration());
 }
 
 void MainWindow::setupProjectUI(){
 	State::getInstance()->changeActiveCamera(0);
-	State::getInstance()->changeActiveFrame(0);
+	State::getInstance()->changeActiveFrameCalibration(0);
 
 	bool hasUndistorion = false;
 	int count = 0;
@@ -158,22 +178,19 @@ void MainWindow::setupProjectUI(){
 		QApplication::processEvents();
     }
 
-	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
-	connect(State::getInstance(), SIGNAL(displayChanged(ui_state)), this, SLOT(displayChanged(ui_state)));
-	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
-	connect(State::getInstance(), SIGNAL(activeFrameChanged(int)), this, SLOT(activeFrameChanged(int)));
-
 	ui->startMainFrame->setVisible(false);
 	ui->imageMainFrame->setVisible(true);
 
-	ui->sequenceNavigationFrame->setNbImages(project->getNbImages());
+	ui->sequenceNavigationFrame->setNbImages(project->getNbImagesCalibration());
 
 	WorkspaceNavigationFrame::getInstance()->setVisible(true);
 	WorkspaceNavigationFrame::getInstance()->setUndistortion(hasUndistorion);
 	
-	workspaceChanged(State::getInstance()->getWorkspace());
+	if (hasUndistorion) State::getInstance()->changeWorkspace(UNDISTORTION);
+	else  State::getInstance()->changeWorkspace(CALIBRATION);
 	
 	relayoutCameras();
+	DetailViewDockWidget::getInstance()->setup();
 	redrawGL();
 }
 
@@ -185,8 +202,11 @@ void MainWindow::tearDownProjectUI(){
 	}
 	cameraViews.clear();
 
+	DetailViewDockWidget::getInstance()->clear();
+
 	ui->startMainFrame->setVisible(true);
 	ui->imageMainFrame->setVisible(false);
+	ui->startTrialFrame->setVisible(false);
 	WorkspaceNavigationFrame::getInstance()->setVisible(false);
 	ui->sequenceNavigationFrame->setVisible(false);
 }
@@ -352,6 +372,11 @@ void MainWindow::loadProject(){
 void MainWindow::loadProjectFinished(){
 	if(m_FutureWatcher->result()){
 		project->loadTextures();
+		for (std::vector<Trial*>::const_iterator trial = Project::getInstance()->getTrials().begin(); trial != Project::getInstance()->getTrials().end(); ++trial)
+		{
+			(*trial)->bindTextures();
+		}
+
 		setupProjectUI();
 	}else{
 		delete project;
@@ -423,6 +448,7 @@ void MainWindow::closeProject(){
 	}
 	State::getInstance()->changeUndistortion(NOTUNDISTORTED);
 	WizardDockWidget::getInstance()->hide();
+	PointsDockWidget::getInstance()->hide();
 	this->setWindowTitle("XMALab");
 	ConsoleDockWidget::getInstance()->clear();
 }
@@ -462,6 +488,18 @@ void MainWindow::saveProjectAs(){
 	}
 }
 
+void MainWindow::newTrial()
+{
+	NewTrialDialog * newTriaLdialog = new NewTrialDialog();
+	newTriaLdialog->exec();
+
+	if (newTriaLdialog->result()){
+		newTriaLdialog->createTrial();
+		State::getInstance()->changeActiveTrial(project->getTrials().size() - 1);
+		State::getInstance()->changeActiveFrameTrial(project->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
+	}
+}
+
 void MainWindow::saveProjectFinished(){
 	delete m_FutureWatcher;
 	ProgressDialog::getInstance()->closeProgressbar();
@@ -473,20 +511,31 @@ void MainWindow::redrawGL(){
 		cameraViews[i]->draw();
 		cameraViews[i]->updateInfo();
     }
+	DetailViewDockWidget::getInstance()->draw();
 	if(worldViewDockWidget)worldViewDockWidget->draw();
 }
 
 void MainWindow::setCameraViewWidgetTitles(){
 	if(State::getInstance()->getWorkspace() == CALIBRATION){
 		for (unsigned int i = 0; i < cameraViews.size(); i++) {
-			cameraViews[i]->setImageName(Project::getInstance()->getCameras()[i]->getCalibrationImages()[State::getInstance()->getActiveFrame()]->getFilename());
+			cameraViews[i]->setImageName(Project::getInstance()->getCameras()[i]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getFilename());
 		}
-	}else if(State::getInstance()->getWorkspace() == UNDISTORTION){
+	}
+	else if (State::getInstance()->getWorkspace() == UNDISTORTION){
 		for (unsigned int i = 0; i < cameraViews.size(); i++) {
-			if(Project::getInstance()->getCameras()[i]->hasUndistortion()){
+			if (Project::getInstance()->getCameras()[i]->hasUndistortion()){
 				cameraViews[i]->setImageName(Project::getInstance()->getCameras()[i]->getUndistortionObject()->getFilename());
-			}else{
+			}
+			else{
 				cameraViews[i]->setImageName("No undistortion Grid loaded");
+			}
+		}
+	}
+	else if (State::getInstance()->getWorkspace() == DIGITIZATION){
+		if (project->getTrials().size() > 0)
+		{
+			for (unsigned int i = 0; i < cameraViews.size(); i++) {
+				cameraViews[i]->setImageName(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFilename(i));
 			}
 		}
 	}
@@ -498,11 +547,85 @@ UI - SLOTS
 
 //custom slots for state
 void MainWindow::workspaceChanged(work_state workspace){
-	if(workspace == CALIBRATION && project->getNbImages() > 1) {
-		ui->sequenceNavigationFrame->setVisible(true);
-	}else{
+	if (workspace == UNDISTORTION)
+	{
+		PointsDockWidget::getInstance()->hide();
+		ui->actionDetailed_View->setEnabled(false);
+		DetailViewDockWidget::getInstance()->hide();
 		ui->sequenceNavigationFrame->setVisible(false);
+		ui->imageMainFrame->setVisible(true);
+		ui->startTrialFrame->setVisible(false);
 	}
+	else if (workspace == CALIBRATION)
+	{
+		
+		PointsDockWidget::getInstance()->hide();
+		ui->actionDetailed_View->setEnabled(false);
+		DetailViewDockWidget::getInstance()->hide();
+		if (project->getNbImagesCalibration() > 1) {
+			ui->sequenceNavigationFrame->setVisible(true);
+		}
+		else 
+		{
+			ui->sequenceNavigationFrame->setVisible(false);
+		}
+		ui->imageMainFrame->setVisible(true);
+		ui->startTrialFrame->setVisible(false);
+	}
+	else if (workspace == DIGITIZATION)
+	{
+		if (project->getTrials().size() > 0)
+		{
+			ui->imageMainFrame->setVisible(true);
+			ui->startTrialFrame->setVisible(false);
+			ui->sequenceNavigationFrame->setVisible(true);
+			
+			if (project->isCalibrated())
+			{
+				
+				ui->labelCalibrateFirst->setVisible(false);
+				ui->pushButtonNewTrial->setVisible(true);
+				PointsDockWidget::getInstance()->show();
+				ui->actionDetailed_View->setEnabled(true);
+				if (Settings::getShowDetailView()){
+					DetailViewDockWidget::getInstance()->show();
+				}
+				else
+				{
+					DetailViewDockWidget::getInstance()->hide();
+				}
+			}
+			else
+			{
+				ui->labelCalibrateFirst->setVisible(true);
+				ui->pushButtonNewTrial->setVisible(false);
+				PointsDockWidget::getInstance()->hide();
+				ui->actionDetailed_View->setEnabled(false);
+				DetailViewDockWidget::getInstance()->hide();
+			}
+		}
+		else
+		{
+			ui->imageMainFrame->setVisible(false);
+			ui->startTrialFrame->setVisible(true);
+			ui->sequenceNavigationFrame->setVisible(false);
+			PointsDockWidget::getInstance()->hide();
+			ui->actionDetailed_View->setEnabled(false);
+			DetailViewDockWidget::getInstance()->hide();
+			if (project->isCalibrated())
+			{
+				ui->labelCalibrateFirst->setVisible(false);
+				ui->pushButtonNewTrial->setVisible(true);
+			}
+			else
+			{
+				ui->labelCalibrateFirst->setVisible(true);
+				ui->pushButtonNewTrial->setVisible(false);
+			}
+		}
+	}
+
+
 	setCameraViewWidgetTitles();
 	redrawGL();
 }
@@ -519,7 +642,19 @@ void MainWindow::activeCameraChanged(int activeCamera){
 	redrawGL();
 }
 
-void MainWindow::activeFrameChanged(int activeFrame){
+void MainWindow::activeFrameCalibrationChanged(int activeFrame){
+	setCameraViewWidgetTitles();
+	redrawGL();
+}
+
+void MainWindow::activeFrameTrialChanged(int)
+{
+	setCameraViewWidgetTitles();
+	redrawGL();
+}
+
+void MainWindow::activeTrialChanged(int activeCamera)
+{
 	setCameraViewWidgetTitles();
 	redrawGL();
 }
@@ -618,6 +753,11 @@ void MainWindow::on_pushButtonLoad_Project_clicked(){
 	loadProject();
 }
 
+void MainWindow::on_pushButtonNewTrial_clicked()
+{
+	newTrial(); 
+}
+
 void MainWindow::on_action3D_world_view_triggered(bool checked){
 	if(checked)worldViewDockWidget->show();
 	else worldViewDockWidget->hide();
@@ -626,4 +766,15 @@ void MainWindow::on_action3D_world_view_triggered(bool checked){
 void MainWindow::on_actionConsole_triggered(bool checked){
 	if(checked)ConsoleDockWidget::getInstance()->show();
 	else ConsoleDockWidget::getInstance()->hide();
+}
+
+void MainWindow::on_actionDetailed_View_triggered(bool checked){
+	if (checked){
+		DetailViewDockWidget::getInstance()->show();
+		Settings::setShowDetailView(true);
+	}
+	else {
+		DetailViewDockWidget::getInstance()->hide();
+		Settings::setShowDetailView(false);
+	}
 }

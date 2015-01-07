@@ -1,9 +1,6 @@
-/*
- * Calibration.cpp
- *
- *  Created on: Nov 18, 2013
- *      Author: ben
- */
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "core/CalibrationImage.h"
 #include "core/Image.h"
@@ -11,6 +8,9 @@
 #include "core/UndistortionObject.h"
 #include <QFileInfo>
 #include <fstream>
+
+using namespace xma;
+
 CalibrationImage::CalibrationImage(Camera* _camera, QString _imageFileName){
 	camera = _camera;
 	imageFileName = _imageFileName;
@@ -328,7 +328,7 @@ void CalibrationImage::toggleInlier(double x, double y, bool isDistortedView){
 		if(Inlier[idx] == 0) {
 			Inlier[idx] = 1;
 			camera->setRecalibrationRequired(1);
-		}else if(Inlier[idx] == 1){
+		}else if(Inlier[idx] > 1){
 			Inlier[idx] = 0;
 			camera->setRecalibrationRequired(1);
 		}

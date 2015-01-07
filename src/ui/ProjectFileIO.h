@@ -5,11 +5,12 @@
 class QDir;
 class QStringList;
 
-class ProjectFileIO{
-	
+namespace xma{
+	class ProjectFileIO{
+
 	public:
 		static ProjectFileIO* getInstance();
-		~ProjectFileIO();
+		virtual ~ProjectFileIO();
 
 		bool saveProject(QString filename);
 		bool loadProject(QString filename);
@@ -17,7 +18,7 @@ class ProjectFileIO{
 	private:
 
 		ProjectFileIO();
-		static ProjectFileIO* instance;		
+		static ProjectFileIO* instance;
 
 		bool writeProjectFile(QString filename);
 		bool readProjectFile(QString filename);
@@ -26,8 +27,8 @@ class ProjectFileIO{
 		bool unzipFromFileToFolder(const QString & filePath, const QString & extDirPath, const QString & singleFileName = QString(""));
 		void recurseAddDir(QDir d, QStringList & list);
 		bool removeDir(QString folder);
-};
-
+	};
+}
 
 	
 

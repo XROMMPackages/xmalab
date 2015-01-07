@@ -6,22 +6,23 @@
 
 #include <opencv/cv.h>
 
-class LocalUndistortion: public QObject{
-	
-	Q_OBJECT;
+namespace xma{
+	class LocalUndistortion : public QObject{
+
+		Q_OBJECT;
 
 	public:
 		LocalUndistortion(int camera);
-		~LocalUndistortion();
+		virtual ~LocalUndistortion();
 
 		void computeUndistortion(bool recompute = false);
 		static bool isRunning(){
 			return (nbInstances > 0);
 		}
 	signals:
-		void localUndistortion_finished();  
+		void localUndistortion_finished();
 
-	private slots:
+		private slots:
 		void localUndistortion_threadFinished();
 
 	private:
@@ -35,7 +36,7 @@ class LocalUndistortion: public QObject{
 		cv::vector<bool> tmpPoints_inlier;
 		cv::Mat map_x;
 		cv::Mat map_y;
-	
+
 		cv::Mat _A;
 		cv::Mat _B;
 		cv::Mat _radii;
@@ -43,7 +44,7 @@ class LocalUndistortion: public QObject{
 		cv::Mat A_inverse;
 		cv::Mat B_inverse;
 		cv::Mat radii_inverse;
-		
+
 		cv::Mat controlPts;
 		cv::Mat controlPts_inverse;
 
@@ -53,18 +54,18 @@ class LocalUndistortion: public QObject{
 
 		void setupCorrespondances();
 		int computeLWM(cv::Mat &detectedPointsPtsInlier, cv::Mat &controlPtsInlier, cv::Mat &A, cv::Mat &B, cv::Mat &radii);
-		void setPointsByInlier( cv::vector<cv::Point2d> &pts, cv::Mat &ptsInlier);
+		void setPointsByInlier(cv::vector<cv::Point2d> &pts, cv::Mat &ptsInlier);
 		void createLookupTable(cv::Mat &controlPts, cv::Mat &A, cv::Mat &B, cv::Mat &radii, cv::Mat &outMat_x, cv::Mat &outMat_y, int gridSize);
 
-		bool findNClosestPoint(int numberPoints, cv::Point2d pt, cv::vector<cv::Point2d> &closest_pts, cv::vector<cv::Point2d> all_pts,bool skipfirst);
+		bool findNClosestPoint(int numberPoints, cv::Point2d pt, cv::vector<cv::Point2d> &closest_pts, cv::vector<cv::Point2d> all_pts, bool skipfirst);
 		double getHexagonalGridOrientation(cv::Point2d center, cv::vector<cv::Point2d> all_pts);
 		double getHexagonalGridSize(cv::Point2d center);
 		cv::vector<cv::Point2d> get6adjCells(cv::Point2d center, cv::vector<cv::Point2d> all_pts);
 		bool addNeighbours(cv::Point2d centercont, cv::Point2d centerdet, double dY, double dX, double dOffY, double dYdist, cv::vector<double> &dy_vec);
 		void setupHexagonalGrid(cv::Point2d center, double dY);
-};
+	};
 
-
+}
 
 
 

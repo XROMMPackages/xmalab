@@ -1,12 +1,18 @@
-#include "ui/MainWindow.h"
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "ui/ConsoleDockWidget.h"
 #include "ui_ConsoleDockWidget.h"
+#include "ui/MainWindow.h"
 
 #include <QLabel>
 #include <QColor>
 #include <QFile>
 #include <QTextStream>
 #include <QScrollbar>
+
+using namespace xma;
 
 ConsoleDockWidget* ConsoleDockWidget::instance = NULL;
 
@@ -15,10 +21,10 @@ ConsoleDockWidget::ConsoleDockWidget(QWidget *parent) :
 												dock(new Ui::ConsoleDockWidget){
 
 	dock->setupUi(this);
-	memset(errorBuffer, 0, sizeof(errorBuffer));  
-    setvbuf(stderr, errorBuffer, _IOLBF, sizeof(errorBuffer));
-	memset(outputBuffer, 0, sizeof(outputBuffer));  
-    setvbuf(stdout, outputBuffer, _IOLBF, sizeof(outputBuffer));
+	//memset(errorBuffer, 0, sizeof(errorBuffer));  
+    //setvbuf(stderr, errorBuffer, _IOLBF, sizeof(errorBuffer));
+	//memset(outputBuffer, 0, sizeof(outputBuffer));  
+    //setvbuf(stdout, outputBuffer, _IOLBF, sizeof(outputBuffer));
  
     // set up QTimer to call logErrors periodically
     timer = new QTimer(this);

@@ -1,9 +1,10 @@
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "core/Project.h"
 #include "core/Camera.h"
+#include "core/Trial.h"
 #include "core/CalibrationObject.h"
 #include "core/CalibrationImage.h"
 #include "core/UndistortionObject.h"
@@ -12,23 +13,29 @@
 #include <QFileInfo>
 
 #ifdef WIN32
-#define OS_SEP "\\"
+	#define OS_SEP "\\"
 #else
-#define OS_SEP "/"
+	#define OS_SEP "/"
 #endif
+
+using namespace xma;
 
 Project* Project::instance = NULL;
 
 Project::Project(){
 	projectFilename = "";
-	valid = false;
-	nbImages = 0;
+	calibrated = false;
+	nbImagesCalibration = 0;
 }
 
 Project::~Project(){
 	for(std::vector <Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
 		delete (*it);
 	cameras.clear();
+
+	for (std::vector <Trial*>::iterator it = trials.begin(); it != trials.end(); ++it)
+		delete (*it);
+	trials.clear();
 
 	delete CalibrationObject::getInstance();
 
@@ -44,6 +51,21 @@ Project* Project::getInstance()
 	return instance;
 }
 
+QString Project::getProjectFilename()
+{
+	return projectFilename;
+}
+
+const std::vector<Camera*>& Project::getCameras()
+{
+	return cameras;
+}
+
+const std::vector<Trial*>& Project::getTrials()
+{
+	return trials;
+}
+
 QString Project::getProjectBasename(){
 	if(projectFilename.isEmpty())
 		return "";
@@ -52,16 +74,38 @@ QString Project::getProjectBasename(){
 	return info.completeBaseName(); 
 }
 
+int Project::getNbImagesCalibration()
+{
+	return nbImagesCalibration;
+}
+
+bool Project::isCalibrated()
+{
+	return calibrated;
+}
+
+void Project::checkCalibration()
+{
+	calibrated = true;
+	for (std::vector <Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+		calibrated = (*it)->isCalibrated() && calibrated;
+}
+
 void Project::addCamera(Camera * cam){
 	cameras.push_back(cam);
-	nbImages = cam->getCalibrationImages().size();
+	nbImagesCalibration = cam->getCalibrationImages().size();
+}
+
+void Project::addTrial(Trial* trial)
+{
+	trials.push_back(trial);
 }
 
 void Project::recountFrames(){
 	if(cameras.size() > 0){
-		nbImages = cameras[0]->getCalibrationImages().size();
+		nbImagesCalibration = cameras[0]->getCalibrationImages().size();
 		for(std::vector <Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it){	
-			if(nbImages != (*it)->getCalibrationImages().size()){
+			if(nbImagesCalibration != (*it)->getCalibrationImages().size()){
 				fprintf(stderr,"Error Invalid number of images");
 			}
 		}
@@ -76,7 +120,7 @@ void Project::loadTextures(){
 }
 
 void Project::exportDLT(QString foldername){
-	for(int frame = 0 ; frame < nbImages ; frame++){
+	for(int frame = 0 ; frame < nbImagesCalibration ; frame++){
 		std::vector<double*> dlts;
 		double allCamsSet = true;
 
@@ -137,3 +181,4 @@ void Project::exportLUT(QString foldername){
 		}
 	}
 }
+

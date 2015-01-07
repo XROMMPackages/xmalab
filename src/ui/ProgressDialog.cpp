@@ -1,14 +1,12 @@
-/*
- * ProgressDialog.cpp
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "ui/ProgressDialog.h"
 #include "ui_ProgressDockWidget.h"
 #include "ui/MainWindow.h"
+
+using namespace xma;
 
 ProgressDialog* ProgressDialog::instance = NULL;
 

@@ -1,4 +1,9 @@
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "processing/Calibration.h"	
+
 #include "ui/ProgressDialog.h"
 #include "ui/MainWindow.h"
 
@@ -7,8 +12,11 @@
 #include "core/CalibrationImage.h"
 #include "core/CalibrationObject.h"
 #include "core/Settings.h"
+
 #include <QtCore>
 #include <math.h>
+
+using namespace xma;
 
 int Calibration::nbInstances = 0;
 
@@ -29,7 +37,7 @@ Calibration::Calibration(int camera):QObject(){
 		distortion_coeffs.at<double>(i,0) = 0;
 	}
 	
-	for(unsigned int f = 0 ; f < Project::getInstance()->getNbImages(); f ++){
+	for(unsigned int f = 0 ; f < Project::getInstance()->getNbImagesCalibration(); f ++){
 		if(Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->isCalibrated() > 0){
 			std::vector<cv::Point3f>pt3D_tmp;
 			std::vector<cv::Point2f>pt2D_tmp;
@@ -98,7 +106,7 @@ void Calibration::computeCameraPosesAndCam_thread(){
 		rotationvector.create(3,1,CV_64F);
 		translationvector.create(3,1,CV_64F);
 		int count = 0;
-		for(unsigned int f = 0 ; f < Project::getInstance()->getNbImages(); f ++){
+		for(unsigned int f = 0 ; f < Project::getInstance()->getNbImagesCalibration(); f ++){
 			if(Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->isCalibrated() > 0){
 				for(int i = 0 ; i < 3 ; i++)
 					rotationvector.at<double>(i,0) = rvecs[count].at<double>(i,0);
@@ -150,7 +158,7 @@ void Calibration::reproject(){
 	CvMat* t_matrices = cvCreateMat( 1, 1, CV_64FC3 );
 	cv::vector<cv::Point2d> projectedPoints;
 
-	for(unsigned int f = 0 ; f < Project::getInstance()->getNbImages(); f ++){
+	for(unsigned int f = 0 ; f < Project::getInstance()->getNbImagesCalibration(); f ++){
 		if(Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->isCalibrated() > 0){
 			projectedPoints.clear();
 

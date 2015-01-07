@@ -1,6 +1,13 @@
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "ui/SettingsDialog.h"
 #include "ui_SettingsDialog.h"
+
 #include "core/Settings.h"
+
+using namespace xma;
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
 								QDialog(parent),

@@ -1,8 +1,6 @@
-
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
 #endif
-
 
 #include "ui/NewProjectDialog.h"
 #include "ui_NewProjectDialog.h"
@@ -10,12 +8,15 @@
 #include "ui/ErrorDialog.h"
 #include "ui/MainWindow.h"
 #include "ui/ProgressDialog.h"
+
 #include "core/Settings.h"
 #include "core/CalibrationObject.h"
 #include "core/Camera.h"
 #include "core/Project.h"
 
 #include <QFileDialog>
+
+using namespace xma;
 
 NewProjectDialog::NewProjectDialog(QWidget *parent) :
 												QDialog(MainWindow::getInstance()),

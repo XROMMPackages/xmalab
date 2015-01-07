@@ -1,10 +1,6 @@
-/*
- * ProgressDialog.cpp
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "ui/WorkspaceNavigationFrame.h"
 #include "ui_WorkspaceNavigationFrame.h"
@@ -14,6 +10,8 @@
 #include "core/Project.h"
 #include "core/Camera.h"
 
+using namespace xma;
+
 WorkspaceNavigationFrame* WorkspaceNavigationFrame::instance = NULL;
 
 WorkspaceNavigationFrame::WorkspaceNavigationFrame(QWidget *parent) :
@@ -21,10 +19,12 @@ WorkspaceNavigationFrame::WorkspaceNavigationFrame(QWidget *parent) :
 												frame(new Ui::WorkspaceNavigationFrame){
 
 	frame->setupUi(this);
+	setTrialVisible(false);
+
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(State::getInstance(), SIGNAL(displayChanged(ui_state)), this, SLOT(displayChanged(ui_state)));
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
-	
+	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 }
 
 WorkspaceNavigationFrame::~WorkspaceNavigationFrame(){
@@ -35,6 +35,7 @@ WorkspaceNavigationFrame::~WorkspaceNavigationFrame(){
 WorkspaceNavigationFrame* WorkspaceNavigationFrame::getInstance()
 {
 	if(!instance) 
+
 	{
 		instance = new WorkspaceNavigationFrame(MainWindow::getInstance());
 	}
@@ -60,6 +61,11 @@ void WorkspaceNavigationFrame::addCamera(int idx, QString name){
 	frame->comboBoxViewspace->insertItem(idx,name);
 }
 
+void WorkspaceNavigationFrame::addTrial(QString name)
+{
+	frame->comboBoxTrial->addItem(name);
+}
+
 void WorkspaceNavigationFrame::removeCamera(int idx){
 	frame->comboBoxViewspace->removeItem(idx);
 }
@@ -69,6 +75,8 @@ void WorkspaceNavigationFrame::workspaceChanged(work_state workspace){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion") );
 	}else if(workspace == CALIBRATION){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration") );
+	}else if (workspace == DIGITIZATION){
+		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Digitization"));
 	}
 }
 
@@ -90,7 +98,24 @@ void WorkspaceNavigationFrame::activeCameraChanged(int activeCamera){
 	if(State::getInstance()->getDisplay() == SINGLE_CAMERA){
 		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText(Project::getInstance()->getCameras()[activeCamera]->getName()) );
 	}
-}  
+}
+
+void WorkspaceNavigationFrame::activeTrialChanged(int activeTrial)
+{
+	frame->comboBoxTrial->setCurrentIndex(activeTrial);
+}
+
+void WorkspaceNavigationFrame::setTrialVisible(bool visible){
+	if (visible){
+		frame->label_Trial->show();
+		frame->toolButtonAddTrial->show();
+		frame->comboBoxTrial->show();
+	}else{
+		frame->label_Trial->hide();
+		frame->toolButtonAddTrial->hide();
+		frame->comboBoxTrial->hide();
+	}
+}
 
 void WorkspaceNavigationFrame::on_comboBoxWorkspace_currentIndexChanged(QString value){
 	if(currentComboBoxWorkspaceIndex != frame->comboBoxWorkspace->currentIndex()){
@@ -98,14 +123,32 @@ void WorkspaceNavigationFrame::on_comboBoxWorkspace_currentIndexChanged(QString 
 			if(value == "Undistortion"){
 				State::getInstance()->changeWorkspace(UNDISTORTION);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
+				setTrialVisible(false);
 			}else if(value == "Calibration"){
 				State::getInstance()->changeWorkspace(CALIBRATION);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
+				setTrialVisible(false);
+			}else if (value == "Digitization"){
+				State::getInstance()->changeWorkspace(DIGITIZATION);
+				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
+				if (Project::getInstance()->isCalibrated())
+				{
+					setTrialVisible(true);
+				}
+				else
+				{
+					setTrialVisible(false);
+				}
 			}
 		}else{
 			frame->comboBoxWorkspace->setCurrentIndex(currentComboBoxWorkspaceIndex);
 		}
 	}
+}
+
+void WorkspaceNavigationFrame::on_comboBoxTrial_currentIndexChanged(int idx)
+{
+	State::getInstance()->changeActiveTrial(idx);
 }
 
 void WorkspaceNavigationFrame::on_comboBoxViewspace_currentIndexChanged(QString value){
@@ -131,10 +174,20 @@ void WorkspaceNavigationFrame::on_comboBoxViewspace_currentIndexChanged(QString 
 	}
 }
 
+void WorkspaceNavigationFrame::on_toolButtonAddTrial_clicked()
+{
+	MainWindow::getInstance()->on_pushButtonNewTrial_clicked();
+}
+
 void WorkspaceNavigationFrame::setWorkState(work_state workspace){
 	if(workspace == UNDISTORTION){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion"));
+		setTrialVisible(false);
 	}else if(workspace == CALIBRATION){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration"));
+		setTrialVisible(false);
+	}else if (workspace == DIGITIZATION){
+		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Digitization"));
+		setTrialVisible(true);
 	}
 }

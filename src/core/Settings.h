@@ -6,17 +6,18 @@
 
 #define UI_VERSION 0
 
-class Settings{
-	
+namespace xma{
+	class Settings{
+
 	public:
 		Settings();
-		~Settings();
+		virtual ~Settings();
 
 		//setup Application and Company Name
 		static void setup();
 
 		//Filename
-		static void setLastUsedDirectory(QString Filename, bool directory = false);  
+		static void setLastUsedDirectory(QString Filename, bool directory = false);
 		static QString getLastUsedDirectory();
 
 		//UI
@@ -24,6 +25,10 @@ class Settings{
 		static QByteArray getUIGeometry(QString windowTitle);
 		static void setUIState(QString windowTitle, QByteArray state);
 		static QByteArray getUIState(QString windowTitle);
+		static void setShowDetailView(bool value);
+		static bool getShowDetailView();
+
+
 
 		//Workflow
 		static void setAutoConfirmPendingChanges(bool value);
@@ -38,8 +43,8 @@ class Settings{
 		//BlobDetector
 		static void setBlobDetectorThresholdStep(float value);
 		static float getBlobDetectorThresholdStep();
-		static void setBlobDetectorMinThreshold(float value); 
-		static float getBlobDetectorMinThreshold(); 
+		static void setBlobDetectorMinThreshold(float value);
+		static float getBlobDetectorMinThreshold();
 		static void setBlobDetectorMaxThreshold(float value);
 		static float getBlobDetectorMaxThreshold();
 		static void setBlobDetectorMinRepeatability(int value);
@@ -65,7 +70,7 @@ class Settings{
 		static float getBlobDetectorMinCircularity();
 		static void setBlobDetectorMaxCircularity(float value);
 		static float getBlobDetectorMaxCircularity();
-				
+
 		static void setBlobDetectorFilterByInertia(bool value);
 		static bool getBlobDetectorFilterByInertia();
 		static void setBlobDetectorMinInertiaRatio(float value);
@@ -83,8 +88,8 @@ class Settings{
 		//Local Undistortion Params
 		static void setLocalUndistortionNeighbours(int value);
 		static int getLocalUndistortionNeighbours();
-};
-
+	};
+}
 
 	
 

@@ -6,13 +6,14 @@
 
 #include <opencv/cv.h>
 
-class BlobDetection: public QObject{
-	
-	Q_OBJECT;
+namespace xma{
+	class BlobDetection : public QObject{
+
+		Q_OBJECT;
 
 	public:
 		BlobDetection(int camera, int image);
-		~BlobDetection();
+		virtual ~BlobDetection();
 		void detectBlobs();
 
 		int m_camera;
@@ -25,15 +26,15 @@ class BlobDetection: public QObject{
 		}
 
 	signals:
-		void detectBlobs_finished();  
+		void detectBlobs_finished();
 
-	private slots:
+		private slots:
 		void detectBlobs_threadFinished();
 
 	private:
 		void detectBlobs_thread();
 		QFutureWatcher<void>* m_FutureWatcher;
 		static int nbInstances;
-};
-
+	};
+}
 #endif  // BLOBDETECTION_H

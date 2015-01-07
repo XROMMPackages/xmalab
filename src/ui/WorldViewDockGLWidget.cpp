@@ -6,24 +6,26 @@
  */
 
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
 #endif
+
+#include "ui/State.h"
+#include "ui/WorldViewDockGLWidget.h"
 
 #include "core/Project.h"
 #include "core/CalibrationImage.h"
 #include "core/Camera.h"
 #include "core/CalibrationObject.h"
 #include "core/UndistortionObject.h"
-#include "ui/State.h"
 
-#include "ui/WorldViewDockGLWidget.h"
 #include <QtGui/QApplication>
 #include <QMouseEvent>
 
-
 #ifndef _PI
-#define _PI 3.141592653
+	#define _PI 3.141592653
 #endif
+
+using namespace xma;
 
 GLfloat LightAmbient[]=  { 0.3f, 0.3f, 0.3f, 1.0f };     // Ambient Light Values
 GLfloat LightDiffuse[]=  { 0.5f, 0.5f, 0.5f, 1.0f };     // Diffuse Light Values
@@ -189,7 +191,7 @@ void WorldViewDockGLWidget::drawCalibrationCube(){
 void WorldViewDockGLWidget::drawCamerasCalibration(){
 	for(int cam = 0 ; cam < Project::getInstance()->getCameras().size(); cam++){
 		if(Project::getInstance()->getCameras()[cam]->isCalibrated()
-			&& Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrame()]->isCalibrated()){
+			&& Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated()){
 
 			glPushMatrix();
 			double m [16];
@@ -203,8 +205,8 @@ void WorldViewDockGLWidget::drawCamerasCalibration(){
 			transTmp.create(3, 1, CV_64F);
 
 			camTmp =  Project::getInstance()->getCameras()[cam]->getCameraMatrix().clone();
-			transTmp = Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrame()]->getTranslationVector();
-			cv::Rodrigues(Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrame()]->getRotationVector(), rotTmp);
+			transTmp = Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getTranslationVector();
+			cv::Rodrigues(Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getRotationVector(), rotTmp);
 
 			//adjust y - inversion
 			transTmp.at<double>(0,0) = -transTmp.at<double>(0,0);
@@ -289,7 +291,7 @@ void WorldViewDockGLWidget::drawCamerasCalibration(){
 
 			glEnable(GL_TEXTURE_2D);
 
-			Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrame()]->bindTexture(State::getInstance()->getCalibrationVisImage());
+			Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->bindTexture(State::getInstance()->getCalibrationVisImage());
 
 			glBegin(GL_QUADS);
 			glTexCoord2f (0.0f,1.0f);

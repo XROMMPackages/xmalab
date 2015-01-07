@@ -6,31 +6,31 @@
 namespace Ui {
 	class CameraBox;
 }
+namespace xma{
+	class CameraBox : public QWidget{
 
-class CameraBox : public QWidget{
-
-	Q_OBJECT
+		Q_OBJECT
 
 	private:
 		QStringList imageFileNames;
 
 	public:
 		explicit CameraBox(QWidget *parent = 0);
-		~CameraBox();
+		virtual ~CameraBox();
 
 		Ui::CameraBox *widget;
-		
+
 		bool isComplete();
 
-		const QStringList& getImageFileNames(){return imageFileNames;}
+		const QStringList& getImageFileNames(){ return imageFileNames; }
 		const bool hasUndistortion();
 		const QString getUndistortionGridFileName();
 		const QString getCameraName();
 		void setCameraName(QString name);
 		bool isLightCamera();
 
-	public slots:
-		
+		public slots:
+
 		void on_toolButtonImages_clicked();
 		void on_toolButtonUndistortionGrid_clicked();
 
@@ -38,6 +38,7 @@ class CameraBox : public QWidget{
 		void on_radioButtonLightCamera_clicked();
 
 		void on_checkBoxUndistortionGrid_stateChanged(int state);
-};
+	};
+}
 
 #endif /* CAMERABOX_H_ */

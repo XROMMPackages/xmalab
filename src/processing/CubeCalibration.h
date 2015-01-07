@@ -5,14 +5,14 @@
 #include <QObject>
 
 #include <opencv/cv.h>
+namespace xma{
+	class CubeCalibration : public QObject{
 
-class CubeCalibration: public QObject{
-	
-	Q_OBJECT;
+		Q_OBJECT;
 
 	public:
-		CubeCalibration(int camera, int image, cv::Point2d references [4], int referencesID [4]);
-		~CubeCalibration();
+		CubeCalibration(int camera, int image, cv::Point2d references[4], int referencesID[4]);
+		virtual ~CubeCalibration();
 
 		void computePoseAndCam();
 		void computePose();
@@ -23,10 +23,10 @@ class CubeCalibration: public QObject{
 		}
 
 	signals:
-		void computePoseAndCam_finished();  
-		void computePose_finished();  
+		void computePoseAndCam_finished();
+		void computePose_finished();
 
-	private slots:
+		private slots:
 		void computePoseAndCam_threadFinished();
 		void computePose_threadFinished();
 
@@ -81,7 +81,8 @@ class CubeCalibration: public QObject{
 		cv::Mat translationvector;
 		cv::Mat cameramatrix;
 		cv::Mat transformationmatrix;
-		
-};
+
+	};
+}
 
 #endif  // CUBECALIBRATION_H

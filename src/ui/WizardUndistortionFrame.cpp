@@ -1,10 +1,6 @@
-/*
- * ProgressDialog.cpp
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "ui/WizardUndistortionFrame.h"
 #include "ui_WizardUndistortionFrame.h"
@@ -16,9 +12,11 @@
 #include "core/Camera.h"
 #include "core/Settings.h"
 #include "core/UndistortionObject.h"
+
 #include "processing/BlobDetection.h"
 #include "processing/LocalUndistortion.h"
 
+using namespace xma;
 
 WizardUndistortionFrame::WizardUndistortionFrame(QWidget *parent) :
 												QFrame(parent),

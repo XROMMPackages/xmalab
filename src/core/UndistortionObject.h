@@ -1,10 +1,3 @@
-/*
- * Calibration.h
- *
- *  Created on: Nov 18, 2013
- *      Author: ben
- */
-
 #ifndef UNDISTORTIONOBJECT_H_
 #define UNDISTORTIONOBJECT_H_
 
@@ -16,49 +9,50 @@
 
 #include <opencv/cv.h>
 
-class Camera;
-class Image;
+namespace xma{
+	class Camera;
+	class Image;
 
-class UndistortionObject{
+	class UndistortionObject{
 
 	public:
 
 		UndistortionObject(Camera* _camera, QString imageFileName);
-		~UndistortionObject();
-		
-		Image* getImage(){return image;}
-		Image* getUndistortedImage(){return undistortedImage;}
+		virtual ~UndistortionObject();
 
-		bool isComputed(){return computed;}
-		void setComputed(bool value){computed = value;}
+		Image* getImage(){ return image; }
+		Image* getUndistortedImage(){ return undistortedImage; }
+
+		bool isComputed(){ return computed; }
+		void setComputed(bool value){ computed = value; }
 
 		bool undistort(Image* distorted, Image * undistorted);
 		bool undistort(QString filenameIn, QString filenameOut);
 		void setDetectedPoints(cv::vector <cv::Point2d> &points);
 		void getDetectedPoints(cv::vector <cv::Point2d> &points);
 
-		void setGridPoints(cv::vector <cv::Point2d> &points_distorted , cv::vector <cv::Point2d> &points_references, cv::vector<bool> &points_inlier);
-		void getGridPoints(cv::vector <cv::Point2d> &points_distorted , cv::vector <cv::Point2d> &points_references, cv::vector<bool> &points_inlier);
+		void setGridPoints(cv::vector <cv::Point2d> &points_distorted, cv::vector <cv::Point2d> &points_references, cv::vector<bool> &points_inlier);
+		void getGridPoints(cv::vector <cv::Point2d> &points_distorted, cv::vector <cv::Point2d> &points_references, cv::vector<bool> &points_inlier);
 
 		void setMaps(cv::Mat & map_x, cv::Mat & map_y);
 
 		void setLWMMatrices(cv::Mat & A, cv::Mat & B, cv::Mat & radii, cv::Mat & points,
-								cv::Mat & A_inverse, cv::Mat & B_inverse, cv::Mat & radii_inverse, cv::Mat & points_inverse);
-		
+			cv::Mat & A_inverse, cv::Mat & B_inverse, cv::Mat & radii_inverse, cv::Mat & points_inverse);
+
 		void undistortPoints();
 
 		cv::Point2d transformPoint(cv::Point2d pt, bool undistort);
 
 		void toggleOutlier(int vispoints, double x, double y);
 		void setCenter(double x, double y);
-		bool isCenterSet(){return centerSet;}
-		cv::Point2d getCenter(){return center;}
-		void setRecalibrationRequired(int value){requiresRecalibration = value;}
-		int isRecalibrationRequired(){return requiresRecalibration;}
-		
-		void setUpdateInfoRequired(bool value){updateInfoRequired = value;}
-		int isUpdateInfoRequired(){return updateInfoRequired;}
-		
+		bool isCenterSet(){ return centerSet; }
+		cv::Point2d getCenter(){ return center; }
+		void setRecalibrationRequired(int value){ requiresRecalibration = value; }
+		int isRecalibrationRequired(){ return requiresRecalibration; }
+
+		void setUpdateInfoRequired(bool value){ updateInfoRequired = value; }
+		int isUpdateInfoRequired(){ return updateInfoRequired; }
+
 		QString getFilename();
 		QString getFilenameBase();
 		QString getFilenamePointsDetected();
@@ -66,31 +60,31 @@ class UndistortionObject{
 		QString getFilenameGridPointsReferences();
 		QString getFilenameGridPointsInlier();
 
-		void savePointsDetected( QString filename);
-		void saveGridPointsDistorted( QString filename);
-		void saveGridPointsReferences( QString filename);
-		void saveGridPointsInlier( QString filename);
-		void exportData(QString csvFileNameLUT,QString csvFileNameInPoints , QString csvFileNameBasePoints);
+		void savePointsDetected(QString filename);
+		void saveGridPointsDistorted(QString filename);
+		void saveGridPointsReferences(QString filename);
+		void saveGridPointsInlier(QString filename);
+		void exportData(QString csvFileNameLUT, QString csvFileNameInPoints, QString csvFileNameBasePoints);
 
-		void loadPointsDetected( QString filename);
-		void loadGridPointsDistorted( QString filename);
-		void loadGridPointsReferences( QString filename);
-		void loadGridPointsInlier( QString filename);
+		void loadPointsDetected(QString filename);
+		void loadGridPointsDistorted(QString filename);
+		void loadGridPointsReferences(QString filename);
+		void loadGridPointsInlier(QString filename);
 
-		int getWidth(){return width;}
-		int getHeight(){return height;}
+		int getWidth(){ return width; }
+		int getHeight(){ return height; }
 		void loadTextures();
 
 		void drawData(int type);
 		void bindTexture(int type);
 
-		cv::vector<bool> &getInlier(){return points_grid_inlier;}
-		cv::vector<double> &getError(){return error;}
+		cv::vector<bool> &getInlier(){ return points_grid_inlier; }
+		cv::vector<double> &getError(){ return error; }
 
 	private:
 		//Camera
 		Camera* camera;
-		int height,width;
+		int height, width;
 		QString imageFileName;
 
 		//Images
@@ -145,7 +139,7 @@ class UndistortionObject{
 		int requiresRecalibration;
 
 		bool updateInfoRequired;
-};
-
+	};
+}
 
 #endif /* UNDISTORTIONOBJECT_H_ */

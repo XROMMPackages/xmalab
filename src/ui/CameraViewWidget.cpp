@@ -1,19 +1,15 @@
-/*
- * Image_subwindow.cpp
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "core/Camera.h"
 #include "ui/CameraViewWidget.h"
 #include "ui_CameraViewWidget.h"
 #include "ui/UndistortionInfoFrame.h"
 #include "ui/CalibrationInfoFrame.h"
+
+#include "core/Camera.h"
+
+using namespace xma;
 
 CameraViewWidget::CameraViewWidget(Camera * _camera, QWidget *parent) :
 											QWidget(parent),
@@ -36,7 +32,7 @@ CameraViewWidget::CameraViewWidget(Camera * _camera, QWidget *parent) :
 	connect(widget->glCameraView, SIGNAL(zoomChanged(int)), this, SLOT(zoomChanged(int)));
 
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
-	connect(State::getInstance(), SIGNAL(activeFrameChanged(int)), this, SLOT(activeFrameChanged(int)));
+	connect(State::getInstance(), SIGNAL(activeFrameCalibrationChanged(int)), this, SLOT(activeFrameCalibrationChanged(int)));
 }
 
 CameraViewWidget::~CameraViewWidget(){
@@ -109,6 +105,6 @@ void CameraViewWidget::workspaceChanged(work_state workspace){
 	}
 }
 
-void CameraViewWidget::activeFrameChanged(int activeFrame){
+void CameraViewWidget::activeFrameCalibrationChanged(int activeFrame){
 	calibrationFrame->updateFrame(camera);
 }

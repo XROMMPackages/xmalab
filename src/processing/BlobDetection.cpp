@@ -1,17 +1,22 @@
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "processing/BlobDetection.h"	
+
 #include "ui/ProgressDialog.h"
 #include "ui/MainWindow.h"
+
 #include "core/Project.h"
 #include "core/Camera.h"
 #include "core/Image.h"
 #include "core/CalibrationImage.h"
 #include "core/UndistortionObject.h"
 #include "core/Settings.h"
+
 #include <QtCore>
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif
+using namespace xma;
 
 int BlobDetection::nbInstances = 0;
 

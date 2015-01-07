@@ -1,16 +1,16 @@
-/*
- * UndistortionInfoFrame.cpp
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "ui/CalibrationInfoFrame.h"
 #include "ui_CalibrationInfoFrame.h"
+#include "ui/State.h"
+
 #include "core/Camera.h"
 #include "core/CalibrationImage.h"
-#include "ui/State.h"
+
+using namespace xma;
+
 CalibrationInfoFrame::CalibrationInfoFrame(QWidget *parent) :
 												QFrame(parent),
 												frame(new Ui::CalibrationInfoFrame){
@@ -108,24 +108,24 @@ void CalibrationInfoFrame::getCameraInfo(Camera * camera, QString & CameraCenter
 }
 
 void CalibrationInfoFrame::updateFrame(Camera * camera){
-	if(camera->isCalibrated() && camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->isCalibrated()){
+	if(camera->isCalibrated() && camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated()){
 		QString ErrorCurrentDist;
 		QString ErrorCurrentUndist;
 		QString RotationVector;
 		QString TranslationVector;
 
-		getInfoFrame(camera, State::getInstance()->getActiveFrame(),ErrorCurrentDist, ErrorCurrentUndist, RotationVector, TranslationVector);
+		getInfoFrame(camera, State::getInstance()->getActiveFrameCalibration(),ErrorCurrentDist, ErrorCurrentUndist, RotationVector, TranslationVector);
 
 		frame->label_ErrorCurrentDist->setText(ErrorCurrentDist);
 		frame->label_ErrorCurrentUndist->setText(ErrorCurrentUndist);
 		frame->label_RotationVector->setText(RotationVector);
 		frame->label_TranslationVector->setText(TranslationVector);
 
-		frame->label_Inlier->setText(getInfoInlier(camera, State::getInstance()->getActiveFrame()));
+		frame->label_Inlier->setText(getInfoInlier(camera, State::getInstance()->getActiveFrameCalibration()));
 	}
 	else{
 
-		frame->label_Inlier->setText(getInfoInlier(camera, State::getInstance()->getActiveFrame()));
+		frame->label_Inlier->setText(getInfoInlier(camera, State::getInstance()->getActiveFrameCalibration()));
 
 		frame->label_ErrorCurrentDist->setText("");
 		frame->label_ErrorCurrentUndist->setText("");

@@ -1,4 +1,9 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "processing/CubeCalibration.h"	
+
 #include "ui/ProgressDialog.h"
 #include "ui/MainWindow.h"
 
@@ -8,8 +13,11 @@
 #include "core/CalibrationObject.h"
 #include "core/UndistortionObject.h"
 #include "core/Settings.h"
+
 #include <QtCore>
 #include <math.h>
+
+using namespace xma;
 
 int CubeCalibration::nbInstances = 0;
 

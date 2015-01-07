@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "ui/CameraBox.h"
 #include "ui_CameraBox.h"
 #include "ui/ErrorDialog.h"
@@ -6,6 +10,7 @@
 
 #include <QFileDialog>
 
+using namespace xma;
 
 CameraBox::CameraBox(QWidget *parent) :
 												QWidget(parent),
@@ -42,7 +47,7 @@ QString commonPrefix(QStringList fileNames){
 	bool isValid = true;
 	int count = 0;
 	while (isValid && count < fileNames.at(0).length()){
-		QString prefix = QString(fileNames.at(0).toStdString().substr(0,count+1).data());
+		QString prefix = QString(fileNames.at(0).left(count + 1));
 		for(int i = 0; i < fileNames.size();i++){
 			if(!fileNames.at(i).contains(prefix)){
 				isValid=false;
@@ -52,7 +57,7 @@ QString commonPrefix(QStringList fileNames){
 		
 		if(isValid)count++;
 	}
-	return QString(fileNames.at(0).toStdString().substr(0,count).data());
+	return QString(fileNames.at(0).left(count + 1));
 }
 		
 bool CameraBox::isComplete(){

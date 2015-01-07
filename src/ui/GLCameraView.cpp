@@ -6,17 +6,25 @@
  */
 
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
 #endif
+
+#include <GL/glew.h>
 
 #include "ui/GLCameraView.h"
 #include "ui/State.h"
 #include "ui/ErrorDialog.h"
 #include "ui/WizardDockWidget.h"
+#include "ui/ConsoleDockWidget.h"
+#include "ui/GLSharedWidget.h"
+
 #include "core/Camera.h"
 #include "core/UndistortionObject.h"
 #include "core/CalibrationImage.h"
 #include "core/Image.h"
+#include "core/Trial.h"
+#include "core/Project.h"
+#include "core/Marker.h"
 
 #include <QMouseEvent>
 
@@ -24,15 +32,19 @@
 #include <math.h>
 
 #ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
+	#include <OpenGL/gl.h>
+	#include <OpenGL/glu.h>
 #else
-#ifdef _WIN32
-  #include <windows.h>
+	#ifdef _WIN32
+		#include <windows.h>
+	#endif
+	#include <GL/gl.h>
+	#include <GL/glu.h>
 #endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
+
+
+
+using namespace xma;
 
 GLCameraView::GLCameraView(QWidget *parent)
     : QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
@@ -46,6 +58,9 @@ GLCameraView::GLCameraView(QWidget *parent)
 	y_offset = 0;
 	this->setCursor( QCursor( Qt::CrossCursor ));
 	setZoomRatio(1.0,true);
+	detailedView = false;
+	bias = 0.0;
+	scale = 1.0;
 }
 
 void GLCameraView::setCamera(Camera * _camera){
@@ -93,10 +108,10 @@ void GLCameraView::mouseDoubleClickEvent ( QMouseEvent * e ){
 	State::getInstance()->changeActiveCamera(this->camera->getID());
 	if(e->buttons() & Qt::LeftButton){
 		if(State::getInstance()->getWorkspace() == CALIBRATION
-			&& camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->isCalibrated() > 0){
+			&& camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() > 0){
 				double x =  zoomRatio * (e->posF().x()) - ((window_width)  * zoomRatio * 0.5 + x_offset);
 				double y =  zoomRatio * (e->posF().y()) - ((window_height) * zoomRatio * 0.5 + y_offset);
-				camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->toggleInlier(x, y , State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
+				camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->toggleInlier(x, y , State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
 			updateGL();
 		}
 	}
@@ -136,32 +151,44 @@ void GLCameraView::mousePressEvent(QMouseEvent *e)
 				}
 			}
 		 }else if(State::getInstance()->getWorkspace() == CALIBRATION){
-			 if(camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->isCalibrated() <= 0){
+			 if(camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() <= 0){
 				WizardDockWidget::getInstance()->addCalibrationReference(x, y);
 			 }else{
 				 if(e->modifiers().testFlag(Qt::ControlModifier)){
-					camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->setPointManual(x, y , State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
+					camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->setPointManual(x, y , State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
 					updateGL();
 				 }
 			 }
+		 }else if (State::getInstance()->getWorkspace() == DIGITIZATION){
+			 if (e->modifiers().testFlag(Qt::ControlModifier)){
+				 WizardDockWidget::getInstance()->addDigitizationPoint(camera->getID(), x, y);
+			 }
+			 else
+			 {
+				 WizardDockWidget::getInstance()->moveDigitizationPoint(camera->getID(), x, y);
+			 }
+
+			 updateGL();
 		 }
 		 updateGL();
 	 }
 }
 
 void GLCameraView::wheelEvent(QWheelEvent *e){
-	State::getInstance()->changeActiveCamera(this->camera->getID());
-	double zoom_prev = zoomRatio;
-	
-	setZoomRatio(zoomRatio * 1 + e->delta()/1000.0,false);
+	if (!detailedView){
+		State::getInstance()->changeActiveCamera(this->camera->getID());
+		double zoom_prev = zoomRatio;
 
-	QPoint coordinatesGlobal = e->globalPos();
-	QPoint coordinates =  this->mapFromGlobal(coordinatesGlobal);
-			
-	y_offset += (zoom_prev - zoomRatio) * (0.5 * window_height - coordinates.y());
-	x_offset += (zoom_prev - zoomRatio) * (0.5 * window_width - coordinates.x());
+		setZoomRatio(zoomRatio * 1 + e->delta() / 1000.0, false);
 
-	updateGL();
+		QPoint coordinatesGlobal = e->globalPos();
+		QPoint coordinates = this->mapFromGlobal(coordinatesGlobal);
+
+		y_offset += (zoom_prev - zoomRatio) * (0.5 * window_height - coordinates.y());
+		x_offset += (zoom_prev - zoomRatio) * (0.5 * window_width - coordinates.x());
+
+		updateGL();
+	}
 }
 
 void GLCameraView::initializeGL(){
@@ -185,6 +212,23 @@ void GLCameraView::setZoom(int value){
 	update();
 }
 
+void GLCameraView::setDetailedView()
+{
+	detailedView = true;
+	setZoomRatio(0.2, false);
+}
+
+void GLCameraView::setScale(double value)
+{
+	scale = value;
+	update();
+}
+
+void GLCameraView::setBias(double value)
+{
+	bias = value;
+	update();
+}
 
 void GLCameraView::setZoomToFit(){
 	setZoomRatio((((double) camera_width) / window_width > ((double) camera_height) / window_height ) ? ((double) camera_width) / window_width : ((double) camera_height) / window_height,autozoom);
@@ -230,7 +274,7 @@ void GLCameraView::renderPointText(){
 	std::vector<QString> text;
 	std::vector<bool> inlier;
 
-	camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->getDrawTextData(State::getInstance()->getCalibrationVisText(), State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE, x, y, text, inlier);
+	camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getDrawTextData(State::getInstance()->getCalibrationVisText(), State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE, x, y, text, inlier);
 	setFont(QFont(this->font().family(), 15.0 ));
 	QFontMetrics fm(this->font());
 	if(State::getInstance()->getCalibrationVisText() < 3){
@@ -260,11 +304,70 @@ void GLCameraView::renderPointText(){
 	text.clear();
 }
 
+void GLCameraView::drawTexture()
+{
+	bool drawImage = true;
+	bool noDraw = false;
+	glEnable(GL_TEXTURE_2D);
+	if (State::getInstance()->getWorkspace() == UNDISTORTION){
+		if (camera->hasUndistortion()){
+			camera->getUndistortionObject()->bindTexture(State::getInstance()->getUndistortionVisImage());
+		}
+		else{
+			drawImage = false;
+			renderTextCentered("No undistortion grid loaded");
+		}
+	}
+	else if (State::getInstance()->getWorkspace() == CALIBRATION){
+		camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->bindTexture(State::getInstance()->getCalibrationVisImage());
+	}
+	else if (State::getInstance()->getWorkspace() == DIGITIZATION){
+		if (Project::getInstance()->getTrials().size() > 0)
+		{
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getImage(camera->getID())->bindTexture();
+		}
+	}
+	if (drawImage){
+		glDisable(GL_LIGHTING);
+		drawQuad();
+	}
+	glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void GLCameraView::drawQuad()
+{
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 0);
+	glVertex2f(-0.5, -0.5);
+	glTexCoord2f(0, 1);
+	glVertex2f(-0.5, camera_height - 0.5);
+	glTexCoord2f(1, 1);
+	glVertex2f(camera_width - 0.5, camera_height - 0.5);
+	glTexCoord2f(1, 0);
+	glVertex2f(camera_width - 0.5, -0.5);
+	glEnd();
+}
+
+
+
 void GLCameraView::paintGL()
 {	
 	glDisable(GL_DEPTH_TEST);	
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity();
+
+	if (detailedView && State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+
+		Marker * activeMarker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
+		if (activeMarker != NULL){
+			double x = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].x;
+			double y = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].y;
+			x_offset = - x;
+			y_offset = - y;
+		}
+	}
 
 	glOrtho(-0.5 * (zoomRatio * window_width) - x_offset - 0.5, 
 			 0.5 * (zoomRatio * window_width) - x_offset - 0.5,
@@ -278,49 +381,84 @@ void GLCameraView::paintGL()
 	glMatrixMode (GL_MODELVIEW);
 	glLoadIdentity();
 
-	bool drawImage = true;
-	bool noDraw = false;
-	glEnable(GL_TEXTURE_2D);
-	if(State::getInstance()->getWorkspace() == UNDISTORTION){
-		if(camera->hasUndistortion()){
-			camera->getUndistortionObject()->bindTexture(State::getInstance()->getUndistortionVisImage());
-		}else{
-			drawImage = false;
-			renderTextCentered("No undistortion grid loaded");
-		}
-	}else if(State::getInstance()->getWorkspace() == CALIBRATION){
-		camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->bindTexture(State::getInstance()->getCalibrationVisImage());
+	glColor3f(1.0, 1.0, 1.0);
+	drawTexture();
+
+	if ((bias != 0.0 || scale != 1.0) && GLSharedWidget::getInstance()->getHasBlendSubtract()){
+			/* NOTE: The blending approach does not allow negative
+			scales.  The blending approach also fails if the
+			partial scaling or biasing results leave the 0.0 to
+			1.0 range (example, scale=5.47, bias=-1.2). */
+
+			glEnable(GL_BLEND);
+			if (scale > 1.0) {
+				float remainingScale;
+
+				remainingScale = scale;
+				if (GLSharedWidget::getInstance()->getHasBlendExt()){
+					glBlendEquationEXT(GL_FUNC_ADD_EXT);
+				}
+				glBlendFunc(GL_DST_COLOR, GL_ONE);
+				if (remainingScale > 2.0) {
+					/* Clever cascading approach.  Example: if the
+					scaling factor was 9.5, do 3 "doubling" blends
+					(8x), then scale by the remaining 1.1875. */
+					glColor4f(1, 1, 1, 1);
+					while (remainingScale > 2.0) {
+						drawQuad();
+						remainingScale /= 2.0;
+					}
+				}
+				glColor4f(remainingScale - 1,remainingScale - 1, remainingScale - 1, 1);
+				drawQuad();
+				glBlendFunc(GL_ONE, GL_ONE);
+				if (bias != 0) {
+					if (bias > 0) {
+						glColor4f(bias, bias, bias, 0.0);
+					}
+					else {
+						if (GLSharedWidget::getInstance()->getHasBlendSubtract()){
+							glBlendEquationEXT(GL_FUNC_REVERSE_SUBTRACT_EXT);
+						}
+						glColor4f(-bias, -bias, -bias, 0.0);
+					}
+					drawQuad();
+				}
+			}
+			else {
+				if (bias > 0) {
+					if (GLSharedWidget::getInstance()->getHasBlendExt()){
+						glBlendEquationEXT(GL_FUNC_ADD_EXT);
+					}
+					glColor4f(bias, bias, bias, scale);
+				}
+				else {
+					if (GLSharedWidget::getInstance()->getHasBlendSubtract()){
+						glBlendEquationEXT(GL_FUNC_REVERSE_SUBTRACT_EXT);
+					}
+					glColor4f(-bias, -bias, -bias, scale);
+				}
+				glBlendFunc(GL_ONE, GL_SRC_ALPHA);
+				drawQuad();
+			}
+			glDisable(GL_BLEND);
 	}
-
-	if(drawImage){
-		glDisable(GL_LIGHTING);
-
-		glColor3f(1.0,1.0,1.0);
-		glBegin(GL_QUADS);
-		glTexCoord2f(0,0);
-		glVertex2f(-0.5,-0.5);
-		glTexCoord2f(0,1);
-		glVertex2f(-0.5, camera_height - 0.5);
-		glTexCoord2f(1,1);
-		glVertex2f(camera_width - 0.5, camera_height - 0.5);
-		glTexCoord2f(1,0);
-		glVertex2f(camera_width - 0.5, -0.5);
-		glEnd();
-	}
-	glDisable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
 	if(State::getInstance()->getWorkspace() == UNDISTORTION){
 		if(camera->hasUndistortion()){
 			camera->getUndistortionObject()->drawData(State::getInstance()->getUndistortionVisPoints());
 		}
-	}else{
-		camera->getCalibrationImages()[State::getInstance()->getActiveFrame()]->draw(State::getInstance()->getCalibrationVisPoints());
+	}
+	else if (State::getInstance()->getWorkspace() == CALIBRATION)
+	{
+		camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->draw(State::getInstance()->getCalibrationVisPoints());
 		if(State::getInstance()->getCalibrationVisText() > 0){
 			renderPointText();
 		}
 	}
-
+	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawPoints(this->camera->getID(), detailedView);
+	}
 	if(State::getInstance()->getActiveCamera() == this->camera->getID()){
 		WizardDockWidget::getInstance()->draw();
 	}

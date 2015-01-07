@@ -7,18 +7,19 @@ namespace Ui {
 	class NewProjectDialog;
 }
 
-class CameraBox;
+namespace xma{
+	class CameraBox;
 
-class NewProjectDialog : public QDialog{
+	class NewProjectDialog : public QDialog{
 
-	Q_OBJECT
+		Q_OBJECT
 
 	public:
 		explicit NewProjectDialog(QWidget *parent = 0);
-		~NewProjectDialog();
+		virtual ~NewProjectDialog();
 
 		Ui::NewProjectDialog *diag;
-		const std::vector <CameraBox *>& getCameras(){return cameras;}	
+		const std::vector <CameraBox *>& getCameras(){ return cameras; }
 
 		//bool isCubeCalibrationObject();
 		//QString getFrameSpecificationsFileName();
@@ -30,13 +31,13 @@ class NewProjectDialog : public QDialog{
 		bool createProject();
 
 	private:
-		std::vector <CameraBox *> cameras;	
+		std::vector <CameraBox *> cameras;
 		int nbCams;
 
 		//checks if all inputs are done
 		bool isComplete();
 
-	public slots:
+		public slots:
 		//Cameras
 		void on_toolButtonCameraMinus_clicked();
 		void on_toolButtonCameraPlus_clicked();
@@ -52,6 +53,6 @@ class NewProjectDialog : public QDialog{
 		//Footer buttons
 		void on_pushButton_OK_clicked();
 		void on_pushButton_Cancel_clicked();
-};
-
+	};
+}
 #endif /* NEWPROJECTDIALOG_H_ */

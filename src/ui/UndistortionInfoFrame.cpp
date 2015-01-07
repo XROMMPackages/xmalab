@@ -1,15 +1,15 @@
-/*
- * UndistortionInfoFrame.cpp
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "ui/UndistortionInfoFrame.h"
 #include "ui_UndistortionInfoFrame.h"
+
 #include "core/Camera.h"
 #include "core/UndistortionObject.h"
+
+using namespace xma;
+
 UndistortionInfoFrame::UndistortionInfoFrame(QWidget *parent) :
 												QFrame(parent),
 												frame(new Ui::UndistortionInfoFrame){

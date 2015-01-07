@@ -1,14 +1,11 @@
-/*
- * Calibration.cpp
- *
- *  Created on: Nov 18, 2013
- *      Author: ben
- */
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "core/CalibrationObject.h"
-
 #include <QFileInfo>
 
+using namespace xma;
 
 CalibrationObject* CalibrationObject::instance = NULL;
 

@@ -1,8 +1,13 @@
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "core/Settings.h"
 #include <QCoreApplication>
 #include <QSettings>
 #include <QFileInfo>
 
+using namespace xma;
 
 Settings::Settings(){
 }
@@ -60,6 +65,18 @@ void Settings::setUndistortNamingPattern(QString pattern){
 QString Settings::getUndistortNamingPattern(){
 	QSettings settings;
 	return settings.value("UndistortNamingPattern","%NAMEBASE%%NUMBER%").toString();
+}
+
+void Settings::setShowDetailView(bool value)
+{
+	QSettings settings;
+	settings.setValue("ShowDetailView", value);
+}
+
+bool Settings::getShowDetailView()
+{
+	QSettings settings;
+	return settings.value("ShowDetailView", true).toBool();
 }
 
 void Settings::setAutoConfirmPendingChanges(bool value){

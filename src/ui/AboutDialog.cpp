@@ -1,13 +1,11 @@
-/*
- * AboutDialog.cpp
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "ui/AboutDialog.h"
 #include "ui_AboutDialog.h"
+
+using namespace xma;
 
 AboutDialog::AboutDialog(QWidget *parent) :
 												QDialog(parent),

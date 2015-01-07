@@ -6,22 +6,23 @@
 
 #include <opencv/cv.h>
 
-class Calibration: public QObject{
-	
-	Q_OBJECT;
+namespace xma{
+	class Calibration : public QObject{
+
+		Q_OBJECT;
 
 	public:
 		Calibration(int camera);
-		~Calibration();
+		virtual ~Calibration();
 
 		void computeCameraPosesAndCam();
 		static bool isRunning(){
 			return (nbInstances > 0);
 		}
 	signals:
-		void computeCameraPosesAndCam_finished();  
+		void computeCameraPosesAndCam_finished();
 
-	private slots:
+		private slots:
 		void computeCameraPosesAndCam_threadFinished();
 
 	private:
@@ -31,7 +32,7 @@ class Calibration: public QObject{
 		void reproject();
 
 		QFutureWatcher<void>* m_FutureWatcher;
-		static int nbInstances;	
+		static int nbInstances;
 
 		cv::vector<cv::Mat> rvecs;
 		cv::vector<cv::Mat> tvecs;
@@ -45,6 +46,6 @@ class Calibration: public QObject{
 
 		cv::vector<cv::Point2d> projectedPointsUndistorted;
 		cv::vector<double> error;
-};
-
+	};
+}
 #endif  // CALIBRATION_H

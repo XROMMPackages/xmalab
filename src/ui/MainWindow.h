@@ -4,24 +4,25 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QFuture>
+
 #include "ui/State.h"
 
 namespace Ui {
 	class MainWindow;
 }
 
-class Project;
-class CameraViewWidget;
-class NewProjectDialog;
-class WizardDockWidget;
-class WorldViewDockWidget;
+namespace xma{
+	class Project;
+	class CameraViewWidget;
+	class NewProjectDialog;
+	class WorldViewDockWidget;
 
-class MainWindow : public QMainWindow{
+	class MainWindow : public QMainWindow{
 
-	Q_OBJECT
+		Q_OBJECT
 	public:
 		static MainWindow* getInstance();
-		~MainWindow();
+		virtual ~MainWindow();
 		void redrawGL();
 		void recountFrames();
 
@@ -46,21 +47,23 @@ class MainWindow : public QMainWindow{
 		void saveProject();
 		void saveProjectAs();
 
+		//Trial functions
+		void newTrial();
+
 		void setCameraViewWidgetTitles();
 
 		QFutureWatcher<bool>* m_FutureWatcher;
 		NewProjectDialog * newProjectdialog;
 		WorldViewDockWidget* worldViewDockWidget;
-		
 
 	protected:
 		MainWindow(QWidget *parent = 0);
 
 		void resizeEvent(QResizeEvent *event);
-		void closeEvent (QCloseEvent * event);
+		void closeEvent(QCloseEvent * event);
 		QTimer resizeTimer;
 
-	public slots:
+		public slots:
 		//Futures
 		void loadProjectFinished();
 		void UndistortionAfterloadProjectFinished();
@@ -68,10 +71,12 @@ class MainWindow : public QMainWindow{
 		void newProjectFinished();
 
 		//custom slots for state
-		void workspaceChanged(work_state workspace);  
-		void displayChanged(ui_state display);  
-		void activeCameraChanged(int activeCamera);  
-		void activeFrameChanged(int activeFrame);  
+		void workspaceChanged(work_state workspace);
+		void displayChanged(ui_state display);
+		void activeCameraChanged(int activeCamera);
+		void activeFrameCalibrationChanged(int activeFrame);
+		void activeFrameTrialChanged(int);
+		void activeTrialChanged(int);
 
 		//File Menu Slots
 		void on_actionNew_Project_triggered(bool checked);
@@ -92,13 +97,16 @@ class MainWindow : public QMainWindow{
 		void on_actionAbout_triggered(bool checked);
 		void on_action3D_world_view_triggered(bool checked);
 		void on_actionConsole_triggered(bool checked);
-		
+		void on_actionDetailed_View_triggered(bool checked);
+
 		//startMainFrameButtons
 		void on_pushButtonNew_Project_clicked();
 		void on_pushButtonLoad_Project_clicked();
+		void on_pushButtonNewTrial_clicked();
 
 		//resizing
 		void resizeDone();
-};
+	};
+}
 
 #endif  // MAINWINDOW_H

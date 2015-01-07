@@ -1,10 +1,3 @@
-/*
- * ProgressDialog.h
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
 #ifndef PROGRESSDIALOG_H_
 #define PROGRESSDIALOG_H_
 
@@ -15,9 +8,10 @@ namespace Ui {
 	class ProgressDockWidget;
 }
 
-class ProgressDialog : public QDockWidget{
+namespace xma{
+	class ProgressDialog : public QDockWidget{
 
-	Q_OBJECT
+		Q_OBJECT
 
 	private:
 		Ui::ProgressDockWidget *diag;
@@ -26,16 +20,16 @@ class ProgressDialog : public QDockWidget{
 	protected:
 		ProgressDialog(QWidget *parent = 0);
 	public:
-		~ProgressDialog();
+		virtual ~ProgressDialog();
 		static ProgressDialog* getInstance();
 
 		void setProgress(double progress);
 		void showProgressbar(int min, int max, const char* key = "Computing");
 		void closeProgressbar();
 
-	public slots:
-};
-
+		public slots:
+	};
+}
 
 
 #endif /* PROGRESSDIALOG_H_ */

@@ -1,14 +1,23 @@
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "processing/LocalUndistortion.h"	
+
 #include "ui/ProgressDialog.h"
 #include "ui/MainWindow.h"
+
 #include "core/Project.h"
 #include "core/Camera.h"
 #include "core/Image.h"
 #include "core/UndistortionObject.h"
 #include "core/Settings.h"
+
 #include <QtCore>
 #include <stdlib.h>
 #include <math.h>
+
+using namespace xma;
 
 int LocalUndistortion::nbInstances = 0;
 
@@ -280,7 +289,7 @@ int LocalUndistortion::computeLWM(cv::Mat &detectedPts, cv::Mat &controlPts, cv:
 	all_pts_MatEuclideanDistance.release();
 	all_pts_Idx.release();
 
-	return ceil(maxRadius);
+	return std::ceil(maxRadius);
 }
 
 void LocalUndistortion::setPointsByInlier( cv::vector<cv::Point2d> &pts, cv::Mat &ptsInlier){

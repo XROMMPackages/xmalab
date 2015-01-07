@@ -1,10 +1,3 @@
-/*
- * ProgressDialog.h
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
 #ifndef WIZARDCALIBRATIONCUBEFRAME_H_
 #define WIZARDCALIBRATIONCUBEFRAME_H_
 
@@ -17,18 +10,19 @@ namespace Ui {
 	class WizardCalibrationCubeFrame;
 }
 
-class WizardCalibrationCubeFrame : public QFrame{
+namespace xma{
+	class WizardCalibrationCubeFrame : public QFrame{
 
-	Q_OBJECT
-	
+		Q_OBJECT
+
 	public:
-		~WizardCalibrationCubeFrame();
+		virtual ~WizardCalibrationCubeFrame();
 		WizardCalibrationCubeFrame(QWidget *parent = 0);
 
 		void loadCalibrationSettings();
 		void addCalibrationReference(double x, double y);
 		void draw();
-		
+
 		void runCalibrationCameraAllFrames();
 		bool checkForPendingChanges();
 
@@ -48,9 +42,10 @@ class WizardCalibrationCubeFrame : public QFrame{
 		std::vector <int> temporaryFrameIdx;
 
 
-	public slots:
+		public slots:
 		void activeCameraChanged(int activeCamera);
-		void activeFrameChanged(int activeFrame);
+		void activeFrameCalibrationChanged(int activeFrame);
+		void workspaceChanged(work_state workspace);
 
 		void on_pushButton_clicked();
 		void on_comboBoxImage_currentIndexChanged(int idx);
@@ -70,8 +65,8 @@ class WizardCalibrationCubeFrame : public QFrame{
 		void runCalibrationFinished();
 		void runCalibrationCameraAllFramesFinished();
 		void setTransformationMatrix();
-};
-
+	};
+}
 
 
 #endif /* WIZARDUNDISTORTIONFRAME_H_ */

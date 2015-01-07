@@ -1,10 +1,3 @@
-/*
- * ProgressDialog.h
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
 #ifndef WIZARDDOCKWIDGET_H_
 #define WIZARDDOCKWIDGET_H_
 
@@ -15,20 +8,25 @@ namespace Ui {
 	class WizardDockWidget;
 }
 
-class WizardUndistortionFrame;
-class WizardCalibrationCubeFrame;
 class QLabel;
 
-class WizardDockWidget : public QDockWidget{
+namespace xma{
+	class WizardUndistortionFrame;
+	class WizardCalibrationCubeFrame;
+	class WizardDigitizationFrame;
 
-	Q_OBJECT
-	
+	class WizardDockWidget : public QDockWidget{
+
+		Q_OBJECT
+
 	public:
-		~WizardDockWidget();
-		
+		virtual ~WizardDockWidget();
+
 		void updateFrames();
 		static WizardDockWidget* getInstance();
 		void addCalibrationReference(double x, double y);
+		void addDigitizationPoint(int camera, double x, double y);
+		void moveDigitizationPoint(int camera, double x, double y);
 		void draw();
 		bool checkForPendingChanges();
 		void update();
@@ -40,12 +38,13 @@ class WizardDockWidget : public QDockWidget{
 
 		WizardUndistortionFrame * undistortionFrame;
 		WizardCalibrationCubeFrame * calibrationFrame;
+		WizardDigitizationFrame * digitizationFrame;
 
-	public slots:
+		public slots:
 		void workspaceChanged(work_state workspace);
 
-};
-
+	};
+}
 
 
 #endif /* WIZARDUNDISTORTIONFRAME_H_ */

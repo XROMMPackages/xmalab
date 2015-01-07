@@ -3,28 +3,35 @@
 
 #include <QGLWidget>
 
-class GLSharedWidget: public QGLWidget
-{
-    Q_OBJECT
+namespace xma{
+	class GLSharedWidget : public QGLWidget
+	{
+		Q_OBJECT
 
-public:
-    ~GLSharedWidget();
-	static GLSharedWidget* getInstance();
-	const QGLContext* getQGLContext();
-	void makeGLCurrent();
+	public:
+		virtual ~GLSharedWidget();
+		static GLSharedWidget* getInstance();
+		const QGLContext* getQGLContext();
+		void makeGLCurrent();
 
-public slots:
-	
-protected:
-	GLSharedWidget(QWidget *parent = NULL);
-	void initializeGL();
-	void paintEvent ( QPaintEvent * event ){}
-	void resizeEvent ( QResizeEvent * event ){}
+		public slots:
 
-private:
-	static GLSharedWidget* instance;
-};
+		bool getHasBlendExt();
+		bool getHasBlendSubtract();
 
+	protected:
+		GLSharedWidget(QWidget *parent = NULL);
+		void initializeGL();
+		void paintEvent(QPaintEvent * event){}
+		void resizeEvent(QResizeEvent * event){}
+
+	private:
+		static GLSharedWidget* instance;
+
+		bool hasBlendSubtract;
+		bool hasBlendExt;
+	};
+}
 
 
 #endif /* GLSHAREDWIDGET_H */

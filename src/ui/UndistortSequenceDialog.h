@@ -11,15 +11,14 @@ namespace Ui {
 	class UndistortSequenceDialog;
 }
 
-class UndistortSequenceDialog : public QDialog{
+namespace xma{
+	class UndistortSequenceDialog : public QDialog{
 
-	Q_OBJECT
-
-
+		Q_OBJECT
 
 	public:
 		explicit UndistortSequenceDialog(QWidget *parent = 0);
-		~UndistortSequenceDialog();
+		virtual ~UndistortSequenceDialog();
 		Ui::UndistortSequenceDialog *diag;
 	protected:
 
@@ -33,11 +32,12 @@ class UndistortSequenceDialog : public QDialog{
 		QString commonPostfix(QStringList fileNames);
 		int getNumber(QStringList fileNames);
 
-	public slots:
+		public slots:
 		void on_toolButton_Input_clicked();
 		void on_toolButton_OutputFolder_clicked();
 		void on_pushButton_clicked();
 		void on_lineEdit_pattern_textChanged(QString text);
-};
+	};
+}
 
 #endif  // UNDISTORTSEQUENCEDIALOG_H

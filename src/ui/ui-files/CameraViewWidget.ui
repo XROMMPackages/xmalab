@@ -161,21 +161,20 @@
     </widget>
    </item>
    <item row="1" column="0">
-    <widget class="GLCameraView" name="glCameraView" native="true">
+    <widget class="xma::GLCameraView" name="glCameraView" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <zorder>frameInfo</zorder>
     </widget>
    </item>
   </layout>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>GLCameraView</class>
+   <class>xma::GLCameraView</class>
    <extends>QWidget</extends>
    <header>ui/GLCameraView.h</header>
    <container>1</container>

@@ -1,20 +1,23 @@
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
 #endif
-
-#include <QApplication>
-#include <QPushButton>
 
 #include "ui/MainWindow.h"
 #include "ui/ErrorDialog.h"
+
 #include "core/Settings.h"
+
+#include <QApplication>
+#include <QPushButton>
 
 #include <iostream>
 #include <opencv/cv.h>
 
 #ifdef _MSC_VER
-	#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+//	#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
+
+using namespace xma;
 
 class MApplication : public QApplication
 {

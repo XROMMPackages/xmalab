@@ -1,17 +1,9 @@
-/*
- * ProgressDialog.h
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
 #ifndef CONSOLEDOCKWIDGET_H_
 #define CONSOLEDOCKWIDGET_H_
 
 #include <QDockWidget>
 #include <QMutex>
 #include "ui/State.h"
-
 
 #define BUFFERSIZE 655360
 
@@ -21,12 +13,13 @@ namespace Ui {
 
 class QLabel;
 
-class ConsoleDockWidget : public QDockWidget{
+namespace xma{
+	class ConsoleDockWidget : public QDockWidget{
 
-	Q_OBJECT
-	
+		Q_OBJECT
+
 	public:
-		~ConsoleDockWidget();
+		virtual ~ConsoleDockWidget();
 		static ConsoleDockWidget* getInstance();
 
 		void writeLog(QString message, unsigned int level = 0);
@@ -48,10 +41,10 @@ class ConsoleDockWidget : public QDockWidget{
 		QString LoadText;
 
 		QTimer *timer;
-	public slots:
-		void logTimer();     
-};
-
+		public slots:
+		void logTimer();
+	};
+}
 
 
 #endif /* WIZARDUNDISTORTIONFRAME_H_ */

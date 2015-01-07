@@ -1,12 +1,5 @@
-/*
- * Calibration.cpp
- *
- *  Created on: Nov 18, 2013
- *      Author: ben
- */
-
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "Image.h"
@@ -20,6 +13,8 @@
 #ifndef GL_BGR
 #define GL_BGR 0x80E0
 #endif
+
+using namespace xma;
 
 Image::Image(QString _imageFileName){
 	color = false;
@@ -36,6 +31,7 @@ Image::Image(QString _imageFileName){
 	height = image.rows;
 	textureLoaded = false;
 	image_reset = false;
+	imageTMP.release();
 }
 
 Image::Image(Image *_image){
@@ -65,6 +61,20 @@ void Image::setImage(cv::Mat &_image, bool _color){
 	color = _color;
 	image.release();
 	image = _image.clone();
+	image_reset = true;
+}
+
+void Image::setImage(QString imageFileName)
+{
+	image.release();
+	cv::Mat imageTMP;
+	imageTMP = cv::imread(imageFileName.toAscii().data(), CV_LOAD_IMAGE_GRAYSCALE | CV_LOAD_IMAGE_ANYDEPTH);
+	if (imageTMP.depth() == CV_16U){
+		imageTMP.convertTo(image, CV_8U, 1.0 / 256.0);
+	}
+	else{
+		image = imageTMP.clone();
+	}
 	image_reset = true;
 }
 

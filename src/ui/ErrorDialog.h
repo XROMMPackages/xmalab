@@ -1,10 +1,3 @@
-/*
- * ProgressDialog.h
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
 #ifndef ERRORDIALOG_H_
 #define ERRORDIALOG_H_
 
@@ -15,9 +8,10 @@ namespace Ui {
 	class ErrorDialog;
 }
 
-class ErrorDialog : public QDialog{
+namespace xma{
+	class ErrorDialog : public QDialog{
 
-	Q_OBJECT
+		Q_OBJECT
 
 	private:
 		Ui::ErrorDialog *diag;
@@ -27,14 +21,13 @@ class ErrorDialog : public QDialog{
 		ErrorDialog(QWidget *parent = 0);
 
 	public:
-		~ErrorDialog();
+		virtual ~ErrorDialog();
 		static ErrorDialog* getInstance();
 
 		void showErrorDialog(QString message);
 
-	public slots:
-};
-
-
+		public slots:
+	};
+}
 
 #endif /* ErrorDialogDIALOG_H_ */

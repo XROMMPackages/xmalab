@@ -1,9 +1,6 @@
-/*
- * Calibration.cpp
- *
- *  Created on: Nov 18, 2013
- *      Author: ben
- */
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "core/UndistortionObject.h"
 #include "core/Image.h"
@@ -12,9 +9,11 @@
 #include <QFileInfo>
 #include <fstream>
 
-#include "opencv2/contrib/contrib.hpp"
-#include "opencv2/core/core.hpp"
+#include <opencv2/contrib/contrib.hpp>
+#include <opencv2/core/core.hpp>
 #include <opencv/highgui.h>
+
+using namespace xma;
 
 UndistortionObject::UndistortionObject(Camera* _camera, QString _imageFileName){
 	imageFileName = _imageFileName;

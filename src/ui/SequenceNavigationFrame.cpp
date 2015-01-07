@@ -1,25 +1,35 @@
-/*
- * ProgressDialog.cpp
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "ui/SequenceNavigationFrame.h"
 #include "ui_SequenceNavigationFrame.h"
 
 #include "ui/State.h"
+#include "ui/ConsoleDockWidget.h"
+#include "core/Project.h"
+#include "core/Trial.h"
+
+#include <QInputDialog>
+
+using namespace xma;
 
 SequenceNavigationFrame::SequenceNavigationFrame(QWidget *parent) :
 												QFrame(parent),
 												frame(new Ui::SequenceNavigationFrame){
 
 	frame->setupUi(this);
-	frame->spinBox->setMinimum(1);
+	frame->spinBoxFrame->setMinimum(1);
 	frame->horizontalSlider->setValue(0);
-	frame->spinBox->setValue(1);
-	connect(State::getInstance(), SIGNAL(activeFrameChanged(int)), this, SLOT(activeFrameChanged(int)));
+	frame->spinBoxFrame->setValue(1);
+	connect(State::getInstance(), SIGNAL(activeFrameCalibrationChanged(int)), this, SLOT(activeFrameChanged(int)));
+	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameChanged(int)));
+	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
+	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
+
+	play_tag = 0;
+	play_timer = new QTimer(this);
+	connect(play_timer, SIGNAL(timeout()), this, SLOT(play_update()));
 }
 
 SequenceNavigationFrame::~SequenceNavigationFrame(){
@@ -28,44 +38,185 @@ SequenceNavigationFrame::~SequenceNavigationFrame(){
 
 void SequenceNavigationFrame::setNbImages(int nbImages){
 	maxFrame = nbImages-1;
-	frame->horizontalSlider->setMaximum(maxFrame);
-	frame->spinBox->setMaximum(maxFrame+1);
-	if(frame->horizontalSlider->value() == 0)frame->toolButtonPrev->setEnabled(false);
+	setStartEndSequence(1, nbImages);
+}
+
+void SequenceNavigationFrame::setStartEndSequence(int start, int end)
+{
+	if (end < start || start <= 0 || end > maxFrame + 1) return;
+
+	endFrame = end;
+	startFrame = start;
+
+	frame->toolButtonFrameStart->setText(QString::number(startFrame));
+	frame->toolButtonFrameEnd->setText(QString::number(endFrame));
+
+	frame->horizontalSlider->setMinimum(startFrame-1);
+	frame->horizontalSlider->setMaximum(endFrame - 1);
+	
+	frame->spinBoxFrame->setMinimum(startFrame);
+	frame->spinBoxFrame->setMaximum(endFrame);
+
+	if (frame->horizontalSlider->value() == startFrame - 1) frame->toolButtonPrev->setEnabled(false);
+	if (frame->horizontalSlider->value() == endFrame - 1) frame->toolButtonNext->setEnabled(false);
 }
 
 void SequenceNavigationFrame::activeFrameChanged(int activeFrame){
-	if(activeFrame + 1 != frame->spinBox->value()){
-		frame->spinBox->setValue(activeFrame + 1);
+	if (activeFrame + 1 != frame->spinBoxFrame->value()){
+		frame->spinBoxFrame->setValue(activeFrame + 1);
 	}
 	if(activeFrame != frame->horizontalSlider->value()){
 		frame->horizontalSlider->setValue(activeFrame);
 	}
 
-	if(frame->spinBox->value() == frame->spinBox->maximum()){
+	if (frame->spinBoxFrame->value() == frame->spinBoxFrame->maximum()){
 		frame->toolButtonNext->setEnabled(false);
 	}else{
 		frame->toolButtonNext->setEnabled(true);
 	}
 
-	if(frame->spinBox->value() == frame->spinBox->minimum()){
+	if (frame->spinBoxFrame->value() == frame->spinBoxFrame->minimum()){
 		frame->toolButtonPrev->setEnabled(false);
 	}else{
 		frame->toolButtonPrev->setEnabled(true);
 	}
 }
 
-void SequenceNavigationFrame::on_horizontalSlider_valueChanged(int value){
-	State::getInstance()->changeActiveFrame(value);
+void SequenceNavigationFrame::workspaceChanged(work_state workspace)
+{
+	on_toolButtonStop_clicked();
+
+	if (workspace == CALIBRATION && Project::getInstance()->getNbImagesCalibration() > 1) {
+		setNbImages(Project::getInstance()->getNbImagesCalibration());
+		frame->toolButtonFrameEnd->setDisabled(true);
+		frame->toolButtonFrameStart->setDisabled(true);
+		frame->toolButtonPlay->hide();
+		frame->toolButtonPlayBackward->hide();
+		frame->toolButtonStop->hide();
+
+	}
+	else if (workspace == DIGITIZATION && Project::getInstance()->getTrials().size() > 0)
+	{
+		setNbImages(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages());
+		activeFrameChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
+		changeFrame(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
+		frame->toolButtonFrameEnd->setDisabled(false);
+		frame->toolButtonFrameStart->setDisabled(false);
+		frame->toolButtonPlay->show();
+		frame->toolButtonPlayBackward->show();
+		frame->toolButtonStop->show();
+	}
 }
 
-void SequenceNavigationFrame::on_spinBox_valueChanged(int value){
-	State::getInstance()->changeActiveFrame(value - 1);
+
+void SequenceNavigationFrame::activeTrialChanged(int activeTrial)
+{	
+	on_toolButtonStop_clicked();
+	if (State::getInstance()->getWorkspace() == DIGITIZATION && Project::getInstance()->getTrials().size() > 0)
+	{
+		setNbImages(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages());
+		activeFrameChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
+		changeFrame(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
+	}
+}
+
+void SequenceNavigationFrame::changeFrame(int frame)
+{
+	if (State::getInstance()->getWorkspace() == CALIBRATION)
+	{
+		State::getInstance()->changeActiveFrameCalibration(frame);
+	}
+	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		if (Project::getInstance()->getTrials().size()){
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setActiveFrame(frame);
+			State::getInstance()->changeActiveFrameTrial(frame);
+		}
+	}
+}
+
+void SequenceNavigationFrame::on_horizontalSlider_valueChanged(int value){
+	changeFrame(value);
+	QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+}
+
+void SequenceNavigationFrame::on_spinBoxFrame_valueChanged(int value){
+	changeFrame(value - 1);
+}
+
+void SequenceNavigationFrame::play_update(){
+	if (play_tag > 0){
+		on_toolButtonNext_clicked();
+	}
+	else if (play_tag < 0)
+	{
+		on_toolButtonPrev_clicked();
+	}
+
+	QApplication::processEvents();
+
+	if ((play_tag < 0 && frame->toolButtonPrev->isEnabled() == false) ||
+		(play_tag > 0 && frame->toolButtonNext->isEnabled() == false)){
+		on_toolButtonStop_clicked();
+	}
+}
+
+void SequenceNavigationFrame::on_toolButtonPlay_clicked(){
+	on_toolButtonStop_clicked();
+
+	if (play_tag == 0) {
+		play_tag = 1;
+		play_timer->start(1);
+	}
+
+	frame->toolButtonPlay->setChecked(true);
+}
+
+void SequenceNavigationFrame::on_toolButtonPlayBackward_clicked(){
+	on_toolButtonStop_clicked();
+
+	if (play_tag == 0) {
+		play_tag = -1;
+		play_timer->start(1);
+	}
+
+	frame->toolButtonPlayBackward->setChecked(true);
+}
+
+void SequenceNavigationFrame::on_toolButtonStop_clicked(){
+	if (play_tag != 0) {
+		play_tag = 0;
+		play_timer->stop();  
+	}
+
+	frame->toolButtonPlayBackward->setChecked(false);
+	frame->toolButtonPlay->setChecked(false);
 }
 
 void SequenceNavigationFrame::on_toolButtonNext_clicked(){
-	State::getInstance()->changeActiveFrame(frame->horizontalSlider->value()+1);
+	changeFrame(frame->horizontalSlider->value() + 1);
 }
 
 void SequenceNavigationFrame::on_toolButtonPrev_clicked(){
-	State::getInstance()->changeActiveFrame(frame->horizontalSlider->value()-1);
+	changeFrame(frame->horizontalSlider->value() - 1);
+}
+
+void SequenceNavigationFrame::on_toolButtonFrameStart_clicked()
+{
+	bool ok;
+	int idx = QInputDialog::getInt(this, tr("Set start frame"),
+		tr("frame "), startFrame, 1, endFrame, 1, &ok);
+	if (ok){
+		setStartEndSequence(idx, endFrame);
+	}
+}
+
+void SequenceNavigationFrame::on_toolButtonFrameEnd_clicked()
+{
+	bool ok;
+	int idx = QInputDialog::getInt(this, tr("Set end frame"),
+		tr("frame "), endFrame, startFrame, maxFrame, 1, &ok);
+	if (ok){
+		setStartEndSequence(startFrame, idx);
+	}
 }

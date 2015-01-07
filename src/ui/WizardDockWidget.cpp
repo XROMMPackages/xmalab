@@ -1,10 +1,17 @@
+#ifdef _MSC_VER
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "ui/MainWindow.h"
 #include "ui/WizardDockWidget.h"
 #include "ui_WizardDockWidget.h"
 #include "ui/WizardUndistortionFrame.h"
 #include "ui/WizardCalibrationCubeFrame.h"
+#include "ui/WizardDigitizationFrame.h"
 
 #include <QLabel>
+
+using namespace xma;
 
 WizardDockWidget* WizardDockWidget::instance = NULL;
 
@@ -16,8 +23,11 @@ WizardDockWidget::WizardDockWidget(QWidget *parent) :
 	
 	undistortionFrame = new WizardUndistortionFrame(this);
 	calibrationFrame = new WizardCalibrationCubeFrame(this);
+	digitizationFrame = new WizardDigitizationFrame(this);
+
 	dock->gridLayout->addWidget(undistortionFrame, 0, 0, 1, 1);
 	dock->gridLayout->addWidget(calibrationFrame, 1, 0, 1, 1);
+	dock->gridLayout->addWidget(digitizationFrame, 2, 0, 1, 1);
 
 	dock->gridLayout->setSizeConstraint(QLayout::SetFixedSize);
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
@@ -28,7 +38,11 @@ bool WizardDockWidget::checkForPendingChanges(){
 		return undistortionFrame->checkForPendingChanges();
 	}else if(State::getInstance()->getWorkspace() == CALIBRATION){
 		return calibrationFrame->checkForPendingChanges();
-	}										
+	}
+	else if (State::getInstance()->getWorkspace() == DIGITIZATION){
+		return true;
+	}
+	return true;
 }
 
 void WizardDockWidget::update(){
@@ -54,6 +68,16 @@ void WizardDockWidget::addCalibrationReference(double x, double y){
 	calibrationFrame->addCalibrationReference(x,y);
 }
 
+void WizardDockWidget::addDigitizationPoint(int camera, double x, double y)
+{
+	digitizationFrame->addDigitizationPoint(camera, x, y);
+}
+
+void WizardDockWidget::moveDigitizationPoint(int camera, double x, double y)
+{
+	digitizationFrame->moveDigitizationPoint(camera, x, y);
+}
+
 void WizardDockWidget::draw(){
 	if(State::getInstance()->getWorkspace() == UNDISTORTION){
 	}else if(State::getInstance()->getWorkspace() == CALIBRATION){
@@ -69,8 +93,14 @@ void WizardDockWidget::workspaceChanged(work_state workspace){
 	if(workspace == UNDISTORTION){
 		undistortionFrame->show();
 		calibrationFrame->hide();
+		digitizationFrame->hide();
 	}else if(workspace == CALIBRATION){
 		undistortionFrame->hide();
 		calibrationFrame->show();
+		digitizationFrame->hide();
+	}else if (workspace == DIGITIZATION){
+		undistortionFrame->hide();
+		calibrationFrame->hide();
+		digitizationFrame->show();
 	}
 }

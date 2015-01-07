@@ -1,17 +1,21 @@
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "ui/ProjectFileIO.h" 
-#include "core/Project.h" 
-#include "core/Camera.h" 
-#include "core/CalibrationImage.h"
-#include "core/UndistortionObject.h"
-#include "core/CalibrationObject.h"
+
 #include "ui/ErrorDialog.h"
 #include "ui/ProgressDialog.h"
 #include "ui/State.h"
 #include "ui/ConsoleDockWidget.h"
+#include "ui/WorkspaceNavigationFrame.h"
+
+#include "core/Project.h" 
+#include "core/Camera.h" 
+#include "core/Trial.h" 
+#include "core/CalibrationImage.h"
+#include "core/UndistortionObject.h"
+#include "core/CalibrationObject.h"
 
 #include <QDir>
 #include <QXmlStreamWriter>
@@ -22,10 +26,12 @@
 #include "quazipfile.h"
 
 #ifdef WIN32
-#define OS_SEP "\\"
+	#define OS_SEP "\\"
 #else
-#define OS_SEP "/"
+	#define OS_SEP "/"
 #endif
+
+using namespace xma;
 
 ProjectFileIO* ProjectFileIO::instance = NULL;
 
@@ -113,6 +119,20 @@ bool ProjectFileIO::saveProject(QString filename){
 		}
 	}
 
+	if (success){
+		for (int i = 0; i < Project::getInstance()->getTrials().size(); i++)
+		{
+			QString path = tmpDir_path + OS_SEP + Project::getInstance()->getTrials()[i]->getName() + OS_SEP;
+			if (!QDir().mkpath(path)){
+				ErrorDialog::getInstance()->showErrorDialog("Can not create tmp folder " + path);
+				success = false;
+			}
+			else{
+				Project::getInstance()->getTrials()[i]->save(path);
+			}
+		}
+	}
+
 	//save Log
 	ConsoleDockWidget::getInstance()->save(tmpDir_path + OS_SEP + "log.html");
 
@@ -133,7 +153,6 @@ bool ProjectFileIO::loadProject(QString filename){
 	
 	ConsoleDockWidget::getInstance()->load(tmpDir_path + OS_SEP + "log.html");
 	
-
 	removeDir(tmpDir_path);
 
 	return success;
@@ -237,6 +256,15 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 				QFileInfo referencesFilenameInfo(CalibrationObject::getInstance()->getReferencesFilename());
 				xmlWriter.writeAttribute("FrameSpecifications", QString("CalibrationObject") + OS_SEP + frameSpecificationsFilenameInfo.fileName());
 				xmlWriter.writeAttribute("References", QString("CalibrationObject") + OS_SEP + referencesFilenameInfo.fileName());
+			}
+			xmlWriter.writeEndElement();
+			//Trials
+
+			for (int i = 0; i < Project::getInstance()->getTrials().size(); i++)
+			{
+				xmlWriter.writeStartElement("Trial");
+				xmlWriter.writeAttribute("Name", Project::getInstance()->getTrials()[i]->getName());
+				xmlWriter.writeEndElement();
 			}
 
 			xmlWriter.writeEndDocument();
@@ -409,6 +437,17 @@ bool ProjectFileIO::readProjectFile(QString filename){
 								frameSpec.replace("/",OS_SEP);
 								CalibrationObject::getInstance()->loadCoords(frameSpec,references);
 							}
+						}
+						if (xml.name() == "Trial")
+						{
+							QXmlStreamAttributes attr = xml.attributes();
+							QString trialname = attr.value("Name").toString();
+							QString trialfolder = basedir + OS_SEP + trialname + OS_SEP;
+							trialfolder.replace("\\", OS_SEP);
+							trialfolder.replace("/", OS_SEP);
+							Project::getInstance()->addTrial(new Trial(trialname, trialfolder));
+							WorkspaceNavigationFrame::getInstance()->addTrial(trialname);
+							State::getInstance()->changeActiveTrial(Project::getInstance()->getTrials().size() - 1, true);
 						}
 					}
 				}

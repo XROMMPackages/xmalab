@@ -1,10 +1,3 @@
-/*
- * ProgressDialog.h
- *
- *  Created on: Nov 19, 2013
- *      Author: ben
- */
-
 #ifndef WIZARDUNDISTORTIONFRAME_H_
 #define WIZARDUNDISTORTIONFRAME_H_
 
@@ -15,12 +8,13 @@ namespace Ui {
 	class WizardUndistortionFrame;
 }
 
-class WizardUndistortionFrame : public QFrame{
+namespace xma{
+	class WizardUndistortionFrame : public QFrame{
 
-	Q_OBJECT
-	
+		Q_OBJECT
+
 	public:
-		~WizardUndistortionFrame();
+		virtual ~WizardUndistortionFrame();
 		WizardUndistortionFrame(QWidget *parent = 0);
 
 		bool checkForPendingChanges();
@@ -28,7 +22,7 @@ class WizardUndistortionFrame : public QFrame{
 	private:
 		Ui::WizardUndistortionFrame *frame;
 
-	public slots:
+		public slots:
 		void undistortionChanged(undistortion_state undistortion);
 		void on_pushButton_clicked();
 
@@ -40,8 +34,8 @@ class WizardUndistortionFrame : public QFrame{
 		void computeUndistortion();
 		void recomputeUndistortion();
 		void undistortionFinished();
-};
-
+	};
+}
 
 
 #endif /* WIZARDUNDISTORTIONFRAME_H_ */

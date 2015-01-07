@@ -1,16 +1,10 @@
-/*
-* Calibration.cpp
-*
-*  Created on: Nov 18, 2013
-*      Author: ben
-*/
-
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "core/Image.h"
 #include "core/Camera.h"
+#include "core/Project.h"
 #include "core/CalibrationImage.h"
 #include "core/UndistortionObject.h"
 
@@ -19,14 +13,16 @@
 #include <fstream>
 
 #ifdef WIN32
-#define OS_SEP "\\"
+	#define OS_SEP "\\"
 #else
-#define OS_SEP "/"
+	#define OS_SEP "/"
 #endif
 
 #ifndef _PI
 	#define _PI 3.141592653
 #endif
+
+using namespace xma;
 
 Camera::Camera(QString cameraName, int _id){
 	calibrationImages.clear();
@@ -149,6 +145,12 @@ void Camera::undistort(){
 	}
 }
 
+void Camera::setCalibrated(bool value)
+{
+	calibrated = value;
+	Project::getInstance()->checkCalibration();
+}
+
 void Camera::setCameraMatrix(cv::Mat & _cameramatrix){
 	cameramatrix = _cameramatrix.clone();
 	setCalibrated(true);
@@ -156,6 +158,24 @@ void Camera::setCameraMatrix(cv::Mat & _cameramatrix){
 
 cv::Mat Camera::getCameraMatrix(){
 	return cameramatrix.clone();
+}
+
+cv::Mat Camera::getProjectionMatrix(int referenceFrame)
+{
+	cv::Mat projectionmatrix;
+	projectionmatrix.create(3, 4, CV_64F);
+
+	cv::Mat tmp;
+	cv::Mat rotationmatrix;
+	rotationmatrix.create(3, 3, CV_64F);
+	cv::Rodrigues(getCalibrationImages()[referenceFrame]->getRotationVector(), rotationmatrix);
+	rotationmatrix.copyTo(tmp);
+	cv::hconcat(tmp, getCalibrationImages()[referenceFrame]->getTranslationVector(), tmp);
+	projectionmatrix = cameramatrix * tmp;
+
+	rotationmatrix.release();
+	tmp.release();
+	return projectionmatrix;
 }
 
 QString Camera::getFilenameCameraMatrix(){
