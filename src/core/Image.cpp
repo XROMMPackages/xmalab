@@ -57,6 +57,22 @@ void Image::getImage(cv::Mat &_image){
 	_image = image.clone();
 }
 
+void Image::getSubImage(cv::Mat& _image, int size, int off_x, int off_y)
+{
+	_image.release();
+	cv::Size img_size(2 * size + 1, 2 * size + 1);
+	cv::Point2f center(off_x + size, off_y + size);
+	cv::getRectSubPix(image, img_size, center, _image);
+}
+
+void Image::getSubImage(cv::Mat& _image, int size, double x, double y)
+{
+	_image.release();
+	cv::Size img_size(2 * size + 1, 2 * size + 1);
+	cv::Point2f center(x,y);
+	cv::getRectSubPix(image, img_size, center, _image);
+}
+
 void Image::setImage(cv::Mat &_image, bool _color){
 	color = _color;
 	image.release();

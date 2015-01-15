@@ -20,6 +20,7 @@ namespace xma{
 
 		const std::vector <int > &getPointsIdx();
 
+		void clearPointIdx();
 		void addPointIdx(int idx);
 		void removePointIdx(int idx);
 

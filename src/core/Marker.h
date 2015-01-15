@@ -28,8 +28,13 @@ namespace xma{
 		const std::vector <markerStatus>  &getStatus3D();
 
 		void movePoint(int camera, int activeFrame, double x, double y);
+		void setTrackedPoint(int camera, int activeFrame, double x, double y);
 		std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int CameraDestination, int frame);
 		void reconstruct3DPoint(int frame);
+		bool getMarkerPrediction(int camera, int frame, double &x, double &y);
+
+		double getSize();
+		void setSize(int camera, int frame, double size_value);
 
 	private:
 		void init(int nbCameras, int size);
@@ -44,6 +49,10 @@ namespace xma{
 		std::vector< std::vector <cv::Point2d> > points2D_projected;
 		std::vector< std::vector <markerStatus> > status2D;
 		std::vector< std::vector <double> > error2D;
+
+		void updateMeanSize();
+		std::vector< std::vector <double> > markerSize;
+		double meanSize;
 
 		std::vector <cv::Point3d> points3D;
 		std::vector <markerStatus> status3D;

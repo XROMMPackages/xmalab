@@ -5,13 +5,18 @@
 #include "ui/PointsDockWidget.h"
 #include "ui_PointsDockWidget.h"
 #include "ui/MainWindow.h"
+#include "ui/ImportExportPointsDialog.h"
+#include "ui/State.h"
+#include "ui/ConfirmationDialog.h"
 
 #include "core/Project.h"
 #include "core/Trial.h"
 #include "core/Marker.h"
 #include "core/RigidBody.h"
 
+
 #include <QMouseEvent>
+#include <QInputDialog>
 
 using namespace xma;
 
@@ -23,7 +28,9 @@ PointsDockWidget::PointsDockWidget(QWidget *parent) :
 
 	dock->setupUi(this);
 
-	qApp->installEventFilter( this );			
+	qApp->installEventFilter( this );
+
+	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 }
 	
 PointsDockWidget::~PointsDockWidget(){
@@ -107,4 +114,65 @@ void PointsDockWidget::on_treeWidgetPoints_currentItemChanged(QTreeWidgetItem * 
 
 	}
 	MainWindow::getInstance()->redrawGL();
+}
+
+void PointsDockWidget::on_pushButtonSetNumberMarkers_clicked()
+{
+	bool ok;
+	int idx = QInputDialog::getInt(this, tr("Set Number of Markers to"),
+		tr(""), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(), 0, 1000, 1, &ok);
+	if (ok){
+		if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() < idx)
+		{
+			while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() != idx){
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addMarker();
+			}
+		}
+		else
+		{
+			if(ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to delete Points " + QString::number(idx + 1) + " to " + QString::number(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()) + ". Are you sure you want to proceed?")){	
+				while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() != idx){
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->removeMarker(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() - 1);
+				}
+			}
+		}
+	}
+	reloadListFromObject();
+}
+
+void PointsDockWidget::on_pushButtonSetNumberRigidBodies_clicked()
+{
+	bool ok;
+	int idx = QInputDialog::getInt(this, tr("Set Number of Rigid Bodies to"),
+		tr(""), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size(), 0, 1000, 1, &ok);
+	if (ok){
+		if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() < idx)
+		{
+			while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() != idx){
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addRigidBody();
+			}
+		}
+		else
+		{
+			if (ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to delete Rigid Bodies " + QString::number(idx + 1) + " to " + QString::number(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size()) + ". Are you sure you want to proceed?")){
+				while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() != idx){
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->removeRigidBody(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() - 1);
+				}
+			}
+		}
+	}
+	reloadListFromObject();
+}
+
+void PointsDockWidget::on_pushButtonImportExport_clicked()
+{
+	ImportExportPointsDialog * diag = new ImportExportPointsDialog(this);
+	diag->exec();
+	delete diag;
+	reloadListFromObject();
+}
+
+void PointsDockWidget::activeTrialChanged(int activeCamera)
+{
+	reloadListFromObject();
 }

@@ -35,6 +35,11 @@ const std::vector<int>& RigidBody::getPointsIdx()
 	return pointsIdx;
 }
 
+void RigidBody::clearPointIdx()
+{
+	pointsIdx.clear();
+}
+
 void RigidBody::addPointIdx(int idx)
 {
 	pointsIdx.push_back(idx);

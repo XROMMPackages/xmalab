@@ -36,6 +36,11 @@ namespace xma{
 		public slots:
 
 			void on_treeWidgetPoints_currentItemChanged(QTreeWidgetItem * current, QTreeWidgetItem * previous);
+			void on_pushButtonSetNumberMarkers_clicked();
+			void on_pushButtonSetNumberRigidBodies_clicked();
+			void on_pushButtonImportExport_clicked();
+			void activeTrialChanged(int activeCamera);
+		
 	};
 }
 

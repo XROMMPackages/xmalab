@@ -43,6 +43,7 @@ Trial::Trial(QString trialname, std::vector<QStringList> &imageFilenames){
 Trial::Trial(QString trialname, QString folder){
 	name = trialname;
 	activeFrame = 0;
+	referenceCalibrationImage = 0;
 	images.clear();
 	filenames.clear();
 	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
@@ -243,9 +244,8 @@ void Trial::drawPoints(int cameraId, bool detailView)
 				glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x + 5, (*it)->getPoints2D()[cameraId][activeFrame].y);
 				glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x, (*it)->getPoints2D()[cameraId][activeFrame].y - 5);
 				glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x, (*it)->getPoints2D()[cameraId][activeFrame].y + 5);
-
-				idx++;
 			}
+			idx++;
 		}
 	}
 	else if (activeMarkerIdx >= 0 && activeMarkerIdx < markers.size())
@@ -272,6 +272,23 @@ void Trial::drawPoints(int cameraId, bool detailView)
 
 			glVertex2f(x - i * 2, y - 1);
 			glVertex2f(x - i * 2, y + 1);
+		}
+
+		double size = markers[activeMarkerIdx]->getSize();;
+		if (size > 0)
+		{
+			glVertex2f(x - size, y - size);
+			glVertex2f(x - size, y + size);
+
+
+			glVertex2f(x + size, y - size);
+			glVertex2f(x + size, y + size);
+
+			glVertex2f(x - size, y - size);
+			glVertex2f(x + size, y - size);
+
+			glVertex2f(x - size, y + size);
+			glVertex2f(x + size, y + size);
 		}
 	}
 	glEnd();

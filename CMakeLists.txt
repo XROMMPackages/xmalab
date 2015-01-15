@@ -118,6 +118,8 @@ SET(Processing_HEADERS
 	src/processing/LocalUndistortion.h
 	src/processing/CubeCalibration.h
 	src/processing/Calibration.h
+	src/processing/MarkerDetection.h
+	src/processing/MarkerTracking.h
 )
 
 SET(Processing_SOURCES
@@ -125,6 +127,8 @@ SET(Processing_SOURCES
 	src/processing/LocalUndistortion.cpp
 	src/processing/CubeCalibration.cpp
 	src/processing/Calibration.cpp
+	src/processing/MarkerDetection.cpp
+	src/processing/MarkerTracking.cpp
 )
 
 SOURCE_GROUP(_PROCESSING FILES ${Processing_HEADERS} ${Processing_SOURCES})
@@ -162,6 +166,7 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/PointsDockWidget.h
 	src/ui/CameraViewDetailWidget.h
 	src/ui/DetailViewDockWidget.h
+	src/ui/ImportExportPointsDialog.h
 )
 
 SET(XMALab_FORMS_SOURCES
@@ -197,6 +202,7 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/PointsDockWidget.cpp
 		src/ui/CameraViewDetailWidget.cpp
 		src/ui/DetailViewDockWidget.cpp
+		src/ui/ImportExportPointsDialog.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
@@ -227,6 +233,7 @@ SET(XMALab_FORMS
 		src/ui/ui-files/PointsDockWidget.ui
 		src/ui/ui-files/CameraViewDetailWidget.ui
 		src/ui/ui-files/DetailViewDockWidget.ui
+		src/ui/ui-files/ImportExportPointsDialog.ui
 		)
 
 SOURCE_GROUP(UI_Files FILES ${XMALab_FORMS})
@@ -258,6 +265,7 @@ SET(XMALab_FORMS_MOC
 		${CMAKE_CURRENT_BINARY_DIR}/ui_PointsDockWidget.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_CameraViewDetailWidget.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_DetailViewDockWidget.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_ImportExportPointsDialog.h
 )
 
 SOURCE_GROUP(UI_Generated FILES ${XMALab_FORMS_MOC})

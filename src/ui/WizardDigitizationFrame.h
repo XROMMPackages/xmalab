@@ -23,6 +23,7 @@ namespace xma{
 	private:
 		Ui::WizardDigitizationFrame *frame;
 		void setDialog();
+		QTimer *track_timer;
 
 		public slots:
 		void activeCameraChanged(int activeCamera);
@@ -30,6 +31,10 @@ namespace xma{
 		void workspaceChanged(work_state workspace);
 
 		void on_pushButton_clicked();
+		void on_pushButton_trackPoint_clicked();
+
+		void runTrackMarkerFinished();
+		void startTimer();
 	};
 }
 

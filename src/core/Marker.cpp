@@ -14,6 +14,7 @@ using namespace xma;
 Marker::Marker(int nbCameras, int size, Trial* _trial){
 	init (nbCameras, size);
 	trial = _trial;
+	meanSize = -1;
 }
 
 Marker::~Marker(){
@@ -57,6 +58,43 @@ void Marker::movePoint(int camera, int activeFrame, double x, double y)
 	status2D[camera][activeFrame] = SET;
 	 
 	reconstruct3DPoint(activeFrame);
+}
+
+void Marker::setTrackedPoint(int camera, int activeFrame, double x, double y)
+{
+	points2D[camera][activeFrame].x = x;
+	points2D[camera][activeFrame].y = y;
+	status2D[camera][activeFrame] = TRACKED;
+
+	reconstruct3DPoint(activeFrame);
+}
+
+bool Marker::getMarkerPrediction(int camera, int frame, double &x, double &y)
+{
+	if (frame <= 0) 
+		return false;
+
+	if (status2D[camera][frame - 1] > 0)
+	{
+		if (frame > 1 && status2D[camera][frame - 2] > 0)
+		{
+			//linear position
+			x = 2 * points2D[camera][frame - 1].x - points2D[camera][frame - 2].x;
+			y = 2 * points2D[camera][frame - 1].y - points2D[camera][frame - 2].y;
+		}
+		else
+		{
+			//previous position
+			x = points2D[camera][frame - 1].x;
+			y = points2D[camera][frame - 1].y;
+			return true;
+		}
+	}
+	else
+	{
+		return false;
+	}
+
 }
 
 void Marker::reconstruct3DPoint(int frame)
@@ -121,6 +159,17 @@ void Marker::reconstruct3DPoint(int frame)
 	}
 }
 
+double Marker::getSize()
+{
+	return meanSize;
+}
+
+void Marker::setSize(int camera, int frame, double size_value)
+{
+	markerSize[camera][frame] = size_value;
+	updateMeanSize();
+}
+
 void Marker::reprojectPoint(int frame)
 {
 	for (int i = 0; i < points2D.size(); i++)
@@ -147,15 +196,30 @@ void Marker::reprojectPoint(int frame)
 			{
 				points2D_projected[i][frame] = pt_trans;
 			}
-
-			fprintf(stderr, "Point2d %d %lf %lf\n", i, points2D_projected[i][frame].x, points2D_projected[i][frame].y);
-
 		}
 	}
 }
 
+void Marker::updateMeanSize()
+{
+	double mean = 0;
+	int count = 0;
+	for (int i = 0; i < markerSize.size(); i++)
+	{
+		for (int j = 0; j < markerSize[i].size(); j++)
+		{
+			if (markerSize[i][j] > 0){
+				mean += markerSize[i][j];
+				count++;
+			}
+		}
+	}
+	if (count > 0) meanSize = mean / count;
+}
+
 std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int CameraDestination, int frame)
 {
+
 	std::vector < cv::Point2d > epiline;
 	cv::Mat proj;
 	cv::Mat proj1;
@@ -172,7 +236,7 @@ std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int Camera
 	cv::vconcat(Project::getInstance()->getCameras()[CameraDestination]->getProjectionMatrix(trial->getReferenceCalibrationImage()), tmp, proj2);
 
 	proj = proj2 * proj1.inv();
-	
+
 	cv::Point2d pt_origin(points2D[cameraOrigin][frame].x, points2D[cameraOrigin][frame].y);
 	cv::Point2d pt_origin_trans;
 	if (Project::getInstance()->getCameras()[cameraOrigin]->hasUndistortion())
@@ -186,7 +250,6 @@ std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int Camera
 
 	cv::Mat in;
 	in.create(4, 1, CV_64F);
-
 	in.at<double>(0, 0) = pt_origin_trans.x;
 	in.at<double>(1, 0) = pt_origin_trans.y;
 	in.at<double>(2, 0) = 1;
@@ -220,7 +283,7 @@ std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int Camera
 	}
 	else
 	{
-		for (double p = 0.0; p <= ((double) Project::getInstance()->getCameras()[CameraDestination]->getWidth()); p+= 0.5)
+		for (double p = 0.0; p <= ((double) Project::getInstance()->getCameras()[CameraDestination]->getWidth()); p+= 50.0)
 		{
 			cv::Point2d pt(p, line_pt.x * p + line_pt.y);
 			cv::Point2d pt_trans = Project::getInstance()->getCameras()[CameraDestination]->getUndistortionObject()->transformPoint(pt, false);
@@ -247,10 +310,15 @@ void Marker::clear(){
 		error_it->clear();
 	}
 
+	for (std::vector< std::vector <double> >::iterator size_it = markerSize.begin(); size_it != markerSize.end(); ++size_it){
+		size_it->clear();
+	}
+
 	points2D.clear();
 	points2D_projected.clear();
 	status2D.clear();
 	error2D.clear();
+	markerSize.clear();
 
 	points3D.clear();
 	status3D.clear();
@@ -265,6 +333,7 @@ void Marker::init(int nbCameras, int size){
 		std::vector <cv::Point2d> c_points2D_projected;
 		std::vector <markerStatus> c_status2D;
 		std::vector <double> c_error2D;
+		std::vector <double> c_size;
 
 		for(int i = 0; i < size; i++){	
 			cv::Point2d p(-2,-2);
@@ -274,15 +343,16 @@ void Marker::init(int nbCameras, int size){
 
 			c_status2D.push_back(UNDEFINED);
 			c_error2D.push_back(0.0);
+			c_size.push_back(-1.0);
 		}
 		points2D.push_back(c_points2D);
 		points2D_projected.push_back(c_points2D_projected);
 		status2D.push_back(c_status2D);
 		error2D.push_back(c_error2D);
+		markerSize.push_back(c_size);
 	}
 
 	for(int i = 0; i < size; i++){
-
 		cv::Point3d p3(-1000,-1000,-1000);
 		points3D.push_back(p3);
 		status3D.push_back(UNDEFINED);
