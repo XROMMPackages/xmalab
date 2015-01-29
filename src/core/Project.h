@@ -20,6 +20,7 @@ namespace xma{
 
 		const std::vector<Camera *>& getCameras();
 		const std::vector<Trial *>& getTrials();
+		Trial * getTrialByName(QString Name);
 		QString getProjectFilename();
 		QString getProjectBasename();
 		int getNbImagesCalibration();

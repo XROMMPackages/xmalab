@@ -22,14 +22,14 @@ namespace xma{
 	public:
 		virtual ~WizardDockWidget();
 
-		void updateFrames();
+		void update();
 		static WizardDockWidget* getInstance();
 		void addCalibrationReference(double x, double y);
 		void addDigitizationPoint(int camera, double x, double y);
-		void moveDigitizationPoint(int camera, double x, double y);
+		void moveDigitizationPoint(int camera, double x, double y, bool noDetection);
 		void draw();
 		bool checkForPendingChanges();
-		void update();
+		void updateDialog();
 
 	private:
 		Ui::WizardDockWidget *dock;

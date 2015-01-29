@@ -12,7 +12,7 @@ namespace xma{
 		Q_OBJECT;
 
 	public:
-		MarkerTracking(int camera, int trial, int frame_from, int frame_to, int marker);
+		MarkerTracking(int camera, int trial, int frame_from, int frame_to, int marker, bool forward);
 		virtual ~MarkerTracking();
 		void trackMarker();
 
@@ -36,6 +36,7 @@ namespace xma{
 		int m_frame_to;
 		int m_trial;
 		int m_marker;
+		bool m_forward;
 
 		double x_from;
 		double y_from;
@@ -45,6 +46,7 @@ namespace xma{
 
 		double size;
 		int searchArea;
+		
 
 		cv::Mat templ;
 	};

@@ -66,6 +66,15 @@ const std::vector<Trial*>& Project::getTrials()
 	return trials;
 }
 
+Trial* Project::getTrialByName(QString Name)
+{
+	for (std::vector <Trial*>::iterator it = trials.begin(); it != trials.end(); ++it)
+	{
+		if ((*it)->getName() == Name) return *it;
+	}
+	return NULL;
+}
+
 QString Project::getProjectBasename(){
 	if(projectFilename.isEmpty())
 		return "";

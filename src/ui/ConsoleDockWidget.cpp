@@ -21,11 +21,21 @@ ConsoleDockWidget::ConsoleDockWidget(QWidget *parent) :
 												dock(new Ui::ConsoleDockWidget){
 
 	dock->setupUi(this);
-	//memset(errorBuffer, 0, sizeof(errorBuffer));  
-    //setvbuf(stderr, errorBuffer, _IOLBF, sizeof(errorBuffer));
-	//memset(outputBuffer, 0, sizeof(outputBuffer));  
-    //setvbuf(stdout, outputBuffer, _IOLBF, sizeof(outputBuffer));
- 
+
+#ifdef _MSC_VER 
+#ifndef WITH_CONSOLE
+	memset(errorBuffer, 0, sizeof(errorBuffer));  
+    setvbuf(stderr, errorBuffer, _IOLBF, sizeof(errorBuffer));
+	memset(outputBuffer, 0, sizeof(outputBuffer));  
+    setvbuf(stdout, outputBuffer, _IOLBF, sizeof(outputBuffer));
+#endif
+#else
+	memset(errorBuffer, 0, sizeof(errorBuffer));  
+	setvbuf(stderr, errorBuffer, _IOLBF, sizeof(errorBuffer));
+	memset(outputBuffer, 0, sizeof(outputBuffer));
+	setvbuf(stdout, outputBuffer, _IOLBF, sizeof(outputBuffer));
+#endif
+
     // set up QTimer to call logErrors periodically
     timer = new QTimer(this);
     timer->start(500);

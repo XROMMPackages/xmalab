@@ -6,8 +6,9 @@
 #include "core/Project.h"
 #include "core/Camera.h"
 #include "core/Trial.h"
-#include "core/CalibrationImage.h"
 #include "core/UndistortionObject.h"
+
+#include <fstream>
 
 using namespace xma;
 
@@ -46,47 +47,64 @@ std::vector<std::vector<cv::Point2d> >& Marker::getPoints2D_projected()
 	return points2D_projected;
 }
 
+std::vector<cv::Point3d>& Marker::getPoints3D()
+{
+	return points3D;
+}
+
 const std::vector<markerStatus>& Marker::getStatus3D()
 {
 	return status3D;
 }
 
-void Marker::movePoint(int camera, int activeFrame, double x, double y)
+void Marker::setPoint(int camera, int activeFrame, double x, double y, markerStatus status)
 {
 	points2D[camera][activeFrame].x = x;
 	points2D[camera][activeFrame].y = y;
-	status2D[camera][activeFrame] = SET;
-	 
-	reconstruct3DPoint(activeFrame);
-}
-
-void Marker::setTrackedPoint(int camera, int activeFrame, double x, double y)
-{
-	points2D[camera][activeFrame].x = x;
-	points2D[camera][activeFrame].y = y;
-	status2D[camera][activeFrame] = TRACKED;
+	status2D[camera][activeFrame] = status;
 
 	reconstruct3DPoint(activeFrame);
 }
 
-bool Marker::getMarkerPrediction(int camera, int frame, double &x, double &y)
+//void Marker::movePoint(int camera, int activeFrame, double x, double y)
+//{
+//	points2D[camera][activeFrame].x = x;
+//	points2D[camera][activeFrame].y = y;
+//	status2D[camera][activeFrame] = SET;
+//	 
+//	reconstruct3DPoint(activeFrame);
+//}
+//
+//void Marker::setTrackedPoint(int camera, int activeFrame, double x, double y)
+//{
+//	points2D[camera][activeFrame].x = x;
+//	points2D[camera][activeFrame].y = y;
+//	status2D[camera][activeFrame] = TRACKED;
+//
+//	reconstruct3DPoint(activeFrame);
+//}
+
+bool Marker::getMarkerPrediction(int camera, int frame, double &x, double &y, bool forward)
 {
-	if (frame <= 0) 
+	if (frame < 0 || frame >= points2D[0].size()) 
 		return false;
 
-	if (status2D[camera][frame - 1] > 0)
+	int dir = forward ? 1 : -1;
+
+	if (frame - 1 * dir >= 0 && frame - 1 * dir < points2D[0].size() && status2D[camera][frame - 1 * dir] > 0)
 	{
-		if (frame > 1 && status2D[camera][frame - 2] > 0)
+		if (frame - 2 * dir >= 0 && frame - 2 * dir < points2D[0].size() && status2D[camera][frame - 2] > 0)
 		{
 			//linear position
-			x = 2 * points2D[camera][frame - 1].x - points2D[camera][frame - 2].x;
-			y = 2 * points2D[camera][frame - 1].y - points2D[camera][frame - 2].y;
+			x = 2 * points2D[camera][frame - 1 * dir].x - points2D[camera][frame - 2 * dir].x;
+			y = 2 * points2D[camera][frame - 1 * dir].y - points2D[camera][frame - 2 * dir].y;
+			return true;
 		}
 		else
 		{
 			//previous position
-			x = points2D[camera][frame - 1].x;
-			y = points2D[camera][frame - 1].y;
+			x = points2D[camera][frame - 1 * dir].x;
+			y = points2D[camera][frame - 1 * dir].y;
 			return true;
 		}
 	}
@@ -152,8 +170,6 @@ void Marker::reconstruct3DPoint(int frame)
 			points3D[frame].z = f.at<double>(2, 0) / w;
 			status3D[frame] = status;
 
-			fprintf(stderr, "Point 3d %lf %lf %lf\n", points3D[frame].x, points3D[frame].y, points3D[frame].z);
-
 			reprojectPoint(frame);
 		}
 	}
@@ -168,6 +184,135 @@ void Marker::setSize(int camera, int frame, double size_value)
 {
 	markerSize[camera][frame] = size_value;
 	updateMeanSize();
+}
+
+void Marker::save(QString points_filename, QString status_filename, QString markersize_filename)
+{
+	std::ofstream outfile(points_filename.toAscii().data());
+	for (unsigned int j = 0; j < points2D[0].size(); j++){
+		for (unsigned int i = 0; i < points2D.size(); i++){
+			outfile << points2D[i][j].x << " , " << points2D[i][j].y;
+			if (i != points2D.size() - 1) outfile << " , ";
+		}
+		outfile << std::endl;
+	}
+	outfile.close();
+
+	std::ofstream outfile_status(status_filename.toAscii().data());
+	for (unsigned int j = 0; j < status2D[0].size(); j++){
+		for (unsigned int i = 0; i < status2D.size(); i++){
+			outfile_status << status2D[i][j] ;
+			if (i != status2D.size() - 1) outfile_status << " , ";
+		}
+		outfile_status << std::endl;
+	}
+	outfile_status.close();
+
+	std::ofstream outfile_size(markersize_filename.toAscii().data());
+	for (unsigned int j = 0; j < markerSize[0].size(); j++){
+		for (unsigned int i = 0; i < markerSize.size(); i++){
+			outfile_size << markerSize[i][j];
+			if (i != markerSize.size() - 1) outfile_size << " , ";
+		}
+		outfile_size << std::endl;
+	}
+	outfile_size.close();
+}
+
+std::istream& Marker::comma(std::istream& in)
+{
+	if ((in >> std::ws).peek() != std::char_traits<char>::to_int_type(',')) {
+		in.setstate(std::ios_base::failbit);
+	}
+	return in.ignore();
+}
+
+std::istream &Marker::getline(std::istream &is, std::string &s) {
+	char ch;
+
+	s.clear();
+
+	while (is.get(ch) && ch != '\n' && ch != '\r')
+		s += ch;
+	return is;
+}
+
+void Marker::load(QString points_filename, QString status_filename, QString markersize_filename)
+{
+	std::ifstream fin;
+	fin.open(points_filename.toAscii().data());
+	std::istringstream in;
+	std::string line;
+	//read first line 
+	int linecount = 0;
+	for (; getline(fin, line);)
+	{
+		in.clear();
+		in.str(line);
+		std::vector<double> tmp;
+		for (double value; in >> value; comma(in)) {
+			tmp.push_back(value);
+		}
+		if (tmp.size() > 0) {
+			for (unsigned int i = 0; i < points2D.size(); i ++){
+				points2D[i][linecount].x = tmp[2 * i];
+				points2D[i][linecount].y = tmp[2 * i+1];
+			}
+		}
+		line.clear();
+		linecount++;
+	}
+	fin.close();
+
+	fin.open(status_filename.toAscii().data());
+	linecount = 0;
+	for (; getline(fin, line);)
+	{
+		in.clear();
+		in.str(line);
+		std::vector<int> tmp;
+		for (double value; in >> value; comma(in)) {
+			tmp.push_back(value);
+		}
+		if (tmp.size() > 0) {
+			for (unsigned int i = 0; i < status2D.size(); i++){
+				status2D[i][linecount] = markerStatus(tmp[i]);
+			}
+		}
+		line.clear();
+		linecount++;
+	}
+	fin.close();
+
+	fin.open(markersize_filename.toAscii().data());
+	linecount = 0;
+	for (; getline(fin, line);)
+	{
+		in.clear();
+		in.str(line);
+		std::vector<double> tmp;
+		for (double value; in >> value; comma(in)) {
+			tmp.push_back(value);
+		}
+		if (tmp.size() > 0) {
+			for (unsigned int i = 0; i < markerSize.size(); i++){
+				markerSize[i][linecount] = tmp[i];
+			}
+		}
+		line.clear();
+		linecount++;
+	}
+	fin.close();
+
+	updateMeanSize();
+}
+
+void Marker::update()
+{
+	for (int i = 0; i < points2D[0].size(); i++)
+	{
+		reconstruct3DPoint(i);
+	}
 }
 
 void Marker::reprojectPoint(int frame)

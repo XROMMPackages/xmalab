@@ -136,11 +136,11 @@ bool ImportExportPointsDialog::importData()
 	{
 		if (!diag->lineEditMarkers->text().isEmpty())
 		{
-			loadMarkers(diag->lineEditMarkers->text());
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->loadMarkers(diag->lineEditMarkers->text());
 		}
 		if (!diag->lineEditRigidBodies->text().isEmpty())
 		{
-			loadRigidBodies(diag->lineEditRigidBodies->text());
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->loadRigidBodies(diag->lineEditRigidBodies->text());
 		}
 		return true;
 	}
@@ -161,7 +161,7 @@ bool ImportExportPointsDialog::exportData()
 			if (fileNameMarkers.isNull() == false)
 			{
 				Settings::setLastUsedDirectory(fileNameMarkers);
-				saveMarkers(fileNameMarkers);
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveMarkers(fileNameMarkers);
 			}
 		}
 		if (diag->checkBoxRigidBodies->isChecked())
@@ -171,7 +171,7 @@ bool ImportExportPointsDialog::exportData()
 			if (fileNameRigidBodies.isNull() == false)
 			{
 				Settings::setLastUsedDirectory(fileNameRigidBodies);
-				saveRigidBodies(fileNameRigidBodies);
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodies(fileNameRigidBodies);
 			}
 		}
 		
@@ -220,90 +220,7 @@ bool ImportExportPointsDialog::copyFromTrial()
 	return false;
 }
 
-std::istream& ImportExportPointsDialog::comma(std::istream& in)
-{
-	if ((in >> std::ws).peek() != std::char_traits<char>::to_int_type(',')) {
-		in.setstate(std::ios_base::failbit);
-	}
-	return in.ignore();
-}
 
-std::istream &ImportExportPointsDialog::getline(std::istream &is, std::string &s) {
-	char ch;
 
-	s.clear();
 
-	while (is.get(ch) && ch != '\n' && ch != '\r')
-		s += ch;
-	return is;
-}
-
-void ImportExportPointsDialog::loadMarkers(QString filename){
-	std::ifstream fin;
-	fin.open(filename.toAscii().data());
-	std::string line;
-	unsigned int count = 0;
-	for (; getline(fin, line);)
-	{
-		if (count >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addMarker();
-
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[count]->setDescription(QString::fromStdString(line));
-		count++;
-		line.clear();
-	}
-	fin.close();
-}
-
-void ImportExportPointsDialog::loadRigidBodies(QString filename){
-	std::ifstream fin;
-	fin.open(filename.toAscii().data());
-	std::istringstream in;
-	std::string line;
-	std::string desc;
-	std::string indices;
-	int count = 0;
-	for (; getline(fin, line);)
-	{
-		if (count >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size()){
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addRigidBody();
-		}
-		desc = line.substr(0, line.find('['));
-		indices = line.substr(line.find('[') + 1, line.find(']') - 1);
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[count]->setDescription(QString::fromStdString(desc));
-
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[count]->clearPointIdx();
-		in.clear();
-		in.str(indices);
-		for (int value; in >> value; comma(in)) {
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[count]->addPointIdx(value - 1);
-		}
-		count++;
-		line.clear();
-		desc.clear();
-		indices.clear();
-	}
-	fin.close();
-}
-
-void ImportExportPointsDialog::saveMarkers(QString filename){
-	std::ofstream outfile(filename.toAscii().data());
-	for (unsigned int i = 0; i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(); i++){
-		outfile << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->getDescription().toAscii().data() << std::endl;
-	}
-	outfile.close();
-}
-
-void ImportExportPointsDialog::saveRigidBodies(QString filename){
-	std::ofstream outfile(filename.toAscii().data());
-	for (unsigned int i = 0; i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size(); i++){
-		outfile << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getDescription().toAscii().data() << "[";
-		for (unsigned int k = 0; k < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx().size(); k++){
-			outfile << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx()[k] + 1;
-			if (k != (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx().size() - 1)) outfile << " , ";
-		}
-		outfile << "]" << std::endl;
-	}
-	outfile.close();
-}
 

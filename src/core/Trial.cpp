@@ -7,9 +7,8 @@
 #include "core/Camera.h"
 #include "core/Project.h"
 #include "core/RigidBody.h"
+#include "core/Marker.h"
 
-#include "ui/ConsoleDockWidget.h"
-#include <QApplication>
 #include <QFileInfo>
 
 #include <fstream>
@@ -28,7 +27,7 @@ Trial::Trial(QString trialname, std::vector<QStringList> &imageFilenames){
 	activeFrame = 0;
 	referenceCalibrationImage = 0;
 	activeMarkerIdx = -1; 
-	activeBody = -1;
+	activeBodyIdx = -1;
 
 	images.clear();
 	nbImages = imageFilenames[0].size();
@@ -38,6 +37,9 @@ Trial::Trial(QString trialname, std::vector<QStringList> &imageFilenames){
 		images.push_back(newImage);
 		assert(nbImages == filenameList->size());
 	}
+
+	startFrame = 1;
+	endFrame = nbImages;
 }
 
 Trial::Trial(QString trialname, QString folder){
@@ -48,7 +50,6 @@ Trial::Trial(QString trialname, QString folder){
 	filenames.clear();
 	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
 		QStringList filenameList;
-		std::vector<std::vector<double> > values;
 		QString camera_filenames = folder + Project::getInstance()->getCameras()[i]->getName() + "_filenames_absolute.txt";
 		std::ifstream fin(camera_filenames.toAscii().data());
 		for (std::string line; std::getline(fin, line);)
@@ -67,6 +68,9 @@ Trial::Trial(QString trialname, QString folder){
 		images.push_back(newImage);
 		assert(nbImages == filenameList->size());
 	}
+
+	startFrame = 1;
+	endFrame = nbImages;
 }
 
 Trial::~Trial(){
@@ -144,19 +148,44 @@ const std::vector<RigidBody*>& Trial::getRigidBodies()
 
 Marker* Trial::getActiveMarker()
 {
-	if (activeMarkerIdx >= markers.size()) return NULL;
+	if (activeMarkerIdx >= markers.size() || activeMarkerIdx < 0) return NULL;
 
 	return markers[activeMarkerIdx];
 }
 
 bool Trial::isActiveMarkerUndefined(int camera)
 {
-	return ( (markers.size() != 0 ) && (getMarkers()[activeMarkerIdx]->getStatus2D()[camera][activeFrame] == UNDEFINED));
+	return ((markers.size() != 0) && (activeMarkerIdx < markers.size()) && (activeMarkerIdx >= 0) && (getMarkers()[activeMarkerIdx]->getStatus2D()[camera][activeFrame] == UNDEFINED));
+}
+
+void Trial::setActiveToNextUndefinedMarker(int camera)
+{
+	if (markers.size() == 0)
+	{
+		addMarker();
+		return;
+	}
+	else{
+		if (activeMarkerIdx < 0) activeMarkerIdx = 0;
+
+		while (activeMarkerIdx < markers.size() && getMarkers()[activeMarkerIdx]->getStatus2D()[camera][activeFrame] != UNDEFINED)
+		{
+			activeMarkerIdx++;
+		}
+		if (activeMarkerIdx == markers.size()) addMarker();
+	}
+}
+
+RigidBody* Trial::getActiveRB()
+{
+	if (activeBodyIdx >= rigidBodies.size() || activeBodyIdx < 0) return NULL;
+
+	return rigidBodies[activeBodyIdx];
 }
 
 void Trial::addRigidBody()
 {
-	RigidBody *rb = new RigidBody(nbImages);
+	RigidBody *rb = new RigidBody(nbImages, this);
 	rigidBodies.push_back(rb);
 }
 
@@ -164,7 +193,7 @@ void Trial::removeRigidBody(int idx)
 {
 	delete rigidBodies[idx];
 	rigidBodies.erase(std::remove(rigidBodies.begin(), rigidBodies.end(), rigidBodies[idx]), rigidBodies.end());
-	if (activeBody >= rigidBodies.size())activeBody = rigidBodies.size() - 1;
+	if (activeBodyIdx >= rigidBodies.size())activeBodyIdx = rigidBodies.size() - 1;
 }
 
 void Trial::addMarker()
@@ -180,13 +209,6 @@ void Trial::removeMarker(int idx)
 	if (activeMarkerIdx >= markers.size())setActiveMarkerIdx(markers.size() - 1);
 }
 
-void Trial::moveMarker(int camera, double x, double y)
-{
-	if (markers.size() > activeMarkerIdx){
-		markers[activeMarkerIdx]->movePoint(camera, activeFrame, x, y);
-	}
-}
-
 int Trial::getActiveMarkerIdx()
 {
 	return activeMarkerIdx;
@@ -197,9 +219,24 @@ void Trial::setActiveMarkerIdx(int _activeMarker)
 	activeMarkerIdx = _activeMarker;
 }
 
+int Trial::getActiveRBIdx()
+{
+	return activeBodyIdx;
+}
+
+void Trial::setActiveRBIdx(int _activeBody)
+{
+	activeBodyIdx = _activeBody;
+}
+
 int Trial::getReferenceCalibrationImage()
 {
 	return referenceCalibrationImage;
+}
+
+void Trial::setReferenceCalibrationImage(int value)
+{
+	referenceCalibrationImage = value;
 }
 
 QString Trial::getActiveFilename(int camera)
@@ -228,9 +265,10 @@ void Trial::clear(){
 
 void Trial::drawPoints(int cameraId, bool detailView)
 {
-	glBegin(GL_LINES);
+	
 	int idx = 0;
 	if (!detailView){
+		glBegin(GL_LINES);
 		for (std::vector <Marker *>::const_iterator it = markers.begin(); it != markers.end(); ++it){
 			if (((*it)->getStatus2D()[cameraId][activeFrame] > 0)){
 				if (idx == activeMarkerIdx){
@@ -247,12 +285,13 @@ void Trial::drawPoints(int cameraId, bool detailView)
 			}
 			idx++;
 		}
+		glEnd();
 	}
 	else if (activeMarkerIdx >= 0 && activeMarkerIdx < markers.size())
 	{
 		double x = markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].x;
 		double y = markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].y;
-
+		glBegin(GL_LINES);
 		glColor3f(1.0, 0.0, 0.0);
 		glVertex2f(x - 12, y);
 		glVertex2f(x + 12, y);
@@ -273,13 +312,16 @@ void Trial::drawPoints(int cameraId, bool detailView)
 			glVertex2f(x - i * 2, y - 1);
 			glVertex2f(x - i * 2, y + 1);
 		}
-
+		glEnd();
 		double size = markers[activeMarkerIdx]->getSize();;
 		if (size > 0)
 		{
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glBegin(GL_LINES);
+			glColor4f(1.0, 0.0, 0.0, 0.3);
 			glVertex2f(x - size, y - size);
 			glVertex2f(x - size, y + size);
-
 
 			glVertex2f(x + size, y - size);
 			glVertex2f(x + size, y + size);
@@ -289,9 +331,10 @@ void Trial::drawPoints(int cameraId, bool detailView)
 
 			glVertex2f(x - size, y + size);
 			glVertex2f(x + size, y + size);
+			glEnd();
+			glDisable(GL_BLEND);
 		}
 	}
-	glEnd();
 
 	if (activeMarkerIdx >= 0 && activeMarkerIdx < markers.size() && markers[activeMarkerIdx]->getStatus3D()[activeFrame] > 0){
 		glBegin(GL_LINES);
@@ -318,5 +361,120 @@ void Trial::drawPoints(int cameraId, bool detailView)
 				glEnd();
 			}
 		}
+	}
+}
+
+int Trial::getStartFrame()
+{
+	return startFrame;
+}
+
+void Trial::setStartFrame(int value)
+{
+	startFrame = value;
+}
+
+int Trial::getEndFrame()
+{
+	return endFrame;
+}
+
+void Trial::setEndFrame(int value)
+{
+	endFrame = value;
+}
+
+std::istream& Trial::comma(std::istream& in)
+{
+	if ((in >> std::ws).peek() != std::char_traits<char>::to_int_type(',')) {
+		in.setstate(std::ios_base::failbit);
+	}
+	return in.ignore();
+}
+
+std::istream &Trial::getline(std::istream &is, std::string &s) {
+	char ch;
+
+	s.clear();
+
+	while (is.get(ch) && ch != '\n' && ch != '\r')
+		s += ch;
+	return is;
+}
+
+void Trial::loadMarkers(QString filename){
+	std::ifstream fin;
+	fin.open(filename.toAscii().data());
+	std::string line;
+	unsigned int count = 0;
+	for (; getline(fin, line);)
+	{
+		if (count >= this->getMarkers().size())
+			this->addMarker();
+
+		this->getMarkers()[count]->setDescription(QString::fromStdString(line));
+		count++;
+		line.clear();
+	}
+	fin.close();
+}
+
+void Trial::loadRigidBodies(QString filename){
+	std::ifstream fin;
+	fin.open(filename.toAscii().data());
+	std::istringstream in;
+	std::string line;
+	std::string desc;
+	std::string indices;
+	int count = 0;
+	for (; getline(fin, line);)
+	{
+		if (count >= this->getRigidBodies().size()){
+			this->addRigidBody();
+		}
+		desc = line.substr(0, line.find('['));
+		indices = line.substr(line.find('[') + 1, line.find(']') - 1);
+		this->getRigidBodies()[count]->setDescription(QString::fromStdString(desc));
+
+		this->getRigidBodies()[count]->clearPointIdx();
+		in.clear();
+		in.str(indices);
+		for (int value; in >> value; comma(in)) {
+			this->getRigidBodies()[count]->addPointIdx(value - 1);
+		}
+		count++;
+		line.clear();
+		desc.clear();
+		indices.clear();
+	}
+	fin.close();
+}
+
+void Trial::saveMarkers(QString filename){
+	std::ofstream outfile(filename.toAscii().data());
+	for (unsigned int i = 0; i < this->getMarkers().size(); i++){
+		outfile << this->getMarkers()[i]->getDescription().toAscii().data() << std::endl;
+	}
+	outfile.close();
+}
+
+void Trial::saveRigidBodies(QString filename){
+	std::ofstream outfile(filename.toAscii().data());
+	for (unsigned int i = 0; i < this->getRigidBodies().size(); i++){
+		outfile << this->getRigidBodies()[i]->getDescription().toAscii().data() << "[";
+		for (unsigned int k = 0; k < this->getRigidBodies()[i]->getPointsIdx().size(); k++){
+			outfile << this->getRigidBodies()[i]->getPointsIdx()[k] + 1;
+			if (k != (this->getRigidBodies()[i]->getPointsIdx().size() - 1)) outfile << " , ";
+		}
+		outfile << "]" << std::endl;
+	}
+	outfile.close();
+}
+
+void Trial::update()
+{
+	for (int i = 0; i < getMarkers().size(); i++)
+	{
+		getMarkers()[i]->update();
 	}
 }

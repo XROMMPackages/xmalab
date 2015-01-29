@@ -25,15 +25,6 @@ namespace xma{
 		bool exportData();
 		bool copyFromTrial();
 
-		void loadMarkers(QString filename);
-		void loadRigidBodies(QString filename);
-
-		void saveMarkers(QString filename);
-		void saveRigidBodies(QString filename);
-
-		std::istream &comma(std::istream& in);
-		std::istream &getline(std::istream &is, std::string &s);
-
 	public slots:
 		void on_radioButtonExport_clicked(bool checked);
 		void on_radioButtonImport_clicked(bool checked);

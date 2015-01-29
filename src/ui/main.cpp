@@ -13,8 +13,10 @@
 #include <iostream>
 #include <opencv/cv.h>
 
-#ifdef _MSC_VER
-//	#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#ifdef _MSC_VER 
+#ifndef WITH_CONSOLE
+	#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#endif
 #endif
 
 using namespace xma;

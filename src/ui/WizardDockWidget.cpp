@@ -73,9 +73,9 @@ void WizardDockWidget::addDigitizationPoint(int camera, double x, double y)
 	digitizationFrame->addDigitizationPoint(camera, x, y);
 }
 
-void WizardDockWidget::moveDigitizationPoint(int camera, double x, double y)
+void WizardDockWidget::moveDigitizationPoint(int camera, double x, double y, bool noDetection )
 {
-	digitizationFrame->moveDigitizationPoint(camera, x, y);
+	digitizationFrame->moveDigitizationPoint(camera, x, y, noDetection);
 }
 
 void WizardDockWidget::draw(){
@@ -85,8 +85,14 @@ void WizardDockWidget::draw(){
 	}
 }
 
-void WizardDockWidget::updateFrames(){
-	calibrationFrame->loadCalibrationSettings();
+void WizardDockWidget::updateDialog(){
+	if (State::getInstance()->getWorkspace() == CALIBRATION){
+		calibrationFrame->loadCalibrationSettings();
+	}
+	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		digitizationFrame->setDialog();
+	}
 }
 
 void WizardDockWidget::workspaceChanged(work_state workspace){

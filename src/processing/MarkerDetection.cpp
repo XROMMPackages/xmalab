@@ -4,16 +4,12 @@
 
 #include "processing/MarkerDetection.h"	
 
-#include "ui/ProgressDialog.h"
 #include "ui/MainWindow.h"
 
 #include "core/Project.h"
-#include "core/Camera.h"
 #include "core/Image.h"
 #include "core/Trial.h"
 #include "core/Marker.h"
-
-#include "core/Settings.h"
 
 #include <QtCore>
 #include <opencv/highgui.h>
@@ -43,7 +39,6 @@ void MarkerDetection::detectMarker(){
 	QFuture<void> future = QtConcurrent::run(this, &MarkerDetection::detectMarker_thread);
 	m_FutureWatcher->setFuture( future );
 	nbInstances++;
-	//ProgressDialog::getInstance()->showProgressbar(0, 0, "Detect Markers");
 }
 
 void MarkerDetection::detectMarker_thread(){
@@ -97,16 +92,13 @@ void MarkerDetection::detectMarker_thread(){
 }
 
 void MarkerDetection::detectMarker_threadFinished(){
-
-	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame].x = x;
-	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame].y = y;
 	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->setSize(m_camera,m_frame,size);
+	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->setPoint(m_camera, m_frame, x, y, SET);
 
 	delete m_FutureWatcher;
 	nbInstances--;
 	MainWindow::getInstance()->redrawGL();
 	if(nbInstances == 0){
-		//ProgressDialog::getInstance()->closeProgressbar();
 		emit detectMarker_finished();
 	}
 	delete this;

@@ -4,16 +4,10 @@
 
 #include "processing/MarkerTracking.h"	
 
-#include "ui/ProgressDialog.h"
-#include "ui/MainWindow.h"
-
 #include "core/Project.h"
-#include "core/Camera.h"
 #include "core/Image.h"
 #include "core/Trial.h"
 #include "core/Marker.h"
-
-#include "core/Settings.h"
 
 #include <QtCore>
 #include <opencv/highgui.h>
@@ -22,12 +16,8 @@ using namespace xma;
 
 int MarkerTracking::nbInstances = 0;
 
-MarkerTracking::MarkerTracking(int camera, int trial, int frame_from,int frame_to, int marker) :QObject(){
-	m_camera = camera;
-	m_trial = trial;
-	m_frame_from = frame_from;
-	m_frame_to = frame_to;
-	m_marker = marker;
+MarkerTracking::MarkerTracking(int camera, int trial, int frame_from,int frame_to, int marker, bool forward) :QObject(),
+m_camera(camera), m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to), m_marker(marker), m_forward(forward){
 
 	x_from = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame_from].x;
 	y_from = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame_from].y;
@@ -48,14 +38,13 @@ void MarkerTracking::trackMarker(){
 	QFuture<void> future = QtConcurrent::run(this, &MarkerTracking::trackMarker_thread);
 	m_FutureWatcher->setFuture( future );
 	nbInstances++;
-	//ProgressDialog::getInstance()->showProgressbar(0, 0, "Track Markers");
 }
 
 void MarkerTracking::trackMarker_thread(){
 	cv::Mat ROI_to;
 	int used_size = size + searchArea + 3;
 
-	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMarkerPrediction(m_camera, m_frame_to, x_to, y_to);
+	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMarkerPrediction(m_camera, m_frame_to, x_to, y_to, m_forward);
 
 	int off_x = (int)(x_to - searchArea + 0.5);
 	int off_y = (int)(y_to - searchArea + 0.5);
@@ -118,12 +107,10 @@ void MarkerTracking::trackMarker_thread(){
 }
 
 void MarkerTracking::trackMarker_threadFinished(){
-	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->setTrackedPoint(m_camera, m_frame_to, x_to, y_to);
+	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->setPoint(m_camera, m_frame_to, x_to, y_to, TRACKED);
 	delete m_FutureWatcher;
 	nbInstances--;
-	//MainWindow::getInstance()->redrawGL();
 	if(nbInstances == 0){
-		//ProgressDialog::getInstance()->closeProgressbar();
 		emit trackMarker_finished();
 	}
 	delete this;

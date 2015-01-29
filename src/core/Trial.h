@@ -26,20 +26,25 @@ namespace xma{
 		const std::vector <RigidBody * > &getRigidBodies();
 
 		Marker *getActiveMarker();
-		bool isActiveMarkerUndefined(int camera);
-
 		int getActiveMarkerIdx();
 		void setActiveMarkerIdx(int _activeMarker);
+		bool isActiveMarkerUndefined(int camera);
+		void setActiveToNextUndefinedMarker(int camera);
+
+		RigidBody *getActiveRB();
+		int getActiveRBIdx();
+		void setActiveRBIdx(int _activeBody);
 
 		void addRigidBody();
 		void removeRigidBody(int idx);
 
 		void addMarker();
 		void removeMarker(int idx);
-		void moveMarker(int camera, double x, double y);
 		
 		QString getActiveFilename(int camera);
 		int getReferenceCalibrationImage();
+		void setReferenceCalibrationImage(int value);
+
 		int getNbImages();
 		QString getName();
 		void bindTextures();
@@ -47,22 +52,41 @@ namespace xma{
 
 		void drawPoints(int cameraId, bool detailView);
 
+		int getStartFrame();
+		void setStartFrame(int value);
+		int getEndFrame();
+		void setEndFrame(int value);
+
+		void loadMarkers(QString filename);
+		void loadRigidBodies(QString filename);
+
+		void saveMarkers(QString filename);
+		void saveRigidBodies(QString filename);
+
+		void update();
+
 	private:
 		QString name;
 		void clear();
 
 		int activeFrame;
 		int activeMarkerIdx;
-		int activeBody;
+		int activeBodyIdx;
 
 		int nbImages;
 		int referenceCalibrationImage;
+
+		int startFrame;
+		int endFrame;
 
 		std::vector <Image * > images;
 		std::vector <QStringList> filenames;
 		std::vector <RigidBody * > rigidBodies;
 		std::vector <Marker * > markers;
+		int id;
 
+		std::istream &comma(std::istream& in);
+		std::istream &getline(std::istream &is, std::string &s);
 	};
 }
 

@@ -24,7 +24,7 @@ namespace xma{
 		int play_tag;
 		QTimer *play_timer;
 
-
+		bool updating;
 	protected:
 
 	public:

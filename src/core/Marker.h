@@ -26,15 +26,20 @@ namespace xma{
 		std::vector<std::vector <cv::Point2d> > &getPoints2D_projected();
 
 		const std::vector <markerStatus>  &getStatus3D();
+		std::vector< cv::Point3d> &getPoints3D();
 
-		void movePoint(int camera, int activeFrame, double x, double y);
-		void setTrackedPoint(int camera, int activeFrame, double x, double y);
+		//void movePoint(int camera, int activeFrame, double x, double y);
+		//void setTrackedPoint(int camera, int activeFrame, double x, double y);
+		void setPoint(int camera, int activeFrame, double x, double y, markerStatus status);
 		std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int CameraDestination, int frame);
 		void reconstruct3DPoint(int frame);
-		bool getMarkerPrediction(int camera, int frame, double &x, double &y);
+		bool getMarkerPrediction(int camera, int frame, double &x, double &y, bool forward);
 
 		double getSize();
 		void setSize(int camera, int frame, double size_value);
+		void save(QString points_filename, QString status_filename, QString markersize_filename);
+		void load(QString points_filename, QString status_filename, QString markersize_filename);
+		void update();
 
 	private:
 		void init(int nbCameras, int size);
@@ -57,6 +62,9 @@ namespace xma{
 		std::vector <cv::Point3d> points3D;
 		std::vector <markerStatus> status3D;
 		std::vector <double> error3D;
+
+		std::istream &comma(std::istream& in);
+		std::istream &getline(std::istream &is, std::string &s);
 	};
 }
 

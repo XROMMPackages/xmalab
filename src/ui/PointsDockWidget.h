@@ -26,6 +26,7 @@ namespace xma{
 		void addPointToList(int idx);
 		
 		bool selectPoint(int idx);
+		bool selectBody(int idx);
 
 		void reloadListFromObject();
 	private:

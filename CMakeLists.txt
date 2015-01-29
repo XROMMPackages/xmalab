@@ -43,11 +43,11 @@ set(QT_USE_QTOPENGL TRUE)
 INCLUDE(${QT_USE_FILE})
 SET(CMAKE_AUTOMOC ON)
 
-set(PROJECT_BUILD_TIME "12/03/2014")
+set(PROJECT_BUILD_TIME "01/29/2015")
 set(PROJECT_VERSION_MAJOR "1")
-set(PROJECT_VERSION_MINOR "0")
+set(PROJECT_VERSION_MINOR "1")
 set(PROJECT_VERSION_PATCH "0")
-set(PROJECT_VERSION_COUNT 1)
+set(PROJECT_VERSION_COUNT 2)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 set(PROJECT_VENDOR "Brown University")
 set(PROJECT_COPYRIGHT_YEAR "2014")
@@ -57,9 +57,14 @@ set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 
 
 # Set some Win32 Specific Settings
+OPTION(WITH_CONSOLE "Build with a command line for debugging" OFF)
 IF(WIN32)
-	#SET(GUI_TYPE WIN32)
-	#SET(QT_USE_QMAIN true)
+	IF(WITH_CONSOLE)
+		ADD_DEFINITIONS(-DWITH_CONSOLE)
+	ELSE()
+		SET(GUI_TYPE WIN32)
+		SET(QT_USE_QMAIN true)
+	ENDIF()
 	INCLUDE(${QT_USE_FILE})
 ENDIF(WIN32)
 
@@ -171,8 +176,8 @@ SET(XMALab_FORMS_HEADERS
 
 SET(XMALab_FORMS_SOURCES
 		src/ui/main.cpp
-     	src/ui/MainWindow.cpp
-     	src/ui/ErrorDialog.cpp
+     		src/ui/MainWindow.cpp
+     		src/ui/ErrorDialog.cpp
 		src/ui/ConfirmationDialog.cpp
 		src/ui/ProgressDialog.cpp
 		src/ui/NewProjectDialog.cpp

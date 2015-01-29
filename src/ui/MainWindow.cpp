@@ -347,7 +347,7 @@ void MainWindow::newProjectFinished(){
 	delete newProjectdialog;
 	delete m_FutureWatcher;
 	ProgressDialog::getInstance()->closeProgressbar();
-	WizardDockWidget::getInstance()->updateFrames();
+	WizardDockWidget::getInstance()->updateDialog();
 	WizardDockWidget::getInstance()->show();
 }
 
@@ -389,7 +389,7 @@ void MainWindow::loadProjectFinished(){
 	}
 	delete m_FutureWatcher;
 	ProgressDialog::getInstance()->closeProgressbar();
-	WizardDockWidget::getInstance()->updateFrames();
+	WizardDockWidget::getInstance()->updateDialog();
 	WizardDockWidget::getInstance()->show();
 
 	for(int i = 0; i < Project::getInstance()->getCameras().size(); i++){

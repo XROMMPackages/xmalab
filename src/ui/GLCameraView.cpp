@@ -160,12 +160,12 @@ void GLCameraView::mousePressEvent(QMouseEvent *e)
 				 }
 			 }
 		 }else if (State::getInstance()->getWorkspace() == DIGITIZATION){
-			 if (e->modifiers().testFlag(Qt::ControlModifier)){
+			 if (e->modifiers().testFlag(Qt::ControlModifier) && !detailedView){
 				 WizardDockWidget::getInstance()->addDigitizationPoint(camera->getID(), x, y);
 			 }
 			 else
 			 {
-				 WizardDockWidget::getInstance()->moveDigitizationPoint(camera->getID(), x, y);
+				 WizardDockWidget::getInstance()->moveDigitizationPoint(camera->getID(), x, y, detailedView);
 			 }
 
 			 updateGL();

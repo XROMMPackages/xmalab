@@ -12,6 +12,7 @@
 #include "core/Camera.h"
 #include "core/Settings.h"
 #include "core/Marker.h"
+#include "core/RigidBody.h"
 #include <processing/MarkerDetection.h>
 #include <processing/MarkerTracking.h>
 
@@ -27,31 +28,51 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget *parent) :
 	frame->pushButton->setMinimumHeight(26);
 #endif
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
-	connect(State::getInstance(), SIGNAL(activeFrameCalibrationChanged(int)), this, SLOT(activeFrameCalibrationChanged(int)));
+	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameTrialChanged(int)));
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 
-	track_timer = new QTimer(this);
-	track_timer->setSingleShot(true);
-	connect(track_timer, SIGNAL(timeout()), this, SLOT(on_pushButton_trackPoint_clicked()));
+
+	trackID = 0; 
+	trackType = 0; 
+	trackDirection = 0; 
+	singleTrack = false;
+	//track_timer = new QTimer(this);
+	//track_timer->setSingleShot(true);
+	//connect(track_timer, SIGNAL(timeout()), this, SLOT(on_pushButton_trackPoint_clicked()));
 }
 
 void WizardDigitizationFrame::addDigitizationPoint(int camera, double x, double y)
 {
-	if (!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->isActiveMarkerUndefined(camera)){
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addMarker();
-	}
-	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->moveMarker(camera, x, y);
-	PointsDockWidget::getInstance()->reloadListFromObject();
-	MainWindow::getInstance()->redrawGL();
+	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setActiveToNextUndefinedMarker(camera);
+	Marker * marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
 
-	MarkerDetection * markerdetection = new MarkerDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
-	markerdetection->detectMarker();
+	if (marker != NULL){
+		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, MANUAL_REFINED);
+
+		PointsDockWidget::getInstance()->reloadListFromObject();
+		MainWindow::getInstance()->redrawGL();
+
+		MarkerDetection * markerdetection = new MarkerDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
+		markerdetection->detectMarker();
+	}
 }
 
-void WizardDigitizationFrame::moveDigitizationPoint(int camera, double x, double y)
+void WizardDigitizationFrame::moveDigitizationPoint(int camera, double x, double y, bool noDetection)
 {
-	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->moveMarker(camera, x, y);
-	MainWindow::getInstance()->redrawGL();
+	Marker * marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
+
+	if (marker != NULL){
+		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, MANUAL_REFINED);
+
+		if (!noDetection)
+		{
+			MarkerDetection * markerdetection = new MarkerDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
+			markerdetection->detectMarker();
+		}
+		else{
+			MainWindow::getInstance()->redrawGL();
+		}
+	}
 }
 
 WizardDigitizationFrame::~WizardDigitizationFrame(){
@@ -59,11 +80,15 @@ WizardDigitizationFrame::~WizardDigitizationFrame(){
 }
 
 void WizardDigitizationFrame::activeCameraChanged(int activeCamera){
-	setDialog();
+	if (State::getInstance()->getWorkspace() == DIGITIZATION){
+		setDialog();
+	}
 }
 
-void WizardDigitizationFrame::activeFrameCalibrationChanged(int activeFrame){
-	setDialog();
+void WizardDigitizationFrame::activeFrameTrialChanged(int activeFrame){
+	if (State::getInstance()->getWorkspace() == DIGITIZATION){
+		setDialog();
+	}
 }
 
 void WizardDigitizationFrame::workspaceChanged(work_state workspace){
@@ -72,25 +97,185 @@ void WizardDigitizationFrame::workspaceChanged(work_state workspace){
 	}
 }
 
-void WizardDigitizationFrame::on_pushButton_trackPoint_clicked()
+void WizardDigitizationFrame::trackSinglePoint()
 {
-	MarkerTracking * markertracking = new MarkerTracking(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), State::getInstance()->getActiveFrameTrial()+1, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
-	State::getInstance()->changeActiveFrameTrial(State::getInstance()->getActiveFrameTrial() + 1);
-	connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(runTrackMarkerFinished()));
-	markertracking->trackMarker();
+	int startFrame = State::getInstance()->getActiveFrameTrial();
+	int endFrame;
+	tmptrackID = trackID;
+	if (trackID >= 0 && trackID <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()){
+		if (trackDirection > 0){
+			endFrame = startFrame + 1;
+		}
+		else
+		{
+			endFrame = startFrame - 1;
+		}
+		std::vector< MarkerTracking * > trackers;
+		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
+			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][startFrame] > UNDEFINED &&
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][endFrame] <= TRACKED){
+				MarkerTracking * markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, trackID, trackDirection > 0);
+				connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(trackSinglePointFinished()));
+				trackers.push_back(markertracking);
+			}
+		}
+
+		State::getInstance()->changeActiveFrameTrial(endFrame);
+
+		if (trackers.size() > 0){
+			for (int i = 0; i < trackers.size(); i++){
+				trackers[i]->trackMarker();
+			}
+			trackers.clear();
+		}
+		else if (abs(trackDirection) > 1){
+			track();
+		}
+	}
+	else
+	{
+		uncheckTrackButtons();
+	}
 }
 
-void WizardDigitizationFrame::runTrackMarkerFinished(){
-	MarkerDetection * markerdetection = new MarkerDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx(),
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx()]->getSize() + 3);
-	connect(markerdetection, SIGNAL(detectMarker_finished()), this, SLOT(startTimer()));
-	markerdetection->detectMarker();
+void WizardDigitizationFrame::trackSinglePointFinished(){
+	std::vector< MarkerDetection * > detectors;
+	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
+		if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[tmptrackID]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED){
+			MarkerDetection * markerdetection = new MarkerDetection(i, State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), tmptrackID,
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[tmptrackID]->getSize() + 3);
+			detectors.push_back(markerdetection);
+			connect(markerdetection, SIGNAL(detectMarker_finished()), this, SLOT(track()));
+		}
+	}
+	
+	if (detectors.size() > 0){
+		for (int i = 0; i < detectors.size(); i++){
+			detectors[i]->detectMarker();
+		}
+		detectors.clear();
+	}
+	else{
+		track();
+	} 
+	tmptrackID = -1;
 }
 
-void WizardDigitizationFrame::startTimer(){
-	/*if (State::getInstance()->getActiveFrameTrial() < 500){
-		track_timer->start(10);
-	}*/
+
+void WizardDigitizationFrame::trackRB()
+{
+	
+}
+
+void WizardDigitizationFrame::trackRBFinished()
+{
+	
+}
+
+void WizardDigitizationFrame::trackAll()
+{
+	int startFrame = State::getInstance()->getActiveFrameTrial();
+	int endFrame;
+
+	if (trackDirection > 0){
+		endFrame = startFrame + 1;
+	}
+	else
+	{
+		endFrame = startFrame - 1;
+	}
+	std::vector< MarkerTracking * > trackers;
+	for (int j = 0; j < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(); j++){
+		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
+			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][startFrame] > UNDEFINED &&
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][endFrame] <= TRACKED){
+				MarkerTracking * markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, j, trackDirection > 0);
+				connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(trackAllFinished()));
+				trackers.push_back(markertracking);
+			}
+		}
+	}
+
+	State::getInstance()->changeActiveFrameTrial(endFrame);
+
+	if (trackers.size() > 0){
+		for (int i = 0; i < trackers.size(); i++){
+			trackers[i]->trackMarker();
+		}
+		trackers.clear();
+	}
+	else if (abs(trackDirection) > 1){
+		track();
+	}
+	
+}
+
+void WizardDigitizationFrame::trackAllFinished()
+{
+	std::vector< MarkerDetection * > detectors;
+	for (int j = 0; j < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(); j++){
+		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
+			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED){
+				MarkerDetection * markerdetection = new MarkerDetection(i, State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), j,
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getSize() + 3);
+				detectors.push_back(markerdetection);
+				connect(markerdetection, SIGNAL(detectMarker_finished()), this, SLOT(track()));
+			}
+		}
+	}
+
+	if (detectors.size() > 0){
+		for (int i = 0; i < detectors.size(); i++){
+			detectors[i]->detectMarker();
+		}
+		detectors.clear();
+	}
+	else{
+		track();
+	}
+}
+
+void WizardDigitizationFrame::track(){
+	setDialog();
+	QApplication::processEvents();
+
+	if (singleTrack)
+	{
+		uncheckTrackButtons();
+		return;
+	}
+	else if (abs(trackDirection) <= 1)
+	{
+		singleTrack = true;
+	}
+
+	if (trackDirection > 0 && State::getInstance()->getActiveFrameTrial() == Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1)
+	{
+		uncheckTrackButtons();
+		return;
+	}
+	else if (trackDirection < 0 && State::getInstance()->getActiveFrameTrial() == Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1)
+	{
+		uncheckTrackButtons();
+		return;
+	}
+
+	switch (trackType)
+	{
+		default:
+		case 0:
+			uncheckTrackButtons();
+			break;
+		case 1:
+			trackSinglePoint();
+			break;
+		case 2:
+			trackRB();
+			break; 
+		case 3:
+			trackAll();
+			break;
+	}
 }
 
 
@@ -116,17 +301,239 @@ void WizardDigitizationFrame::setDialog()
 		frame->pushButton->setVisible(true);
 		if (Project::getInstance()->getTrials().size() > 0)
 		{
-			
+			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() > 0){
+				frame->label->hide();
+				frame->pushButton->hide();
+				frame->groupBox_All->show();
+				frame->groupBox_Point->show();
+				
+				if (trackDirection == 0){
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() >= 0)
+					{
+						bool visible = false;
+						for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+						{
+							if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker()->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] > UNDEFINED)
+							{
+								visible = true;
+							}
+						}
+
+						frame->groupBox_Point->setEnabled(visible);
+					}
+
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() > 0){
+						frame->groupBox_RB->show();
+						if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx() >= 0)
+						{
+							bool visible = false;
+
+							if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRB()->getPoseComputed()[State::getInstance()->getActiveFrameTrial()])
+							{
+								visible = true;
+							}
+
+							frame->groupBox_RB->setEnabled(visible);
+						}
+					}
+					else
+					{
+						frame->groupBox_RB->hide();
+					}
+				}
+			}else
+			{
+				frame->label->show();
+				frame->label->setText("You first have to add points by using CTRL + left Click in the image or by using the point widget");
+				frame->pushButton->hide();
+				frame->groupBox_All->hide();
+				frame->groupBox_Point->hide();
+				frame->groupBox_RB->hide();
+			}
 		}
 		else
-		{
+		{	
+			frame->label->show();
 			frame->label->setText("You first have to add a trial");	
+			frame->pushButton->show();
 			frame->pushButton->setText("Add Trial");
+			frame->groupBox_All->hide();
+			frame->groupBox_Point->hide();
+			frame->groupBox_RB->hide();
 		}
 	}
 	else
-	{
+	{	
+		frame->label->show();
 		frame->label->setText("You first have to calibrate your cameras");
-		frame->pushButton->setVisible(false);
+		frame->pushButton->hide();
+		frame->groupBox_All->hide();
+		frame->groupBox_Point->hide();
+		frame->groupBox_RB->hide();
 	}
+}
+
+void WizardDigitizationFrame::on_pushButton_PointNext_clicked()
+{
+	uncheckTrackButtons();
+
+	trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
+	trackType = 1;
+	trackDirection = 1;
+
+	track();
+}
+
+void WizardDigitizationFrame::on_pushButton_PointPrev_clicked()
+{
+	uncheckTrackButtons();
+
+	trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
+	trackType = 1;
+	trackDirection = -1;
+
+	track();
+}
+
+void WizardDigitizationFrame::on_pushButton_PointForw_clicked(bool checked)
+{
+	uncheckTrackButtons();
+	if (checked){
+		frame->pushButton_PointForw->setChecked(true);
+
+		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
+		trackType = 1;
+		trackDirection = 2;
+
+		track();
+	}
+}
+
+void WizardDigitizationFrame::on_pushButton_PointBack_clicked(bool checked)
+{
+	uncheckTrackButtons();
+	if (checked){
+		frame->pushButton_PointBack->setChecked(true);
+
+		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
+		trackType = 1;
+		trackDirection = -2; 
+
+		track();
+	}
+}
+
+void WizardDigitizationFrame::on_pushButton_RBNext_clicked()
+{
+	uncheckTrackButtons();
+
+	trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx();
+	trackType = 2;
+	trackDirection = 1;
+
+	track();
+}
+
+void WizardDigitizationFrame::on_pushButton_RBPrev_clicked()
+{
+	uncheckTrackButtons();
+
+	trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx();
+	trackType = 2;
+	trackDirection = -1;
+
+	track();
+}
+
+void WizardDigitizationFrame::on_pushButton_RBForw_clicked(bool checked)
+{
+	uncheckTrackButtons();
+	if (checked){
+		frame->pushButton_RBForw->setChecked(true);
+
+		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx();
+		trackType = 2;
+		trackDirection = 2;
+
+		track();
+	}
+}
+
+void WizardDigitizationFrame::on_pushButton_RBBack_clicked(bool checked)
+{
+	uncheckTrackButtons();
+	if (checked){
+		frame->pushButton_RBBack->setChecked(true);
+
+		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx();
+		trackType = 2;
+		trackDirection = -2;
+
+		track();
+	}
+}
+
+void WizardDigitizationFrame::on_pushButton_AllNext_clicked()
+{
+	uncheckTrackButtons();
+
+	trackID = -1;
+	trackType = 3;
+	trackDirection = 1;
+
+	track();
+}
+
+void WizardDigitizationFrame::on_pushButton_AllPrev_clicked()
+{
+	uncheckTrackButtons();
+
+	trackID = -1;
+	trackType = 3;
+	trackDirection = -1;
+
+	track();
+}
+
+void WizardDigitizationFrame::on_pushButton_AllForw_clicked(bool checked)
+{
+	uncheckTrackButtons();
+	if (checked){
+		frame->pushButton_AllForw->setChecked(true);
+
+		trackID = -1;
+		trackType = 3;
+		trackDirection = 2;
+
+		track();
+	}
+}
+
+void WizardDigitizationFrame::on_pushButton_AllBack_clicked(bool checked)
+{
+	uncheckTrackButtons();
+	if (checked){
+		frame->pushButton_AllBack->setChecked(true);
+
+		trackID = -1;
+		trackType = 3;
+		trackDirection = -2;
+
+		track();
+	}
+}
+
+void WizardDigitizationFrame::uncheckTrackButtons()
+{
+	frame->pushButton_PointForw->setChecked(false);
+	frame->pushButton_PointBack->setChecked(false);
+	frame->pushButton_RBForw->setChecked(false);
+	frame->pushButton_RBBack->setChecked(false);
+	frame->pushButton_AllForw->setChecked(false);
+	frame->pushButton_AllBack->setChecked(false);
+	trackID = -1;
+	trackType = 0;
+	trackDirection = 0;
+	singleTrack = false;
+	setDialog();
 }

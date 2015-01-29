@@ -4,21 +4,23 @@
 #include <QString>
 #include <vector>
 #include <opencv/cv.h>
-#include "core/Marker.h"
+
 
 namespace xma{
+	class Trial;
 	class Camera;
 
 	class RigidBody{
 	public:
 
-		RigidBody(int size);
+		RigidBody(int size, Trial * trial);
 		virtual ~RigidBody();
 
 		void setDescription(QString _description);
 		QString getDescription();
 
 		const std::vector <int > &getPointsIdx();
+		const std::vector <int> &getPoseComputed();
 
 		void clearPointIdx();
 		void addPointIdx(int idx);
@@ -27,6 +29,12 @@ namespace xma{
 		void setExpanded(bool _expanded);
 		bool isExpanded();
 
+		void computeRBCSMeanOfAllFrames();
+		void computeRBCS(int Frame);
+		void computeRBPoseInWorldCS(int Frame);
+		std::vector <cv::Point2d> projectToImage(Camera * cam, int Frame, bool with_center);
+		void setMissingPoints(int Frame);
+
 	private:
 		void init(int size);
 		void clear();
@@ -34,6 +42,8 @@ namespace xma{
 		QString description;
 		bool expanded;
 		bool initialised;
+
+		Trial * trial;
 
 		std::vector <int> pointsIdx;
 		std::vector <cv::Point3d> points3D;

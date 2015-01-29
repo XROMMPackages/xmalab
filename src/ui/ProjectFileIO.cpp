@@ -13,6 +13,7 @@
 #include "core/Project.h" 
 #include "core/Camera.h" 
 #include "core/Trial.h" 
+#include "core/Marker.h" 
 #include "core/CalibrationImage.h"
 #include "core/UndistortionObject.h"
 #include "core/CalibrationObject.h"
@@ -129,6 +130,15 @@ bool ProjectFileIO::saveProject(QString filename){
 			}
 			else{
 				Project::getInstance()->getTrials()[i]->save(path);
+				QDir().mkpath(path + OS_SEP + "data");
+				Project::getInstance()->getTrials()[i]->saveMarkers(path + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
+				Project::getInstance()->getTrials()[i]->saveRigidBodies(path + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
+				for (int k = 0; k < Project::getInstance()->getTrials()[i]->getMarkers().size(); k++){
+					Project::getInstance()->getTrials()[i]->getMarkers()[k]->save(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv",
+						path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status2d.csv",
+						path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
+				}
+
 			}
 		}
 	}
@@ -264,7 +274,19 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 			{
 				xmlWriter.writeStartElement("Trial");
 				xmlWriter.writeAttribute("Name", Project::getInstance()->getTrials()[i]->getName());
-				xmlWriter.writeEndElement();
+				xmlWriter.writeAttribute("startFrame", QString::number(Project::getInstance()->getTrials()[i]->getStartFrame()));
+				xmlWriter.writeAttribute("endFrame", QString::number(Project::getInstance()->getTrials()[i]->getEndFrame()));
+				xmlWriter.writeAttribute("referenceCalibration", QString::number(Project::getInstance()->getTrials()[i]->getReferenceCalibrationImage()));
+				for (int k = 0; k < Project::getInstance()->getTrials()[i]->getMarkers().size(); k++){
+					xmlWriter.writeStartElement("Marker");
+					xmlWriter.writeAttribute("Description", Project::getInstance()->getTrials()[i]->getMarkers()[k]->getDescription());
+					xmlWriter.writeAttribute("ID", QString::number(k));
+					xmlWriter.writeAttribute("FilenamePoints2D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv");
+					xmlWriter.writeAttribute("FilenameStatus2D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status2d.csv");
+					xmlWriter.writeAttribute("FilenameSize", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
+					xmlWriter.writeEndElement();
+				}
+				xmlWriter.writeEndElement();				
 			}
 
 			xmlWriter.writeEndDocument();
@@ -445,9 +467,45 @@ bool ProjectFileIO::readProjectFile(QString filename){
 							QString trialfolder = basedir + OS_SEP + trialname + OS_SEP;
 							trialfolder.replace("\\", OS_SEP);
 							trialfolder.replace("/", OS_SEP);
-							Project::getInstance()->addTrial(new Trial(trialname, trialfolder));
+							Trial* trial = new Trial(trialname, trialfolder);
+
+							int startFrame = attr.value("startFrame").toString().toInt();
+							trial->setStartFrame(startFrame);
+							int endFrame = attr.value("endFrame").toString().toInt();
+							trial->setEndFrame(endFrame);
+							int referenceCalibration = attr.value("referenceCalibration").toString().toInt();
+							trial->setReferenceCalibrationImage(referenceCalibration);
+
+							trial->loadMarkers(trialfolder + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
+							trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
+
+							while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "Trial")) {
+								if (xml.tokenType() == QXmlStreamReader::StartElement) {
+									if (xml.name() == "Marker"){
+										QXmlStreamAttributes attr = xml.attributes();
+										QString filename_points2D = basedir + OS_SEP + attr.value("FilenamePoints2D").toString();
+										filename_points2D.replace("\\", OS_SEP);
+										filename_points2D.replace("/", OS_SEP);
+
+										QString filename_status2D = basedir + OS_SEP + attr.value("FilenameStatus2D").toString();
+										filename_status2D.replace("\\", OS_SEP);
+										filename_status2D.replace("/", OS_SEP);
+
+										QString filename_size = basedir + OS_SEP + attr.value("FilenameSize").toString();
+										filename_size.replace("\\", OS_SEP);
+										filename_size.replace("/", OS_SEP);
+
+										int id = attr.value("ID").toString().toInt();
+										trial->getMarkers()[id]->load(filename_points2D, filename_status2D, filename_size);
+									}
+								}
+								xml.readNext();
+							}
+
+							Project::getInstance()->addTrial(trial);
 							WorkspaceNavigationFrame::getInstance()->addTrial(trialname);
 							State::getInstance()->changeActiveTrial(Project::getInstance()->getTrials().size() - 1, true);
+
 						}
 					}
 				}

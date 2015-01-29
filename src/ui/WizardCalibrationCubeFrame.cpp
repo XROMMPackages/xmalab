@@ -10,6 +10,7 @@
 
 #include "core/Project.h"
 #include "core/Camera.h"
+#include "core/Trial.h"
 #include "core/Settings.h"
 #include "core/CalibrationImage.h"
 #include "core/CalibrationObject.h"
@@ -335,6 +336,13 @@ void WizardCalibrationCubeFrame::runCalibrationCameraAllFrames(){
 
 void WizardCalibrationCubeFrame::runCalibrationCameraAllFramesFinished(){
 	setDialog();
+
+	for (int i = 0; i < Project::getInstance()->getTrials().size(); i++)
+	{
+		Project::getInstance()->getTrials()[i]->update();
+
+	}
+
 	MainWindow::getInstance()->redrawGL();
 }
 

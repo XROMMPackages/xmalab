@@ -8,12 +8,12 @@
 #include "ui/ImportExportPointsDialog.h"
 #include "ui/State.h"
 #include "ui/ConfirmationDialog.h"
+#include "ui/WizardDockWidget.h"
 
 #include "core/Project.h"
 #include "core/Trial.h"
 #include "core/Marker.h"
 #include "core/RigidBody.h"
-
 
 #include <QMouseEvent>
 #include <QInputDialog>
@@ -87,10 +87,17 @@ void PointsDockWidget::reloadListFromObject(){
 			if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->isExpanded())dock->treeWidgetPoints->expandItem(qtreewidgetitem);
 		}
 
-		if (!selectPoint(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() + 1)){
+		if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() >=0 &&
+			!selectPoint(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() + 1)){
 			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveMarkerIdx(-1);
 		}
+		if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveRBIdx() >= 0 &&
+			!selectBody(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveRBIdx() + 1)){
+			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveRBIdx(-1);
+		}
 	}
+
+	WizardDockWidget::getInstance()->updateDialog();
 }
 
 bool PointsDockWidget::selectPoint(int idx){
@@ -105,14 +112,33 @@ bool PointsDockWidget::selectPoint(int idx){
 	}
 }
 
+bool PointsDockWidget::selectBody(int idx){
+	QList<QTreeWidgetItem *>  items = dock->treeWidgetPoints->findItems("RB" + QString::number(idx), Qt::MatchExactly | Qt::MatchRecursive, 0);
+	dock->treeWidgetPoints->clearSelection();
+	if (items.size()>0){
+		if (dock->treeWidgetPoints->currentItem() == items.at(0)) on_treeWidgetPoints_currentItemChanged(items.at(0), items.at(0));
+		dock->treeWidgetPoints->setCurrentItem(items.at(0));
+		return true;
+	}
+	else{
+		return false;
+	}
+}
+
 void PointsDockWidget::on_treeWidgetPoints_currentItemChanged(QTreeWidgetItem * current, QTreeWidgetItem * previous){
 	if(current && current->type() == MARKER){
 		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveMarkerIdx(current->text(0).toInt() - 1);
+		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveRBIdx(-1);
 	}
 	else if (current && current->type() == RIGID_BODY)
 	{
-
+		QString text = current->text(0);
+		text.remove(0, 2);
+		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveRBIdx(text.toInt() - 1);
+		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveMarkerIdx(-1);
 	}
+
+	WizardDockWidget::getInstance()->updateDialog();
 	MainWindow::getInstance()->redrawGL();
 }
 
