@@ -26,11 +26,26 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget *parent) :
 	frame->setupUi(this);
 #ifdef __APPLE__
 	frame->pushButton->setMinimumHeight(26);
+                                                    
+    frame->pushButton_RBBack->setMinimumHeight(26);
+    frame->pushButton_RBPrev->setMinimumHeight(26);
+    frame->pushButton_RBForw->setMinimumHeight(26);
+    frame->pushButton_RBNext->setMinimumHeight(26);
+    
+    frame->pushButton_AllPrev->setMinimumHeight(26);
+    frame->pushButton_AllNext->setMinimumHeight(26);
+    frame->pushButton_AllBack->setMinimumHeight(26);
+    frame->pushButton_AllForw->setMinimumHeight(26);
+    
+    frame->pushButton_PointNext->setMinimumHeight(26);
+    frame->pushButton_PointPrev->setMinimumHeight(26);
+    frame->pushButton_PointBack->setMinimumHeight(26);
+    frame->pushButton_PointForw->setMinimumHeight(26);
+
 #endif
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
 	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameTrialChanged(int)));
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
-
 
 	trackID = 0; 
 	trackType = 0; 

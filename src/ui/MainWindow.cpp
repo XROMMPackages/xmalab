@@ -454,6 +454,7 @@ void MainWindow::closeProject(){
 	State::getInstance()->changeUndistortion(NOTUNDISTORTED);
 	WizardDockWidget::getInstance()->hide();
 	PointsDockWidget::getInstance()->hide();
+    DetailViewDockWidget::getInstance()->hide();
 	this->setWindowTitle("XMALab");
 	ConsoleDockWidget::getInstance()->clear();
 }

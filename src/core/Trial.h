@@ -14,7 +14,7 @@ namespace xma{
 
 	public:
 		Trial(QString trialname, std::vector<QStringList> &imageFilenames);
-		Trial::Trial(QString trialname, QString folder);
+		Trial(QString trialname, QString folder);
 		virtual ~Trial();
 
 		int getActiveFrame();

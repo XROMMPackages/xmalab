@@ -31,7 +31,7 @@ namespace xma{
 		//void movePoint(int camera, int activeFrame, double x, double y);
 		//void setTrackedPoint(int camera, int activeFrame, double x, double y);
 		void setPoint(int camera, int activeFrame, double x, double y, markerStatus status);
-		std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int CameraDestination, int frame);
+		std::vector < cv::Point2d > getEpipolarLine(int cameraOrigin, int CameraDestination, int frame);
 		void reconstruct3DPoint(int frame);
 		bool getMarkerPrediction(int camera, int frame, double &x, double &y, bool forward);
 
