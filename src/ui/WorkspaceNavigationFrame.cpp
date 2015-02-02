@@ -9,6 +9,8 @@
 
 #include "core/Project.h"
 #include "core/Camera.h"
+#include "core/Trial.h"
+#include "core/CalibrationImage.h"
 
 using namespace xma;
 
@@ -20,7 +22,8 @@ WorkspaceNavigationFrame::WorkspaceNavigationFrame(QWidget *parent) :
 
 	frame->setupUi(this);
 	setTrialVisible(false);
-
+	updating = false;
+	
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(State::getInstance(), SIGNAL(displayChanged(ui_state)), this, SLOT(displayChanged(ui_state)));
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
@@ -42,6 +45,43 @@ WorkspaceNavigationFrame* WorkspaceNavigationFrame::getInstance()
 	return instance;
 }
 
+
+
+void WorkspaceNavigationFrame::updateCalibrationReference()
+{
+	updating = true;
+	int idx;
+	if (frame->comboBoxReferenceCalibration->count() > 0){
+		idx = frame->comboBoxReferenceCalibration->currentText().toInt() - 1;
+	}
+	else
+	{
+		idx = -1;
+	}
+	frame->comboBoxReferenceCalibration->clear();
+
+	for (int i = 0; i < Project::getInstance()->getCameras()[0]->getCalibrationImages().size(); i++)
+	{
+		bool calibrated = true;
+		for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+		{
+			calibrated = calibrated && Project::getInstance()->getCameras()[j]->getCalibrationImages()[i]->isCalibrated();
+		}
+		if (calibrated) frame->comboBoxReferenceCalibration->addItem(QString::number(i + 1));
+	}
+
+	updating = false;
+	if (idx = -1)
+	{
+		if (frame->comboBoxReferenceCalibration->count() > 0){
+			frame->comboBoxReferenceCalibration->setCurrentIndex(0);
+		}
+	}
+	else
+	{
+		frame->comboBoxReferenceCalibration->setCurrentIndex(frame->comboBoxReferenceCalibration->findData(QString::number(idx + 1)));
+	}
+}
 
 void WorkspaceNavigationFrame::setUndistortion(bool hasUndistortion){
 	if(hasUndistortion){
@@ -66,6 +106,13 @@ void WorkspaceNavigationFrame::addTrial(QString name)
 	frame->comboBoxTrial->addItem(name);
 }
 
+void WorkspaceNavigationFrame::closeProject()
+{
+	frame->comboBoxTrial->clear();
+	frame->comboBoxReferenceCalibration->clear();
+	setTrialVisible(false);
+}
+
 void WorkspaceNavigationFrame::removeCamera(int idx){
 	frame->comboBoxViewspace->removeItem(idx);
 }
@@ -77,6 +124,12 @@ void WorkspaceNavigationFrame::workspaceChanged(work_state workspace){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration") );
 	}else if (workspace == DIGITIZATION){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Digitization"));
+		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0){
+			int referenceIdx = frame->comboBoxReferenceCalibration->findText(QString::number(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getReferenceCalibrationImage() + 1));
+			if (referenceIdx != -1) {
+				frame->comboBoxReferenceCalibration->setCurrentIndex(referenceIdx);
+			}
+		}
 	}
 }
 
@@ -103,6 +156,10 @@ void WorkspaceNavigationFrame::activeCameraChanged(int activeCamera){
 void WorkspaceNavigationFrame::activeTrialChanged(int activeTrial)
 {
 	frame->comboBoxTrial->setCurrentIndex(activeTrial);
+	int referenceIdx = frame->comboBoxReferenceCalibration->findText(QString::number(Project::getInstance()->getTrials()[activeTrial]->getReferenceCalibrationImage() + 1));
+	if (referenceIdx != -1) {
+		frame->comboBoxReferenceCalibration->setCurrentIndex(referenceIdx);
+	}
 }
 
 void WorkspaceNavigationFrame::setTrialVisible(bool visible){
@@ -110,10 +167,14 @@ void WorkspaceNavigationFrame::setTrialVisible(bool visible){
 		frame->label_Trial->show();
 		frame->toolButtonAddTrial->show();
 		frame->comboBoxTrial->show();
+		frame->comboBoxReferenceCalibration->show();
+		frame->labelReferenceCalibration->show();
 	}else{
 		frame->label_Trial->hide();
 		frame->toolButtonAddTrial->hide();
 		frame->comboBoxTrial->hide();
+		frame->comboBoxReferenceCalibration->hide();
+		frame->labelReferenceCalibration->hide();
 	}
 }
 
@@ -170,6 +231,16 @@ void WorkspaceNavigationFrame::on_comboBoxViewspace_currentIndexChanged(QString 
 				return;
 			}
 			count ++;
+		}
+	}
+}
+
+void WorkspaceNavigationFrame::on_comboBoxReferenceCalibration_currentIndexChanged(QString value)
+{
+	if (!updating){
+		int idx = value.toInt() - 1;
+		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0){
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setReferenceCalibrationImage(idx);
 		}
 	}
 }

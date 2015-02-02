@@ -26,6 +26,7 @@ namespace xma{
 		bool zipFromFolderToFile(const QString & filePath, const QDir & dir, const QString & comment = QString(""));
 		bool unzipFromFileToFolder(const QString & filePath, const QString & extDirPath, const QString & singleFileName = QString(""));
 		void recurseAddDir(QDir d, QStringList & list);
+		void correctFolder(QString filename, QString &newfolder, QString &oldfolder);
 		bool removeDir(QString folder);
 	};
 }

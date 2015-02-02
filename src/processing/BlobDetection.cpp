@@ -23,6 +23,7 @@ int BlobDetection::nbInstances = 0;
 BlobDetection::BlobDetection(int camera, int image):QObject(){
 	m_camera = camera;
 	m_image = image;
+	nbInstances++;
 }
 
 BlobDetection::~BlobDetection(){
@@ -35,7 +36,7 @@ void BlobDetection::detectBlobs(){
 
 	QFuture<void> future = QtConcurrent::run( this, &BlobDetection::detectBlobs_thread);
 	m_FutureWatcher->setFuture( future );
-	nbInstances++;
+
 	ProgressDialog::getInstance()->showProgressbar(0, 0, "Detect Points");
 }
 

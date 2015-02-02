@@ -144,7 +144,7 @@ void WizardDigitizationFrame::trackSinglePoint()
 			trackers.clear();
 		}
 		else if (abs(trackDirection) > 1){
-			track();
+			checkIfValid();
 		}
 	}
 	else
@@ -158,9 +158,9 @@ void WizardDigitizationFrame::trackSinglePointFinished(){
 	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
 		if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[tmptrackID]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED){
 			MarkerDetection * markerdetection = new MarkerDetection(i, State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), tmptrackID,
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[tmptrackID]->getSize() + 3);
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[tmptrackID]->getSize() + 3, true);
 			detectors.push_back(markerdetection);
-			connect(markerdetection, SIGNAL(detectMarker_finished()), this, SLOT(track()));
+			connect(markerdetection, SIGNAL(detectMarker_finished()), this, SLOT(checkIfValid()));
 		}
 	}
 	
@@ -171,7 +171,7 @@ void WizardDigitizationFrame::trackSinglePointFinished(){
 		detectors.clear();
 	}
 	else{
-		track();
+		checkIfValid();
 	} 
 	tmptrackID = -1;
 }
@@ -220,7 +220,7 @@ void WizardDigitizationFrame::trackAll()
 		trackers.clear();
 	}
 	else if (abs(trackDirection) > 1){
-		track();
+		checkIfValid();
 	}
 	
 }
@@ -232,9 +232,9 @@ void WizardDigitizationFrame::trackAllFinished()
 		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
 			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED){
 				MarkerDetection * markerdetection = new MarkerDetection(i, State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), j,
-					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getSize() + 3);
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getSize() + 3, true);
 				detectors.push_back(markerdetection);
-				connect(markerdetection, SIGNAL(detectMarker_finished()), this, SLOT(track()));
+				connect(markerdetection, SIGNAL(detectMarker_finished()), this, SLOT(checkIfValid()));
 			}
 		}
 	}
@@ -246,8 +246,41 @@ void WizardDigitizationFrame::trackAllFinished()
 		detectors.clear();
 	}
 	else{
-		track();
+		checkIfValid();
 	}
+}
+
+
+void WizardDigitizationFrame::checkIfValid()
+{
+
+	bool valid = true;
+	if (trackType == 1)
+	{
+		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
+			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED){
+				valid = valid && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->isValid(i, State::getInstance()->getActiveFrameTrial());
+			}
+		}
+
+	}
+	else if (trackType == 3)
+	{
+		for (int j = 0; j < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(); j++){
+			for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
+				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED){
+					valid = valid && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->isValid(i, State::getInstance()->getActiveFrameTrial());
+				}
+			}
+		}
+	}
+
+	if (!valid)
+	{
+		uncheckTrackButtons();
+	}
+
+	track();
 }
 
 void WizardDigitizationFrame::track(){

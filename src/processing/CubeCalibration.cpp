@@ -24,6 +24,7 @@ int CubeCalibration::nbInstances = 0;
 CubeCalibration::CubeCalibration(int camera, int image, cv::Point2d references [4], int referencesID [4]):QObject(){
 	m_camera = camera;
 	m_image = image;
+	nbInstances++;
 	poseComputed = false;
 	for (int i = 0;i < 4 ; i++){
 		selectedPoints[i].x = references[i].x;
@@ -84,7 +85,7 @@ void CubeCalibration::computePoseAndCam(){
 
 	QFuture<void> future = QtConcurrent::run( this, &CubeCalibration::computePoseAndCam_thread);
 	m_FutureWatcher->setFuture( future );
-	nbInstances++;
+
 	ProgressDialog::getInstance()->showProgressbar(0, 0, "Compute Camera internal parameters and pose");
 }
 
@@ -134,7 +135,6 @@ void CubeCalibration::computePose(){
 
 	QFuture<void> future = QtConcurrent::run( this, &CubeCalibration::computePose_thread);
 	m_FutureWatcher->setFuture( future );
-	nbInstances++;
 	ProgressDialog::getInstance()->showProgressbar(0, 0, "Compute Camera pose");
 }
 

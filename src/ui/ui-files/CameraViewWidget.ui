@@ -13,11 +13,26 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="autoFillBackground">
+   <bool>true</bool>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
-   <property name="margin">
+   <property name="leftMargin">
     <number>0</number>
    </property>
-   <property name="spacing">
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>1</number>
+   </property>
+   <property name="horizontalSpacing">
+    <number>1</number>
+   </property>
+   <property name="verticalSpacing">
     <number>0</number>
    </property>
    <item row="0" column="0">
@@ -27,6 +42,9 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -167,6 +185,12 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QWidget[active=true]{background-color: rgb(255,0, 0);}</string>
      </property>
     </widget>
    </item>

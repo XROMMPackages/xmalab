@@ -62,6 +62,7 @@ namespace xma{
 		void trackRBFinished();
 		void trackAllFinished();
 
+		void checkIfValid();
 		void track();
 	};
 }

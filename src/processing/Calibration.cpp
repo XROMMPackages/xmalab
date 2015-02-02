@@ -21,7 +21,7 @@ using namespace xma;
 int Calibration::nbInstances = 0;
 
 Calibration::Calibration(int camera):QObject(){
-	
+	nbInstances++;
 	m_camera = camera;
 	intrinsic_matrix.create( 3, 3, CV_64F );
 	distortion_coeffs.create( 8, 1, CV_64F );
@@ -74,7 +74,6 @@ void Calibration::computeCameraPosesAndCam(){
 
 	QFuture<void> future = QtConcurrent::run( this, &Calibration::computeCameraPosesAndCam_thread);
 	m_FutureWatcher->setFuture( future );
-	nbInstances++;
 	ProgressDialog::getInstance()->showProgressbar(0, 0, "Calibrate camera internal parameters and pose for all frames");
 }
 
@@ -90,6 +89,7 @@ void Calibration::computeCameraPosesAndCam_threadFinished(){
 		emit computeCameraPosesAndCam_finished();
 	}
 	delete this;
+
 
 }
 

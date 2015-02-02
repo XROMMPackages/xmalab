@@ -214,6 +214,7 @@ void MainWindow::tearDownProjectUI(){
 	ui->startTrialFrame->setVisible(false);
 	WorkspaceNavigationFrame::getInstance()->setVisible(false);
 	ui->sequenceNavigationFrame->setVisible(false);
+	WorkspaceNavigationFrame::getInstance()->closeProject();
 }
 
 void MainWindow::clearSplitters(){
@@ -375,6 +376,8 @@ void MainWindow::loadProject(){
 }
 
 void MainWindow::loadProjectFinished(){
+	checkTrialImagePaths();
+
 	if(m_FutureWatcher->result()){
 		project->loadTextures();
 		for (std::vector<Trial*>::const_iterator trial = Project::getInstance()->getTrials().begin(); trial != Project::getInstance()->getTrials().end(); ++trial)
@@ -503,6 +506,28 @@ void MainWindow::newTrial()
 		newTriaLdialog->createTrial();
 		State::getInstance()->changeActiveTrial(project->getTrials().size() - 1);
 		State::getInstance()->changeActiveFrameTrial(project->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
+	}
+}
+
+void MainWindow::checkTrialImagePaths()
+{
+	for (int t = 0; t < Project::getInstance()->getTrials().size(); t++)
+	{
+		for (int c = 0; c < Project::getInstance()->getCameras().size(); c++)
+		{
+			QString filename = Project::getInstance()->getTrials()[t]->getFilenames()[c].at(0);
+			QFileInfo fileinfo(filename);
+			if (!QFile::exists(filename))
+			{
+				QString newfolder = QFileDialog::getExistingDirectory(this, fileinfo.fileName() + "not found. Enter a new directory for " + fileinfo.fileName(), Settings::getLastUsedDirectory());
+
+				if (!newfolder.isEmpty())
+				{
+					QString oldfolder = filename.replace(fileinfo.fileName(), "");
+					Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder + OS_SEP, oldfolder);
+				}
+			}
+		}
 	}
 }
 

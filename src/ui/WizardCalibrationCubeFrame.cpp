@@ -7,6 +7,7 @@
 #include "ui/MainWindow.h"
 #include "ui/ErrorDialog.h"
 #include "ui/ConfirmationDialog.h"
+#include "ui/WorkspaceNavigationFrame.h"
 
 #include "core/Project.h"
 #include "core/Camera.h"
@@ -325,12 +326,18 @@ void WizardCalibrationCubeFrame::on_pushButton_clicked(){
 }
 
 void WizardCalibrationCubeFrame::runCalibrationCameraAllFrames(){
+	std::vector<Calibration *> calibs;
 	for(unsigned int j = 0; j < Project::getInstance()->getCameras().size() ; j ++){
 		if(Project::getInstance()->getCameras()[j]->isRecalibrationRequired()){
 			Calibration * calibration = new Calibration(j);
+			
 			connect(calibration, SIGNAL(computeCameraPosesAndCam_finished()), this, SLOT(runCalibrationCameraAllFramesFinished()));
-			calibration->computeCameraPosesAndCam();	
+			calibs.push_back(calibration);
 		}
+	}
+	for (int i = 0; i < calibs.size(); i++)
+	{
+		calibs[i]->computeCameraPosesAndCam();
 	}
 }
 
@@ -340,9 +347,8 @@ void WizardCalibrationCubeFrame::runCalibrationCameraAllFramesFinished(){
 	for (int i = 0; i < Project::getInstance()->getTrials().size(); i++)
 	{
 		Project::getInstance()->getTrials()[i]->update();
-
 	}
-
+	WorkspaceNavigationFrame::getInstance()->updateCalibrationReference();
 	MainWindow::getInstance()->redrawGL();
 }
 

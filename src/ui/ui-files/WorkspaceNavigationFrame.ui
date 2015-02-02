@@ -44,7 +44,7 @@
    <property name="verticalSpacing">
     <number>0</number>
    </property>
-   <item row="0" column="7">
+   <item row="0" column="9">
     <widget class="QLabel" name="label_2">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
@@ -70,7 +70,7 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="8">
+   <item row="0" column="10">
     <widget class="QComboBox" name="comboBoxViewspace">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -106,7 +106,7 @@
      </item>
     </widget>
    </item>
-   <item row="0" column="6">
+   <item row="0" column="8">
     <spacer name="horizontalSpacer">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -189,6 +189,16 @@
       <string>+</string>
      </property>
     </widget>
+   </item>
+   <item row="0" column="6">
+    <widget class="QLabel" name="labelReferenceCalibration">
+     <property name="text">
+      <string>Reference Calibration</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="7">
+    <widget class="QComboBox" name="comboBoxReferenceCalibration"/>
    </item>
   </layout>
  </widget>

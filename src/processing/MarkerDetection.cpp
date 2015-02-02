@@ -18,11 +18,13 @@ using namespace xma;
 
 int MarkerDetection::nbInstances = 0;
 
-MarkerDetection::MarkerDetection(int camera, int trial, int frame, int marker, double searcharea) :QObject(){
+MarkerDetection::MarkerDetection(int camera, int trial, int frame, int marker, double searcharea, bool refinementAfterTracking) :QObject(){
+	nbInstances++;
 	m_camera = camera;
 	m_trial = trial;
 	m_frame = frame;
 	m_marker = marker;
+	m_refinementAfterTracking = refinementAfterTracking;
 	x = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame].x;
 	y = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame].y;
 	m_searchArea = (int)(searcharea + 0.5);
@@ -38,7 +40,7 @@ void MarkerDetection::detectMarker(){
 
 	QFuture<void> future = QtConcurrent::run(this, &MarkerDetection::detectMarker_thread);
 	m_FutureWatcher->setFuture( future );
-	nbInstances++;
+
 }
 
 void MarkerDetection::detectMarker_thread(){
@@ -49,10 +51,13 @@ void MarkerDetection::detectMarker_thread(){
 	cv::Mat image;
 	Project::getInstance()->getTrials()[m_trial]->getImage(m_camera)->getSubImage(image, m_searchArea, off_x, off_y);
 
+	//cv::imwrite("Det_original.png", image);
 	cv::medianBlur(image, image, 3);
+	//cv::imwrite("Det_med.png", image);
 	cv::adaptiveThreshold(image, image, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 15, 5);
+	//cv::imwrite("Det_thresh.png", image);
 	cv::medianBlur(image, image, 3);
-	
+	//cv::imwrite("Det_thresh_med.png", image);
 	//Find contours
 	cv::vector<cv::vector<cv::Point> > contours;
 	cv::vector<cv::Vec4i> hierarchy;
@@ -93,7 +98,7 @@ void MarkerDetection::detectMarker_thread(){
 
 void MarkerDetection::detectMarker_threadFinished(){
 	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->setSize(m_camera,m_frame,size);
-	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->setPoint(m_camera, m_frame, x, y, SET);
+	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->setPoint(m_camera, m_frame, x, y, m_refinementAfterTracking ? TRACKED : SET);
 
 	delete m_FutureWatcher;
 	nbInstances--;

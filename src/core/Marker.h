@@ -36,10 +36,14 @@ namespace xma{
 		bool getMarkerPrediction(int camera, int frame, double &x, double &y, bool forward);
 
 		double getSize();
+		double getSizeRange();
 		void setSize(int camera, int frame, double size_value);
 		void save(QString points_filename, QString status_filename, QString markersize_filename);
 		void load(QString points_filename, QString status_filename, QString markersize_filename);
 		void update();
+
+		bool isValid(int camera, int frame);
+		void reset(int camera, int frame);
 
 	private:
 		void init(int nbCameras, int size);
@@ -58,6 +62,7 @@ namespace xma{
 		void updateMeanSize();
 		std::vector< std::vector <double> > markerSize;
 		double meanSize;
+		double sizeRange;
 
 		std::vector <cv::Point3d> points3D;
 		std::vector <markerStatus> status3D;

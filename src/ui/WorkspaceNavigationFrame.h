@@ -18,6 +18,8 @@ namespace xma{
 		static WorkspaceNavigationFrame* instance;
 		int currentComboBoxWorkspaceIndex;
 		void setTrialVisible(bool visible);
+
+		bool updating;
 	protected:
 
 	public:
@@ -28,7 +30,9 @@ namespace xma{
 		void setUndistortion(bool hasUndistortion);
 		void addCamera(int idx, QString name);
 		void addTrial(QString name);
+		void closeProject();
 		void removeCamera(int idx);
+		void updateCalibrationReference();
 
 		void setWorkState(work_state workspace);
 
@@ -42,7 +46,7 @@ namespace xma{
 		void on_comboBoxWorkspace_currentIndexChanged(QString value);
 		void on_comboBoxTrial_currentIndexChanged(int idx);
 		void on_comboBoxViewspace_currentIndexChanged(QString value);
-
+		void on_comboBoxReferenceCalibration_currentIndexChanged(QString value);
 		void on_toolButtonAddTrial_clicked();
 	};
 }

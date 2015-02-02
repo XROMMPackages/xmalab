@@ -64,6 +64,7 @@ namespace xma{
 		void saveRigidBodies(QString filename);
 
 		void update();
+		void changeImagePath(int camera, QString newfolder, QString oldfolder);
 
 	private:
 		QString name;
@@ -84,6 +85,7 @@ namespace xma{
 		std::vector <RigidBody * > rigidBodies;
 		std::vector <Marker * > markers;
 		int id;
+		
 
 		std::istream &comma(std::istream& in);
 		std::istream &getline(std::istream &is, std::string &s);

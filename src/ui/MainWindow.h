@@ -49,7 +49,7 @@ namespace xma{
 
 		//Trial functions
 		void newTrial();
-
+		void checkTrialImagePaths();
 		void setCameraViewWidgetTitles();
 
 		QFutureWatcher<bool>* m_FutureWatcher;

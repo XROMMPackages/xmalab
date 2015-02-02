@@ -18,13 +18,13 @@ int MarkerTracking::nbInstances = 0;
 
 MarkerTracking::MarkerTracking(int camera, int trial, int frame_from,int frame_to, int marker, bool forward) :QObject(),
 m_camera(camera), m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to), m_marker(marker), m_forward(forward){
-
+	nbInstances++;
 	x_from = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame_from].x;
 	y_from = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame_from].y;
 	searchArea = 30;
 	size = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getSize();
 
-	Project::getInstance()->getTrials()[m_trial]->getImage(m_camera)->getSubImage(templ, size + 3, x_from, y_from);
+	Project::getInstance()->getTrials()[m_trial]->getImage(m_camera)->getSubImage(templ, size + 3, x_from, y_from + 0.5);
 }
 
 MarkerTracking::~MarkerTracking(){
@@ -37,7 +37,7 @@ void MarkerTracking::trackMarker(){
 
 	QFuture<void> future = QtConcurrent::run(this, &MarkerTracking::trackMarker_thread);
 	m_FutureWatcher->setFuture( future );
-	nbInstances++;
+
 }
 
 void MarkerTracking::trackMarker_thread(){
@@ -45,7 +45,6 @@ void MarkerTracking::trackMarker_thread(){
 	int used_size = size + searchArea + 3;
 
 	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMarkerPrediction(m_camera, m_frame_to, x_to, y_to, m_forward);
-
 	int off_x = (int)(x_to - searchArea + 0.5);
 	int off_y = (int)(y_to - searchArea + 0.5);
 
@@ -59,11 +58,11 @@ void MarkerTracking::trackMarker_thread(){
 	result.create(result_cols, result_rows, CV_32FC1);
 
 	/// Do the Matching and Normalize
-	cv::medianBlur(templ, templ, 3);
-	cv::medianBlur(ROI_to, ROI_to, 3);
-	matchTemplate(ROI_to, templ, result, cv::TM_SQDIFF);
-	normalize(result, result, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
-	cv::GaussianBlur(result, result, cv::Size(3, 3), 0, 0);
+	//cv::medianBlur(templ, templ, 3);
+	//cv::medianBlur(ROI_to, ROI_to, 3);
+	matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
+	normalize(result, result, 0, 255, cv::NORM_MINMAX, -1, cv::Mat());
+	//cv::GaussianBlur(result, result, cv::Size(3, 3), 0, 0);
 
 	/// Localizing the best match with minMaxLoc
 	double minVal; double maxVal; cv::Point minLoc; cv::Point maxLoc;
@@ -74,17 +73,19 @@ void MarkerTracking::trackMarker_thread(){
 	/// For SQDIFF and SQDIFF_NORMED, the best matches are lower values. For all the other methods, the higher the better
 	//if (match_method == CV_TM_SQDIFF || match_method == CV_TM_SQDIFF_NORMED)
 	//{
-		matchLoc = minLoc;
+	//	matchLoc = minLoc;
 	//}
 	//else
 	//{
-	//matchLoc = maxLoc;
+	matchLoc = maxLoc;
 	//}
 	x_to = matchLoc.x + off_x + size + 2;
 	y_to = matchLoc.y + off_y + size + 2;
 	
-	
-	/*cv::Mat imagetmp;
+	//cv::imwrite("Tracking_roi.png", ROI_to);
+	//cv::imwrite("Tracking_result.png", result);
+	//cv::imwrite("Tracking_template.png", templ);
+	/*cv::Mat imagetmp; 
 	cv::imwrite("unprocessed.png", ROI_to);
 	cv::GaussianBlur(ROI_to, ROI_to, cv::Size(4 * (int)(size + 0.5) + 1, 4 * (int)(size + 0.5) + 1),0,0);
 	cv::imwrite("blurred.png", ROI_to);

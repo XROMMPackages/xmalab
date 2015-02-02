@@ -11,6 +11,7 @@
 #include "core/Trial.h"
 
 #include <QInputDialog>
+#include "MainWindow.h"
 
 using namespace xma;
 
@@ -50,6 +51,17 @@ void SequenceNavigationFrame::setStartEndSequence(int start, int end)
 	endFrame = end;
 	startFrame = start;
 
+	if (State::getInstance()->getWorkspace() == DIGITIZATION) {
+		if (startFrame > Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame())
+		{
+			State::getInstance()->changeActiveFrameTrial(startFrame - 1);
+		}
+		else if (endFrame < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame())
+		{
+			State::getInstance()->changeActiveFrameTrial(endFrame - 1);
+		}
+	}
+
 	frame->toolButtonFrameStart->setText(QString::number(startFrame));
 	frame->toolButtonFrameEnd->setText(QString::number(endFrame));
 	updating = true;
@@ -62,6 +74,8 @@ void SequenceNavigationFrame::setStartEndSequence(int start, int end)
 
 	if (frame->horizontalSlider->value() == startFrame - 1) frame->toolButtonPrev->setEnabled(false);
 	if (frame->horizontalSlider->value() == endFrame - 1) frame->toolButtonNext->setEnabled(false);
+
+	
 }
 
 void SequenceNavigationFrame::activeFrameChanged(int activeFrame){

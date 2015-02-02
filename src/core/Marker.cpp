@@ -93,7 +93,7 @@ bool Marker::getMarkerPrediction(int camera, int frame, double &x, double &y, bo
 
 	if (frame - 1 * dir >= 0 && frame - 1 * dir < points2D[0].size() && status2D[camera][frame - 1 * dir] > 0)
 	{
-		if (frame - 2 * dir >= 0 && frame - 2 * dir < points2D[0].size() && status2D[camera][frame - 2] > 0)
+		if (frame - 2 * dir >= 0 && frame - 2 * dir < points2D[0].size() && status2D[camera][frame - 2 * dir] > 0)
 		{
 			//linear position
 			x = 2 * points2D[camera][frame - 1 * dir].x - points2D[camera][frame - 2 * dir].x;
@@ -170,6 +170,8 @@ void Marker::reconstruct3DPoint(int frame)
 			points3D[frame].z = f.at<double>(2, 0) / w;
 			status3D[frame] = status;
 
+			//fprintf(stderr, "Point %lf %lf %lf\n", points3D[frame].x, points3D[frame].y, points3D[frame].z);
+
 			reprojectPoint(frame);
 		}
 	}
@@ -178,6 +180,11 @@ void Marker::reconstruct3DPoint(int frame)
 double Marker::getSize()
 {
 	return meanSize;
+}
+
+double Marker::getSizeRange()
+{
+	return sizeRange;
 }
 
 void Marker::setSize(int camera, int frame, double size_value)
@@ -315,6 +322,54 @@ void Marker::update()
 	}
 }
 
+bool Marker::isValid(int camera, int frame)
+{
+	//check Size Min Max
+	if (markerSize[camera][frame] < 1)
+	{
+		reset(camera, frame);
+		return false;
+	}
+
+	if (markerSize[camera][frame] >50)
+	{
+		reset(camera, frame);
+		return false;
+	}
+
+	if (fabs(markerSize[camera][frame] - meanSize) > 3 * sizeRange)
+	{
+		reset(camera, frame);
+		return false;
+	}
+
+	if (points2D[camera][frame].x < 0 || points2D[camera][frame].x >= Project::getInstance()->getCameras()[camera]->getWidth())
+	{
+		reset(camera, frame);
+		return false;
+	}
+	if (points2D[camera][frame].y < 0 || points2D[camera][frame].y >= Project::getInstance()->getCameras()[camera]->getHeight())
+	{
+		reset(camera, frame);
+		return false;
+	}
+	return true;
+}
+
+void Marker::reset(int camera, int frame)
+{
+	status2D[camera][frame] = UNDEFINED;
+	points2D[camera][frame].x = -2;
+	points2D[camera][frame].y = -2;
+	points2D_projected[camera][frame].x = -2;
+	points2D_projected[camera][frame].y = -2;
+	markerSize[camera][frame] = -1;
+	error2D[camera][frame] = 0.0;
+
+	reconstruct3DPoint(frame);
+	updateMeanSize();
+}
+
 void Marker::reprojectPoint(int frame)
 {
 	for (int i = 0; i < points2D.size(); i++)
@@ -360,6 +415,17 @@ void Marker::updateMeanSize()
 		}
 	}
 	if (count > 0) meanSize = mean / count;
+
+	sizeRange = 0;
+	for (int i = 0; i < markerSize.size(); i++)
+	{
+		for (int j = 0; j < markerSize[i].size(); j++)
+		{
+			if (fabs(markerSize[i][j] - mean) > sizeRange){
+				sizeRange = fabs(markerSize[i][j] - mean);
+			}
+		}
+	}
 }
 
 std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int CameraDestination, int frame)

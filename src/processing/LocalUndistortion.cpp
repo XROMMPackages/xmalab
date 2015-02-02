@@ -23,6 +23,7 @@ int LocalUndistortion::nbInstances = 0;
 
 LocalUndistortion::LocalUndistortion(int camera):QObject(){
 	m_camera = camera;
+	nbInstances++;
 }
 
 LocalUndistortion::~LocalUndistortion(){
@@ -40,7 +41,7 @@ void LocalUndistortion::computeUndistortion(bool recompute){
 
 	QFuture<void> future = QtConcurrent::run( this, &LocalUndistortion::localUndistortion_thread);
 	m_FutureWatcher->setFuture( future );
-	nbInstances++;
+
 	ProgressDialog::getInstance()->showProgressbar(0, 0, "Local Undistortion");
 }
 

@@ -34,6 +34,7 @@ namespace xma{
 		void setImageName(QString name);
 
 	protected:
+		bool eventFilter(QObject *obj, QEvent *event);
 
 		public slots :
 		void on_toolButtonFitZoom_clicked(bool checked);
@@ -45,7 +46,11 @@ namespace xma{
 
 		void workspaceChanged(work_state workspace);
 		void activeFrameCalibrationChanged(int activeFrame);
+		void activeCameraChanged(int activeCamera);
+
 	private:
+
+		
 
 		UndistortionInfoFrame * undistortionFrame;
 		CalibrationInfoFrame * calibrationFrame;

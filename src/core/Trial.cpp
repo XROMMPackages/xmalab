@@ -236,7 +236,11 @@ int Trial::getReferenceCalibrationImage()
 
 void Trial::setReferenceCalibrationImage(int value)
 {
-	referenceCalibrationImage = value;
+	if (value != referenceCalibrationImage)
+	{
+		referenceCalibrationImage = value;
+		update();
+	}
 }
 
 QString Trial::getActiveFilename(int camera)
@@ -477,4 +481,18 @@ void Trial::update()
 	{
 		getMarkers()[i]->update();
 	}
+}
+
+void Trial::changeImagePath(int camera, QString newfolder, QString oldfolder)
+{
+	fprintf(stderr, "Change from %s to %s\n", oldfolder.toAscii().data(), newfolder.toAscii().data());
+	filenames[camera] = filenames[camera].replaceInStrings(oldfolder, newfolder);
+
+	for (int i = 0; i < filenames[camera].size(); i++)
+	{
+		//fprintf(stderr, "%s\n", filenames[camera].at(i).toAscii().data());
+	}
+
+
+	images[camera]->setImage(filenames[camera].at(activeFrame));
 }

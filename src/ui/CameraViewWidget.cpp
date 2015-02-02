@@ -27,12 +27,24 @@ CameraViewWidget::CameraViewWidget(Camera * _camera, QWidget *parent) :
 	widget->gridLayout_3->addWidget(undistortionFrame, 0, 0, 1, 1);
 	widget->gridLayout_3->addWidget(calibrationFrame, 1, 0, 1, 1);
 
-
 	connect(widget->glCameraView, SIGNAL(autozoomChanged(bool)), this, SLOT(autozoomChanged(bool)));
 	connect(widget->glCameraView, SIGNAL(zoomChanged(int)), this, SLOT(zoomChanged(int)));
 
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(State::getInstance(), SIGNAL(activeFrameCalibrationChanged(int)), this, SLOT(activeFrameCalibrationChanged(int)));
+	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
+
+	this->installEventFilter(this);
+	widget->toolButtonInfo->installEventFilter(this);
+	widget->spinBoxZoom->installEventFilter(this);
+	widget->toolButtonFitZoom->installEventFilter(this);
+	widget->frameInfo->installEventFilter(this);
+	widget->glCameraView->installEventFilter(this);
+
+	calibrationFrame->installEventFilter(this);
+	undistortionFrame->installEventFilter(this);
+
+	activeCameraChanged(State::getInstance()->getActiveCamera());
 }
 
 CameraViewWidget::~CameraViewWidget(){
@@ -107,4 +119,39 @@ void CameraViewWidget::workspaceChanged(work_state workspace){
 
 void CameraViewWidget::activeFrameCalibrationChanged(int activeFrame){
 	calibrationFrame->updateFrame(camera);
+}
+
+bool CameraViewWidget::eventFilter(QObject *obj, QEvent *event)
+{
+	if (event->type() == QEvent::MouseButtonPress) State::getInstance()->changeActiveCamera(camera->getID());
+
+	if (obj == this)
+	{
+		return QWidget::eventFilter(obj, event);
+	}
+	else{
+		return false;
+	}
+}
+
+void CameraViewWidget::activeCameraChanged(int activeCamera)
+{
+	if (activeCamera == camera->getID())
+	{
+		QPalette palette(palette());
+		QBrush brush1(QColor(215, 215, 215, 255));
+		brush1.setStyle(Qt::SolidPattern);
+		palette.setBrush(QPalette::Active, QPalette::Window, brush1);
+		palette.setBrush(QPalette::Inactive, QPalette::Window, brush1);
+		setPalette(palette);
+	}
+	else
+	{
+		QPalette palette(palette());
+		QBrush brush1(QColor(255, 255, 255, 255));
+		brush1.setStyle(Qt::SolidPattern);
+		palette.setBrush(QPalette::Active, QPalette::Window, brush1);
+		palette.setBrush(QPalette::Inactive, QPalette::Window, brush1);
+		setPalette(palette);
+	}
 }

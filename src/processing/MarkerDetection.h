@@ -12,7 +12,7 @@ namespace xma{
 		Q_OBJECT;
 
 	public:
-		MarkerDetection(int camera, int trial, int frame, int marker, double searcharea = 30.0);
+		MarkerDetection(int camera, int trial, int frame, int marker, double searcharea = 30.0, bool refinementAfterTracking = false);
 		virtual ~MarkerDetection();
 		void detectMarker();
 
@@ -42,7 +42,7 @@ namespace xma{
 		int off_x;
 		int off_y;
 		int m_searchArea;
-
+		bool m_refinementAfterTracking;
 	};
 }
 #endif  // MARKERDETECTION_H

@@ -41,7 +41,6 @@ namespace xma{
 		std::vector <int> temporaryCamIdx;
 		std::vector <int> temporaryFrameIdx;
 
-
 		public slots:
 		void activeCameraChanged(int activeCamera);
 		void activeFrameCalibrationChanged(int activeFrame);
