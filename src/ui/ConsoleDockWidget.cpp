@@ -10,7 +10,7 @@
 #include <QColor>
 #include <QFile>
 #include <QTextStream>
-#include <QScrollbar>
+#include <QScrollBar>
 
 using namespace xma;
 

@@ -9,6 +9,7 @@
 #include "ui/State.h"
 #include "ui/ConfirmationDialog.h"
 #include "ui/WizardDockWidget.h"
+#include "ui/PlotWindow.h"
 
 #include "core/Project.h"
 #include "core/Trial.h"
@@ -153,6 +154,7 @@ void PointsDockWidget::on_pushButtonSetNumberMarkers_clicked()
 			while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() != idx){
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addMarker();
 			}
+			PlotWindow::getInstance()->updateMarkers(true);
 		}
 		else
 		{

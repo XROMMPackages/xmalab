@@ -23,6 +23,7 @@
 #include "ui/UndistortSequenceDialog.h"
 #include "ui/SettingsDialog.h"
 #include "ui/WorldViewDockWidget.h"
+#include "ui/PlotWindow.h"
 #include "ui/AboutDialog.h"
 
 #include "core/Project.h"
@@ -93,6 +94,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	ConsoleDockWidget::getInstance();
 	PointsDockWidget::getInstance();
 	DetailViewDockWidget::getInstance();
+	PlotWindow::getInstance();
 	restoreGeometry(Settings::getUIGeometry("XMALab"));
 	if(Settings::getUIState("XMALab").size()<0 ||
 		!restoreState(Settings::getUIState("XMALab"),UI_VERSION)){
@@ -101,6 +103,7 @@ MainWindow::MainWindow(QWidget *parent) :
 		worldViewDockWidget->setFloating(true);	
 		ConsoleDockWidget::getInstance()->setFloating(true);	
 		DetailViewDockWidget::getInstance()->setFloating(true);
+		PlotWindow::getInstance()->setFloating(true);
 	}
 	
 	WizardDockWidget::getInstance()->hide();
@@ -109,6 +112,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	ProgressDialog::getInstance()->hide();
 	PointsDockWidget::getInstance()->hide();
 	DetailViewDockWidget::getInstance()->hide();
+	PlotWindow::getInstance()->hide();
 
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(State::getInstance(), SIGNAL(displayChanged(ui_state)), this, SLOT(displayChanged(ui_state)));
@@ -441,6 +445,7 @@ void MainWindow::UndistortionAfterloadProjectFinished(){
 }
 
 void MainWindow::closeProject(){
+	
 	if(project){
 		//prompt for save
 		bool saveProject = false;
@@ -460,6 +465,8 @@ void MainWindow::closeProject(){
     DetailViewDockWidget::getInstance()->hide();
 	this->setWindowTitle("XMALab");
 	ConsoleDockWidget::getInstance()->clear();
+	ui->actionPlot->setChecked(false);
+	PlotWindow::getInstance()->hide();
 }
 
 
@@ -586,6 +593,12 @@ void MainWindow::workspaceChanged(work_state workspace){
 		ui->sequenceNavigationFrame->setVisible(false);
 		ui->imageMainFrame->setVisible(true);
 		ui->startTrialFrame->setVisible(false);
+		ui->actionExport2D_Points->setEnabled(false);
+		ui->actionExport3D_Points->setEnabled(false);
+		ui->actionPlot->setChecked(false);
+		ui->actionPlot->setEnabled(false);
+		PlotWindow::getInstance()->hide();
+		
 	}
 	else if (workspace == CALIBRATION)
 	{
@@ -602,6 +615,11 @@ void MainWindow::workspaceChanged(work_state workspace){
 		}
 		ui->imageMainFrame->setVisible(true);
 		ui->startTrialFrame->setVisible(false);
+		ui->actionExport2D_Points->setEnabled(false);
+		ui->actionExport3D_Points->setEnabled(false);
+		ui->actionPlot->setChecked(false);
+		ui->actionPlot->setEnabled(false);
+		PlotWindow::getInstance()->hide();
 	}
 	else if (workspace == DIGITIZATION)
 	{
@@ -610,10 +628,9 @@ void MainWindow::workspaceChanged(work_state workspace){
 			ui->imageMainFrame->setVisible(true);
 			ui->startTrialFrame->setVisible(false);
 			ui->sequenceNavigationFrame->setVisible(true);
-			
+			ui->actionPlot->setEnabled(true);
 			if (project->isCalibrated())
 			{
-				
 				ui->labelCalibrateFirst->setVisible(false);
 				ui->pushButtonNewTrial->setVisible(true);
 				PointsDockWidget::getInstance()->show();
@@ -625,6 +642,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 				{
 					DetailViewDockWidget::getInstance()->hide();
 				}
+
 			}
 			else
 			{
@@ -634,6 +652,9 @@ void MainWindow::workspaceChanged(work_state workspace){
 				ui->actionDetailed_View->setEnabled(false);
 				DetailViewDockWidget::getInstance()->hide();
 			}
+
+			ui->actionExport2D_Points->setEnabled(true);
+			ui->actionExport3D_Points->setEnabled(true);
 		}
 		else
 		{
@@ -643,6 +664,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 			PointsDockWidget::getInstance()->hide();
 			ui->actionDetailed_View->setEnabled(false);
 			DetailViewDockWidget::getInstance()->hide();
+			ui->actionPlot->setEnabled(false);
 			if (project->isCalibrated())
 			{
 				ui->labelCalibrateFirst->setVisible(false);
@@ -653,6 +675,8 @@ void MainWindow::workspaceChanged(work_state workspace){
 				ui->labelCalibrateFirst->setVisible(true);
 				ui->pushButtonNewTrial->setVisible(false);
 			}
+			ui->actionExport2D_Points->setEnabled(false);
+			ui->actionExport3D_Points->setEnabled(false);
 		}
 	}
 
@@ -756,6 +780,30 @@ void MainWindow::on_actionExportAll_triggered(bool checked){
     }
 }
 
+void MainWindow::on_actionExport3D_Points_triggered(bool checked)
+{
+	QString outputPath = QFileDialog::getExistingDirectory(this,
+		tr("Save to Directory "), Settings::getLastUsedDirectory());
+
+	if (outputPath.isNull() == false)
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(outputPath + OS_SEP);
+		Settings::setLastUsedDirectory(outputPath, true);
+	}
+}
+
+void MainWindow::on_actionExport2D_Points_triggered(bool checked)
+{
+	QString outputPath = QFileDialog::getExistingDirectory(this,
+		tr("Save to Directory "), Settings::getLastUsedDirectory());
+
+	if (outputPath.isNull() == false)
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(outputPath + OS_SEP);
+		Settings::setLastUsedDirectory(outputPath, true);
+	}
+}
+
 void MainWindow::on_actionUndistort_sequence_triggered(bool checked){
 	UndistortSequenceDialog * diag = new UndistortSequenceDialog(this);
 	diag->exec();
@@ -807,5 +855,16 @@ void MainWindow::on_actionDetailed_View_triggered(bool checked){
 	else {
 		DetailViewDockWidget::getInstance()->hide();
 		Settings::setShowDetailView(false);
+	}
+}
+
+void MainWindow::on_actionPlot_triggered(bool checked)
+{
+	if (checked){
+		PlotWindow::getInstance()->show();
+		PlotWindow::getInstance()->updateMarkers(false);
+	}
+	else {
+		PlotWindow::getInstance()->hide();
 	}
 }

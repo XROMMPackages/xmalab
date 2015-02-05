@@ -66,6 +66,10 @@ namespace xma{
 		void update();
 		void changeImagePath(int camera, QString newfolder, QString oldfolder);
 
+		void save3dPoints(QString outputfolder);
+		void save2dPoints(QString outputfolder);
+
+
 	private:
 		QString name;
 		void clear();

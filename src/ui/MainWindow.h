@@ -91,6 +91,10 @@ namespace xma{
 		void on_actionExportMayacams_triggered(bool checked);
 		void on_actionExportAll_triggered(bool checked);
 
+		void on_actionExport3D_Points_triggered(bool checked);
+		void on_actionExport2D_Points_triggered(bool checked);
+
+
 		void on_actionUndistort_sequence_triggered(bool checked);
 
 		void on_actionSettings_triggered(bool checked);
@@ -98,6 +102,7 @@ namespace xma{
 		void on_action3D_world_view_triggered(bool checked);
 		void on_actionConsole_triggered(bool checked);
 		void on_actionDetailed_View_triggered(bool checked);
+		void on_actionPlot_triggered(bool checked);
 
 		//startMainFrameButtons
 		void on_pushButtonNew_Project_clicked();

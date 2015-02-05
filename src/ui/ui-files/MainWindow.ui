@@ -324,6 +324,9 @@
      <addaction name="actionExportLUT"/>
      <addaction name="actionExportMayacams"/>
      <addaction name="actionExportAll"/>
+     <addaction name="separator"/>
+     <addaction name="actionExport3D_Points"/>
+     <addaction name="actionExport2D_Points"/>
     </widget>
     <addaction name="actionNew_Project"/>
     <addaction name="actionLoad_Project"/>
@@ -345,6 +348,7 @@
     <addaction name="actionAbout"/>
     <addaction name="actionConsole"/>
     <addaction name="actionDetailed_View"/>
+    <addaction name="actionPlot"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -753,12 +757,30 @@
     <string>Detailed View</string>
    </property>
   </action>
+  <action name="actionExport3D_Points">
+   <property name="text">
+    <string>3D Points</string>
+   </property>
+  </action>
+  <action name="actionExport2D_Points">
+   <property name="text">
+    <string>2D Points</string>
+   </property>
+  </action>
+  <action name="actionPlot">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Plot</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
    <class>xma::SequenceNavigationFrame</class>
    <extends>QFrame</extends>
-   <header>ui/SequenceNavigationframe.h</header>
+   <header>ui/SequenceNavigationFrame.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

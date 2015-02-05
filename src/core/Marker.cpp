@@ -193,37 +193,51 @@ void Marker::setSize(int camera, int frame, double size_value)
 	updateMeanSize();
 }
 
-void Marker::save(QString points_filename, QString status_filename, QString markersize_filename)
+void Marker::save(QString points_filename, QString status_filename, QString markersize_filename, QString pointsWorld_filename)
 {
-	std::ofstream outfile(points_filename.toAscii().data());
-	for (unsigned int j = 0; j < points2D[0].size(); j++){
-		for (unsigned int i = 0; i < points2D.size(); i++){
-			outfile << points2D[i][j].x << " , " << points2D[i][j].y;
-			if (i != points2D.size() - 1) outfile << " , ";
+	if (!points_filename.isEmpty()){
+		std::ofstream outfile(points_filename.toAscii().data());
+		for (unsigned int j = 0; j < points2D[0].size(); j++){
+			for (unsigned int i = 0; i < points2D.size(); i++){
+				outfile << points2D[i][j].x << " , " << points2D[i][j].y;
+				if (i != points2D.size() - 1) outfile << " , ";
+			}
+			outfile << std::endl;
 		}
-		outfile << std::endl;
+		outfile.close();
 	}
-	outfile.close();
 
-	std::ofstream outfile_status(status_filename.toAscii().data());
-	for (unsigned int j = 0; j < status2D[0].size(); j++){
-		for (unsigned int i = 0; i < status2D.size(); i++){
-			outfile_status << status2D[i][j] ;
-			if (i != status2D.size() - 1) outfile_status << " , ";
+	if (!status_filename.isEmpty()){
+		std::ofstream outfile_status(status_filename.toAscii().data());
+		for (unsigned int j = 0; j < status2D[0].size(); j++){
+			for (unsigned int i = 0; i < status2D.size(); i++){
+				outfile_status << status2D[i][j];
+				if (i != status2D.size() - 1) outfile_status << " , ";
+			}
+			outfile_status << std::endl;
 		}
-		outfile_status << std::endl;
+		outfile_status.close();
 	}
-	outfile_status.close();
 
-	std::ofstream outfile_size(markersize_filename.toAscii().data());
-	for (unsigned int j = 0; j < markerSize[0].size(); j++){
-		for (unsigned int i = 0; i < markerSize.size(); i++){
-			outfile_size << markerSize[i][j];
-			if (i != markerSize.size() - 1) outfile_size << " , ";
+	if (!markersize_filename.isEmpty()){
+		std::ofstream outfile_size(markersize_filename.toAscii().data());
+		for (unsigned int j = 0; j < markerSize[0].size(); j++){
+			for (unsigned int i = 0; i < markerSize.size(); i++){
+				outfile_size << markerSize[i][j];
+				if (i != markerSize.size() - 1) outfile_size << " , ";
+			}
+			outfile_size << std::endl;
 		}
-		outfile_size << std::endl;
+		outfile_size.close();
 	}
-	outfile_size.close();
+
+	if (!pointsWorld_filename.isEmpty()){
+		std::ofstream outfile_world(pointsWorld_filename.toAscii().data());
+		for (unsigned int j = 0; j < points3D.size(); j++){
+			outfile_world << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z << std::endl;
+		}
+		outfile_world.close();
+	}
 }
 
 std::istream& Marker::comma(std::istream& in)

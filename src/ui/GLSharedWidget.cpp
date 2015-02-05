@@ -6,6 +6,7 @@
 #include "ui/GLSharedWidget.h"
 
 #include <iostream>
+#include <stdio.h>
 
 using namespace xma;
 

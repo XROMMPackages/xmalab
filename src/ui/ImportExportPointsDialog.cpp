@@ -6,6 +6,7 @@
 #include "ui/ErrorDialog.h"
 #include "ui/ConfirmationDialog.h"
 #include "ui/State.h"
+#include "ui/PlotWindow.h"
 
 #include "core/Settings.h"
 #include "core/Project.h"
@@ -142,6 +143,7 @@ bool ImportExportPointsDialog::importData()
 		{
 			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->loadRigidBodies(diag->lineEditRigidBodies->text());
 		}
+		PlotWindow::getInstance()->updateMarkers(false);
 		return true;
 	}
 	else
@@ -214,6 +216,7 @@ bool ImportExportPointsDialog::copyFromTrial()
 						Project::getInstance()->getTrials()[idx]->getRigidBodies()[i]->getPointsIdx()[j]);
 				}
 			}
+			PlotWindow::getInstance()->updateMarkers(false);
 			return true;
 		}
 	}

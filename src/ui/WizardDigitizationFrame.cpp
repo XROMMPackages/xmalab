@@ -6,6 +6,7 @@
 #include "ui/MainWindow.h"
 #include "ui_WizardDigitizationFrame.h"
 #include "ui/PointsDockWidget.h"
+#include "ui/PlotWindow.h"
 
 #include "core/Project.h"
 #include "core/Trial.h"
@@ -59,6 +60,8 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget *parent) :
 void WizardDigitizationFrame::addDigitizationPoint(int camera, double x, double y)
 {
 	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setActiveToNextUndefinedMarker(camera);
+	PlotWindow::getInstance()->updateMarkers(true);
+
 	Marker * marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
 
 	if (marker != NULL){

@@ -496,3 +496,19 @@ void Trial::changeImagePath(int camera, QString newfolder, QString oldfolder)
 
 	images[camera]->setImage(filenames[camera].at(activeFrame));
 }
+
+void Trial::save3dPoints(QString outputfolder)
+{
+	for (int i = 0; i < getMarkers().size(); i++)
+	{
+
+	}
+}
+
+void Trial::save2dPoints(QString outputfolder)
+{
+	for (int i = 0; i < getMarkers().size(); i++)
+	{
+
+	}
+}

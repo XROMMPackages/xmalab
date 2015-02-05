@@ -38,7 +38,7 @@ namespace xma{
 		double getSize();
 		double getSizeRange();
 		void setSize(int camera, int frame, double size_value);
-		void save(QString points_filename, QString status_filename, QString markersize_filename);
+		void save(QString points_filename, QString status_filename = "", QString markersize_filename = "", QString pointsWorld_filename = "");
 		void load(QString points_filename, QString status_filename, QString markersize_filename);
 		void update();
 

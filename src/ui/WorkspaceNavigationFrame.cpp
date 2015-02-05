@@ -108,9 +108,11 @@ void WorkspaceNavigationFrame::addTrial(QString name)
 
 void WorkspaceNavigationFrame::closeProject()
 {
+	updating = true;
 	frame->comboBoxTrial->clear();
 	frame->comboBoxReferenceCalibration->clear();
 	setTrialVisible(false);
+	updating = false;
 }
 
 void WorkspaceNavigationFrame::removeCamera(int idx){
@@ -209,7 +211,7 @@ void WorkspaceNavigationFrame::on_comboBoxWorkspace_currentIndexChanged(QString 
 
 void WorkspaceNavigationFrame::on_comboBoxTrial_currentIndexChanged(int idx)
 {
-	State::getInstance()->changeActiveTrial(idx);
+	if (!updating)State::getInstance()->changeActiveTrial(idx);
 }
 
 void WorkspaceNavigationFrame::on_comboBoxViewspace_currentIndexChanged(QString value){

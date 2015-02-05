@@ -135,6 +135,16 @@ SET(Processing_SOURCES
 
 SOURCE_GROUP(_PROCESSING FILES ${Processing_HEADERS} ${Processing_SOURCES})
 
+SET(External_HEADERS 
+	src/external/QCustomPlot/qcustomplot.h
+)
+
+SET(External_SOURCES
+	src/external/QCustomPlot/qcustomplot.cpp
+)
+
+SOURCE_GROUP(_EXTERNAL FILES ${External_HEADERS} ${External_SOURCES})
+
 #HEADER AND SOURCE FILES FOR UI
 SET(XMALab_FORMS_HEADERS 
 	src/ui/MainWindow.h
@@ -169,6 +179,7 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/CameraViewDetailWidget.h
 	src/ui/DetailViewDockWidget.h
 	src/ui/ImportExportPointsDialog.h
+	src/ui/PlotWindow.h
 )
 
 SET(XMALab_FORMS_SOURCES
@@ -205,6 +216,7 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/CameraViewDetailWidget.cpp
 		src/ui/DetailViewDockWidget.cpp
 		src/ui/ImportExportPointsDialog.cpp
+		src/ui/PlotWindow.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
@@ -298,6 +310,8 @@ ADD_EXECUTABLE(${PROJECT_NAME} ${GUI_TYPE}
 		${XMALab_HEADERS}
 		${Processing_SOURCES} 
 		${Processing_HEADERS}
+		${External_SOURCES} 
+		${External_HEADERS}
 		${XMALab_FORMS_SOURCES} 
 		${XMALab_FORMS_HEADERS}
 		${XMALab_FORMS_HEADERS_GEN} 

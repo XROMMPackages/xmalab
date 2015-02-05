@@ -138,20 +138,20 @@ void CameraViewWidget::activeCameraChanged(int activeCamera)
 {
 	if (activeCamera == camera->getID())
 	{
-		QPalette palette(palette());
+		QPalette pal(palette());
 		QBrush brush1(QColor(215, 215, 215, 255));
 		brush1.setStyle(Qt::SolidPattern);
-		palette.setBrush(QPalette::Active, QPalette::Window, brush1);
-		palette.setBrush(QPalette::Inactive, QPalette::Window, brush1);
-		setPalette(palette);
+		pal.setBrush(QPalette::Active, QPalette::Window, brush1);
+		pal.setBrush(QPalette::Inactive, QPalette::Window, brush1);
+		setPalette(pal);
 	}
 	else
 	{
-		QPalette palette(palette());
-		QBrush brush1(QColor(255, 255, 255, 255));
+		QPalette pal(palette());
+		QBrush brush1(QColor(255, 255, 255, 0));
 		brush1.setStyle(Qt::SolidPattern);
-		palette.setBrush(QPalette::Active, QPalette::Window, brush1);
-		palette.setBrush(QPalette::Inactive, QPalette::Window, brush1);
-		setPalette(palette);
+		pal.setBrush(QPalette::Active, QPalette::Window, brush1);
+		pal.setBrush(QPalette::Inactive, QPalette::Window, brush1);
+		setPalette(pal);
 	}
 }
