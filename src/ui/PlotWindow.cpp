@@ -121,25 +121,26 @@ void PlotWindow::workspaceChanged(work_state workspace){
 }
 
 void PlotWindow::updateMarkers(bool rememberSelection){
-	int idx1 = comboBoxMarker1->currentIndex();
-	int idx2 = comboBoxMarker2->currentIndex();
+	if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0){
+		int idx1 = comboBoxMarker1->currentIndex();
+		int idx2 = comboBoxMarker2->currentIndex();
 
-	comboBoxMarker1->clear();
-	comboBoxMarker2->clear();
-	updating = true;
-	for(int i = 0; i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(); i ++){
-		comboBoxMarker1->addItem(QString::number(i+1));
-		comboBoxMarker2->addItem(QString::number(i+1));
+		comboBoxMarker1->clear();
+		comboBoxMarker2->clear();
+		updating = true;
+		for (int i = 0; i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(); i++){
+			comboBoxMarker1->addItem(QString::number(i + 1));
+			comboBoxMarker2->addItem(QString::number(i + 1));
+		}
+
+		if (rememberSelection)
+		{
+			if (idx1 >= 0 && idx1 < comboBoxMarker1->count()) comboBoxMarker1->setCurrentIndex(idx1);
+			if (idx2 >= 0 && idx2 < comboBoxMarker2->count()) comboBoxMarker2->setCurrentIndex(idx1);
+		}
+
+		updating = false;
 	}
-
-	if (rememberSelection)
-	{
-		if (idx1 >= 0 && idx1 < comboBoxMarker1->count()) comboBoxMarker1->setCurrentIndex(idx1);
-		if (idx2 >= 0 && idx2 < comboBoxMarker2->count()) comboBoxMarker2->setCurrentIndex(idx1);
-	}
-
-	updating = false;
-
 }
 
 
