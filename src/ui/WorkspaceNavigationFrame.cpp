@@ -157,10 +157,12 @@ void WorkspaceNavigationFrame::activeCameraChanged(int activeCamera){
 
 void WorkspaceNavigationFrame::activeTrialChanged(int activeTrial)
 {
-	frame->comboBoxTrial->setCurrentIndex(activeTrial);
-	int referenceIdx = frame->comboBoxReferenceCalibration->findText(QString::number(Project::getInstance()->getTrials()[activeTrial]->getReferenceCalibrationImage() + 1));
-	if (referenceIdx != -1) {
-		frame->comboBoxReferenceCalibration->setCurrentIndex(referenceIdx);
+	if (activeTrial >= 0){
+		frame->comboBoxTrial->setCurrentIndex(activeTrial);
+		int referenceIdx = frame->comboBoxReferenceCalibration->findText(QString::number(Project::getInstance()->getTrials()[activeTrial]->getReferenceCalibrationImage() + 1));
+		if (referenceIdx != -1) {
+			frame->comboBoxReferenceCalibration->setCurrentIndex(referenceIdx);
+		}
 	}
 }
 

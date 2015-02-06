@@ -328,7 +328,7 @@ void CalibrationImage::toggleInlier(double x, double y, bool isDistortedView){
 		if(Inlier[idx] == 0) {
 			Inlier[idx] = 1;
 			camera->setRecalibrationRequired(1);
-		}else if(Inlier[idx] > 1){
+		}else if(Inlier[idx] >= 1){
 			Inlier[idx] = 0;
 			camera->setRecalibrationRequired(1);
 		}

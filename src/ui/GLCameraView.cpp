@@ -322,7 +322,7 @@ void GLCameraView::drawTexture()
 		camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->bindTexture(State::getInstance()->getCalibrationVisImage());
 	}
 	else if (State::getInstance()->getWorkspace() == DIGITIZATION){
-		if (Project::getInstance()->getTrials().size() > 0)
+		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
 		{
 			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getImage(camera->getID())->bindTexture();
 		}
@@ -359,13 +359,14 @@ void GLCameraView::paintGL()
 
 	if (detailedView && State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
-
-		Marker * activeMarker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
-		if (activeMarker != NULL){
-			double x = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].x;
-			double y = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].y;
-			x_offset = - x;
-			y_offset = - y;
+		if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
+			Marker * activeMarker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
+			if (activeMarker != NULL){
+				double x = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].x;
+				double y = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].y;
+				x_offset = -x;
+				y_offset = -y;
+			}
 		}
 	}
 
@@ -457,7 +458,9 @@ void GLCameraView::paintGL()
 	}
 	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawPoints(this->camera->getID(), detailedView);
+		if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawPoints(this->camera->getID(), detailedView);
+		}
 	}
 	if(State::getInstance()->getActiveCamera() == this->camera->getID()){
 		WizardDockWidget::getInstance()->draw();

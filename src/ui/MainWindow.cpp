@@ -460,6 +460,7 @@ void MainWindow::closeProject(){
 		project = NULL;
 	}
 	State::getInstance()->changeUndistortion(NOTUNDISTORTED);
+	State::getInstance()->changeActiveTrial(-1);
 	WizardDockWidget::getInstance()->hide();
 	PointsDockWidget::getInstance()->hide();
     DetailViewDockWidget::getInstance()->hide();
@@ -570,8 +571,7 @@ void MainWindow::setCameraViewWidgetTitles(){
 		}
 	}
 	else if (State::getInstance()->getWorkspace() == DIGITIZATION){
-		if (project->getTrials().size() > 0)
-		{
+		if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
 			for (unsigned int i = 0; i < cameraViews.size(); i++) {
 				cameraViews[i]->setImageName(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFilename(i));
 			}
@@ -708,10 +708,12 @@ void MainWindow::activeFrameTrialChanged(int)
 	redrawGL();
 }
 
-void MainWindow::activeTrialChanged(int activeCamera)
+void MainWindow::activeTrialChanged(int activeTrial)
 {
-	setCameraViewWidgetTitles();
-	redrawGL();
+	if (activeTrial >= 0){
+		setCameraViewWidgetTitles();
+		redrawGL();
+	}
 }
 
 //File Menu Slots

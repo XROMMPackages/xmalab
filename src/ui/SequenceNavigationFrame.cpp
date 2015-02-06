@@ -52,13 +52,15 @@ void SequenceNavigationFrame::setStartEndSequence(int start, int end)
 	startFrame = start;
 
 	if (State::getInstance()->getWorkspace() == DIGITIZATION) {
-		if (startFrame > Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame())
-		{
-			State::getInstance()->changeActiveFrameTrial(startFrame - 1);
-		}
-		else if (endFrame < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame())
-		{
-			State::getInstance()->changeActiveFrameTrial(endFrame - 1);
+		if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
+			if (startFrame > Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame())
+			{
+				State::getInstance()->changeActiveFrameTrial(startFrame - 1);
+			}
+			else if (endFrame < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame())
+			{
+				State::getInstance()->changeActiveFrameTrial(endFrame - 1);
+			}
 		}
 	}
 
@@ -114,28 +116,34 @@ void SequenceNavigationFrame::workspaceChanged(work_state workspace)
 	}
 	else if (workspace == DIGITIZATION && Project::getInstance()->getTrials().size() > 0)
 	{
-		setNbImages(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages());
-		setStartEndSequence(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
-		activeFrameChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
-		changeFrame(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
-		frame->toolButtonFrameEnd->setDisabled(false);
-		frame->toolButtonFrameStart->setDisabled(false);
-		frame->toolButtonPlay->show();
-		frame->toolButtonPlayBackward->show();
-		frame->toolButtonStop->show();
+		if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
+			setNbImages(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages());
+			setStartEndSequence(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
+			activeFrameChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
+			changeFrame(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
+			frame->toolButtonFrameEnd->setDisabled(false);
+			frame->toolButtonFrameStart->setDisabled(false);
+			frame->toolButtonPlay->show();
+			frame->toolButtonPlayBackward->show();
+			frame->toolButtonStop->show();
+		}
 	}
 }
 
 
 void SequenceNavigationFrame::activeTrialChanged(int activeTrial)
 {	
-	on_toolButtonStop_clicked();
-	if (State::getInstance()->getWorkspace() == DIGITIZATION && Project::getInstance()->getTrials().size() > 0)
-	{
-		setNbImages(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages());
-		setStartEndSequence(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
-		activeFrameChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
-		changeFrame(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
+	if (activeTrial >= 0){
+		on_toolButtonStop_clicked();
+		if (State::getInstance()->getWorkspace() == DIGITIZATION && Project::getInstance()->getTrials().size() > 0)
+		{
+			if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
+				setNbImages(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages());
+				setStartEndSequence(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
+				activeFrameChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
+				changeFrame(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
+			}
+		}
 	}
 }
 

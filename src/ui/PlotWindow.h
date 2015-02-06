@@ -3,7 +3,7 @@
 
 #include <QGridLayout>
 #include <QDockWidget>
-#include "external\QCustomPlot\qcustomplot.h"
+#include "external/QCustomPlot/qcustomplot.h"
 #include "ui/State.h"
 
 class QComboBox;

@@ -102,7 +102,9 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 
 void PlotWindow::activeTrialChanged(int activeTrial){
 	if (State::getInstance()->getWorkspace() == DIGITIZATION){
-		updateMarkers(false);
+		if (activeTrial >= 0){
+			updateMarkers(false);
+		}
 	}
 }
 
@@ -147,7 +149,8 @@ void PlotWindow::updateMarkers(bool rememberSelection){
 
 void PlotWindow::plot(int idx1, int idx2){
 	if (this->isVisible()){
-		if (idx1 >= 0 && idx1 < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() &&
+		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0 &&
+			idx1 >= 0 && idx1 < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() &&
 			idx2 >= 0 && idx2 < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()){
 			QVector<double>
 				x(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() + 1),

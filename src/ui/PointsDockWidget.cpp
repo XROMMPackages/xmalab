@@ -56,7 +56,7 @@ void PointsDockWidget::addPointToList(int idx){
 }
 
 void PointsDockWidget::reloadListFromObject(){
-	if (Project::getInstance()->getTrials().size() > 0){
+	if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
 		dock->treeWidgetPoints->clear();
 		QTreeWidgetItem *qtreewidgetitem;
 
@@ -102,45 +102,54 @@ void PointsDockWidget::reloadListFromObject(){
 }
 
 bool PointsDockWidget::selectPoint(int idx){
-	QList<QTreeWidgetItem *>  items = dock->treeWidgetPoints->findItems(QString::number(idx), Qt::MatchExactly | Qt::MatchRecursive, 0);
-	dock->treeWidgetPoints->clearSelection();
-	if(items.size()>0){
-		if (dock->treeWidgetPoints->currentItem() == items.at(0)) on_treeWidgetPoints_currentItemChanged(items.at(0), items.at(0));
-		dock->treeWidgetPoints->setCurrentItem(items.at(0));
+	if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
+		QList<QTreeWidgetItem *>  items = dock->treeWidgetPoints->findItems(QString::number(idx), Qt::MatchExactly | Qt::MatchRecursive, 0);
+		dock->treeWidgetPoints->clearSelection();
+		if (items.size() > 0){
+			if (dock->treeWidgetPoints->currentItem() == items.at(0)) on_treeWidgetPoints_currentItemChanged(items.at(0), items.at(0));
+			dock->treeWidgetPoints->setCurrentItem(items.at(0));
 			return true;
-	}else{
-		return false;
+		}
+		else{
+			return false;
+		}
 	}
+	return false;
 }
 
 bool PointsDockWidget::selectBody(int idx){
-	QList<QTreeWidgetItem *>  items = dock->treeWidgetPoints->findItems("RB" + QString::number(idx), Qt::MatchExactly | Qt::MatchRecursive, 0);
-	dock->treeWidgetPoints->clearSelection();
-	if (items.size()>0){
-		if (dock->treeWidgetPoints->currentItem() == items.at(0)) on_treeWidgetPoints_currentItemChanged(items.at(0), items.at(0));
-		dock->treeWidgetPoints->setCurrentItem(items.at(0));
-		return true;
+	if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
+		QList<QTreeWidgetItem *>  items = dock->treeWidgetPoints->findItems("RB" + QString::number(idx), Qt::MatchExactly | Qt::MatchRecursive, 0);
+		dock->treeWidgetPoints->clearSelection();
+		if (items.size() > 0){
+			if (dock->treeWidgetPoints->currentItem() == items.at(0)) on_treeWidgetPoints_currentItemChanged(items.at(0), items.at(0));
+			dock->treeWidgetPoints->setCurrentItem(items.at(0));
+			return true;
+		}
+		else{
+			return false;
+		}
 	}
-	else{
-		return false;
-	}
+	return false;
 }
 
 void PointsDockWidget::on_treeWidgetPoints_currentItemChanged(QTreeWidgetItem * current, QTreeWidgetItem * previous){
-	if(current && current->type() == MARKER){
-		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveMarkerIdx(current->text(0).toInt() - 1);
-		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveRBIdx(-1);
-	}
-	else if (current && current->type() == RIGID_BODY)
-	{
-		QString text = current->text(0);
-		text.remove(0, 2);
-		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveRBIdx(text.toInt() - 1);
-		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveMarkerIdx(-1);
-	}
+	if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
+		if (current && current->type() == MARKER){
+			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveMarkerIdx(current->text(0).toInt() - 1);
+			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveRBIdx(-1);
+		}
+		else if (current && current->type() == RIGID_BODY)
+		{
+			QString text = current->text(0);
+			text.remove(0, 2);
+			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveRBIdx(text.toInt() - 1);
+			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveMarkerIdx(-1);
+		}
 
-	WizardDockWidget::getInstance()->updateDialog();
-	MainWindow::getInstance()->redrawGL();
+		WizardDockWidget::getInstance()->updateDialog();
+		MainWindow::getInstance()->redrawGL();
+	}
 }
 
 void PointsDockWidget::on_pushButtonSetNumberMarkers_clicked()
@@ -200,7 +209,9 @@ void PointsDockWidget::on_pushButtonImportExport_clicked()
 	reloadListFromObject();
 }
 
-void PointsDockWidget::activeTrialChanged(int activeCamera)
+void PointsDockWidget::activeTrialChanged(int activeTrial)
 {
-	reloadListFromObject();
+	if (activeTrial >= 0){
+		reloadListFromObject();
+	}
 }

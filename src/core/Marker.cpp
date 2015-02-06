@@ -234,7 +234,13 @@ void Marker::save(QString points_filename, QString status_filename, QString mark
 	if (!pointsWorld_filename.isEmpty()){
 		std::ofstream outfile_world(pointsWorld_filename.toAscii().data());
 		for (unsigned int j = 0; j < points3D.size(); j++){
-			outfile_world << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z << std::endl;
+			if (status3D[j] <= 0)
+			{
+				outfile_world << "NaN" << " , " << "NaN" << " , " << "NaN" << std::endl;
+			}
+			else{
+				outfile_world << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z << std::endl;
+			}
 		}
 		outfile_world.close();
 	}
@@ -482,8 +488,8 @@ std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int Camera
 
 	cv::Mat out = proj * in;
 
-	cv::Point2d p1(out.at<double>(0, 0) / out.at<double>(0, 2),
-		out.at<double>(0, 1) / out.at<double>(0, 2));
+	cv::Point2d p1(out.at<double>(0, 0) / out.at<double>(2, 0),
+		out.at<double>(1, 0) / out.at<double>(2, 0));
 
 	in.at<double>(0, 0) = 100 * pt_origin_trans.x;
 	in.at<double>(1, 0) = 100 * pt_origin_trans.y;

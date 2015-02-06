@@ -350,8 +350,7 @@ void WizardDigitizationFrame::setDialog()
 	if (Project::getInstance()->isCalibrated())
 	{
 		frame->pushButton->setVisible(true);
-		if (Project::getInstance()->getTrials().size() > 0)
-		{
+		if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
 			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() > 0){
 				frame->label->hide();
 				frame->pushButton->hide();

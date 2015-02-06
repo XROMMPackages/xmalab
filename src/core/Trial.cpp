@@ -46,6 +46,10 @@ Trial::Trial(QString trialname, QString folder){
 	name = trialname;
 	activeFrame = 0;
 	referenceCalibrationImage = 0;
+
+	activeMarkerIdx = -1;
+	activeBodyIdx = -1;
+
 	images.clear();
 	filenames.clear();
 	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
@@ -501,7 +505,7 @@ void Trial::save3dPoints(QString outputfolder)
 {
 	for (int i = 0; i < getMarkers().size(); i++)
 	{
-
+		getMarkers()[i]->save("", "", "", outputfolder + "Marker" + QString().sprintf("%03d", i) + "points3d.csv");
 	}
 }
 
@@ -509,6 +513,6 @@ void Trial::save2dPoints(QString outputfolder)
 {
 	for (int i = 0; i < getMarkers().size(); i++)
 	{
-
+		getMarkers()[i]->save(outputfolder + "Marker" + QString().sprintf("%03d", i) + "points2d.csv", "", "", "");
 	}
 }
