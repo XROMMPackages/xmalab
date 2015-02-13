@@ -180,6 +180,7 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/DetailViewDockWidget.h
 	src/ui/ImportExportPointsDialog.h
 	src/ui/PlotWindow.h
+	src/ui/Shortcuts.h
 )
 
 SET(XMALab_FORMS_SOURCES
@@ -217,6 +218,7 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/DetailViewDockWidget.cpp
 		src/ui/ImportExportPointsDialog.cpp
 		src/ui/PlotWindow.cpp
+		src/ui/Shortcuts.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})

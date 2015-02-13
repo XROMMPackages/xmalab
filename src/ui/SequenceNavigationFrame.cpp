@@ -168,11 +168,13 @@ void SequenceNavigationFrame::changeFrame(int frame)
 {
 	if (State::getInstance()->getWorkspace() == CALIBRATION)
 	{
-		State::getInstance()->changeActiveFrameCalibration(frame);
+		if (frame >=0 && frame < Project::getInstance()->getNbImagesCalibration())
+			State::getInstance()->changeActiveFrameCalibration(frame);
 	}
 	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
-		if (Project::getInstance()->getTrials().size()){
+		if (Project::getInstance()->getTrials().size() > 0 && frame >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
+			frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
 			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setActiveFrame(frame);
 			State::getInstance()->changeActiveFrameTrial(frame);
 		}

@@ -25,6 +25,7 @@
 #include "ui/WorldViewDockWidget.h"
 #include "ui/PlotWindow.h"
 #include "ui/AboutDialog.h"
+#include "ui/Shortcuts.h"
 
 #include "core/Project.h"
 #include "core/Camera.h"
@@ -130,6 +131,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	setCorner(Qt::BottomLeftCorner, Qt::BottomDockWidgetArea);
 	setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
 	setCorner(Qt::BottomRightCorner, Qt::BottomDockWidgetArea);
+
+	Shortcuts::getInstance()->bindApplicationShortcuts();
 }
 
 

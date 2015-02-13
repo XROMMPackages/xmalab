@@ -101,6 +101,37 @@ void PointsDockWidget::reloadListFromObject(){
 	WizardDockWidget::getInstance()->updateDialog();
 }
 
+void PointsDockWidget::selectNextPoint()
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION){
+		if ((Project::getInstance()->getTrials().size() > 0 && Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0))
+		{
+			int idx = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() + 1;
+			if (idx >= 0 && idx < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
+			{
+				selectPoint(idx + 1);
+			}
+		}
+	}
+}
+
+void PointsDockWidget::selectPrevPoint()
+{
+
+	if (State::getInstance()->getWorkspace() == DIGITIZATION){
+		if ((Project::getInstance()->getTrials().size() > 0 && Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0))
+		{
+			int idx = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() - 1;
+			if (idx >= 0 && idx < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
+			{
+				selectPoint(idx + 1);
+				
+			}
+		}
+	}
+}
+
+
 bool PointsDockWidget::selectPoint(int idx){
 	if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
 		QList<QTreeWidgetItem *>  items = dock->treeWidgetPoints->findItems(QString::number(idx), Qt::MatchExactly | Qt::MatchRecursive, 0);
