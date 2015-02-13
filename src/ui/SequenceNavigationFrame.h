@@ -15,6 +15,9 @@ namespace xma{
 		Q_OBJECT
 
 	private:
+		SequenceNavigationFrame(QWidget *parent = 0);
+		static SequenceNavigationFrame* instance;
+
 		Ui::SequenceNavigationFrame *frame;
 		int maxFrame;
 		int startFrame;
@@ -28,8 +31,8 @@ namespace xma{
 	protected:
 
 	public:
+		static SequenceNavigationFrame* getInstance();
 		virtual ~SequenceNavigationFrame();
-		SequenceNavigationFrame(QWidget *parent = 0);
 		void setNbImages(int nbImages);
 		void setStartEndSequence(int start, int end);
 

@@ -17,6 +17,9 @@
 
 using namespace xma;
 
+SequenceNavigationFrame* SequenceNavigationFrame::instance = NULL;
+
+
 SequenceNavigationFrame::SequenceNavigationFrame(QWidget *parent) :
 												QFrame(parent),
 												frame(new Ui::SequenceNavigationFrame){
@@ -39,6 +42,18 @@ SequenceNavigationFrame::SequenceNavigationFrame(QWidget *parent) :
 
 SequenceNavigationFrame::~SequenceNavigationFrame(){
 	delete frame;
+
+	instance = NULL;
+}
+
+SequenceNavigationFrame* SequenceNavigationFrame::getInstance()
+{
+	if (!instance)
+
+	{
+		instance = new SequenceNavigationFrame(MainWindow::getInstance());
+	}
+	return instance;
 }
 
 void SequenceNavigationFrame::setNbImages(int nbImages){

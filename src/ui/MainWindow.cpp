@@ -67,13 +67,18 @@ MainWindow::MainWindow(QWidget *parent) :
 	WorkspaceNavigationFrame::getInstance()->setObjectName(QString::fromUtf8("workspaceNavigationFrame"));
     WorkspaceNavigationFrame::getInstance()->setFrameShape(QFrame::StyledPanel);
     WorkspaceNavigationFrame::getInstance()->setFrameShadow(QFrame::Raised);
+	
+	SequenceNavigationFrame::getInstance()->setObjectName(QString::fromUtf8("sequenceNavigationFrame"));
+	SequenceNavigationFrame::getInstance()->setFrameShape(QFrame::StyledPanel);
+	SequenceNavigationFrame::getInstance()->setFrameShadow(QFrame::Raised);
+	
 	ui->gridLayout_2->removeWidget(ui->imageScrollArea);
 	ui->gridLayout_2->addWidget(WorkspaceNavigationFrame::getInstance(), 0, 0, 1, 1);
 	ui->gridLayout_2->addWidget(ui->imageScrollArea, 1, 0, 1, 1);
+	ui->gridLayout_2->addWidget(SequenceNavigationFrame::getInstance(), 3, 0, 1, 1);
 
 	WorkspaceNavigationFrame::getInstance()->setVisible(false);
-
-	ui->sequenceNavigationFrame->setVisible(false);
+	SequenceNavigationFrame::getInstance()->setVisible(false);
 	ui->imageScrollArea->setVisible(false);
 	ui->startTrialFrame->setVisible(false);
 	ui->actionDetailed_View->setChecked(Settings::getShowDetailView());
@@ -168,7 +173,7 @@ void MainWindow::closeEvent (QCloseEvent * event){
 
 void MainWindow::recountFrames(){
 	project->recountFrames();
-	ui->sequenceNavigationFrame->setNbImages(project->getNbImagesCalibration());
+	SequenceNavigationFrame::getInstance()->setNbImages(project->getNbImagesCalibration());
 }
 
 void MainWindow::setupProjectUI(){
@@ -190,7 +195,7 @@ void MainWindow::setupProjectUI(){
 	ui->startMainFrame->setVisible(false);
 	ui->imageMainFrame->setVisible(true);
 
-	ui->sequenceNavigationFrame->setNbImages(project->getNbImagesCalibration());
+	SequenceNavigationFrame::getInstance()->setNbImages(project->getNbImagesCalibration());
 
 	WorkspaceNavigationFrame::getInstance()->setVisible(true);
 	WorkspaceNavigationFrame::getInstance()->setUndistortion(hasUndistorion);
@@ -217,7 +222,7 @@ void MainWindow::tearDownProjectUI(){
 	ui->imageMainFrame->setVisible(false);
 	ui->startTrialFrame->setVisible(false);
 	WorkspaceNavigationFrame::getInstance()->setVisible(false);
-	ui->sequenceNavigationFrame->setVisible(false);
+	SequenceNavigationFrame::getInstance()->setVisible(false);
 	WorkspaceNavigationFrame::getInstance()->closeProject();
 }
 
@@ -591,7 +596,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		PointsDockWidget::getInstance()->hide();
 		ui->actionDetailed_View->setEnabled(false);
 		DetailViewDockWidget::getInstance()->hide();
-		ui->sequenceNavigationFrame->setVisible(false);
+		SequenceNavigationFrame::getInstance()->setVisible(false);
 		ui->imageMainFrame->setVisible(true);
 		ui->startTrialFrame->setVisible(false);
 		ui->actionExport2D_Points->setEnabled(false);
@@ -608,11 +613,11 @@ void MainWindow::workspaceChanged(work_state workspace){
 		ui->actionDetailed_View->setEnabled(false);
 		DetailViewDockWidget::getInstance()->hide();
 		if (project->getNbImagesCalibration() > 1) {
-			ui->sequenceNavigationFrame->setVisible(true);
+			SequenceNavigationFrame::getInstance()->setVisible(true);
 		}
 		else 
 		{
-			ui->sequenceNavigationFrame->setVisible(false);
+			SequenceNavigationFrame::getInstance()->setVisible(false);
 		}
 		ui->imageMainFrame->setVisible(true);
 		ui->startTrialFrame->setVisible(false);
@@ -628,7 +633,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		{
 			ui->imageMainFrame->setVisible(true);
 			ui->startTrialFrame->setVisible(false);
-			ui->sequenceNavigationFrame->setVisible(true);
+			SequenceNavigationFrame::getInstance()->setVisible(true);
 			ui->actionPlot->setEnabled(true);
 			if (project->isCalibrated())
 			{
@@ -661,7 +666,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		{
 			ui->imageMainFrame->setVisible(false);
 			ui->startTrialFrame->setVisible(true);
-			ui->sequenceNavigationFrame->setVisible(false);
+			SequenceNavigationFrame::getInstance()->setVisible(false);
 			PointsDockWidget::getInstance()->hide();
 			ui->actionDetailed_View->setEnabled(false);
 			DetailViewDockWidget::getInstance()->hide();
