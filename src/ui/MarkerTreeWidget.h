@@ -20,6 +20,8 @@ namespace xma{
 		QAction * action_ChangeDescription;
 		QAction * action_CreateRigidBody;
 		QAction * action_AddToRigidBody;
+		QAction * action_ResetPoints;
+		QAction * action_DeletePoints;
 
 		QTreeWidgetItem* item_contextMenu;
 
@@ -30,6 +32,8 @@ namespace xma{
 		void action_ChangeDescription_triggered();
 		void action_CreateRigidBody_triggered();
 		void action_AddToRigidBody_triggered();
+		void action_ResetPoints_triggered();
+		void action_DeletePoints_triggered();
 
 		public slots:
 		void onItemCollapsed(QTreeWidgetItem * item);

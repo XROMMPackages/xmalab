@@ -47,6 +47,11 @@ std::vector<std::vector<cv::Point2d> >& Marker::getPoints2D_projected()
 	return points2D_projected;
 }
 
+std::vector<std::vector<double>>& Marker::getError2D()
+{
+	return error2D;
+}
+
 std::vector<cv::Point3d>& Marker::getPoints3D()
 {
 	return points3D;
@@ -334,6 +339,52 @@ void Marker::load(QString points_filename, QString status_filename, QString mark
 	updateMeanSize();
 }
 
+void Marker::resetMultipleFrames(int camera, int frameStart, int frameEnd)
+{
+	fprintf(stderr, "Delete %d - from %d  to %d\n", camera, frameStart, frameEnd);
+	for (int i = frameStart; i <= frameEnd; i++)
+	{
+		if (camera == -1)
+		{
+			for (int cam = 0; cam < points2D.size(); cam++)
+			{
+				points2D[cam][i].x = -2;
+				points2D[cam][i].y = -2;
+				points2D[cam][i].x = -2;
+				points2D_projected[cam][i].y = -2;
+				status2D[cam][i] = UNDEFINED;
+				error2D[cam][i] = 0.0;
+				markerSize[cam][i] = -1.0;
+			}
+			points3D[i].x = -1000;
+			points3D[i].y = -1000;
+			points3D[i].z = -1000;
+			status3D[i] = UNDEFINED;
+			error3D[i] = 0.0;
+		}
+		else
+		{
+			points2D[camera][i].x = -2;
+			points2D[camera][i].y = -2;
+			points2D[camera][i].x = -2;
+			points2D_projected[camera][i].y = -2;
+			status2D[camera][i] = UNDEFINED;
+			error2D[camera][i] = 0.0;
+			markerSize[camera][i] = -1.0;
+			
+			points3D[i].x = -1000;
+			points3D[i].y = -1000;
+			points3D[i].z = -1000;
+			status3D[i] = UNDEFINED;
+			error3D[i] = 0.0;
+
+			reconstruct3DPoint(i);
+		}	
+	}
+
+	updateMeanSize();
+}
+
 void Marker::update()
 {
 	for (int i = 0; i < points2D[0].size(); i++)
@@ -415,6 +466,22 @@ void Marker::reprojectPoint(int frame)
 			else
 			{
 				points2D_projected[i][frame] = pt_trans;
+			}
+		}
+	}
+
+	updateError(frame);
+}
+
+void Marker::updateError(int frame)
+{
+	if (status3D[frame] > 0){
+		for (int i = 0; i < points2D.size(); i++)
+		{
+			if (status2D[i][frame] > 0)
+			{
+				error2D[i][frame] = sqrt((points2D[i][frame].x - points2D_projected[i][frame].x) * (points2D[i][frame].x - points2D_projected[i][frame].x) +
+					(points2D[i][frame].y - points2D_projected[i][frame].y) * (points2D[i][frame].y - points2D_projected[i][frame].y));
 			}
 		}
 	}

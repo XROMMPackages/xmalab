@@ -138,6 +138,7 @@ void PointsDockWidget::on_treeWidgetPoints_currentItemChanged(QTreeWidgetItem * 
 		if (current && current->type() == MARKER){
 			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveMarkerIdx(current->text(0).toInt() - 1);
 			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveRBIdx(-1);
+			emit activePointChanged(current->text(0).toInt() - 1);
 		}
 		else if (current && current->type() == RIGID_BODY)
 		{
@@ -145,6 +146,7 @@ void PointsDockWidget::on_treeWidgetPoints_currentItemChanged(QTreeWidgetItem * 
 			text.remove(0, 2);
 			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveRBIdx(text.toInt() - 1);
 			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveMarkerIdx(-1);
+			emit activePointChanged(-1);
 		}
 
 		WizardDockWidget::getInstance()->updateDialog();

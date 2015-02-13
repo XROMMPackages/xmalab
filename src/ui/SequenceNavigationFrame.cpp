@@ -7,11 +7,13 @@
 
 #include "ui/State.h"
 #include "ui/ConsoleDockWidget.h"
+#include "ui/MainWindow.h"
+#include "ui/PlotWindow.h"
 #include "core/Project.h"
 #include "core/Trial.h"
 
 #include <QInputDialog>
-#include "MainWindow.h"
+
 
 using namespace xma;
 
@@ -77,7 +79,7 @@ void SequenceNavigationFrame::setStartEndSequence(int start, int end)
 	if (frame->horizontalSlider->value() == startFrame - 1) frame->toolButtonPrev->setEnabled(false);
 	if (frame->horizontalSlider->value() == endFrame - 1) frame->toolButtonNext->setEnabled(false);
 
-	
+	PlotWindow::getInstance()->resetRange();
 }
 
 void SequenceNavigationFrame::activeFrameChanged(int activeFrame){

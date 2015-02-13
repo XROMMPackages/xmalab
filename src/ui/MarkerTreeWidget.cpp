@@ -4,14 +4,17 @@
 
 #include "ui/MarkerTreeWidget.h"
 #include "ui/State.h"
+#include "ui/MainWindow.h"
+#include "ui/PointsDockWidget.h"
+#include "ui/PlotWindow.h"
+#include "ui/ConfirmationDialog.h"
 
 #include "core/Project.h"
 #include "core/Trial.h"
 #include "core/Marker.h"
 #include "core/RigidBody.h"
 
-#include <QMenu>
-#include <QMouseEvent>
+#include <QMenu>#include <QMouseEvent>
 #include <QInputDialog>
 
 using namespace xma;
@@ -42,6 +45,12 @@ MarkerTreeWidget::MarkerTreeWidget(QWidget * parent):QTreeWidget(parent)
 
 	action_AddToRigidBody = new QAction(tr("&Add selected to Rigid Body"), this);
 	connect(action_AddToRigidBody, SIGNAL(triggered()), this, SLOT(action_AddToRigidBody_triggered()));
+
+	action_DeletePoints = new QAction(tr("&Delete selected Points"), this);
+	connect(action_DeletePoints, SIGNAL(triggered()), this, SLOT(action_DeletePoints_triggered()));
+
+	action_ResetPoints = new QAction(tr("&Reset data of selected Points"), this);
+	connect(action_ResetPoints, SIGNAL(triggered()), this, SLOT(action_ResetPoints_triggered()));
 } 
 
 void MarkerTreeWidget::onCustomContextMenuRequested(const QPoint& pos) {
@@ -63,6 +72,8 @@ void MarkerTreeWidget::showContextMenu(QTreeWidgetItem* item_contextMenu, const 
 			menu.addAction(action_ChangeDescription);
             menu.addAction(action_CreateRigidBody);
             menu.addAction(action_AddToRigidBody);
+			menu.addAction(action_ResetPoints);
+			menu.addAction(action_DeletePoints);
 			break;
  
         case RIGID_BODY:
@@ -93,6 +104,40 @@ void MarkerTreeWidget::action_ChangeDescription_triggered(){
 		}
 	}
 }
+void MarkerTreeWidget::action_DeletePoints_triggered(){
+	QList<QTreeWidgetItem * > items = this->selectedItems();
+	if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete the selected Points?")) return;
+	for (int i = 0; i < items.size(); i++){
+		if (items.at(i)->type() == MARKER)
+		{
+			if (items.at(i)->parent())
+			{
+				QString text_parent = items.at(i)->parent()->text(0);
+				text_parent.remove(0, 2);
+				int idx_parent = text_parent.toInt() - 1;
+				Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[idx_parent]->removePointIdx(items.at(i)->text(0).toInt() - 1);
+			}
+			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->removeMarker(items.at(i)->text(0).toInt() - 1);
+		}
+	}
+	PointsDockWidget::getInstance()->reloadListFromObject();
+	PlotWindow::getInstance()->updateMarkers(true);
+	MainWindow::getInstance()->redrawGL();
+}
+
+void MarkerTreeWidget::action_ResetPoints_triggered(){
+	QList<QTreeWidgetItem * > items = this->selectedItems();
+	if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to reset the data for the selected Points?")) return;
+	for (int i = 0; i < items.size(); i++){
+		if (items.at(i)->type() == MARKER)
+		{
+			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[(items.at(i)->text(0).toInt() - 1)]->resetMultipleFrames(-1, 
+				Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1 , Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1);
+		}
+	}
+	MainWindow::getInstance()->redrawGL();
+}
+
 
 void MarkerTreeWidget::action_CreateRigidBody_triggered(){
 	QList<QTreeWidgetItem * > items = this->selectedItems();
@@ -112,7 +157,7 @@ void MarkerTreeWidget::action_CreateRigidBody_triggered(){
 			
 			int ind = indexOfTopLevelItem(items.at(i));
 			QTreeWidgetItem *qtreewidgetitem2 =  takeTopLevelItem(ind);
-			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies().size() - 1]->addPointIdx(qtreewidgetitem2->text(1).toInt() - 1);
+			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies().size() - 1]->addPointIdx(qtreewidgetitem2->text(0).toInt() - 1);
 			qtreewidgetitem->addChild(qtreewidgetitem2);
 		}
 	}
@@ -184,7 +229,6 @@ void MarkerTreeWidget::dropEvent ( QDropEvent * event ){
 		}
 		else if(dropped->parent()){
 			if(dragged[i]->parent()){
-				//fprintf(stderr, "\Item %s dragged from %s to %s",dragged[i]->text(1).toStdString().c_str(),dragged[i]->parent()->text(1).toStdString().c_str(), dropped->parent()->text(1).toStdString().c_str());
 				
 				QString text_parent_from = dragged[i]->parent()->text(0);
 				text_parent_from.remove(0,2);

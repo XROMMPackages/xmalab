@@ -551,6 +551,7 @@ void MainWindow::redrawGL(){
 		cameraViews[i]->updateInfo();
     }
 	DetailViewDockWidget::getInstance()->draw();
+	PlotWindow::getInstance()->draw();
 	if(worldViewDockWidget)worldViewDockWidget->draw();
 }
 
@@ -865,6 +866,7 @@ void MainWindow::on_actionPlot_triggered(bool checked)
 	if (checked){
 		PlotWindow::getInstance()->show();
 		PlotWindow::getInstance()->updateMarkers(false);
+		PlotWindow::getInstance()->draw();
 	}
 	else {
 		PlotWindow::getInstance()->hide();

@@ -24,6 +24,7 @@ namespace xma{
 		const std::vector< std::vector <markerStatus> > &getStatus2D();
 		std::vector< std::vector <cv::Point2d> > &getPoints2D();
 		std::vector<std::vector <cv::Point2d> > &getPoints2D_projected();
+		std::vector<std::vector <double> > &getError2D();
 
 		const std::vector <markerStatus>  &getStatus3D();
 		std::vector< cv::Point3d> &getPoints3D();
@@ -40,6 +41,8 @@ namespace xma{
 		void setSize(int camera, int frame, double size_value);
 		void save(QString points_filename, QString status_filename = "", QString markersize_filename = "", QString pointsWorld_filename = "");
 		void load(QString points_filename, QString status_filename, QString markersize_filename);
+		void resetMultipleFrames(int camera, int frameStart, int frameEnd);
+
 		void update();
 
 		bool isValid(int camera, int frame);
@@ -49,6 +52,7 @@ namespace xma{
 		void init(int nbCameras, int size);
 		void clear();
 		void reprojectPoint(int frame);
+		void updateError(int frame);
 
 		Trial *trial;
 
