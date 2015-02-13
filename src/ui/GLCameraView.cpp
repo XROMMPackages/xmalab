@@ -41,7 +41,7 @@
 	#include <GL/gl.h>
 	#include <GL/glu.h>
 #endif
-
+#include <core/Settings.h>
 
 
 using namespace xma;
@@ -175,7 +175,7 @@ void GLCameraView::mousePressEvent(QMouseEvent *e)
 }
 
 void GLCameraView::wheelEvent(QWheelEvent *e){
-	if (!detailedView){
+	if (!detailedView || !Settings::getCenterDetailView()){
 		State::getInstance()->changeActiveCamera(this->camera->getID());
 		double zoom_prev = zoomRatio;
 
@@ -349,14 +349,8 @@ void GLCameraView::drawQuad()
 	glEnd();
 }
 
-
-
-void GLCameraView::paintGL()
-{	
-	glDisable(GL_DEPTH_TEST);	
-	glMatrixMode (GL_PROJECTION);
-	glLoadIdentity();
-
+void GLCameraView::centerViewToPoint()
+{
 	if (detailedView && State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
@@ -368,7 +362,18 @@ void GLCameraView::paintGL()
 				y_offset = -y;
 			}
 		}
+		setZoomRatio(0.2, false);
 	}
+}
+
+
+void GLCameraView::paintGL()
+{	
+	glDisable(GL_DEPTH_TEST);	
+	glMatrixMode (GL_PROJECTION);
+	glLoadIdentity();
+
+	if (detailedView && Settings::getCenterDetailView()) centerViewToPoint();
 
 	glOrtho(-0.5 * (zoomRatio * window_width) - x_offset - 0.5, 
 			 0.5 * (zoomRatio * window_width) - x_offset - 0.5,

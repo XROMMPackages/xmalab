@@ -14,24 +14,34 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 								diag(new Ui::SettingsDialog){
 
 	diag->setupUi(this);
-	diag->scrollArea_Blobdetection->hide();
+	diag->scrollArea_Calibration->hide();
+	diag->scrollArea_Digitizing->hide();
 
 	diag->checkBox_AutoConfirmPendingChanges->setChecked(Settings::getAutoConfirmPendingChanges());
 	diag->checkBox_AutoCalibAfterReference->setChecked(Settings::getAutoCalibAfterReference());
+	diag->checkBox_UseCenteredDetailWindow->setChecked(Settings::getCenterDetailView());
 }
 
 SettingsDialog::~SettingsDialog(){
 	delete diag;
 }
 
-void SettingsDialog::on_pushButton_Workflow_clicked(){
-	diag->scrollArea_Workflow->show();
-	diag->scrollArea_Blobdetection->hide();
+void SettingsDialog::on_pushButton_General_clicked(){
+	diag->scrollArea_General->show();
+	diag->scrollArea_Calibration->hide();
+	diag->scrollArea_Digitizing->hide();
 }
 
-void SettingsDialog::on_pushButton_Blobdetection_clicked(){
-	diag->scrollArea_Workflow->hide();
-	diag->scrollArea_Blobdetection->show();
+void SettingsDialog::on_pushButton_Calibration_clicked(){
+	diag->scrollArea_General->hide();
+	diag->scrollArea_Calibration->show();
+	diag->scrollArea_Digitizing->hide();
+}
+
+void SettingsDialog::on_pushButton_Digitizing_clicked(){
+	diag->scrollArea_General->hide();
+	diag->scrollArea_Calibration->hide();
+	diag->scrollArea_Digitizing->show();
 }
 
 void SettingsDialog::on_checkBox_AutoConfirmPendingChanges_stateChanged(int state){
@@ -39,4 +49,7 @@ void SettingsDialog::on_checkBox_AutoConfirmPendingChanges_stateChanged(int stat
 }
 void SettingsDialog::on_checkBox_AutoCalibAfterReference_stateChanged(int state){
 	Settings::setAutoCalibAfterReference(diag->checkBox_AutoCalibAfterReference->isChecked());
+}
+void SettingsDialog::on_checkBox_UseCenteredDetailWindow_stateChanged(int state){
+	Settings::setCenterDetailView(diag->checkBox_UseCenteredDetailWindow->isChecked());
 }

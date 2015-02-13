@@ -96,6 +96,16 @@ bool Settings::getAutoCalibAfterReference(){
 	return settings.value("AutoCalibAfterReference",true).toBool();
 }
 
+void Settings::setCenterDetailView(bool value){
+	QSettings settings;
+	settings.setValue("CenterDetailView", value); 
+}
+
+bool Settings::getCenterDetailView(){
+	QSettings settings;
+	return settings.value("CenterDetailView", false).toBool();
+}
+
 //BlobDetector
 void Settings::setBlobDetectorThresholdStep(float value){
 	QSettings settings;

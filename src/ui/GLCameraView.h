@@ -22,6 +22,7 @@ namespace xma{
 
 		void setScale(double value);
 		void setBias(double value);
+		void centerViewToPoint();
 
 	protected:
 		void paintGL();

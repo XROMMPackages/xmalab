@@ -4,8 +4,9 @@
 
 #include "ui/CameraViewDetailWidget.h"
 #include "ui_CameraViewDetailWidget.h"
-
+#include "ui/PointsDockWidget.h"
 #include "core/Camera.h"
+
 
 using namespace xma;
 
@@ -17,6 +18,12 @@ CameraViewDetailWidget::CameraViewDetailWidget(Camera * _camera, QWidget *parent
 	widget->setupUi(this);
 	widget->glCameraView->setCamera(camera);
 	widget->glCameraView->setDetailedView();
+
+	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
+	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameTrialChanged(int)));
+	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
+	connect(PointsDockWidget::getInstance(), SIGNAL(activePointChanged(int)), this, SLOT(activePointChanged(int)));
+
 }
 
 CameraViewDetailWidget::~CameraViewDetailWidget(){
@@ -72,4 +79,29 @@ void CameraViewDetailWidget::on_horizontalSliderScale_valueChanged(int value)
 		widget->doubleSpinBoxScale->setValue(0.01 * value);
 		widget->glCameraView->setScale(0.01 * value);
 	}
+}
+
+
+void CameraViewDetailWidget::workspaceChanged(work_state workspace)
+{
+	widget->glCameraView->centerViewToPoint();
+	widget->glCameraView->update();
+}
+
+void CameraViewDetailWidget::activeFrameTrialChanged(int)
+{
+	widget->glCameraView->centerViewToPoint();
+	widget->glCameraView->update();
+}
+
+void CameraViewDetailWidget::activeTrialChanged(int)
+{
+	widget->glCameraView->centerViewToPoint();
+	widget->glCameraView->update();
+}
+
+void CameraViewDetailWidget::activePointChanged(int)
+{
+	widget->glCameraView->centerViewToPoint();
+	widget->glCameraView->update();
 }

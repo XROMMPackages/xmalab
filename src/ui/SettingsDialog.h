@@ -21,11 +21,13 @@ namespace xma{
 	private:
 
 		public slots :
-			void on_pushButton_Workflow_clicked();
-		void on_pushButton_Blobdetection_clicked();
+		void on_pushButton_General_clicked();
+		void on_pushButton_Calibration_clicked();
+		void on_pushButton_Digitizing_clicked();
 
 		void on_checkBox_AutoConfirmPendingChanges_stateChanged(int state);
 		void on_checkBox_AutoCalibAfterReference_stateChanged(int state);
+		void on_checkBox_UseCenteredDetailWindow_stateChanged(int state);
 	};
 }
 #endif  // SETTINGSDIALOG_H

@@ -30,11 +30,17 @@ namespace xma{
 
 
 
-		//Workflow
+		//General
 		static void setAutoConfirmPendingChanges(bool value);
 		static bool getAutoConfirmPendingChanges();
+
+		//Calibration
 		static void setAutoCalibAfterReference(bool value);
 		static bool getAutoCalibAfterReference();
+
+		//Digitizing
+		static void setCenterDetailView(bool value);
+		static bool getCenterDetailView();
 
 		//NamingPattern
 		static void setUndistortNamingPattern(QString pattern);

@@ -25,16 +25,18 @@ namespace xma{
 		
 		void setSharedGLContext(const QGLContext * sharedContext);
 		void setMinimumWidthGL(bool set);
-
 		void draw();
 
-	protected:
-
-		public slots:
+	public slots:
 			void on_doubleSpinBoxBias_valueChanged(double value);
 			void on_horizontalSliderBias_valueChanged(int value);
 			void on_doubleSpinBoxScale_valueChanged(double value);
 			void on_horizontalSliderScale_valueChanged(int value);
+
+			void workspaceChanged(work_state workspace);
+			void activeFrameTrialChanged(int);
+			void activeTrialChanged(int);
+			void activePointChanged(int);
 
 	private:
 		Camera * camera;
