@@ -47,7 +47,7 @@ std::vector<std::vector<cv::Point2d> >& Marker::getPoints2D_projected()
 	return points2D_projected;
 }
 
-std::vector<std::vector<double>>& Marker::getError2D()
+std::vector<std::vector<double> >& Marker::getError2D()
 {
 	return error2D;
 }
