@@ -267,8 +267,10 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 
 void PlotWindow::resetRange()
 {
-	plotWidget->xAxis->setRange(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
-	plotWidget->replot();
+	if (State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size()){
+		plotWidget->xAxis->setRange(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
+		if (this->isVisible())plotWidget->replot();
+	}
 }
 
 void PlotWindow::activeTrialChanged(int activeTrial){

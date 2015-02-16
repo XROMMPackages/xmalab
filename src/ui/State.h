@@ -50,6 +50,9 @@ namespace xma{
 		calibrationVisPoints_state getCalibrationVisPoints(){ return calibrationVisPoints; }
 		calibrationVisImage_state getCalibrationVisImage(){ return calibrationVisImage; }
 		calibrationVisText_state getCalibrationVisText(){ return calibrationVisText; }
+		
+		bool getDisableDraw(){ return disableDraw; }
+		void setDisableDraw(bool value){ disableDraw = value; }
 
 	signals:
 		void workspaceChanged(work_state workspace);
@@ -82,6 +85,8 @@ namespace xma{
 
 		int activeTrial;
 		int activeFrameTrial;
+
+		bool disableDraw;
 
 		State();
 		static State* instance;

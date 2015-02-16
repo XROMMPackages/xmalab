@@ -554,13 +554,15 @@ void MainWindow::saveProjectFinished(){
 }
 
 void MainWindow::redrawGL(){
-	for (unsigned int i = 0; i < cameraViews.size(); i++) {
-		cameraViews[i]->draw();
-		cameraViews[i]->updateInfo();
-    }
-	DetailViewDockWidget::getInstance()->draw();
-	PlotWindow::getInstance()->draw();
-	if(worldViewDockWidget)worldViewDockWidget->draw();
+	if (!State::getInstance()->getDisableDraw()){
+		for (unsigned int i = 0; i < cameraViews.size(); i++) {
+			cameraViews[i]->draw();
+			cameraViews[i]->updateInfo();
+		}
+		DetailViewDockWidget::getInstance()->draw();
+		PlotWindow::getInstance()->draw();
+		if (worldViewDockWidget)worldViewDockWidget->draw();
+	}
 }
 
 void MainWindow::setCameraViewWidgetTitles(){

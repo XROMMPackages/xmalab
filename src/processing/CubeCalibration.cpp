@@ -180,7 +180,6 @@ void CubeCalibration::setPose(cv::Mat trans){
 
 	QFuture<void> future = QtConcurrent::run( this, &CubeCalibration::setPose_thread);
 	m_FutureWatcher->setFuture( future );
-	nbInstances++;
 	ProgressDialog::getInstance()->showProgressbar(0, 0, "Set Camera pose from other frame ");
 }
 

@@ -90,8 +90,10 @@ void CameraViewDetailWidget::workspaceChanged(work_state workspace)
 
 void CameraViewDetailWidget::activeFrameTrialChanged(int)
 {
-	widget->glCameraView->centerViewToPoint();
-	widget->glCameraView->update();
+	if (!State::getInstance()->getDisableDraw()){
+		widget->glCameraView->centerViewToPoint();
+		widget->glCameraView->update();
+	}
 }
 
 void CameraViewDetailWidget::activeTrialChanged(int)

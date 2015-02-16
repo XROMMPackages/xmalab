@@ -495,7 +495,7 @@ void Marker::updateMeanSize()
 	{
 		for (int j = 0; j < markerSize[i].size(); j++)
 		{
-			if (markerSize[i][j] > 0){
+			if (markerSize[i][j] > 1 && markerSize[i][j] < 50){
 				mean += markerSize[i][j];
 				count++;
 			}

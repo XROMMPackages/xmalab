@@ -22,6 +22,7 @@ State::State(){
 	calibrationVisImage = DISTORTEDCALIBIMAGE;
 	calibrationVisPoints = NOCALIBPOINTS;
 	calibrationVisText = NOCALIBTEXT;
+	disableDraw = false;
 }
 
 State::~State(){

@@ -138,6 +138,7 @@ void WizardDigitizationFrame::trackSinglePoint()
 			}
 		}
 
+		State::getInstance()->setDisableDraw(true);
 		State::getInstance()->changeActiveFrameTrial(endFrame);
 
 		if (trackers.size() > 0){
@@ -213,7 +214,7 @@ void WizardDigitizationFrame::trackAll()
 			}
 		}
 	}
-
+	State::getInstance()->setDisableDraw(true);
 	State::getInstance()->changeActiveFrameTrial(endFrame);
 
 	if (trackers.size() > 0){
@@ -262,7 +263,7 @@ void WizardDigitizationFrame::checkIfValid()
 	{
 		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
 			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED){
-				valid = valid && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->isValid(i, State::getInstance()->getActiveFrameTrial());
+				valid = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->isValid(i, State::getInstance()->getActiveFrameTrial()) && valid;
 			}
 		}
 
@@ -272,7 +273,7 @@ void WizardDigitizationFrame::checkIfValid()
 		for (int j = 0; j < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(); j++){
 			for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
 				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED){
-					valid = valid && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->isValid(i, State::getInstance()->getActiveFrameTrial());
+					valid = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->isValid(i, State::getInstance()->getActiveFrameTrial()) && valid;
 				}
 			}
 		}
@@ -282,6 +283,9 @@ void WizardDigitizationFrame::checkIfValid()
 	{
 		uncheckTrackButtons();
 	}
+
+	State::getInstance()->setDisableDraw(false);
+	State::getInstance()->changeActiveFrameTrial(State::getInstance()->getActiveFrameTrial(), true);
 
 	track();
 }
