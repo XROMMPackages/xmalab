@@ -5,15 +5,21 @@
 class QDir;
 class QStringList;
 
+
 namespace xma{
+	class NewProjectDialog;
+
 	class ProjectFileIO{
 
 	public:
 		static ProjectFileIO* getInstance();
 		virtual ~ProjectFileIO();
 
-		bool saveProject(QString filename);
-		bool loadProject(QString filename);
+		int saveProject(QString filename);
+		int loadProject(QString filename);
+
+		void loadXMALabProject(QString filename, NewProjectDialog * dialog);
+		void removeTmpDir();
 
 	private:
 

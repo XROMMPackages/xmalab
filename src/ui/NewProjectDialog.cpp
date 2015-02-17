@@ -48,14 +48,33 @@ NewProjectDialog::~NewProjectDialog(){
 	cameras.clear();
 }
 
-bool NewProjectDialog::createProject(){
+void NewProjectDialog::addCalibrationImage(int id_camera, QString filename)
+{
+	if (id_camera >= cameras.size())
+	{
+		on_toolButtonCameraPlus_clicked();
+
+	}
+	cameras[id_camera]->addCalibrationImage(filename);
+}
+
+void NewProjectDialog::addGridImage(int id_camera, QString filename)
+{
+	if (id_camera >= cameras.size())
+	{
+		on_toolButtonCameraPlus_clicked();
+	}
+	cameras[id_camera]->addUndistortionImage(filename);
+}
+
+int NewProjectDialog::createProject(){
 	for(std::vector <CameraBox*>::const_iterator it = getCameras().begin(); it != getCameras().end(); ++it){
 			Camera * cam = new Camera((*it)->getCameraName(), Project::getInstance()->getCameras().size());
 			cam->loadImages((*it)->getImageFileNames());
 			if((*it)->hasUndistortion())cam->loadUndistortionImage((*it)->getUndistortionGridFileName());
 			if(!cam->setResolutions()){
 				ErrorDialog::getInstance()->showErrorDialog(cam->getName() + " : Resolutions do not match");
-				return false;
+				return -1;
 			}
 			cam->setIsLightCamera((*it)->isLightCamera());
 			Project::getInstance()->addCamera(cam);
@@ -67,7 +86,7 @@ bool NewProjectDialog::createProject(){
 		}else{
 			CalibrationObject::getInstance()->setCheckerboard( diag->spinBoxHorizontalSquares->value(),diag->spinBoxVerticalSquares->value(),diag->spinBoxSizeSquares->value());
 		}
-		return true;
+		return 0;
 }
 
 bool NewProjectDialog::isComplete(){

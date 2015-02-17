@@ -329,16 +329,18 @@ void MainWindow::relayoutCameras(){
 void MainWindow::newProject(){
 	if(project) 
 		closeProject();
+
 	project = Project::getInstance();
 	
 	newProjectdialog = new NewProjectDialog();
+
 	newProjectdialog->exec();
 
 	if(newProjectdialog->result()){
-		m_FutureWatcher = new QFutureWatcher<bool>();
+		m_FutureWatcher = new QFutureWatcher<int>();
 		connect( m_FutureWatcher, SIGNAL( finished() ), this, SLOT( newProjectFinished() ) );
 
-		QFuture<bool> future = QtConcurrent::run( newProjectdialog, &NewProjectDialog::createProject);
+		QFuture<int> future = QtConcurrent::run(newProjectdialog, &NewProjectDialog::createProject);
 		m_FutureWatcher->setFuture( future );
 
 		ProgressDialog::getInstance()->showProgressbar(0, 0, "Create new project");
@@ -350,19 +352,58 @@ void MainWindow::newProject(){
 }
 
 void MainWindow::newProjectFinished(){
-	if(m_FutureWatcher->result()){
+	if (m_FutureWatcher->result() >= 0){
 		project->loadTextures();
 		setupProjectUI();
-	}else{
+		delete newProjectdialog;
+		delete m_FutureWatcher;
+		ProgressDialog::getInstance()->closeProgressbar();
+
+		WizardDockWidget::getInstance()->updateDialog();
+		WizardDockWidget::getInstance()->show();
+	}
+	else{
+		delete project;
+		project = NULL;
+
+		delete newProjectdialog;
+		delete m_FutureWatcher;
+		ProgressDialog::getInstance()->closeProgressbar();
+	}
+
+	ProjectFileIO::getInstance()->removeTmpDir();
+}
+
+//Project functions
+void MainWindow::newProjectFromXMALab(QString filename){
+	project = Project::getInstance();
+
+	newProjectdialog = new NewProjectDialog();
+	
+	ProjectFileIO::getInstance()->loadXMALabProject(filename, newProjectdialog);
+
+	newProjectdialog->exec();
+
+	if (newProjectdialog->result()){
+		m_FutureWatcher = new QFutureWatcher<int>();
+		connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(newProjectFinished()));
+
+		QFuture<int> future = QtConcurrent::run(newProjectdialog, &NewProjectDialog::createProject);
+		m_FutureWatcher->setFuture(future);
+
+		ProgressDialog::getInstance()->showProgressbar(0, 0, "Create new project");
+	}
+	else{
+		delete newProjectdialog;
 		delete project;
 		project = NULL;
 	}
-	delete newProjectdialog;
-	delete m_FutureWatcher;
-	ProgressDialog::getInstance()->closeProgressbar();
-	WizardDockWidget::getInstance()->updateDialog();
-	WizardDockWidget::getInstance()->show();
+
+	
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab");
 }
+
+
 
 
 void MainWindow::loadProject(){
@@ -372,15 +413,15 @@ void MainWindow::loadProject(){
 	project = Project::getInstance();
 
 	QString fileName = QFileDialog::getOpenFileName(this,
-									tr("Select Project File"), Settings::getLastUsedDirectory(),tr("Project zip File (*.zip)"));
+									tr("Select Project File"), Settings::getLastUsedDirectory(),tr("Project File (*.xma  *.zip)"));
 	if ( fileName.isNull() == false )
     {
 		Settings::setLastUsedDirectory(fileName);
 
-		m_FutureWatcher = new QFutureWatcher<bool>();
+		m_FutureWatcher = new QFutureWatcher<int>();
 		connect( m_FutureWatcher, SIGNAL( finished() ), this, SLOT( loadProjectFinished() ) );
 
-		QFuture<bool> future = QtConcurrent::run( ProjectFileIO::getInstance(), &ProjectFileIO::loadProject,fileName  );
+		QFuture<int> future = QtConcurrent::run( ProjectFileIO::getInstance(), &ProjectFileIO::loadProject,fileName  );
 		m_FutureWatcher->setFuture( future );
 		
 		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load project "  + fileName).toAscii().data());
@@ -390,7 +431,7 @@ void MainWindow::loadProject(){
 void MainWindow::loadProjectFinished(){
 	checkTrialImagePaths();
 
-	if(m_FutureWatcher->result()){
+	if (m_FutureWatcher->result() == 0){
 		project->loadTextures();
 		for (std::vector<Trial*>::const_iterator trial = Project::getInstance()->getTrials().begin(); trial != Project::getInstance()->getTrials().end(); ++trial)
 		{
@@ -398,28 +439,41 @@ void MainWindow::loadProjectFinished(){
 		}
 
 		setupProjectUI();
-	}else{
+
+		delete m_FutureWatcher;
+		ProgressDialog::getInstance()->closeProgressbar();
+		WizardDockWidget::getInstance()->updateDialog();
+		WizardDockWidget::getInstance()->show();
+
+		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
+			if (Project::getInstance()->getCameras()[i]->hasUndistortion() && Project::getInstance()->getCameras()[i]->getUndistortionObject()->isComputed()){
+				LocalUndistortion * localUndistortion = new LocalUndistortion(i);
+				connect(localUndistortion, SIGNAL(localUndistortion_finished()), this, SLOT(UndistortionAfterloadProjectFinished()));
+				localUndistortion->computeUndistortion(true);
+			}
+		}
+		if (!LocalUndistortion::isRunning()){
+			MainWindow::getInstance()->redrawGL();
+			UndistortionAfterloadProjectFinished();
+		}
+
+		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab");
+	}
+	else if (m_FutureWatcher->result() == 1)
+	{
+
+		delete m_FutureWatcher;
+		ProgressDialog::getInstance()->closeProgressbar();
+		newProjectFromXMALab(project->getProjectFilename());
+	}
+	else
+	{
 		delete project;
 		project = NULL;
-	}
-	delete m_FutureWatcher;
-	ProgressDialog::getInstance()->closeProgressbar();
-	WizardDockWidget::getInstance()->updateDialog();
-	WizardDockWidget::getInstance()->show();
 
-	for(int i = 0; i < Project::getInstance()->getCameras().size(); i++){
-		if(Project::getInstance()->getCameras()[i]->hasUndistortion() && Project::getInstance()->getCameras()[i]->getUndistortionObject()->isComputed()){
-			LocalUndistortion * localUndistortion = new LocalUndistortion(i);
-			connect(localUndistortion, SIGNAL(localUndistortion_finished()), this, SLOT(UndistortionAfterloadProjectFinished()));
-			localUndistortion->computeUndistortion(true);
-		}
+		delete m_FutureWatcher;
+		ProgressDialog::getInstance()->closeProgressbar();
 	}
-	if(!LocalUndistortion::isRunning()){
-		MainWindow::getInstance()->redrawGL();
-		UndistortionAfterloadProjectFinished();
-	}
-
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab");
 }
 
 void MainWindow::UndistortionAfterloadProjectFinished(){
@@ -481,10 +535,10 @@ void MainWindow::closeProject(){
 
 void MainWindow::saveProject(){
 	if(WizardDockWidget::getInstance()->checkForPendingChanges()){
-		m_FutureWatcher = new QFutureWatcher<bool>();
+		m_FutureWatcher = new QFutureWatcher<int>();
 		connect( m_FutureWatcher, SIGNAL( finished() ), this, SLOT( saveProjectFinished() ) );
 
-		QFuture<bool> future = QtConcurrent::run( ProjectFileIO::getInstance(), &ProjectFileIO::saveProject,project->getProjectFilename()  );
+		QFuture<int> future = QtConcurrent::run( ProjectFileIO::getInstance(), &ProjectFileIO::saveProject,project->getProjectFilename()  );
 		m_FutureWatcher->setFuture( future );
 		
 		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save project as " + project->getProjectFilename()).toAscii().data());
@@ -494,7 +548,7 @@ void MainWindow::saveProject(){
 void MainWindow::saveProjectAs(){
 	if(WizardDockWidget::getInstance()->checkForPendingChanges()){
 		QString fileName = QFileDialog::getSaveFileName(this,
-			tr("Save Project File as"), project->getProjectFilename().isEmpty() ? Settings::getLastUsedDirectory() : project->getProjectFilename(),tr("Project zip File (*.zip)"));
+			tr("Save Project File as"), project->getProjectFilename().isEmpty() ? Settings::getLastUsedDirectory() : project->getProjectFilename(),tr("Project File (*.xma *.zip)"));
 
 		ConsoleDockWidget::getInstance()->prepareSave();
 
@@ -502,10 +556,10 @@ void MainWindow::saveProjectAs(){
 		{
 			Settings::setLastUsedDirectory(fileName);
     
-			m_FutureWatcher = new QFutureWatcher<bool>();
+			m_FutureWatcher = new QFutureWatcher<int>();
 			connect( m_FutureWatcher, SIGNAL( finished() ), this, SLOT( saveProjectFinished() ) );
 
-			QFuture<bool> future = QtConcurrent::run( ProjectFileIO::getInstance(), &ProjectFileIO::saveProject,fileName  );
+			QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, fileName);
 			m_FutureWatcher->setFuture( future );
 		
 			ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save project as " + fileName).toAscii().data());

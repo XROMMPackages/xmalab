@@ -9,6 +9,7 @@
 #include "ui/State.h"
 #include "ui/ConsoleDockWidget.h"
 #include "ui/WorkspaceNavigationFrame.h"
+#include "ui/NewProjectDialog.h"
 
 #include "core/Project.h" 
 #include "core/Camera.h" 
@@ -75,7 +76,7 @@ bool ProjectFileIO::removeDir(QString folder){
     return result;
 }
 
-bool ProjectFileIO::saveProject(QString filename){
+int ProjectFileIO::saveProject(QString filename){
 	bool success = true;
 	Project::getInstance()->projectFilename = filename;
 
@@ -150,22 +151,138 @@ bool ProjectFileIO::saveProject(QString filename){
 
 	removeDir(tmpDir_path);
 
-	return success;
+	return success ? 0 : -1;
 }
 
-bool ProjectFileIO::loadProject(QString filename){
+int ProjectFileIO::loadProject(QString filename){
 	bool success = true;
 	Project::getInstance()->projectFilename = filename;
 	QString tmpDir_path = QDir::tempPath() +  OS_SEP + "XROMM_tmp" ;
 
 	unzipFromFileToFolder(filename,tmpDir_path);
 	readProjectFile(tmpDir_path + OS_SEP + "project.xml");
-	
-	ConsoleDockWidget::getInstance()->load(tmpDir_path + OS_SEP + "log.html");
-	
+
+	if (QFile::exists(tmpDir_path + OS_SEP + "project.xml")){
+		ConsoleDockWidget::getInstance()->load(tmpDir_path + OS_SEP + "log.html");
+
+	}
+	else
+	{
+		QFileInfo info(filename);
+		if (QFile::exists(tmpDir_path + OS_SEP + info.completeBaseName() + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml")){
+			return 1;
+		}
+		else
+		{
+			removeDir(tmpDir_path);
+			return -1;
+		}
+	}
+
 	removeDir(tmpDir_path);
 
-	return success;
+	return 0;
+}
+
+void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog * dialog)
+{
+	Project::getInstance()->projectFilename = filename;
+	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+
+	QFileInfo infoDir(filename);
+	QString xml_filename = tmpDir_path + OS_SEP + infoDir.completeBaseName() + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml";
+
+
+	std::vector<int> camera_vec;
+	std::vector<int> type_vec;
+	std::vector<QString> filename_vec;
+
+	if (xml_filename.isNull() == false)
+	{
+		QString basedir = tmpDir_path + OS_SEP + infoDir.completeBaseName() + OS_SEP;
+
+		QFile file(xml_filename);
+		if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+		{
+			QXmlStreamReader xml(&file);
+			//Reading from the file
+
+			while (!xml.atEnd() && !xml.hasError()) {
+				QXmlStreamReader::TokenType token = xml.readNext();
+				if (token == QXmlStreamReader::StartDocument) {
+					continue;
+				}
+
+				if (token == QXmlStreamReader::StartElement)
+				{
+					if (xml.name() == "File")
+					{
+						QString imagename = "";
+						int type = -1;
+						int camera = -1;
+						while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "File"))
+						{
+							if (xml.tokenType() == QXmlStreamReader::StartElement) {
+								if (xml.name() == "Filename"){
+									imagename = basedir + xml.readElementText();
+								}
+								else if (xml.name() == "FileCategory")
+								{
+									QString text = xml.readElementText();
+									if (text == "XCalibObject"){
+										type = 1;
+									}
+									else if (text == "XCalibGrid")
+									{
+										type = 2;
+									}
+								}
+								else if (xml.name() == "metadata")
+								{
+									while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "metadata"))
+									{
+										if (xml.tokenType() == QXmlStreamReader::StartElement) {
+											if (xml.name() == "cameraNumber"){
+					
+												camera = xml.readElementText().replace("cam","").toInt() -1;
+											}
+										}
+										xml.readNext();
+									}
+								}
+							}
+							xml.readNext();
+						}
+						if (camera >= 0 && type >= 0 && !imagename.isEmpty())
+						{
+							camera_vec.push_back(camera);
+							type_vec.push_back(type);
+							filename_vec.push_back(imagename);
+						}
+					}
+				}
+				xml.readNext();
+			}
+		}
+	}
+
+	for (int i = 0; i < camera_vec.size(); i++)
+	{
+		if (type_vec[i] == 1)
+		{
+			dialog->addCalibrationImage(camera_vec[i], filename_vec[i]);
+		}
+		else if (type_vec[i] == 2)
+		{
+			dialog->addGridImage(camera_vec[i], filename_vec[i]);
+		}
+	}
+}
+
+void ProjectFileIO::removeTmpDir()
+{
+	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp" + OS_SEP;
+	removeDir(tmpDir_path);
 }
 
 bool ProjectFileIO::writeProjectFile(QString filename){

@@ -42,6 +42,7 @@ namespace xma{
 
 		//Project functions
 		void newProject();
+		void newProjectFromXMALab(QString filename);
 		void loadProject();
 		void closeProject();
 		void saveProject();
@@ -52,7 +53,7 @@ namespace xma{
 		void checkTrialImagePaths();
 		void setCameraViewWidgetTitles();
 
-		QFutureWatcher<bool>* m_FutureWatcher;
+		QFutureWatcher<int>* m_FutureWatcher;
 		NewProjectDialog * newProjectdialog;
 		WorldViewDockWidget* worldViewDockWidget;
 

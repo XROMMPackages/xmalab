@@ -79,6 +79,26 @@ bool CameraBox::isComplete(){
 	return true;
 }
 
+void CameraBox::addCalibrationImage(QString filename)
+{
+	imageFileNames << filename;
+	imageFileNames.sort();
+
+	if (imageFileNames.size() > 0 && imageFileNames[0].isNull() == false)
+	{
+		widget->lineEditImages->setText(commonPrefix(imageFileNames));
+		widget->labelNbImages->setText("(" + QString::number(imageFileNames.size()) + ")");
+	}
+}
+
+void CameraBox::addUndistortionImage(QString filename)
+{
+	if (filename.isNull() == false)
+	{
+		widget->lineEditUndistortionGrid->setText(filename);
+	}
+}
+
 void CameraBox::on_toolButtonImages_clicked(){
 	imageFileNames = QFileDialog::getOpenFileNames(this,
 									tr("Open Calibration Images"), Settings::getLastUsedDirectory(),tr("Image Files (*.png *.jpg *.jpeg *.bmp *.tif)"));

@@ -29,6 +29,9 @@ namespace xma{
 		void setCameraName(QString name);
 		bool isLightCamera();
 
+		void addCalibrationImage(QString filename);
+		void addUndistortionImage(QString filename);
+
 		public slots:
 
 		void on_toolButtonImages_clicked();

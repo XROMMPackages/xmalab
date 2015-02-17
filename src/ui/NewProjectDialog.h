@@ -21,6 +21,9 @@ namespace xma{
 		Ui::NewProjectDialog *diag;
 		const std::vector <CameraBox *>& getCameras(){ return cameras; }
 
+		void addCalibrationImage(int id_camera, QString filename);
+		void addGridImage(int id_camera, QString filename);
+
 		//bool isCubeCalibrationObject();
 		//QString getFrameSpecificationsFileName();
 		//QString getReferencePointsFileName();
@@ -28,7 +31,7 @@ namespace xma{
 		//int getVerticalSquares();
 		//int getSizeSquares();
 
-		bool createProject();
+		int createProject();
 
 	private:
 		std::vector <CameraBox *> cameras;
