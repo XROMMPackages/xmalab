@@ -317,6 +317,7 @@
      <addaction name="separator"/>
      <addaction name="actionExport3D_Points"/>
      <addaction name="actionExport2D_Points"/>
+     <addaction name="actionRigidBodyTransformations"/>
     </widget>
     <addaction name="actionNew_Project"/>
     <addaction name="actionLoad_Project"/>
@@ -763,6 +764,11 @@
    </property>
    <property name="text">
     <string>Plot</string>
+   </property>
+  </action>
+  <action name="actionRigidBodyTransformations">
+   <property name="text">
+    <string>RigidBodyTransformations</string>
    </property>
   </action>
  </widget>

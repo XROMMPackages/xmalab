@@ -181,12 +181,14 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/ImportExportPointsDialog.h
 	src/ui/PlotWindow.h
 	src/ui/Shortcuts.h
-)
+	src/ui/MarkerTreeWidgetButton.h
+	src/ui/RigidBodyDialog.h
+	)
 
 SET(XMALab_FORMS_SOURCES
 		src/ui/main.cpp
-     		src/ui/MainWindow.cpp
-     		src/ui/ErrorDialog.cpp
+     	src/ui/MainWindow.cpp
+     	src/ui/ErrorDialog.cpp
 		src/ui/ConfirmationDialog.cpp
 		src/ui/ProgressDialog.cpp
 		src/ui/NewProjectDialog.cpp
@@ -219,6 +221,8 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/ImportExportPointsDialog.cpp
 		src/ui/PlotWindow.cpp
 		src/ui/Shortcuts.cpp
+		src/ui/MarkerTreeWidgetButton.cpp
+		src/ui/RigidBodyDialog.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
@@ -250,7 +254,8 @@ SET(XMALab_FORMS
 		src/ui/ui-files/CameraViewDetailWidget.ui
 		src/ui/ui-files/DetailViewDockWidget.ui
 		src/ui/ui-files/ImportExportPointsDialog.ui
-		)
+		src/ui/ui-files/RigidBodyDialog.ui
+	)
 
 SOURCE_GROUP(UI_Files FILES ${XMALab_FORMS})
 
@@ -282,6 +287,7 @@ SET(XMALab_FORMS_MOC
 		${CMAKE_CURRENT_BINARY_DIR}/ui_CameraViewDetailWidget.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_DetailViewDockWidget.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_ImportExportPointsDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_RigidBodyDialog.h
 )
 
 SOURCE_GROUP(UI_Generated FILES ${XMALab_FORMS_MOC})

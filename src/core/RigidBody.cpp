@@ -10,18 +10,23 @@
 #include "core/UndistortionObject.h"
 #include "core/CalibrationImage.h"
 
+#include <fstream>
+
 using namespace xma;
 
 RigidBody::RigidBody(int size, Trial * _trial){
 	expanded = false;
 	initialised = false;
 	trial = _trial;
+	referencesSet = false;
 
 	init(size);
 }
 
 RigidBody::~RigidBody(){
 	pointsIdx.clear();
+	points3D.clear();
+	referenceNames.clear();
 
 	clear();
 }
@@ -47,19 +52,57 @@ const std::vector<int>& RigidBody::getPoseComputed()
 	return poseComputed;
 }
 
+const std::vector<QString>& RigidBody::getReferenceNames()
+{
+	return referenceNames;
+}
+
+Marker* RigidBody::getMarker(int idx)
+{
+	return trial->getMarkers()[idx];
+}
+
 void RigidBody::clearPointIdx()
 {
 	pointsIdx.clear();
+	points3D.clear();
+	referenceNames.clear();
+	resetReferences();
+}
+
+void RigidBody::setPointIdx(int idx, int markerIdx)
+{
+	pointsIdx[idx] = markerIdx;
 }
 
 void RigidBody::addPointIdx(int idx)
 {
 	pointsIdx.push_back(idx);
+	points3D.push_back(cv::Point3d(0, 0, 0));
+	referenceNames.push_back("");
+	resetReferences();
 }
 
 void RigidBody::removePointIdx(int idx)
 {
+	int pos = std::find(pointsIdx.begin(), pointsIdx.end(), idx) - pointsIdx.begin();
+	points3D.erase(std::remove(points3D.begin(), points3D.end(), points3D[pos]), points3D.end());
+	referenceNames.erase(std::remove(referenceNames.begin(), referenceNames.end(), referenceNames[pos]), referenceNames.end());
 	pointsIdx.erase(std::remove(pointsIdx.begin(), pointsIdx.end(), idx), pointsIdx.end());
+	resetReferences();
+}
+
+void RigidBody::resetReferences()
+{
+	for (int i = 0; i < referenceNames.size(); i++)
+	{
+		referenceNames[i] = "";
+		points3D[i].x = 0;
+		points3D[i].y = 0;
+		points3D[i].z = 0;
+	}
+	setReferencesSet(false);
+	initialised = false;
 }
 
 void RigidBody::setExpanded(bool _expanded)
@@ -109,215 +152,220 @@ void RigidBody::init(int size){
 	}
 }
 
-void RigidBody::computeRBCSMeanOfAllFrames(){
-	points3D.clear();
-	std::vector <cv::Point3d> points3D_mean;
+void RigidBody::computeCoordinateSystemAverage(){
+	if (!isReferencesSet()){
+		points3D.clear();
+		std::vector <cv::Point3d> points3D_mean;
 
-	int count = 0;
-	for (unsigned int f = 0; f < poseComputed.size(); f++){
-		computeRBCS(f);
-		computeRBPoseInWorldCS(f);
-		if (poseComputed[f]){
-			bool useFrame = true;
-			for (unsigned int i = 0; i < pointsIdx.size(); i++){
-				if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[f] <= UNDEFINED){
-					useFrame = false;
-				}
-			}
-			if (useFrame){
-				count++;
+		int count = 0;
+		for (unsigned int f = 0; f < poseComputed.size(); f++){
+			computeCoordinateSystem(f);
+			computePose(f);
+			if (poseComputed[f]){
+				bool useFrame = true;
 				for (unsigned int i = 0; i < pointsIdx.size(); i++){
-					cv::Point3d pt = trial->getMarkers()[pointsIdx[i]]->getPoints3D()[f];
-
-					cv::Mat xmat = cv::Mat(pt, true);
-
-					cv::Mat rotMattmp;
-					cv::Rodrigues(rotationvectors[f], rotMattmp);
-					cv::Mat tmp_mat = rotMattmp * (xmat)+translationvectors[f];
-
-					pt.x = tmp_mat.at<double>(0, 0);
-					pt.y = tmp_mat.at<double>(1, 0);
-					pt.z = tmp_mat.at<double>(2, 0);
-
-					if (count == 1){
-						points3D_mean.push_back(pt);
+					if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[f] <= UNDEFINED){
+						useFrame = false;
 					}
-					else{
-						points3D_mean[i] += pt;
+				}
+				if (useFrame){
+					count++;
+					for (unsigned int i = 0; i < pointsIdx.size(); i++){
+						cv::Point3d pt = trial->getMarkers()[pointsIdx[i]]->getPoints3D()[f];
+
+						cv::Mat xmat = cv::Mat(pt, true);
+
+						cv::Mat rotMattmp;
+						cv::Rodrigues(rotationvectors[f], rotMattmp);
+						cv::Mat tmp_mat = rotMattmp * (xmat)+translationvectors[f];
+
+						pt.x = tmp_mat.at<double>(0, 0);
+						pt.y = tmp_mat.at<double>(1, 0);
+						pt.z = tmp_mat.at<double>(2, 0);
+
+						if (count == 1){
+							points3D_mean.push_back(pt);
+						}
+						else{
+							points3D_mean[i] += pt;
+						}
+						rotMattmp.release();
 					}
-					rotMattmp.release();
 				}
 			}
 		}
-	}
 
-	if (count == 0) return;
-
-	for (unsigned int i = 0; i < points3D_mean.size(); i++){
-		points3D_mean[i].x /= count;
-		points3D_mean[i].y /= count;
-		points3D_mean[i].z /= count;
-	}
-
-	cv::Point3d center = cv::Point3d(0, 0, 0);
-	for (unsigned int i = 0; i < points3D_mean.size(); i++){
-		center += points3D_mean[i];
-	}
-
-	if (points3D_mean.size() > 0){
-		center.x /= pointsIdx.size();
-		center.y /= pointsIdx.size();
-		center.z /= pointsIdx.size();
-	}
-
-	if (points3D_mean.size() >= 2){
-		cv::Point3d px = points3D_mean[0] - center;
-		cv::Point3d pxy = points3D_mean[1] - center;
-
-		double normx = norm(px);
-		px.x /= normx;
-		px.y /= normx;
-		px.z /= normx;
-
-		double normxy = norm(pxy);
-		pxy.x /= normxy;
-		pxy.y /= normxy;
-		pxy.z /= normxy;
-
-		cv::Point3d py = px.cross(pxy);
-		double normy = norm(py);
-		py.x /= normy;
-		py.y /= normy;
-		py.z /= normy;
-
-		cv::Point3d pz = py.cross(px);
-
-		cv::Mat rotationmatrix;
-		rotationmatrix.create(3, 3, CV_64F);
-
-		rotationmatrix.at<double>(0, 0) = px.x;
-		rotationmatrix.at<double>(0, 1) = px.y;
-		rotationmatrix.at<double>(0, 2) = px.z;
-
-		rotationmatrix.at<double>(1, 0) = pz.x;
-		rotationmatrix.at<double>(1, 1) = pz.y;
-		rotationmatrix.at<double>(1, 2) = pz.z;
-
-		rotationmatrix.at<double>(2, 0) = py.x;
-		rotationmatrix.at<double>(2, 1) = py.y;
-		rotationmatrix.at<double>(2, 2) = py.z;
+		if (count == 0) return;
 
 		for (unsigned int i = 0; i < points3D_mean.size(); i++){
-			cv::Point3d pt = points3D_mean[i] - center;
-			cv::Mat src(3/*rows*/, 1 /* cols */, CV_64F);
-			src.at<double>(0, 0) = pt.x;
-			src.at<double>(1, 0) = pt.y;
-			src.at<double>(2, 0) = pt.z;
-
-			cv::Mat dst = rotationmatrix * src;
-			pt.x = dst.at<double>(0, 0);
-			pt.y = dst.at<double>(1, 0);
-			pt.z = dst.at<double>(2, 0);
-			points3D.push_back(pt);
-			//std::cerr << "RB pt" << i << " coords" << pt << std::endl;
+			points3D_mean[i].x /= count;
+			points3D_mean[i].y /= count;
+			points3D_mean[i].z /= count;
 		}
-		rotationmatrix.release();
-		initialised = true;
-	}
-	else{
+
+		cv::Point3d center = cv::Point3d(0, 0, 0);
 		for (unsigned int i = 0; i < points3D_mean.size(); i++){
-			cv::Point3d pt = points3D_mean[i] - center;
-			points3D.push_back(pt);
+			center += points3D_mean[i];
 		}
-	}
-	points3D_mean.clear();
 
-	for (unsigned int f = 0; f < poseComputed.size(); f++){
-		computeRBPoseInWorldCS(f);
+		if (points3D_mean.size() > 0){
+			center.x /= pointsIdx.size();
+			center.y /= pointsIdx.size();
+			center.z /= pointsIdx.size();
+		}
+
+		if (points3D_mean.size() >= 2){
+			cv::Point3d px = points3D_mean[0] - center;
+			cv::Point3d pxy = points3D_mean[1] - center;
+
+			double normx = norm(px);
+			px.x /= normx;
+			px.y /= normx;
+			px.z /= normx;
+
+			double normxy = norm(pxy);
+			pxy.x /= normxy;
+			pxy.y /= normxy;
+			pxy.z /= normxy;
+
+			cv::Point3d py = px.cross(pxy);
+			double normy = norm(py);
+			py.x /= normy;
+			py.y /= normy;
+			py.z /= normy;
+
+			cv::Point3d pz = py.cross(px);
+
+			cv::Mat rotationmatrix;
+			rotationmatrix.create(3, 3, CV_64F);
+
+			rotationmatrix.at<double>(0, 0) = px.x;
+			rotationmatrix.at<double>(0, 1) = px.y;
+			rotationmatrix.at<double>(0, 2) = px.z;
+
+			rotationmatrix.at<double>(1, 0) = pz.x;
+			rotationmatrix.at<double>(1, 1) = pz.y;
+			rotationmatrix.at<double>(1, 2) = pz.z;
+
+			rotationmatrix.at<double>(2, 0) = py.x;
+			rotationmatrix.at<double>(2, 1) = py.y;
+			rotationmatrix.at<double>(2, 2) = py.z;
+
+			for (unsigned int i = 0; i < points3D_mean.size(); i++){
+				cv::Point3d pt = points3D_mean[i] - center;
+				cv::Mat src(3/*rows*/, 1 /* cols */, CV_64F);
+				src.at<double>(0, 0) = pt.x;
+				src.at<double>(1, 0) = pt.y;
+				src.at<double>(2, 0) = pt.z;
+
+				cv::Mat dst = rotationmatrix * src;
+				pt.x = dst.at<double>(0, 0);
+				pt.y = dst.at<double>(1, 0);
+				pt.z = dst.at<double>(2, 0);
+				points3D.push_back(pt);
+				//std::cerr << "RB pt" << i << " coords" << pt << std::endl;
+			}
+			rotationmatrix.release();
+			initialised = true;
+		}
+		else{
+			for (unsigned int i = 0; i < points3D_mean.size(); i++){
+				cv::Point3d pt = points3D_mean[i] - center;
+				points3D.push_back(pt);
+			}
+		}
+		points3D_mean.clear();
+
+		for (unsigned int f = 0; f < poseComputed.size(); f++){
+			computePose(f);
+		}
 	}
 }
 
-void RigidBody::computeRBCS(int Frame){
-	points3D.clear();
+void RigidBody::computeCoordinateSystem(int Frame){
+	if (!isReferencesSet()){
+		points3D.clear();
 
-	int count = 0;
-
-	for (unsigned int i = 0; i < pointsIdx.size(); i++){
-		if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[Frame] <= UNDEFINED) return;
-	}
-
-	cv::Point3d center = cv::Point3d(0, 0, 0);
-	for (unsigned int i = 0; i < pointsIdx.size(); i++){
-		center += trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame];
-	}
-
-	if (pointsIdx.size() > 0){
-		center.x /= pointsIdx.size();
-		center.y /= pointsIdx.size();
-		center.z /= pointsIdx.size();
-	}
-
-	if (pointsIdx.size() >= 2){
-		cv::Point3d px = trial->getMarkers()[pointsIdx[0]]->getPoints3D()[Frame] - center;
-		cv::Point3d pxy = trial->getMarkers()[pointsIdx[1]]->getPoints3D()[Frame] - center;
-
-		double normx = norm(px);
-		px.x /= normx;
-		px.y /= normx;
-		px.z /= normx;
-
-		double normxy = norm(pxy);
-		pxy.x /= normxy;
-		pxy.y /= normxy;
-		pxy.z /= normxy;
-
-		cv::Point3d py = px.cross(pxy);
-		double normy = norm(py);
-		py.x /= normy;
-		py.y /= normy;
-		py.z /= normy;
-
-		cv::Point3d pz = py.cross(px);
-
-		cv::Mat rotationmatrix;
-		rotationmatrix.create(3, 3, CV_64F);
-
-		rotationmatrix.at<double>(0, 0) = px.x;
-		rotationmatrix.at<double>(0, 1) = px.y;
-		rotationmatrix.at<double>(0, 2) = px.z;
-
-		rotationmatrix.at<double>(1, 0) = pz.x;
-		rotationmatrix.at<double>(1, 1) = pz.y;
-		rotationmatrix.at<double>(1, 2) = pz.z;
-
-		rotationmatrix.at<double>(2, 0) = py.x;
-		rotationmatrix.at<double>(2, 1) = py.y;
-		rotationmatrix.at<double>(2, 2) = py.z;
+		int count = 0;
 
 		for (unsigned int i = 0; i < pointsIdx.size(); i++){
-			cv::Point3d pt = trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame] - center;
-			cv::Mat src(3/*rows*/, 1 /* cols */, CV_64F);
-			src.at<double>(0, 0) = pt.x;
-			src.at<double>(1, 0) = pt.y;
-			src.at<double>(2, 0) = pt.z;
-
-			cv::Mat dst = rotationmatrix * src;
-			pt.x = dst.at<double>(0, 0);
-			pt.y = dst.at<double>(1, 0);
-			pt.z = dst.at<double>(2, 0);
-			points3D.push_back(pt);
+			if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[Frame] <= UNDEFINED) return;
 		}
-		rotationmatrix.release();
-		initialised = true;
-	}
-	else{
+
+		cv::Point3d center = cv::Point3d(0, 0, 0);
 		for (unsigned int i = 0; i < pointsIdx.size(); i++){
-			cv::Point3d pt = trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame] - center;
-			points3D.push_back(pt);
+			center += trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame];
+		}
+
+		if (pointsIdx.size() > 0){
+			center.x /= pointsIdx.size();
+			center.y /= pointsIdx.size();
+			center.z /= pointsIdx.size();
+		}
+
+		if (pointsIdx.size() >= 2){
+			cv::Point3d px = trial->getMarkers()[pointsIdx[0]]->getPoints3D()[Frame] - center;
+			cv::Point3d pxy = trial->getMarkers()[pointsIdx[1]]->getPoints3D()[Frame] - center;
+
+			double normx = norm(px);
+			px.x /= normx;
+			px.y /= normx;
+			px.z /= normx;
+
+			double normxy = norm(pxy);
+			pxy.x /= normxy;
+			pxy.y /= normxy;
+			pxy.z /= normxy;
+
+			cv::Point3d py = px.cross(pxy);
+			double normy = norm(py);
+			py.x /= normy;
+			py.y /= normy;
+			py.z /= normy;
+
+			cv::Point3d pz = py.cross(px);
+
+			cv::Mat rotationmatrix;
+			rotationmatrix.create(3, 3, CV_64F);
+
+			rotationmatrix.at<double>(0, 0) = px.x;
+			rotationmatrix.at<double>(0, 1) = px.y;
+			rotationmatrix.at<double>(0, 2) = px.z;
+
+			rotationmatrix.at<double>(1, 0) = pz.x;
+			rotationmatrix.at<double>(1, 1) = pz.y;
+			rotationmatrix.at<double>(1, 2) = pz.z;
+
+			rotationmatrix.at<double>(2, 0) = py.x;
+			rotationmatrix.at<double>(2, 1) = py.y;
+			rotationmatrix.at<double>(2, 2) = py.z;
+
+			for (unsigned int i = 0; i < pointsIdx.size(); i++){
+				cv::Point3d pt = trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame] - center;
+				cv::Mat src(3/*rows*/, 1 /* cols */, CV_64F);
+				src.at<double>(0, 0) = pt.x;
+				src.at<double>(1, 0) = pt.y;
+				src.at<double>(2, 0) = pt.z;
+
+				cv::Mat dst = rotationmatrix * src;
+				pt.x = dst.at<double>(0, 0);
+				pt.y = dst.at<double>(1, 0);
+				pt.z = dst.at<double>(2, 0);
+				points3D.push_back(pt);
+			}
+			rotationmatrix.release();
+			initialised = true;
+		}
+		else{
+			for (unsigned int i = 0; i < pointsIdx.size(); i++){
+				cv::Point3d pt = trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame] - center;
+				points3D.push_back(pt);
+			}
 		}
 	}
 }
-void RigidBody::computeRBPoseInWorldCS(int Frame){
+
+void RigidBody::computePose(int Frame){
 	if (initialised){
 		std::vector <cv::Point3d> src;
 		std::vector <cv::Point3d> dst;
@@ -412,6 +460,226 @@ void RigidBody::computeRBPoseInWorldCS(int Frame){
 
 			poseComputed[Frame] = 1;
 		}
+	}
+}
+
+double RigidBody::fitAndComputeError(std::vector<cv::Point3d> src, std::vector<cv::Point3d> dst){
+	double errorMean = 0;
+
+	//for (unsigned int i = 0; i < src.size(); i++)
+	//{
+	//	fprintf(stderr, "%d %lf %lf %lf - %lf %lf %lf\n", i, dst[i].x, dst[i].y, dst[i].z, src[i].x, src[i].y, src[i].z);
+	//}
+
+	if (src.size() >= 3){
+		cv::vector< cv::vector<double> > y, x;
+		cv::vector< cv::vector<double> > Y, X;
+		cv::vector<double> vnl_tmp(3), yg(3, 0), xg(3, 0);
+		cv::vector<double> tmp;
+		cv::Mat K = cv::Mat::zeros(3, 3, CV_64F);
+
+		//set Data
+		for (unsigned int i = 0; i< src.size(); i++) {
+			vnl_tmp[0] = src[i].x;
+			vnl_tmp[1] = src[i].y;
+			vnl_tmp[2] = src[i].z;
+			X.push_back(vnl_tmp);
+
+			vnl_tmp[0] = dst[i].x;
+			vnl_tmp[1] = dst[i].y;
+			vnl_tmp[2] = dst[i].z;
+			Y.push_back(vnl_tmp);
+		}
+		// Compute the new coordinates of the 3D points
+		// relative to each coordinate frame
+		for (int i = 0; i<X.size(); i++)
+		{
+			vnl_tmp = X[i];
+			for (int m = 0; m < 3; m++)xg[m] = xg[m] + vnl_tmp[m];
+			x.push_back(vnl_tmp);
+
+			vnl_tmp = Y[i];
+			for (int m = 0; m < 3; m++)yg[m] = yg[m] + vnl_tmp[m];
+			y.push_back(vnl_tmp);
+		}
+		// Compute the gravity center
+		for (int m = 0; m < 3; m++)xg[m] /= X.size();
+		for (int m = 0; m < 3; m++)yg[m] /= Y.size();
+
+		// Barycentric coordinates
+		for (unsigned int i = 0; i<x.size(); i++)
+		{
+			for (int m = 0; m < 3; m++) x[i][m] = x[i][m] - xg[m];
+			for (int m = 0; m < 3; m++) y[i][m] = y[i][m] - yg[m];
+		}
+
+		// Compute the cavariance matrix K = Sum_i( yi.xi' )
+		for (unsigned int i = 0; i<x.size(); i++){
+			for (int j = 0; j<3; j++){
+				for (int l = 0; l<3; l++){
+					vnl_tmp[l] = x[i][j] * y[i][l];
+					K.at<double>(l, j) = vnl_tmp[l] + K.at<double>(l, j);
+				}
+			}
+		}
+
+		cv::SVD svd;
+		cv::Mat W;
+		cv::Mat U;
+		cv::Mat VT;
+
+		svd.compute(K, W, U, VT);
+		cv::Mat V = VT.t();
+		double detU = cv::determinant(U);
+		double detV = cv::determinant(V);
+
+		cv::Mat Sd = cv::Mat::zeros(3, 3, CV_64F);
+		Sd.at<double>(0, 0) = 1.0;
+		Sd.at<double>(1, 1) = 1.0;
+		Sd.at<double>(2, 2) = detU * detV;
+
+		cv::Mat rotMat;
+		rotMat = U*Sd*VT;
+			
+		cv::Mat xgmat = cv::Mat(xg, true);
+		cv::Mat ygmat = cv::Mat(yg, true);
+
+		cv::Mat transMat;
+		transMat = ygmat - rotMat  * xgmat;
+
+		std::vector <cv::Point3d> points3D_frame;
+
+		for (int i = 0; i < dst.size(); i++){
+			cv::Mat xmat = cv::Mat(dst[i], true);
+			cv::Mat tmp_mat = rotMat.t() * ((xmat)-transMat);
+		
+			cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
+				tmp_mat.at<double>(0, 1),
+				tmp_mat.at<double>(0, 2));
+		
+			cv::Point3d diff = src[i] - pt3d;
+			errorMean += cv::sqrt(diff.x*diff.x + diff.y*diff.y + diff.z*diff.z);
+		}
+		
+		errorMean /= dst.size();
+	}
+	initialised = true;
+	return errorMean;
+}
+
+void RigidBody::save(QString filename_referenceNames, QString filename_points3D)
+{
+	std::ofstream outfile_Names(filename_referenceNames.toAscii().data());
+	for (unsigned int i = 0; i < referenceNames.size(); i++){
+		outfile_Names << referenceNames[i].toAscii().data() << std::endl;
+	}
+	outfile_Names.close();
+
+	std::ofstream outfile_Points(filename_points3D.toAscii().data());
+	for (unsigned int j = 0; j < points3D.size(); j++){
+		outfile_Points << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z << std::endl;
+	}
+	outfile_Points.close();
+}
+
+void RigidBody::load(QString filename_referenceNames, QString filename_points3D)
+{
+	std::ifstream fin;
+	std::istringstream in;
+	std::string line;
+
+	fin.open(filename_points3D.toAscii().data());
+	points3D.clear();
+	for (; getline(fin, line);)
+	{
+		QString tmp_coords = QString::fromStdString(line);
+		QStringList coords_list = tmp_coords.split(",");
+		if (coords_list.size() == 3)
+		{
+			points3D.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
+		}
+	}
+	fin.close();
+
+	fin.open(filename_referenceNames.toAscii().data());
+	referenceNames.clear();
+	for (; getline(fin, line);)
+	{
+		QString tmp_Name = QString::fromStdString(line);
+		referenceNames.push_back(tmp_Name);
+	}
+	fin.close();
+
+	setReferencesSet(true);
+	initialised = true;
+}
+
+void RigidBody::saveTransformations(QString filename, bool inverse)
+{
+	for (int i = 0; i < trial->getNbImages(); i++)
+	{
+		computePose(i);
+	}
+
+	if (!filename.isEmpty()){
+		std::ofstream outfile(filename.toAscii().data());
+		for (unsigned int i = 0; i < trial->getNbImages(); i++){
+			if (poseComputed[i]){
+				double m[16];
+				//inversere Rotation = transposed rotation
+				//and opengl requires transposed, so we set R
+				if (inverse){
+
+					cv::Mat rotationMat;
+					cv::Rodrigues(rotationvectors[i], rotationMat);
+					for (unsigned int y = 0; y < 3; y++)
+					{
+						m[y * 4] = rotationMat.at<double>(y, 0);
+						m[y * 4 + 1] = rotationMat.at<double>(y, 1);
+						m[y * 4 + 2] = rotationMat.at<double>(y, 2);
+						m[y * 4 + 3] = 0.0;
+					}
+					//inverse translation = translation rotated with inverse rotation/transposed rotation
+					//R-1 * -t = R^tr * -t
+					m[12] = m[0] * -translationvectors[i].at<double>(0, 0) + m[4] * -translationvectors[i].at<double>(1, 0) + m[8] * -translationvectors[i].at<double>(2, 0);
+					m[13] = m[1] * -translationvectors[i].at<double>(0, 0) + m[5] * -translationvectors[i].at<double>(1, 0) + m[9] * -translationvectors[i].at<double>(2, 0);
+					m[14] = m[2] * -translationvectors[i].at<double>(0, 0) + m[6] * -translationvectors[i].at<double>(1, 0) + m[10] * -translationvectors[i].at<double>(2, 0);
+					m[15] = 1.0;
+				}
+				else
+				{
+					cv::Mat rotationMat;
+					cv::Rodrigues(rotationvectors[i], rotationMat);
+					for (unsigned int y = 0; y < 3; y++)
+					{
+						m[y * 4] = rotationMat.at<double>(0, y);
+						m[y * 4 + 1] = rotationMat.at<double>(1, y);
+						m[y * 4 + 2] = rotationMat.at<double>(2, y);
+						m[y * 4 + 3] = 0.0;
+					}
+
+					m[12] = translationvectors[i].at<double>(0, 0);
+					m[13] = translationvectors[i].at<double>(1, 0);
+					m[14] = translationvectors[i].at<double>(2, 0);
+					m[15] = 1.0;
+				}
+
+				outfile << m[0] << " , " << m[1] << " , " << m[2] << " , " << m[3] << " , ";
+				outfile << m[4] << " , " << m[5] << " , " << m[6] << " , " << m[7] << " , ";
+				outfile << m[8] << " , " << m[9] << " , " << m[10] << " , " << m[11] << " , ";
+				outfile << m[12] << " , " << m[13] << " , " << m[14] << " , " << m[15];
+			}
+			else
+			{
+				outfile << "NaN,NaN,NaN,NaN,";
+				outfile << "NaN,NaN,NaN,NaN,";
+				outfile << "NaN,NaN,NaN,NaN,";
+				outfile << "NaN,NaN,NaN,NaN";
+			}
+
+			outfile << std::endl;
+		}
+		outfile.close();
 	}
 }
 
@@ -514,6 +782,92 @@ void RigidBody::setMissingPoints(int Frame){
 		}
 		//object->mainwindow->recompute3DCoordinates();
 	}
+}
+
+int RigidBody::setReferenceFromFile(QString filename)
+{
+	// setup all possibilities
+	QString tmp_names;
+	QString tmp_coords;
+
+	std::ifstream fin;
+	fin.open(filename.toAscii().data());
+	std::istringstream in;
+	std::string line;
+	getline(fin, line);
+	tmp_names = QString::fromStdString(line);
+	getline(fin, line);
+	tmp_coords = QString::fromStdString(line);
+
+	QStringList names_list = tmp_names.split(",");
+	QStringList coords_list = tmp_coords.split(",");
+
+	if (names_list.size() != pointsIdx.size() * 3 ||
+		coords_list.size() != pointsIdx.size() * 3) return -1;
+
+
+	std::vector <cv::Point3d> points3D_tmp;
+	std::vector <QString> referenceNames_tmp;
+
+	for (int i = 0; i < pointsIdx.size(); i++)
+	{
+		referenceNames_tmp.push_back(names_list.at(3 * i));
+		referenceNames_tmp[i].replace("_x", "");
+		points3D_tmp.push_back(cv::Point3d(coords_list.at(3 * i).toDouble(), coords_list.at(3 * i + 1).toDouble(), coords_list.at(3 * i + 2).toDouble()));
+	}
+
+	std::vector <int> permutations;
+	for (int i = 0; i < points3D_tmp.size(); i++)
+		permutations.push_back(i);
+	
+	double error = 1000000.0;
+	std::vector <int> best_permutation;
+	do {
+		std::vector<cv::Point3d> perm_points;
+		for (int i = 0; i < permutations.size(); i++)
+			perm_points.push_back(points3D_tmp[permutations[i]]);
+
+		double error_tmp = fitAndComputeError(perm_points, points3D);
+
+		if (error_tmp < error)
+		{
+			error = error_tmp;
+			//fprintf(stderr, "Error %lf Perm ", error);
+			best_permutation.clear();
+			for (int i = 0; i < permutations.size(); i++){
+				best_permutation.push_back(permutations[i]);
+				//fprintf(stderr, " %d ", best_permutation[i]);
+			}
+			//fprintf(stderr, "\n");
+		}
+
+	} while (std::next_permutation(permutations.begin(), permutations.end()));
+
+	if (error > 100)
+	{
+		return -2;
+	}
+
+	points3D.clear();
+	referenceNames.clear();
+
+	for (int i = 0; i < best_permutation.size(); i++)
+	{
+		points3D.push_back(points3D_tmp[best_permutation[i]]);
+		referenceNames.push_back(referenceNames_tmp[best_permutation[i]]);
+	}
+	setReferencesSet(true);
+	return 1;
+}
+
+bool RigidBody::isReferencesSet()
+{
+	return referencesSet;
+}
+
+void RigidBody::setReferencesSet(bool value)
+{
+	referencesSet = value;
 }
 
 //void RigidBody::setAllPoints(DigitizingObject * object, int Frame){

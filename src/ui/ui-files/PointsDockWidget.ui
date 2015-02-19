@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>349</width>
+    <width>536</width>
     <height>711</height>
    </rect>
   </property>
@@ -28,7 +28,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>329</width>
+         <width>516</width>
          <height>669</height>
         </rect>
        </property>
@@ -39,6 +39,27 @@
         <property name="spacing">
          <number>0</number>
         </property>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButtonSetNumberMarkers">
+          <property name="text">
+           <string>Set Number Markers</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="pushButtonSetNumberRigidBodies">
+          <property name="text">
+           <string>Set Number Rigid Bodies</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QPushButton" name="pushButtonImportExport">
+          <property name="text">
+           <string>Import/Export</string>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="0" colspan="3">
          <widget class="xma::MarkerTreeWidget" name="treeWidgetPoints">
           <property name="editTriggers">
@@ -60,13 +81,13 @@
            <bool>false</bool>
           </attribute>
           <attribute name="headerDefaultSectionSize">
-           <number>100</number>
+           <number>10</number>
           </attribute>
           <attribute name="headerMinimumSectionSize">
-           <number>30</number>
+           <number>10</number>
           </attribute>
           <attribute name="headerStretchLastSection">
-           <bool>true</bool>
+           <bool>false</bool>
           </attribute>
           <column>
            <property name="text">
@@ -78,27 +99,16 @@
             <string>Description</string>
            </property>
           </column>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QPushButton" name="pushButtonSetNumberMarkers">
-          <property name="text">
-           <string>Set Number Markers</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QPushButton" name="pushButtonSetNumberRigidBodies">
-          <property name="text">
-           <string>Set Number Rigid Bodies</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QPushButton" name="pushButtonImportExport">
-          <property name="text">
-           <string>Import/Export</string>
-          </property>
+          <column>
+           <property name="text">
+            <string/>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string/>
+           </property>
+          </column>
          </widget>
         </item>
        </layout>

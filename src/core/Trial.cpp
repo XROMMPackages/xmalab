@@ -8,7 +8,7 @@
 #include "core/Project.h"
 #include "core/RigidBody.h"
 #include "core/Marker.h"
-
+#include "core/Settings.h"
 #include <QFileInfo>
 
 #include <fstream>
@@ -275,7 +275,7 @@ void Trial::drawPoints(int cameraId, bool detailView)
 {
 	
 	int idx = 0;
-	if (!detailView){
+	if (!detailView ){
 		glBegin(GL_LINES);
 		for (std::vector <Marker *>::const_iterator it = markers.begin(); it != markers.end(); ++it){
 			if (((*it)->getStatus2D()[cameraId][activeFrame] > 0)){
@@ -299,59 +299,66 @@ void Trial::drawPoints(int cameraId, bool detailView)
 	{
 		double x = markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].x;
 		double y = markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].y;
+
 		glBegin(GL_LINES);
 		glColor3f(1.0, 0.0, 0.0);
 		glVertex2f(x - 12, y);
 		glVertex2f(x + 12, y);
 		glVertex2f(x, y - 12);
 		glVertex2f(x, y + 12);
-
-		for (int i = 0; i < 6; i++)
-		{
-			glVertex2f(x - 1, y + i * 2);
-			glVertex2f(x + 1, y + i * 2);
-
-			glVertex2f(x - 1, y - i * 2);
-			glVertex2f(x + 1, y - i * 2);
-
-			glVertex2f(x + i * 2, y - 1);
-			glVertex2f(x + i * 2, y + 1);
-
-			glVertex2f(x - i * 2, y - 1);
-			glVertex2f(x - i * 2, y + 1);
-		}
 		glEnd();
-		double size = markers[activeMarkerIdx]->getSize();;
-		if (size > 0)
-		{
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		if (Settings::getAdvancedCrosshairDetailView()){
 			glBegin(GL_LINES);
-			glColor4f(1.0, 0.0, 0.0, 0.3);
-			glVertex2f(x - size, y - size);
-			glVertex2f(x - size, y + size);
+			for (int i = 0; i < 6; i++)
+			{
+				glVertex2f(x - 1, y + i * 2);
+				glVertex2f(x + 1, y + i * 2);
 
-			glVertex2f(x + size, y - size);
-			glVertex2f(x + size, y + size);
+				glVertex2f(x - 1, y - i * 2);
+				glVertex2f(x + 1, y - i * 2);
 
-			glVertex2f(x - size, y - size);
-			glVertex2f(x + size, y - size);
+				glVertex2f(x + i * 2, y - 1);
+				glVertex2f(x + i * 2, y + 1);
 
-			glVertex2f(x - size, y + size);
-			glVertex2f(x + size, y + size);
+				glVertex2f(x - i * 2, y - 1);
+				glVertex2f(x - i * 2, y + 1);
+			}
 			glEnd();
-			glDisable(GL_BLEND);
+			double size = markers[activeMarkerIdx]->getSize();;
+			if (size > 0)
+			{
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glBegin(GL_LINES);
+				glColor4f(1.0, 0.0, 0.0, 0.3);
+				glVertex2f(x - size, y - size);
+				glVertex2f(x - size, y + size);
+
+				glVertex2f(x + size, y - size);
+				glVertex2f(x + size, y + size);
+
+				glVertex2f(x - size, y - size);
+				glVertex2f(x + size, y - size);
+
+				glVertex2f(x - size, y + size);
+				glVertex2f(x + size, y + size);
+				glEnd();
+				glDisable(GL_BLEND);
+			}
 		}
 	}
 
 	if (activeMarkerIdx >= 0 && activeMarkerIdx < markers.size() && markers[activeMarkerIdx]->getStatus3D()[activeFrame] > 0){
-		glBegin(GL_LINES);
-		glColor3f(0.0, 1.0, 1.0);
-		glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x - 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y - 5);
-		glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x + 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y + 5);
-		glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x + 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y - 5);
-		glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x - 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y + 5);
-		glEnd();
+		if (!detailView || Settings::getShow3dPointDetailView()){
+			glBegin(GL_LINES);
+			glColor3f(0.0, 1.0, 1.0);
+			glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x - 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y - 5);
+			glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x + 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y + 5);
+			glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x + 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y - 5);
+			glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x - 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y + 5);
+			glEnd();
+		}
 	}
 
 	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
@@ -505,7 +512,16 @@ void Trial::save3dPoints(QString outputfolder)
 {
 	for (int i = 0; i < getMarkers().size(); i++)
 	{
-		getMarkers()[i]->save("", "", "", outputfolder + "Marker" + QString().sprintf("%03d", i) + "points3d.csv");
+		getMarkers()[i]->save("", "", "", outputfolder + "Marker" + QString().sprintf("%03d", i) + "_" + getMarkers()[i]->getDescription() + "_points3d.csv");
+	}
+}
+
+void Trial::saveRigidBodyTransformations(QString outputfolder)
+{
+	for (int i = 0; i < getRigidBodies().size(); i++)
+	{
+		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv", false);
+		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformation_Inverse.csv", true);
 	}
 }
 
@@ -513,6 +529,6 @@ void Trial::save2dPoints(QString outputfolder)
 {
 	for (int i = 0; i < getMarkers().size(); i++)
 	{
-		getMarkers()[i]->save(outputfolder + "Marker" + QString().sprintf("%03d", i) + "points2d.csv", "", "", "");
+		getMarkers()[i]->save(outputfolder + "Marker" + QString().sprintf("%03d", i) + "_" + getMarkers()[i]->getDescription() + "_points2d.csv", "", "", "");
 	}
 }

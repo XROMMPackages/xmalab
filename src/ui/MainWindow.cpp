@@ -660,6 +660,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		ui->startTrialFrame->setVisible(false);
 		ui->actionExport2D_Points->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
+		ui->actionRigidBodyTransformations->setEnabled(false);
 		ui->actionPlot->setChecked(false);
 		ui->actionPlot->setEnabled(false);
 		PlotWindow::getInstance()->hide();
@@ -682,6 +683,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		ui->startTrialFrame->setVisible(false);
 		ui->actionExport2D_Points->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
+		ui->actionRigidBodyTransformations->setEnabled(false);
 		ui->actionPlot->setChecked(false);
 		ui->actionPlot->setEnabled(false);
 		PlotWindow::getInstance()->hide();
@@ -720,6 +722,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 
 			ui->actionExport2D_Points->setEnabled(true);
 			ui->actionExport3D_Points->setEnabled(true);
+			ui->actionRigidBodyTransformations->setEnabled(true);
 		}
 		else
 		{
@@ -742,6 +745,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 			}
 			ui->actionExport2D_Points->setEnabled(false);
 			ui->actionExport3D_Points->setEnabled(false);
+			ui->actionRigidBodyTransformations->setEnabled(false);
 		}
 	}
 
@@ -867,6 +871,18 @@ void MainWindow::on_actionExport2D_Points_triggered(bool checked)
 	if (outputPath.isNull() == false)
 	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(outputPath + OS_SEP);
+		Settings::setLastUsedDirectory(outputPath, true);
+	}
+}
+
+void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
+{
+	QString outputPath = QFileDialog::getExistingDirectory(this,
+		tr("Save to Directory "), Settings::getLastUsedDirectory());
+
+	if (outputPath.isNull() == false)
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(outputPath + OS_SEP);
 		Settings::setLastUsedDirectory(outputPath, true);
 	}
 }

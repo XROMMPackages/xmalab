@@ -18,8 +18,12 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 	diag->scrollArea_Digitizing->hide();
 
 	diag->checkBox_AutoConfirmPendingChanges->setChecked(Settings::getAutoConfirmPendingChanges());
+	
 	diag->checkBox_AutoCalibAfterReference->setChecked(Settings::getAutoCalibAfterReference());
+
 	diag->checkBox_UseCenteredDetailWindow->setChecked(Settings::getCenterDetailView());
+	diag->checkBox_ShowAdvancedCrosshairDetailWindow->setChecked(Settings::getAdvancedCrosshairDetailView());
+	diag->checkBox_Show3DPointDetailWindow->setChecked(Settings::getShow3dPointDetailView());
 }
 
 SettingsDialog::~SettingsDialog(){
@@ -52,4 +56,14 @@ void SettingsDialog::on_checkBox_AutoCalibAfterReference_stateChanged(int state)
 }
 void SettingsDialog::on_checkBox_UseCenteredDetailWindow_stateChanged(int state){
 	Settings::setCenterDetailView(diag->checkBox_UseCenteredDetailWindow->isChecked());
+}
+
+void SettingsDialog::on_checkBox_ShowAdvancedCrosshairDetailWindow_stateChanged(int state)
+{
+	Settings::setAdvancedCrosshairDetailView(diag->checkBox_ShowAdvancedCrosshairDetailWindow->isChecked());
+}
+
+void SettingsDialog::on_checkBox_Show3DPointDetailWindow_stateChanged(int state)
+{
+	Settings::setShow3dPointDetailView(diag->checkBox_Show3DPointDetailWindow->isChecked());
 }

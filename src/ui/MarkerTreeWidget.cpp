@@ -16,6 +16,7 @@
 
 #include <QMenu>#include <QMouseEvent>
 #include <QInputDialog>
+#include <QHeaderView>
 
 using namespace xma;
 
@@ -51,6 +52,15 @@ MarkerTreeWidget::MarkerTreeWidget(QWidget * parent):QTreeWidget(parent)
 
 	action_ResetPoints = new QAction(tr("&Reset data of selected Points"), this);
 	connect(action_ResetPoints, SIGNAL(triggered()), this, SLOT(action_ResetPoints_triggered()));
+
+	headerItem()->setText(2, "");
+	//headerItem()->setText(3, "");
+
+	header()->setResizeMode(0, QHeaderView::ResizeToContents);
+	header()->setResizeMode(1, QHeaderView::Stretch);
+	header()->setResizeMode(2, QHeaderView::ResizeToContents);
+
+	//setColumnWidth(2, 25);
 } 
 
 void MarkerTreeWidget::onCustomContextMenuRequested(const QPoint& pos) {
@@ -161,6 +171,7 @@ void MarkerTreeWidget::action_CreateRigidBody_triggered(){
 			qtreewidgetitem->addChild(qtreewidgetitem2);
 		}
 	}
+	PointsDockWidget::getInstance()->reloadListFromObject();
 }
 
 void MarkerTreeWidget::action_AddToRigidBody_triggered(){

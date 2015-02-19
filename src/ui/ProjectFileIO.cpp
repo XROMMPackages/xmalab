@@ -15,6 +15,7 @@
 #include "core/Camera.h" 
 #include "core/Trial.h" 
 #include "core/Marker.h" 
+#include "core/RigidBody.h" 
 #include "core/CalibrationImage.h"
 #include "core/UndistortionObject.h"
 #include "core/CalibrationObject.h"
@@ -139,7 +140,13 @@ int ProjectFileIO::saveProject(QString filename){
 						path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status2d.csv",
 						path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
 				}
-
+				for (int k = 0; k < Project::getInstance()->getTrials()[i]->getRigidBodies().size(); k++){
+					if (Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->isReferencesSet()){
+						Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->save(
+							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferenceNames.csv",
+							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d.csv");
+					}
+				}
 			}
 		}
 	}
@@ -403,6 +410,18 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 					xmlWriter.writeAttribute("FilenameSize", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
 					xmlWriter.writeEndElement();
 				}
+
+				for (int k = 0; k < Project::getInstance()->getTrials()[i]->getRigidBodies().size(); k++){
+					xmlWriter.writeStartElement("RigidBody");
+					xmlWriter.writeAttribute("Description", Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getDescription());
+					xmlWriter.writeAttribute("ID", QString::number(k));
+					if (Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->isReferencesSet()){
+						xmlWriter.writeAttribute("ReferenceNames", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferenceNames.csv");
+						xmlWriter.writeAttribute("ReferencePoints3D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d.csv");
+					}
+					xmlWriter.writeEndElement();
+					
+				}
 				xmlWriter.writeEndElement();				
 			}
 
@@ -615,9 +634,26 @@ bool ProjectFileIO::readProjectFile(QString filename){
 										int id = attr.value("ID").toString().toInt();
 										trial->getMarkers()[id]->load(filename_points2D, filename_status2D, filename_size);
 									}
+
+									if (xml.name() == "RigidBody"){
+										QXmlStreamAttributes attr = xml.attributes();
+										QString filename_referenceNames = basedir + OS_SEP + attr.value("ReferenceNames").toString();
+										filename_referenceNames.replace("\\", OS_SEP);
+										filename_referenceNames.replace("/", OS_SEP);
+
+										QString filename_referencePoints3D = basedir + OS_SEP + attr.value("ReferencePoints3D").toString();
+										filename_referencePoints3D.replace("\\", OS_SEP);
+										filename_referencePoints3D.replace("/", OS_SEP);
+
+										int id = attr.value("ID").toString().toInt();
+										if (!filename_referencePoints3D.isEmpty() && !filename_referenceNames.isEmpty())
+											trial->getRigidBodies()[id]->load(filename_referenceNames, filename_referencePoints3D);
+									}
 								}
 								xml.readNext();
 							}
+
+
 
 							Project::getInstance()->addTrial(trial);
 							WorkspaceNavigationFrame::getInstance()->addTrial(trialname);

@@ -10,6 +10,7 @@
 #include "ui/ConfirmationDialog.h"
 #include "ui/WizardDockWidget.h"
 #include "ui/PlotWindow.h"
+#include "ui/MarkerTreeWidgetButton.h"
 
 #include "core/Project.h"
 #include "core/Trial.h"
@@ -18,7 +19,7 @@
 
 #include <QMouseEvent>
 #include <QInputDialog>
-
+#include <QToolButton>
 using namespace xma;
 
 PointsDockWidget* PointsDockWidget::instance = NULL;
@@ -52,7 +53,7 @@ void PointsDockWidget::addPointToList(int idx){
 	QTreeWidgetItem *qtreewidgetitem = new QTreeWidgetItem(MARKER);
 	qtreewidgetitem->setFlags(qtreewidgetitem->flags() & ~Qt::ItemIsDropEnabled);
 	qtreewidgetitem->setText(0, QString::number(idx));
-	dock->treeWidgetPoints->addTopLevelItem(qtreewidgetitem);
+	dock->treeWidgetPoints->addTopLevelItem(qtreewidgetitem); 
 }
 
 void PointsDockWidget::reloadListFromObject(){
@@ -62,12 +63,14 @@ void PointsDockWidget::reloadListFromObject(){
 
 		for (unsigned int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers().size(); i++){
 			qtreewidgetitem = new QTreeWidgetItem(MARKER);
+			dock->treeWidgetPoints->addTopLevelItem(qtreewidgetitem);
 			qtreewidgetitem->setFlags(qtreewidgetitem->flags() & ~Qt::ItemIsDropEnabled);
 			qtreewidgetitem->setText(0, QString::number(i + 1));
 
 			qtreewidgetitem->setText(1, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[i]->getDescription());
-
-			dock->treeWidgetPoints->addTopLevelItem(qtreewidgetitem);
+			//dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints , 0,i));
+			//dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, 3, ); 
+			
 		}
 
 		//Setup Rigid Body
@@ -77,8 +80,10 @@ void PointsDockWidget::reloadListFromObject(){
 			dock->treeWidgetPoints->insertTopLevelItem(i, qtreewidgetitem);
 			qtreewidgetitem->setText(0, "RB" + QString::number(i + 1));
 			qtreewidgetitem->setText(1, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getDescription());
+			dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 1, i));
+
 			for (unsigned int k = 0; k < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx().size(); k++){
-				QList<QTreeWidgetItem *>  items = dock->treeWidgetPoints->findItems(QString::number(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx()[k] + 1), Qt::MatchExactly | Qt::MatchRecursive, 0);
+				QList<QTreeWidgetItem *>  items = dock->treeWidgetPoints->findItems(QString::number(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx()[k] + 1), Qt::MatchExactly | Qt::MatchRecursive, 0);
 				if (items.size()>0){
 					int ind = dock->treeWidgetPoints->indexOfTopLevelItem(items.at(0));
 					QTreeWidgetItem *qtreewidgetitem2 = dock->treeWidgetPoints->takeTopLevelItem(ind);

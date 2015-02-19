@@ -106,6 +106,26 @@ bool Settings::getCenterDetailView(){
 	return settings.value("CenterDetailView", false).toBool();
 }
 
+void Settings::setAdvancedCrosshairDetailView(bool value){
+	QSettings settings;
+	settings.setValue("AdvancedCrosshairDetailView", value);
+}
+
+bool Settings::getAdvancedCrosshairDetailView(){
+	QSettings settings;
+	return settings.value("AdvancedCrosshairDetailView", true).toBool();
+}
+
+void Settings::setShow3dPointDetailView(bool value){
+	QSettings settings;
+	settings.setValue("Show3dPointDetailView", value);
+}
+
+bool Settings::getShow3dPointDetailView(){
+	QSettings settings;
+	return settings.value("Show3dPointDetailView", true).toBool();
+}
+
 //BlobDetector
 void Settings::setBlobDetectorThresholdStep(float value){
 	QSettings settings;

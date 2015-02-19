@@ -41,6 +41,10 @@ namespace xma{
 		//Digitizing
 		static void setCenterDetailView(bool value);
 		static bool getCenterDetailView();
+		static void setAdvancedCrosshairDetailView(bool value);
+		static bool getAdvancedCrosshairDetailView();
+		static void setShow3dPointDetailView(bool value);
+		static bool getShow3dPointDetailView();
 
 		//NamingPattern
 		static void setUndistortNamingPattern(QString pattern);

@@ -68,7 +68,7 @@ namespace xma{
 
 		void save3dPoints(QString outputfolder);
 		void save2dPoints(QString outputfolder);
-
+		void saveRigidBodyTransformations(QString outputfolder);
 
 	private:
 		QString name;
