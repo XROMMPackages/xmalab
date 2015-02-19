@@ -637,17 +637,23 @@ bool ProjectFileIO::readProjectFile(QString filename){
 
 									if (xml.name() == "RigidBody"){
 										QXmlStreamAttributes attr = xml.attributes();
-										QString filename_referenceNames = basedir + OS_SEP + attr.value("ReferenceNames").toString();
-										filename_referenceNames.replace("\\", OS_SEP);
-										filename_referenceNames.replace("/", OS_SEP);
 
-										QString filename_referencePoints3D = basedir + OS_SEP + attr.value("ReferencePoints3D").toString();
-										filename_referencePoints3D.replace("\\", OS_SEP);
-										filename_referencePoints3D.replace("/", OS_SEP);
+										QString filename_referenceNames_attr = attr.value("ReferenceNames").toString();
+										QString filename_referencePoints3D_attr =  attr.value("ReferencePoints3D").toString();
 
 										int id = attr.value("ID").toString().toInt();
-										if (!filename_referencePoints3D.isEmpty() && !filename_referenceNames.isEmpty())
+
+										if (!filename_referenceNames_attr.isEmpty() && !filename_referencePoints3D_attr.isEmpty()){
+
+											QString filename_referenceNames = basedir + OS_SEP + filename_referenceNames_attr;
+											QString filename_referencePoints3D = basedir + OS_SEP + filename_referencePoints3D_attr;
+											filename_referenceNames.replace("\\", OS_SEP);
+											filename_referenceNames.replace("/", OS_SEP);
+
+											filename_referencePoints3D.replace("\\", OS_SEP);
+											filename_referencePoints3D.replace("/", OS_SEP);
 											trial->getRigidBodies()[id]->load(filename_referenceNames, filename_referencePoints3D);
+										}
 									}
 								}
 								xml.readNext();
