@@ -15,6 +15,8 @@
 #endif
 
 namespace xma{
+	class Trial;
+
 	class WorldViewDockGLWidget : public QGLWidget
 	{
 		Q_OBJECT
@@ -44,8 +46,11 @@ namespace xma{
 		double prev_azi;
 		double prev_pol;
 
+		void drawMarkers(Trial * trial, int frame);
+		void drawRigidBodies(Trial * trial, int frame);
+
 		void drawCalibrationCube();
-		void drawCamerasCalibration();
+		void drawCameras();
 
 		GLUquadricObj *sphere_quadric;
 		bool opengl_initialised;

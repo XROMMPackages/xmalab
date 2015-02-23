@@ -2,6 +2,8 @@
 #define RIGIDBODY_H_
 
 #include <QString>
+#include <QColor>
+
 #include <vector>
 #include <opencv/cv.h>
 
@@ -51,10 +53,24 @@ namespace xma{
 		bool isReferencesSet();
 		void setReferencesSet(bool value);
 		void resetReferences();
+		void updateCenter();
+
+		bool getVisible();
+		void setVisible(bool value);
+
+		QColor getColor();
+		void setColor(QColor value);
+
+		void draw2D(Camera * cam, int frame);
+		void draw3D(int frame);
+		void recomputeTransformations();
 
 	private:
 		void init(int size);
 		void clear();
+
+		bool visible;
+		QColor color;
 
 		QString description;
 		bool expanded;
@@ -65,8 +81,8 @@ namespace xma{
 
 		std::vector <int> pointsIdx;
 		std::vector <cv::Point3d> points3D;
+		cv::Point3d center;
 		std::vector <QString> referenceNames;
-		//Markers
 
 		//for each frame
 		std::vector <int> poseComputed;

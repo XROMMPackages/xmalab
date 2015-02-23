@@ -222,6 +222,7 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog * dialo
 
 				if (token == QXmlStreamReader::StartElement)
 				{
+					fprintf(stderr, "%s\n",xml.name().toAscii().data());
 					if (xml.name() == "File")
 					{
 						QString imagename = "";
@@ -268,7 +269,6 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog * dialo
 						}
 					}
 				}
-				xml.readNext();
 			}
 		}
 	}
@@ -419,6 +419,8 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 						xmlWriter.writeAttribute("ReferenceNames", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferenceNames.csv");
 						xmlWriter.writeAttribute("ReferencePoints3D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d.csv");
 					}
+					xmlWriter.writeAttribute("Visible", QString::number(Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getVisible()));
+					xmlWriter.writeAttribute("Color", Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getColor().name());
 					xmlWriter.writeEndElement();
 					
 				}
@@ -653,6 +655,17 @@ bool ProjectFileIO::readProjectFile(QString filename){
 											filename_referencePoints3D.replace("\\", OS_SEP);
 											filename_referencePoints3D.replace("/", OS_SEP);
 											trial->getRigidBodies()[id]->load(filename_referenceNames, filename_referencePoints3D);
+										}
+
+										QString visible = attr.value("Visible").toString();
+										if (!visible.isEmpty())
+										{
+											trial->getRigidBodies()[id]->setVisible(visible.toInt());
+										}
+										QString color = attr.value("Color").toString();
+										if (!color.isEmpty())
+										{
+											trial->getRigidBodies()[id]->setColor(QColor(color));
 										}
 									}
 								}

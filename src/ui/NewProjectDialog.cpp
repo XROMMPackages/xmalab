@@ -28,7 +28,7 @@ NewProjectDialog::NewProjectDialog(QWidget *parent) :
 
 	diag->radioButtonCheckerboard->hide();
 
-	nbCams = 1;
+	nbCams = 2;
 	diag->labelNbCameras->setText(QString::number(nbCams));
 
 	for (int i = 0; i < nbCams ; i ++){

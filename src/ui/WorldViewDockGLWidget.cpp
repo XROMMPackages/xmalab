@@ -17,6 +17,10 @@
 #include "core/Camera.h"
 #include "core/CalibrationObject.h"
 #include "core/UndistortionObject.h"
+#include "core/Image.h"
+#include "core/Trial.h"
+#include "core/Marker.h"
+#include "core/RigidBody.h"
 
 #include <QtGui/QApplication>
 #include <QMouseEvent>
@@ -155,10 +159,205 @@ void WorldViewDockGLWidget::paintGL()
 //////////DRAW
 	if(State::getInstance()->getWorkspace() == CALIBRATION){
 		drawCalibrationCube();
-		drawCamerasCalibration();
+		drawCameras();
+	}
+	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 &&
+			State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size()){
+
+			Trial * trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
+			if (trial->getStartFrame() - 1 <= State::getInstance()->getActiveFrameTrial()
+				&& trial->getEndFrame() - 1 >= State::getInstance()->getActiveFrameTrial()){
+				int frame = State::getInstance()->getActiveFrameTrial();
+
+				drawCameras();
+				drawMarkers(trial, frame);
+				drawRigidBodies(trial, frame);
+			}
+		}
+
 	}
 
 	glFlush ();
+}
+
+void WorldViewDockGLWidget::drawCameras()
+{
+	for (int cam = 0; cam < Project::getInstance()->getCameras().size(); cam++){
+		if (Project::getInstance()->getCameras()[cam]->isCalibrated()
+			&& Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated()){
+
+			glPushMatrix();
+			double m[16];
+			//inversere Rotation = transposed rotation
+			//and opengl requires transposed, so we set R
+			cv::Mat transTmp;
+			cv::Mat rotTmp;
+			cv::Mat camTmp;
+			camTmp.create(3, 3, CV_64F);
+			rotTmp.create(3, 3, CV_64F);
+			transTmp.create(3, 1, CV_64F);
+
+			camTmp = Project::getInstance()->getCameras()[cam]->getCameraMatrix().clone();
+			transTmp = Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getTranslationVector();
+			cv::Rodrigues(Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getRotationVector(), rotTmp);
+
+			//adjust y - inversion
+			transTmp.at<double>(0, 0) = -transTmp.at<double>(0, 0);
+			transTmp.at<double>(0, 2) = -transTmp.at<double>(0, 2);
+			for (int i = 0; i < 3; i++){
+				rotTmp.at<double>(0, i) = -rotTmp.at<double>(0, i);
+				rotTmp.at<double>(2, i) = -rotTmp.at<double>(2, i);
+			}
+			camTmp.at<double>(1, 2) = (Project::getInstance()->getCameras()[cam]->getHeight() - 1) - camTmp.at<double>(1, 2);
+
+			for (unsigned int y = 0; y <3; y++)
+			{
+				m[y * 4] = rotTmp.at<double>(y, 0);
+				m[y * 4 + 1] = rotTmp.at<double>(y, 1);
+				m[y * 4 + 2] = rotTmp.at<double>(y, 2);
+				m[y * 4 + 3] = 0.0;
+			}
+
+			//inverse translation = translation rotated with inverse rotation/transposed rotation
+			//R-1 * -t = R^tr * -t
+			m[12] = m[0] * -transTmp.at<double>(0, 0)
+				+ m[4] * -transTmp.at<double>(1, 0)
+				+ m[8] * -transTmp.at<double>(2, 0);
+			m[13] = m[1] * -transTmp.at<double>(0, 0)
+				+ m[5] * -transTmp.at<double>(1, 0)
+				+ m[9] * -transTmp.at<double>(2, 0);
+			m[14] = m[2] * -transTmp.at<double>(0, 0)
+				+ m[6] * -transTmp.at<double>(1, 0)
+				+ m[10] * -transTmp.at<double>(2, 0);
+			m[15] = 1.0;
+			glMultMatrixd(m);
+
+			//Draw CO
+			glColor3f(1.0, 0.0, 0.0);
+			glBegin(GL_LINES);
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(10.0, 0, 0);
+			glEnd();
+
+			glColor3f(0.0, 1.0, 0.0);
+			glBegin(GL_LINES);
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(0, 10.0, 0);
+			glEnd();
+
+			glColor3f(0.0, 0.0, 1.0);
+			glBegin(GL_LINES);
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(0, 0, 10.0);
+			glEnd();
+
+
+			//Draw Boundaries
+			double x_min = (0 - camTmp.at<double>(0, 2)) / camTmp.at<double>(0, 0);
+			double x_max = (Project::getInstance()->getCameras()[cam]->getWidth() - camTmp.at<double>(0, 2)) / camTmp.at<double>(0, 0);
+			double y_min = (0 - camTmp.at<double>(1, 2)) / camTmp.at<double>(1, 1);
+			double y_max = (Project::getInstance()->getCameras()[cam]->getHeight() - camTmp.at<double>(1, 2)) / camTmp.at<double>(1, 1);
+
+			double z = -200.0;
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			glColor4f(1.0, 1.0, 1.0, 0.2);
+			glBegin(GL_LINES);
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(z * x_min, z * y_min, z);
+
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(z * x_min, z * y_max, z);
+
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(z * x_max, z * y_min, z);
+
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(z * x_max, z * y_max, z);
+			glEnd();
+
+			glBegin(GL_LINE_LOOP);
+			glVertex3f(z * x_min, z * y_min, z);
+			glVertex3f(z * x_min, z * y_max, z);
+			glVertex3f(z * x_max, z * y_max, z);
+			glVertex3f(z * x_max, z * y_min, z);
+			glEnd();
+			glDisable(GL_BLEND);
+
+			glEnable(GL_TEXTURE_2D);
+
+			
+			if (State::getInstance()->getWorkspace() == CALIBRATION){
+				Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->bindTexture(State::getInstance()->getCalibrationVisImage());
+			}
+			else if (State::getInstance()->getWorkspace() == DIGITIZATION)
+			{
+				if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 &&
+					State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size()){
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getImage(cam)->bindTexture();
+				}
+			}
+
+			glBegin(GL_QUADS);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex3f(z * x_min, z * y_min, z); // bottom left
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(z * x_max, z * y_min, z); // bottom right
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(z * x_max, z * y_max, z);// top right
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(z * x_min, z * y_max, z); // top left
+			glEnd();
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glDisable(GL_TEXTURE_2D);
+
+			glPopMatrix();
+
+			camTmp.release();
+			rotTmp.release();
+			transTmp.release();
+
+			glDisable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+	}
+}
+
+void WorldViewDockGLWidget::drawMarkers(Trial * trial, int frame)
+{
+	if (!opengl_initialised){
+		sphere_quadric = gluNewQuadric();					 // Create A Pointer To The Quadric Object ( NEW )
+		gluQuadricNormals(sphere_quadric, GLU_SMOOTH);   // Create Smooth Normals ( NEW )
+		gluQuadricTexture(sphere_quadric, GL_TRUE);      // Create Texture Coords ( NEW )
+	}
+
+	for (int i = 0; i < trial->getMarkers().size(); i++)
+	{
+		if (trial->getMarkers()[i]->getStatus3D()[frame] > 0)
+		glPushMatrix();
+		if (i == trial->getActiveMarkerIdx()) { glColor3f(1.0, 0.0, 0.0); }
+		else { glColor3f(0.0, 1.0, 0.0); }
+
+		glTranslated(trial->getMarkers()[i]->getPoints3D()[frame].x,
+			trial->getMarkers()[i]->getPoints3D()[frame].y,
+			trial->getMarkers()[i]->getPoints3D()[frame].z);
+
+		gluSphere(sphere_quadric, 0.3f, 32, 32);
+
+		glPopMatrix();
+	}
+}
+
+void WorldViewDockGLWidget::drawRigidBodies(Trial * trial, int frame)
+{
+
+	for (int i = 0; i < trial->getRigidBodies().size(); i++)
+	{
+		trial->getRigidBodies()[i]->draw3D(frame);
+	}
 }
 
 void WorldViewDockGLWidget::drawCalibrationCube(){
@@ -185,135 +384,5 @@ void WorldViewDockGLWidget::drawCalibrationCube(){
 		
 			glPopMatrix();
 		}
-	}
-}
-
-void WorldViewDockGLWidget::drawCamerasCalibration(){
-	for(int cam = 0 ; cam < Project::getInstance()->getCameras().size(); cam++){
-		if(Project::getInstance()->getCameras()[cam]->isCalibrated()
-			&& Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated()){
-
-			glPushMatrix();
-			double m [16];
-			//inversere Rotation = transposed rotation
-			//and opengl requires transposed, so we set R
-			cv::Mat transTmp;
-			cv::Mat rotTmp;
-			cv::Mat camTmp;
-			camTmp.create(3, 3, CV_64F);
-			rotTmp.create(3, 3, CV_64F);
-			transTmp.create(3, 1, CV_64F);
-
-			camTmp =  Project::getInstance()->getCameras()[cam]->getCameraMatrix().clone();
-			transTmp = Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getTranslationVector();
-			cv::Rodrigues(Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getRotationVector(), rotTmp);
-
-			//adjust y - inversion
-			transTmp.at<double>(0,0) = -transTmp.at<double>(0,0);
-			transTmp.at<double>(0,2) = -transTmp.at<double>(0,2);
-			for(int i = 0; i < 3 ; i ++){
-				rotTmp.at<double>(0,i) = -rotTmp.at<double>(0,i);
-				rotTmp.at<double>(2,i) = -rotTmp.at<double>(2,i);
-			}	
-			camTmp.at<double>(1,2) = (Project::getInstance()->getCameras()[cam]->getHeight() - 1) - camTmp.at<double>(1,2);
-
-			for (unsigned int y = 0 ; y <3 ; y ++)
-			{
-				m[y*4] =   rotTmp.at<double>(y,0);
-				m[y*4 + 1] = rotTmp.at<double>(y,1);
-				m[y*4 + 2] =  rotTmp.at<double>(y,2);
-				m[y*4 + 3] = 0.0;
-			}
-			
-			//inverse translation = translation rotated with inverse rotation/transposed rotation
-			//R-1 * -t = R^tr * -t
-			m[12] = m[0] * -transTmp.at<double>(0,0) 
-				+ m[4] * - transTmp.at<double>(1,0) 
-				+ m[8] * - transTmp.at<double>(2,0);
-			m[13] = m[1] * - transTmp.at<double>(0,0) 
-				+ m[5] * - transTmp.at<double>(1,0) 
-				+ m[9] * - transTmp.at<double>(2,0);
-			m[14] = m[2] * - transTmp.at<double>(0,0) 
-				+ m[6] * - transTmp.at<double>(1,0) 
-				+ m[10] * - transTmp.at<double>(2,0);
-			m[15] = 1.0;
-			glMultMatrixd(m);
-		
-			//Draw CO
-			glColor3f(1.0, 0.0, 0.0);
-			glBegin(GL_LINES);
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(10.0, 0, 0);
-			glEnd(); 
-
-			glColor3f(0.0, 1.0, 0.0);
-			glBegin(GL_LINES);
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(0, 10.0, 0);
-			glEnd(); 
-
-			glColor3f(0.0, 0.0, 1.0);
-			glBegin(GL_LINES);
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(0, 0, 10.0);
-			glEnd(); 
-		
-
-			//Draw Boundaries
-			double x_min = (0 - camTmp.at<double>(0,2) ) / camTmp.at<double>(0,0);
-			double x_max = (  Project::getInstance()->getCameras()[cam]->getWidth() - camTmp.at<double>(0,2) ) / camTmp.at<double>(0,0);
-			double y_min = (0 - camTmp.at<double>(1,2) ) / camTmp.at<double>(1,1);
-			double y_max = ( Project::getInstance()->getCameras()[cam]->getHeight() - camTmp.at<double>(1,2)) / camTmp.at<double>(1,1);
-			
-			double z = -200.0;
-
-			glColor3f(1.0, 1.0, 1.0);
-			glBegin(GL_LINES);
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(z * x_min, z * y_min, z);
-		
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(z * x_min, z * y_max, z);
-		
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(z * x_max, z * y_min, z);
-		
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(z * x_max, z * y_max, z);
-			glEnd(); 
-
-			glBegin (GL_LINE_LOOP);
-			glVertex3f(z * x_min, z * y_min, z);
-			glVertex3f(z * x_min, z * y_max, z);
-			glVertex3f(z * x_max, z * y_max, z);
-			glVertex3f(z * x_max, z * y_min, z);
-			glEnd(); 
-
-			glEnable(GL_TEXTURE_2D);
-
-			Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->bindTexture(State::getInstance()->getCalibrationVisImage());
-
-			glBegin(GL_QUADS);
-			glTexCoord2f (0.0f,1.0f);
-			glVertex3f(z * x_min, z * y_min, z); // bottom left
-			glTexCoord2f (1.0f,1.0f);
-			glVertex3f(z * x_max, z * y_min, z); // bottom right
-			glTexCoord2f (1.0f,0.0f);
-			glVertex3f(z * x_max, z * y_max, z);// top right
-			glTexCoord2f (0.0f,0.0f);
-			glVertex3f(z * x_min, z * y_max, z); // top left
-			glEnd();
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glDisable(GL_TEXTURE_2D);
-		
-			glPopMatrix();
-
-			camTmp.release();
-			rotTmp.release();
-			transTmp.release();
-
-			glDisable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, 0);
-		}	
 	}
 }

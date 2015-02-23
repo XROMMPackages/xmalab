@@ -14,6 +14,7 @@
 
 #include <QLabel>
 #include <QComboBox>
+#include <QColorDialog>
 
 #include <QFileDialog>
 using namespace xma;
@@ -27,6 +28,9 @@ RigidBodyDialog::RigidBodyDialog(RigidBody * body, QWidget *parent) :
 	updateIcon();
 
 	this->setWindowTitle("RB : " + m_body->getDescription());
+
+	updateColorButton();
+	diag->checkBox_Draw->setChecked(m_body->getVisible());
 
 	QSizePolicy sizePolicy1(QSizePolicy::Maximum, QSizePolicy::Preferred);
 	sizePolicy1.setHorizontalStretch(0);
@@ -151,6 +155,13 @@ bool RigidBodyDialog::setRigidBodyIdxByDialog()
 	return true;
 }
 
+void RigidBodyDialog::updateColorButton()
+{
+	QPixmap pix(16,16);
+	pix.fill(m_body->getColor());
+	diag->toolButton_Color->setIcon(pix);
+}
+
 void RigidBodyDialog::on_pushButton_setFromFile_clicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open rigid body references"), Settings::getLastUsedDirectory(), ("CSV Files (*.csv)"));
@@ -184,8 +195,6 @@ void RigidBodyDialog::on_pushButton_setFromFile_clicked()
 			return;
 		}
 
-
-
 		updateIcon();
 		updateLabels();
 	}
@@ -205,4 +214,22 @@ void RigidBodyDialog::on_pushButton_Cancel_clicked(){
 void RigidBodyDialog::currentIndexChanged(int idx)
 {
 	updateLabels();
+}
+
+void RigidBodyDialog::on_checkBox_Draw_clicked()
+{
+	m_body->setVisible(diag->checkBox_Draw->isChecked());
+}
+
+void RigidBodyDialog::on_toolButton_Color_clicked()
+{
+	QColorDialog * cdiag = new QColorDialog();
+	cdiag->setCurrentColor(m_body->getColor());
+	cdiag->exec();
+
+	m_body->setColor(cdiag->currentColor());
+
+	updateColorButton();
+
+	delete cdiag;
 }

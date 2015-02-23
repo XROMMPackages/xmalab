@@ -9,6 +9,7 @@ namespace xma{
 	class Image;
 	class RigidBody;
 	class Marker;
+	class Camera;
 
 	class Trial{
 
@@ -50,6 +51,7 @@ namespace xma{
 		void bindTextures();
 		void save(QString path);
 
+		void drawRigidBodies(Camera * cam);
 		void drawPoints(int cameraId, bool detailView);
 
 		int getStartFrame();
@@ -69,6 +71,8 @@ namespace xma{
 		void save3dPoints(QString outputfolder);
 		void save2dPoints(QString outputfolder);
 		void saveRigidBodyTransformations(QString outputfolder);
+
+		void resetRigidBodyByMarker(Marker * marker, int frame);
 
 	private:
 		QString name;

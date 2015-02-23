@@ -25,6 +25,7 @@
 #include "core/Trial.h"
 #include "core/Project.h"
 #include "core/Marker.h"
+#include "core/RigidBody.h"
 
 #include <QMouseEvent>
 
@@ -465,6 +466,12 @@ void GLCameraView::paintGL()
 	{
 		if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
 			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawPoints(this->camera->getID(), detailedView);
+
+			if (!detailedView)
+			{
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodies(this->camera);
+			}
+
 		}
 	}
 	if(State::getInstance()->getActiveCamera() == this->camera->getID()){

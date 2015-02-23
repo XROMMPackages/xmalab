@@ -12,6 +12,17 @@
 
 #include <fstream>
 
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
+
 using namespace xma;
 
 RigidBody::RigidBody(int size, Trial * _trial){
@@ -19,6 +30,9 @@ RigidBody::RigidBody(int size, Trial * _trial){
 	initialised = false;
 	trial = _trial;
 	referencesSet = false;
+
+	color.setRgb(255,0,0);
+	visible = false;
 
 	init(size);
 }
@@ -154,7 +168,7 @@ void RigidBody::init(int size){
 
 void RigidBody::computeCoordinateSystemAverage(){
 	if (!isReferencesSet()){
-		points3D.clear();
+
 		std::vector <cv::Point3d> points3D_mean;
 
 		int count = 0;
@@ -251,6 +265,8 @@ void RigidBody::computeCoordinateSystemAverage(){
 			rotationmatrix.at<double>(2, 1) = py.y;
 			rotationmatrix.at<double>(2, 2) = py.z;
 
+			points3D.clear();
+
 			for (unsigned int i = 0; i < points3D_mean.size(); i++){
 				cv::Point3d pt = points3D_mean[i] - center;
 				cv::Mat src(3/*rows*/, 1 /* cols */, CV_64F);
@@ -269,6 +285,7 @@ void RigidBody::computeCoordinateSystemAverage(){
 			initialised = true;
 		}
 		else{
+			points3D.clear();
 			for (unsigned int i = 0; i < points3D_mean.size(); i++){
 				cv::Point3d pt = points3D_mean[i] - center;
 				points3D.push_back(pt);
@@ -554,8 +571,8 @@ double RigidBody::fitAndComputeError(std::vector<cv::Point3d> src, std::vector<c
 			cv::Mat tmp_mat = rotMat.t() * ((xmat)-transMat);
 		
 			cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
-				tmp_mat.at<double>(0, 1),
-				tmp_mat.at<double>(0, 2));
+				tmp_mat.at<double>(1, 0),
+				tmp_mat.at<double>(2, 0));
 		
 			cv::Point3d diff = src[i] - pt3d;
 			errorMean += cv::sqrt(diff.x*diff.x + diff.y*diff.y + diff.z*diff.z);
@@ -612,14 +629,21 @@ void RigidBody::load(QString filename_referenceNames, QString filename_points3D)
 
 	setReferencesSet(true);
 	initialised = true;
+
+	
 }
 
-void RigidBody::saveTransformations(QString filename, bool inverse)
+void RigidBody::recomputeTransformations()
 {
 	for (int i = 0; i < trial->getNbImages(); i++)
 	{
 		computePose(i);
 	}
+}
+
+void RigidBody::saveTransformations(QString filename, bool inverse)
+{
+	recomputeTransformations();
 
 	if (!filename.isEmpty()){
 		std::ofstream outfile(filename.toAscii().data());
@@ -689,7 +713,7 @@ std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, boo
 	cv::Rodrigues(rotationvectors[Frame], rotMatTmp);
 
 	if (with_center){
-		cv::Mat xmat = cv::Mat(cv::Point3d(0, 0, 0), true);
+		cv::Mat xmat = cv::Mat(center, true);
 		
 		cv::Mat tmp_mat = rotMatTmp.t() * ((xmat)-translationvectors[Frame]);
 
@@ -706,8 +730,8 @@ std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, boo
 		cv::Mat tmp_mat = rotMatTmp.t() * ((xmat)-translationvectors[Frame]);
 
 		cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
-			tmp_mat.at<double>(0, 1),
-			tmp_mat.at<double>(0, 2));
+			tmp_mat.at<double>(1, 0),
+			tmp_mat.at<double>(2, 0));
 
 		points3D_frame.push_back(pt3d);
 	}
@@ -756,7 +780,7 @@ std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, boo
 		if (cam->hasUndistortion())
 		{
 			cv::Point2d pt_trans;
-			pt_trans = Project::getInstance()->getCameras()[i]->getUndistortionObject()->transformPoint(pt, false);
+			pt_trans = cam->getUndistortionObject()->transformPoint(pt, false);
 			points2D_frame.push_back(pt_trans);
 		}
 		else{
@@ -856,7 +880,12 @@ int RigidBody::setReferenceFromFile(QString filename)
 		points3D.push_back(points3D_tmp[best_permutation[i]]);
 		referenceNames.push_back(referenceNames_tmp[best_permutation[i]]);
 	}
+
+	
 	setReferencesSet(true);
+
+	recomputeTransformations();
+
 	return 1;
 }
 
@@ -868,6 +897,105 @@ bool RigidBody::isReferencesSet()
 void RigidBody::setReferencesSet(bool value)
 {
 	referencesSet = value;
+	updateCenter();
+}
+
+void RigidBody::updateCenter()
+{
+	center.x = 0.0;
+	center.y = 0.0;
+	center.z = 0.0;
+
+	if (points3D.size() > 0){
+		for (int i = 0; i < points3D.size(); i++)
+		{
+			center.x += points3D[i].x;
+			center.y += points3D[i].y;
+			center.z += points3D[i].z;
+		}
+		center.x /= points3D.size();
+		center.y /= points3D.size();
+		center.z /= points3D.size();
+	}
+}
+
+bool RigidBody::getVisible()
+{
+	return visible;
+}
+
+void RigidBody::setVisible(bool value)
+{
+	visible = value;
+}
+
+QColor RigidBody::getColor()
+{
+	return color;
+}
+
+void RigidBody::setColor(QColor value)
+{
+	color.setRgb(value.red(), value.green(), value.blue());
+}
+
+void RigidBody::draw2D(Camera * cam, int frame)
+{
+	if (visible && poseComputed[frame] && isReferencesSet())
+	{
+		std::vector<cv::Point2d > points2D_projected = projectToImage(cam, frame, true);
+
+		for (int i = 1; i < points2D_projected.size(); i++){
+			double x = points2D_projected[i].x;
+			double y = points2D_projected[i].y;
+
+			glBegin(GL_LINES);
+			glColor3ub(color.red(),color.green() ,color.blue());
+			glVertex2f(points2D_projected[0].x, points2D_projected[0].y);
+			glVertex2f(points2D_projected[i].x, points2D_projected[i].y);
+			glEnd();
+		}
+	}
+}
+
+void RigidBody::draw3D(int frame)
+{
+	if (visible && poseComputed[frame] && isReferencesSet())
+	{
+		glPushMatrix();
+		double m[16];
+		//inversere Rotation = transposed rotation
+		//and opengl requires transposed, so we set R
+
+		cv::Mat rotationMat;
+		cv::Rodrigues(rotationvectors[frame], rotationMat);
+		for (unsigned int y = 0; y < 3; y++)
+		{
+			m[y * 4] = rotationMat.at<double>(y, 0);
+			m[y * 4 + 1] = rotationMat.at<double>(y, 1);
+			m[y * 4 + 2] = rotationMat.at<double>(y, 2);
+			m[y * 4 + 3] = 0.0;
+		}
+		//inverse translation = translation rotated with inverse rotation/transposed rotation
+		//R-1 * -t = R^tr * -t
+		m[12] = m[0] * -translationvectors[frame].at<double>(0, 0) + m[4] * -translationvectors[frame].at<double>(1, 0) + m[8] * -translationvectors[frame].at<double>(2, 0);
+		m[13] = m[1] * -translationvectors[frame].at<double>(0, 0) + m[5] * -translationvectors[frame].at<double>(1, 0) + m[9] * -translationvectors[frame].at<double>(2, 0);
+		m[14] = m[2] * -translationvectors[frame].at<double>(0, 0) + m[6] * -translationvectors[frame].at<double>(1, 0) + m[10] * -translationvectors[frame].at<double>(2, 0);
+		m[15] = 1.0;
+		
+		glMultMatrixd(m);
+
+		for (int i = 0; i < points3D.size(); i++)
+		{
+			glColor3ub(color.red(), color.green(), color.blue());
+			glBegin(GL_LINES);
+			glVertex3d(center.x, center.y, center.z);
+			glVertex3d(points3D[i].x, points3D[i].y, points3D[i].z);
+			glEnd();
+		}
+
+		glPopMatrix();
+	}
 }
 
 //void RigidBody::setAllPoints(DigitizingObject * object, int Frame){

@@ -271,6 +271,14 @@ void Trial::clear(){
 	images.clear();
 }
 
+
+void Trial::drawRigidBodies(Camera * cam)
+{
+	for (std::vector <RigidBody *>::const_iterator it = rigidBodies.begin(); it != rigidBodies.end(); ++it){
+		(*it)->draw2D(cam, activeFrame);
+	}
+}
+
 void Trial::drawPoints(int cameraId, bool detailView)
 {
 	
@@ -520,8 +528,23 @@ void Trial::saveRigidBodyTransformations(QString outputfolder)
 {
 	for (int i = 0; i < getRigidBodies().size(); i++)
 	{
-		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv", false);
-		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformation_Inverse.csv", true);
+		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv", true);
+	}
+}
+
+void Trial::resetRigidBodyByMarker(Marker* marker, int frame)
+{
+	for (int i = 0; i < getRigidBodies().size(); i++)
+	{
+		for (int j = 0; j < getRigidBodies()[i]->getPointsIdx().size(); j++)
+		{
+			if (getMarkers()[getRigidBodies()[i]->getPointsIdx()[j]] == marker)
+			{
+				getRigidBodies()[i]->computePose(frame);
+				return;
+			}
+
+		}
 	}
 }
 

@@ -180,6 +180,8 @@ void Marker::reconstruct3DPoint(int frame)
 			reprojectPoint(frame);
 		}
 	}
+
+	trial->resetRigidBodyByMarker(this,frame);
 }
 
 double Marker::getSize()
