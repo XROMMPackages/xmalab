@@ -26,6 +26,7 @@ namespace xma{
 		void setSharedGLContext(const QGLContext * sharedContext);
 		void setMinimumWidthGL(bool set);
 		void draw();
+		void centerViews();
 
 	public slots:
 			void on_doubleSpinBoxBias_valueChanged(double value);

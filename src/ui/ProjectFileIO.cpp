@@ -405,6 +405,10 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 					xmlWriter.writeStartElement("Marker");
 					xmlWriter.writeAttribute("Description", Project::getInstance()->getTrials()[i]->getMarkers()[k]->getDescription());
 					xmlWriter.writeAttribute("ID", QString::number(k));
+					xmlWriter.writeAttribute("TrackingPenalty", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getMaxPenalty()));
+					xmlWriter.writeAttribute("SizeOverride", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getSizeOverride()));
+					xmlWriter.writeAttribute("ThresholdOffset", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getThresholdOffset()));
+
 					xmlWriter.writeAttribute("FilenamePoints2D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv");
 					xmlWriter.writeAttribute("FilenameStatus2D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status2d.csv");
 					xmlWriter.writeAttribute("FilenameSize", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
@@ -635,6 +639,15 @@ bool ProjectFileIO::readProjectFile(QString filename){
 
 										int id = attr.value("ID").toString().toInt();
 										trial->getMarkers()[id]->load(filename_points2D, filename_status2D, filename_size);
+
+										QString TrackingPenalty = attr.value("TrackingPenalty").toString();
+										if (!TrackingPenalty.isEmpty())trial->getMarkers()[id]->setMaxPenalty(TrackingPenalty.toInt());
+
+										QString SizeOverride = attr.value("SizeOverride").toString();
+										if (!SizeOverride.isEmpty())trial->getMarkers()[id]->setSizeOverride(SizeOverride.toInt());
+
+										QString ThresholdOffset = attr.value("ThresholdOffset").toString();
+										if (!ThresholdOffset.isEmpty())trial->getMarkers()[id]->setThresholdOffset(ThresholdOffset.toInt());
 									}
 
 									if (xml.name() == "RigidBody"){

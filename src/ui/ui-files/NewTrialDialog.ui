@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Create a new project</string>
+   <string>Select videopaths for new trial</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../calibrationtool_resources.qrc">

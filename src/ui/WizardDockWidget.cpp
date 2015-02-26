@@ -95,6 +95,14 @@ void WizardDockWidget::updateDialog(){
 	}
 }
 
+void WizardDockWidget::stop()
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		digitizationFrame->stopTracking();
+	}
+}
+
 void WizardDockWidget::workspaceChanged(work_state workspace){
 	if(workspace == UNDISTORTION){
 		undistortionFrame->show();
@@ -108,5 +116,21 @@ void WizardDockWidget::workspaceChanged(work_state workspace){
 		undistortionFrame->hide();
 		calibrationFrame->hide();
 		digitizationFrame->show();
+	}
+}
+
+void WizardDockWidget::trackSelectedPointForward()
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		digitizationFrame->trackSelectedPointToNextFrame();
+	}
+}
+
+void WizardDockWidget::trackSelectedPointBackward()
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		digitizationFrame->trackSelectedPointToPrevFrame();
 	}
 }

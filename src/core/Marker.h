@@ -48,6 +48,16 @@ namespace xma{
 		bool isValid(int camera, int frame);
 		void reset(int camera, int frame);
 
+		int getSizeOverride();
+		void setSizeOverride(int value);
+
+		int getThresholdOffset();
+		void setThresholdOffset(int value);
+
+		int getMaxPenalty();
+		void setMaxPenalty(int value);
+
+
 	private:
 		void init(int nbCameras, int size);
 		void clear();
@@ -67,6 +77,10 @@ namespace xma{
 		std::vector< std::vector <double> > markerSize;
 		double meanSize;
 		double sizeRange;
+
+		int thresholdOffset;
+		int sizeOverride;
+		int maxPenalty;
 
 		std::vector <cv::Point3d> points3D;
 		std::vector <markerStatus> status3D;

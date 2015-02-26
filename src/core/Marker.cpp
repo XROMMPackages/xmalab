@@ -16,6 +16,9 @@ Marker::Marker(int nbCameras, int size, Trial* _trial){
 	init (nbCameras, size);
 	trial = _trial;
 	meanSize = -1;
+	thresholdOffset = 8;
+	sizeOverride = -1;
+	maxPenalty = 125;
 }
 
 Marker::~Marker(){
@@ -441,6 +444,36 @@ void Marker::reset(int camera, int frame)
 
 	reconstruct3DPoint(frame);
 	updateMeanSize();
+}
+
+int Marker::getSizeOverride()
+{
+	return sizeOverride;
+}
+
+void Marker::setSizeOverride(int value)
+{
+	sizeOverride = value;
+}
+
+int Marker::getThresholdOffset()
+{
+	return thresholdOffset;
+}
+
+void Marker::setThresholdOffset(int value)
+{
+	thresholdOffset = value;
+}
+
+int Marker::getMaxPenalty()
+{
+	return maxPenalty;
+}
+
+void Marker::setMaxPenalty(int value)
+{
+	maxPenalty = value;
 }
 
 void Marker::reprojectPoint(int frame)

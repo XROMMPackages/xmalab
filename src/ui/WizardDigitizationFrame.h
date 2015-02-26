@@ -21,6 +21,11 @@ namespace xma{
 		void moveDigitizationPoint(int camera, double x, double y, bool noDetection);
 
 		void setDialog();
+		void stopTracking();
+
+		void trackSelectedPointToNextFrame();
+		void trackSelectedPointToPrevFrame();
+
 
 	private:
 		Ui::WizardDigitizationFrame *frame;

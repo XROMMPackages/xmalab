@@ -14,7 +14,8 @@
 #include "core/Marker.h"
 #include "core/RigidBody.h"
 
-#include <QMenu>#include <QMouseEvent>
+#include <QMenu>
+#include <QMouseEvent>
 #include <QInputDialog>
 #include <QHeaderView>
 
@@ -49,8 +50,8 @@ MarkerTreeWidget::MarkerTreeWidget(QWidget * parent):QTreeWidget(parent)
 
 	action_DeletePoints = new QAction(tr("&Delete selected Points"), this);
 	connect(action_DeletePoints, SIGNAL(triggered()), this, SLOT(action_DeletePoints_triggered()));
-
-	action_ResetPoints = new QAction(tr("&Reset data of selected Points"), this);
+	
+	action_ResetPoints = new QAction(tr("&Delete Data from Selected Points"), this);
 	connect(action_ResetPoints, SIGNAL(triggered()), this, SLOT(action_ResetPoints_triggered()));
 
 	headerItem()->setText(2, "");

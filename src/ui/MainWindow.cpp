@@ -49,6 +49,8 @@
 #define OS_SEP "/"
 #endif
 
+#define BETA 1
+
 using namespace xma;
 
 MainWindow* MainWindow::instance = NULL;
@@ -133,6 +135,11 @@ MainWindow::MainWindow(QWidget *parent) :
 	setCorner(Qt::BottomRightCorner, Qt::BottomDockWidgetArea);
 
 	Shortcuts::getInstance()->bindApplicationShortcuts();
+#ifndef BETA
+	this->setWindowTitle("XMALab V." + QString(PROJECT_VERSION));
+#else 
+	this->setWindowTitle("XMALab V." + QString(PROJECT_VERSION) + " - BETA");
+#endif
 }
 
 
@@ -343,7 +350,7 @@ void MainWindow::newProject(){
 		QFuture<int> future = QtConcurrent::run(newProjectdialog, &NewProjectDialog::createProject);
 		m_FutureWatcher->setFuture( future );
 
-		ProgressDialog::getInstance()->showProgressbar(0, 0, "Create new project");
+		ProgressDialog::getInstance()->showProgressbar(0, 0, "Create new dataset");
 	}else{
 		delete newProjectdialog;
 		delete project;
@@ -391,7 +398,7 @@ void MainWindow::newProjectFromXMALab(QString filename){
 		QFuture<int> future = QtConcurrent::run(newProjectdialog, &NewProjectDialog::createProject);
 		m_FutureWatcher->setFuture(future);
 
-		ProgressDialog::getInstance()->showProgressbar(0, 0, "Create new project");
+		ProgressDialog::getInstance()->showProgressbar(0, 0, "Create new dataset");
 	}
 	else{
 		delete newProjectdialog;
@@ -399,8 +406,12 @@ void MainWindow::newProjectFromXMALab(QString filename){
 		project = NULL;
 	}
 
+#ifndef BETA
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab V." + PROJECT_VERSION);
+#else 
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab V." + PROJECT_VERSION + " - BETA");
+#endif
 	
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab");
 }
 
 
@@ -413,7 +424,7 @@ void MainWindow::loadProject(){
 	project = Project::getInstance();
 
 	QString fileName = QFileDialog::getOpenFileName(this,
-									tr("Select Project File"), Settings::getLastUsedDirectory(),tr("Project File (*.xma  *.zip)"));
+									tr("Select dataset"), Settings::getLastUsedDirectory(),tr("Dataset (*.xma  *.zip)"));
 	if ( fileName.isNull() == false )
     {
 		Settings::setLastUsedDirectory(fileName);
@@ -424,7 +435,7 @@ void MainWindow::loadProject(){
 		QFuture<int> future = QtConcurrent::run( ProjectFileIO::getInstance(), &ProjectFileIO::loadProject,fileName  );
 		m_FutureWatcher->setFuture( future );
 		
-		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load project "  + fileName).toAscii().data());
+		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load dataset "  + fileName).toAscii().data());
 	}
 }
 
@@ -457,7 +468,11 @@ void MainWindow::loadProjectFinished(){
 			UndistortionAfterloadProjectFinished();
 		}
 
-		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab");
+#ifndef BETA
+		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab V." + PROJECT_VERSION);
+#else 
+		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab V." + PROJECT_VERSION " - BETA");
+#endif
 	}
 	else if (m_FutureWatcher->result() == 1)
 	{
@@ -526,7 +541,13 @@ void MainWindow::closeProject(){
 	WizardDockWidget::getInstance()->hide();
 	PointsDockWidget::getInstance()->hide();
     DetailViewDockWidget::getInstance()->hide();
-	this->setWindowTitle("XMALab");
+
+#ifndef BETA
+	this->setWindowTitle("XMALab V." + QString(PROJECT_VERSION));
+#else 
+	this->setWindowTitle("XMALab V." + QString(PROJECT_VERSION) + " - BETA");
+#endif
+
 	ConsoleDockWidget::getInstance()->clear();
 	ui->actionPlot->setChecked(false);
 	PlotWindow::getInstance()->hide();
@@ -541,14 +562,14 @@ void MainWindow::saveProject(){
 		QFuture<int> future = QtConcurrent::run( ProjectFileIO::getInstance(), &ProjectFileIO::saveProject,project->getProjectFilename()  );
 		m_FutureWatcher->setFuture( future );
 		
-		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save project as " + project->getProjectFilename()).toAscii().data());
+		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + project->getProjectFilename()).toAscii().data());
 	}
 }
 
 void MainWindow::saveProjectAs(){
 	if(WizardDockWidget::getInstance()->checkForPendingChanges()){
 		QString fileName = QFileDialog::getSaveFileName(this,
-			tr("Save Project File as"), project->getProjectFilename().isEmpty() ? Settings::getLastUsedDirectory() : project->getProjectFilename(),tr("Project File (*.xma *.zip)"));
+			tr("Save dataset as"), project->getProjectFilename().isEmpty() ? Settings::getLastUsedDirectory() : project->getProjectFilename(),tr("Dataset (*.xma *.zip)"));
 
 		ConsoleDockWidget::getInstance()->prepareSave();
 
@@ -562,7 +583,7 @@ void MainWindow::saveProjectAs(){
 			QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, fileName);
 			m_FutureWatcher->setFuture( future );
 		
-			ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save project as " + fileName).toAscii().data());
+			ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + fileName).toAscii().data());
 		}
 	}
 }
@@ -604,7 +625,14 @@ void MainWindow::checkTrialImagePaths()
 void MainWindow::saveProjectFinished(){
 	delete m_FutureWatcher;
 	ProgressDialog::getInstance()->closeProgressbar();
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab");
+	
+
+#ifndef BETA
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab V." + PROJECT_VERSION);
+#else 
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab V." + PROJECT_VERSION + " - BETA");
+#endif
+
 }
 
 void MainWindow::redrawGL(){

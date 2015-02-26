@@ -44,7 +44,7 @@ CameraViewWidget::CameraViewWidget(Camera * _camera, QWidget *parent) :
 	calibrationFrame->installEventFilter(this);
 	undistortionFrame->installEventFilter(this);
 
-	activeCameraChanged(State::getInstance()->getActiveCamera());
+	if (camera->getID() == State::getInstance()->getActiveCamera())activeCameraChanged(State::getInstance()->getActiveCamera());
 }
 
 CameraViewWidget::~CameraViewWidget(){

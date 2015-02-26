@@ -162,7 +162,7 @@ void WizardDigitizationFrame::trackSinglePointFinished(){
 	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
 		if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[tmptrackID]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED){
 			MarkerDetection * markerdetection = new MarkerDetection(i, State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), tmptrackID,
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[tmptrackID]->getSize() + 3, true);
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[tmptrackID]->getSize() * 2, true);
 			detectors.push_back(markerdetection);
 			connect(markerdetection, SIGNAL(detectMarker_finished()), this, SLOT(checkIfValid()));
 		}
@@ -236,7 +236,7 @@ void WizardDigitizationFrame::trackAllFinished()
 		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
 			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED){
 				MarkerDetection * markerdetection = new MarkerDetection(i, State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), j,
-					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getSize() + 3, true);
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getSize() * 2, true);
 				detectors.push_back(markerdetection);
 				connect(markerdetection, SIGNAL(detectMarker_finished()), this, SLOT(checkIfValid()));
 			}
@@ -424,6 +424,27 @@ void WizardDigitizationFrame::setDialog()
 		frame->groupBox_All->hide();
 		frame->groupBox_Point->hide();
 		frame->groupBox_RB->hide();
+	}
+}
+
+void WizardDigitizationFrame::stopTracking()
+{
+	uncheckTrackButtons();
+}
+
+void WizardDigitizationFrame::trackSelectedPointToNextFrame()
+{
+	if (frame->pushButton_PointNext->isEnabled())
+	{
+		on_pushButton_PointNext_clicked();
+	}
+}
+
+void WizardDigitizationFrame::trackSelectedPointToPrevFrame()
+{
+	if (frame->pushButton_PointPrev->isEnabled())
+	{
+		on_pushButton_PointPrev_clicked();
 	}
 }
 

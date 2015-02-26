@@ -30,7 +30,8 @@ namespace xma{
 		void draw();
 		bool checkForPendingChanges();
 		void updateDialog();
-
+		void stop();
+	
 	private:
 		Ui::WizardDockWidget *dock;
 		static WizardDockWidget* instance;
@@ -42,7 +43,8 @@ namespace xma{
 
 		public slots:
 		void workspaceChanged(work_state workspace);
-
+		void trackSelectedPointForward();
+		void trackSelectedPointBackward();
 	};
 }
 

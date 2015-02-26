@@ -306,7 +306,7 @@ cv::Point2d UndistortionObject::transformPoint(cv::Point2d pt, bool undistort){
 		pt_out.x = pt.x;
 		pt_out.y = pt.y;
 	}
-
+	 
 	return pt_out;
 }
 
@@ -315,9 +315,9 @@ void UndistortionObject::drawPoints(std::vector <cv::Point2d> &points){
 	glBegin(GL_LINES);
 	for(std::vector <cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it,++it_inlier){		
 		if((*it_inlier)){
-			glColor3f(1.0,0.0,0.0);
+			glColor3f(0.0,0.8,0.0);
 		}else{
-			glColor3f(0.0,1.0,0.0);
+			glColor3f(0.8,0.0,0.0);
 		}
 		glVertex2f((*it).x-2,(*it).y);
 		glVertex2f((*it).x+2,(*it).y);
@@ -328,9 +328,9 @@ void UndistortionObject::drawPoints(std::vector <cv::Point2d> &points){
 	glEnd();
 	if(points.size() > 0){
 		if((points_grid_inlier[0])){
-			glColor3f(1.0,0.0,0.0);
+			glColor3f(0.0,0.8,0.0);
 		}else{
-			glColor3f(0.0,1.0,0.0);
+			glColor3f(0.8,0.0,0.0);
 		}
 		glBegin(GL_LINES);
 		glVertex2f(points[0].x-5,points[0].y);

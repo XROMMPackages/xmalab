@@ -29,6 +29,7 @@ namespace xma{
 		void draw();
 		void setup();
 		void clear();
+		void centerViews();
 
 	private:
 		static DetailViewDockWidget* instance;

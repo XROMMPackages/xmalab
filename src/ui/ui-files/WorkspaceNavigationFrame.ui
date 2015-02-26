@@ -142,7 +142,7 @@
      </item>
      <item>
       <property name="text">
-       <string>Digitization</string>
+       <string>Marker tracking</string>
       </property>
      </item>
     </widget>

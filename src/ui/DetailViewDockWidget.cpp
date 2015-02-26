@@ -73,3 +73,10 @@ void DetailViewDockWidget::clear()
 	}
 	cameraViews.clear();
 }
+
+void DetailViewDockWidget::centerViews()
+{
+	for (int i = 0; i < cameraViews.size(); i++){
+		 cameraViews[i]->centerViews();
+	}
+}

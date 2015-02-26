@@ -70,7 +70,7 @@ void PointsDockWidget::reloadListFromObject(){
 			qtreewidgetitem->setText(1, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[i]->getDescription());
 			//dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints , 0,i));
 			//dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, 3, ); 
-			
+			dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 2, i));
 		}
 
 		//Setup Rigid Body
@@ -87,7 +87,9 @@ void PointsDockWidget::reloadListFromObject(){
 				if (items.size()>0){
 					int ind = dock->treeWidgetPoints->indexOfTopLevelItem(items.at(0));
 					QTreeWidgetItem *qtreewidgetitem2 = dock->treeWidgetPoints->takeTopLevelItem(ind);
+					dock->treeWidgetPoints->removeItemWidget(qtreewidgetitem2, 2);
 					qtreewidgetitem->addChild(qtreewidgetitem2);
+					dock->treeWidgetPoints->setItemWidget(qtreewidgetitem2, 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 2, i));
 				}
 			}
 			if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->isExpanded())dock->treeWidgetPoints->expandItem(qtreewidgetitem);

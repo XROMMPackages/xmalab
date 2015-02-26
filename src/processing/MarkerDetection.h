@@ -38,6 +38,8 @@ namespace xma{
 
 		double x, y;
 		double size;
+		double m_input_size;
+		uchar thresholOffset;
 
 		int off_x;
 		int off_y;

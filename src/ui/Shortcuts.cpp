@@ -6,7 +6,7 @@
 #include "ui/MainWindow.h"
 #include "ui/SequenceNavigationFrame.h"
 #include "ui/PointsDockWidget.h"
-
+#include "ui/WizardDockWidget.h"
 #include <QtGui/QShortcut>
 
 using namespace xma;
@@ -32,6 +32,15 @@ void Shortcuts::bindApplicationShortcuts()
 	shortcut->setContext(Qt::ApplicationShortcut); 
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_Down), PointsDockWidget::getInstance(), SLOT(selectNextPoint()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_Escape), SequenceNavigationFrame::getInstance(), SLOT(on_toolButtonStop_clicked()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_1), WizardDockWidget::getInstance(), SLOT(trackSelectedPointBackward()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_2), WizardDockWidget::getInstance(), SLOT(trackSelectedPointForward()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 }
 

@@ -40,6 +40,12 @@ void CameraViewDetailWidget::draw(){
 	widget->glCameraView->update();
 }
 
+void CameraViewDetailWidget::centerViews()
+{
+	widget->glCameraView->centerViewToPoint();
+	widget->glCameraView->update();
+}
+
 void CameraViewDetailWidget::setMinimumWidthGL(bool set){
 	widget->glCameraView->setMinimumWidthGL(set);
 }
@@ -107,3 +113,4 @@ void CameraViewDetailWidget::activePointChanged(int)
 	widget->glCameraView->centerViewToPoint();
 	widget->glCameraView->update();
 }
+

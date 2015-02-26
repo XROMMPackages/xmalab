@@ -125,7 +125,7 @@ void WorkspaceNavigationFrame::workspaceChanged(work_state workspace){
 	}else if(workspace == CALIBRATION){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration") );
 	}else if (workspace == DIGITIZATION){
-		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Digitization"));
+		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Marker tracking"));
 		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0){
 			int referenceIdx = frame->comboBoxReferenceCalibration->findText(QString::number(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getReferenceCalibrationImage() + 1));
 			if (referenceIdx != -1) {
@@ -193,7 +193,7 @@ void WorkspaceNavigationFrame::on_comboBoxWorkspace_currentIndexChanged(QString 
 				State::getInstance()->changeWorkspace(CALIBRATION);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
 				setTrialVisible(false);
-			}else if (value == "Digitization"){
+			}else if (value == "Marker tracking"){
 				State::getInstance()->changeWorkspace(DIGITIZATION);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
 				if (Project::getInstance()->isCalibrated())
@@ -262,7 +262,7 @@ void WorkspaceNavigationFrame::setWorkState(work_state workspace){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration"));
 		setTrialVisible(false);
 	}else if (workspace == DIGITIZATION){
-		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Digitization"));
+		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Marker tracking"));
 		setTrialVisible(true);
 	}
 }

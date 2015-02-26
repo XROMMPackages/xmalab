@@ -17,6 +17,7 @@
 #include "ui/WizardDockWidget.h"
 #include "ui/ConsoleDockWidget.h"
 #include "ui/GLSharedWidget.h"
+#include "ui/DetailViewDockWidget.h"
 
 #include "core/Camera.h"
 #include "core/UndistortionObject.h"
@@ -168,6 +169,8 @@ void GLCameraView::mousePressEvent(QMouseEvent *e)
 			 {
 				 WizardDockWidget::getInstance()->moveDigitizationPoint(camera->getID(), x, y, detailedView);
 			 }
+
+			 if (!detailedView) DetailViewDockWidget::getInstance()->centerViews();
 
 			 updateGL();
 		 }

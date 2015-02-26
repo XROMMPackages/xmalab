@@ -46,7 +46,7 @@ namespace xma{
 
 		double size;
 		int searchArea;
-		
+		int maxPenalty;
 
 		cv::Mat templ;
 	};

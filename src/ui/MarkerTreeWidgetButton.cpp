@@ -4,6 +4,7 @@
 
 #include "ui/MarkerTreeWidgetButton.h"
 #include "ui/RigidBodyDialog.h"
+#include "ui/MarkerDialog.h"
 #include "ui/State.h"
 #include "ui/MainWindow.h"
 #include "core/Project.h"
@@ -53,20 +54,26 @@ void  MarkerTreeWidgetButton::setButtonIcon()
 			icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_notSet.png"), QSize(), QIcon::Normal, QIcon::Off);
 		}
 	}
+	else if (m_type == 2)
+	{
+		icon.addFile(QString::fromUtf8(":/images/resource-files/icons/settings.gif"), QSize(), QIcon::Normal, QIcon::Off);
+	}
 	settingsButton->setIcon(icon);
 }
 
 void MarkerTreeWidgetButton::settingsButtonClicked()
 {
-	RigidBodyDialog * dialog = new RigidBodyDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[m_idx], MainWindow::getInstance());
+	if (m_type == 1){
+		RigidBodyDialog * dialog = new RigidBodyDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[m_idx], MainWindow::getInstance());
 
-	dialog->exec();
+		dialog->exec();
 
-	if (dialog->result())
-	{
-		
-
+		setButtonIcon();
 	}
+	else if (m_type == 2)
+	{
+		MarkerDialog * dialog = new MarkerDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[m_idx], MainWindow::getInstance());
 
-	setButtonIcon();
+		dialog->exec();
+	}
 }

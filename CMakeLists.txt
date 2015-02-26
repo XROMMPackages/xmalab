@@ -183,6 +183,7 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/Shortcuts.h
 	src/ui/MarkerTreeWidgetButton.h
 	src/ui/RigidBodyDialog.h
+	src/ui/MarkerDialog.h
 	)
 
 SET(XMALab_FORMS_SOURCES
@@ -223,6 +224,7 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/Shortcuts.cpp
 		src/ui/MarkerTreeWidgetButton.cpp
 		src/ui/RigidBodyDialog.cpp
+		src/ui/MarkerDialog.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
@@ -255,6 +257,7 @@ SET(XMALab_FORMS
 		src/ui/ui-files/DetailViewDockWidget.ui
 		src/ui/ui-files/ImportExportPointsDialog.ui
 		src/ui/ui-files/RigidBodyDialog.ui
+		src/ui/ui-files/MarkerDialog.ui
 	)
 
 SOURCE_GROUP(UI_Files FILES ${XMALab_FORMS})
@@ -288,6 +291,7 @@ SET(XMALab_FORMS_MOC
 		${CMAKE_CURRENT_BINARY_DIR}/ui_DetailViewDockWidget.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_ImportExportPointsDialog.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_RigidBodyDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_MarkerDialog.h
 )
 
 SOURCE_GROUP(UI_Generated FILES ${XMALab_FORMS_MOC})

@@ -14,6 +14,8 @@
 #include <QtCore>
 #include <opencv/highgui.h>
 
+//#define WRITEIMAGES 1
+
 using namespace xma;
 
 int MarkerDetection::nbInstances = 0;
@@ -28,6 +30,11 @@ MarkerDetection::MarkerDetection(int camera, int trial, int frame, int marker, d
 	x = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame].x;
 	y = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame].y;
 	m_searchArea = (int)(searcharea + 0.5);
+
+	m_input_size = (Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getSizeOverride() > 0) ? Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getSizeOverride() : 
+		(Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getSize() > 0) ? Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getSize() : 5;
+	
+	thresholOffset = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getThresholdOffset();
 }
 
 MarkerDetection::~MarkerDetection(){
@@ -44,6 +51,7 @@ void MarkerDetection::detectMarker(){
 }
 
 void MarkerDetection::detectMarker_thread(){
+
 	off_x = (int)(x - m_searchArea + 0.5);
 	off_y = (int)(y - m_searchArea + 0.5);
 
@@ -51,13 +59,54 @@ void MarkerDetection::detectMarker_thread(){
 	cv::Mat image;
 	Project::getInstance()->getTrials()[m_trial]->getImage(m_camera)->getSubImage(image, m_searchArea, off_x, off_y);
 
-	//cv::imwrite("Det_original.png", image);
+#ifdef WRITEIMAGES
+	cv::imwrite("Det_original.png", image);
+#endif
+
+	//Convert To float
+	cv::Mat img_float;
+	image.convertTo(img_float, CV_32FC1);
+	
+	//Create Blurred image
+	int radius = 1.3*m_input_size;
+	double sigma = radius * sqrt(2 * log(255)) - 1;
+	cv::Mat blurred;
+	cv::GaussianBlur(img_float, blurred, cv::Size(2 * radius + 1, 2 * radius + 1), sigma);
+
+#ifdef WRITEIMAGES
+	cv::imwrite("Det_blur.png", blurred);
+#endif
+
+	//Substract Background
+	cv::Mat diff = img_float - blurred;
+	cv::normalize(diff, diff,0,255, cv::NORM_MINMAX, -1, cv::Mat());
+	diff.convertTo(image, CV_8UC1);
+
+#ifdef WRITEIMAGES
+	cv::imwrite("Det_diff.png", diff);
+#endif
+
+	//Median
 	cv::medianBlur(image, image, 3);
-	//cv::imwrite("Det_med.png", image);
-	cv::adaptiveThreshold(image, image, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 15, 5);
-	//cv::imwrite("Det_thresh.png", image);
-	cv::medianBlur(image, image, 3);
-	//cv::imwrite("Det_thresh_med.png", image);
+
+#ifdef WRITEIMAGES
+	cv::imwrite("Det_med.png", image);
+#endif
+
+	//Thresholding
+	double minVal;
+	double maxVal;
+	minMaxLoc(image, &minVal, &maxVal);
+	double thres = 0.5 *minVal + 0.5 * image.at<uchar>(m_searchArea, m_searchArea) + thresholOffset * 0.01 * 255;
+	cv::threshold(image, image, thres, 255, cv::THRESH_BINARY_INV);
+	//cv::adaptiveThreshold(image, image, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 15, 10);
+
+	cv::GaussianBlur(image, image, cv::Size(3, 3), 1.3);
+#ifdef WRITEIMAGES
+	fprintf(stderr, "Thres %lf Selected %d\n", thres, image.at<uchar>(m_searchArea, m_searchArea));
+	cv::imwrite("Det_thresh.png", image);
+#endif
+
 	//Find contours
 	cv::vector<cv::vector<cv::Point> > contours;
 	cv::vector<cv::Vec4i> hierarchy;
@@ -89,6 +138,9 @@ void MarkerDetection::detectMarker_thread(){
 		y = circle_center.y;
 		size = circle_radius;
 	}
+#ifdef WRITEIMAGES
+	fprintf(stderr, "Detected %lf %lf\n", x,y);
+#endif
 
 	//clean
 	image.release();

@@ -12,6 +12,8 @@
 #include <QtCore>
 #include <opencv/highgui.h>
 
+//#define WRITEIMAGES 1
+
 using namespace xma;
 
 int MarkerTracking::nbInstances = 0;
@@ -25,6 +27,7 @@ m_camera(camera), m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to)
 	size = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getSize();
 
 	Project::getInstance()->getTrials()[m_trial]->getImage(m_camera)->getSubImage(templ, size + 3, x_from, y_from + 0.5);
+	maxPenalty = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMaxPenalty();
 }
 
 MarkerTracking::~MarkerTracking(){
@@ -45,8 +48,8 @@ void MarkerTracking::trackMarker_thread(){
 	int used_size = size + searchArea + 3;
 
 	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMarkerPrediction(m_camera, m_frame_to, x_to, y_to, m_forward);
-	int off_x = (int)(x_to - searchArea + 0.5);
-	int off_y = (int)(y_to - searchArea + 0.5);
+	int off_x = (int)(x_to - used_size + 0.5);
+	int off_y = (int)(y_to - used_size + 0.5);
 
 	Project::getInstance()->getTrials()[m_trial]->getImage(m_camera)->getSubImage(ROI_to, used_size, off_x, off_y);
 
@@ -58,11 +61,39 @@ void MarkerTracking::trackMarker_thread(){
 	result.create(result_cols, result_rows, CV_32FC1);
 
 	/// Do the Matching and Normalize
-	//cv::medianBlur(templ, templ, 3);
-	//cv::medianBlur(ROI_to, ROI_to, 3);
+
 	matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
+	normalize(result, result, 0, 125, cv::NORM_MINMAX, -1, cv::Mat());
+
+#ifdef WRITEIMAGES
+	cv::imwrite("Tra_Result.png", result);
+#endif
+	cv::Mat springforce;
+	springforce.create(result_cols, result_rows, CV_32FC1);
+	double halfcol = 0.5 * result_cols;
+	double sigma = halfcol * sqrt(2 * log(255)) - 1;
+	for (int i = 0; i < result_cols; i++)
+	{
+		for (int j = 0; j < result_cols; j++)
+		{
+			double val = exp(((halfcol - i) * (halfcol - i)) / (2 * sigma * sigma) +
+				((halfcol - j) * (halfcol - j)) / (2 * sigma * sigma)
+				);
+			springforce.at<float>(i, j) = val;
+		}
+	}
+	normalize(springforce, springforce, 0, maxPenalty, cv::NORM_MINMAX, -1, cv::Mat());
+
+#ifdef WRITEIMAGES
+	cv::imwrite("Tra_Penalty.png", springforce);
+#endif
+
+	result = result - springforce;
 	normalize(result, result, 0, 255, cv::NORM_MINMAX, -1, cv::Mat());
-	//cv::GaussianBlur(result, result, cv::Size(3, 3), 0, 0);
+
+#ifdef WRITEIMAGES
+	cv::imwrite("Tra_PenResult.png", result);
+#endif
 
 	/// Localizing the best match with minMaxLoc
 	double minVal; double maxVal; cv::Point minLoc; cv::Point maxLoc;
@@ -78,30 +109,14 @@ void MarkerTracking::trackMarker_thread(){
 	//else
 	//{
 	matchLoc = maxLoc;
-	//}
-	x_to = matchLoc.x + off_x + size + 2;
-	y_to = matchLoc.y + off_y + size + 2;
-	
-	//cv::imwrite("Tracking_roi.png", ROI_to);
-	//cv::imwrite("Tracking_result.png", result);
-	//cv::imwrite("Tracking_template.png", templ);
-	/*cv::Mat imagetmp; 
-	cv::imwrite("unprocessed.png", ROI_to);
-	cv::GaussianBlur(ROI_to, ROI_to, cv::Size(4 * (int)(size + 0.5) + 1, 4 * (int)(size + 0.5) + 1),0,0);
-	cv::imwrite("blurred.png", ROI_to);
-	cv::Sobel(ROI_to, imagetmp, CV_64F, 0, 1, 2 * (int)(size + 0.5) + 1);
-	cv::Sobel(imagetmp, imagetmp, CV_64F, 1, 0, 2 * (int)(size + 0.5) + 1);
 
-	double minVal2;
-	double maxVal2;
-	cv:: minMaxLoc(imagetmp, &minVal, &maxVal);
+	x_to = matchLoc.x + off_x + size + 3;
+	y_to = matchLoc.y + off_y + size + 3;
 
-	imagetmp -= minVal;
-	cv::convertScaleAbs(imagetmp, imagetmp, 255.0 / (maxVal - minVal));
+#ifdef WRITEIMAGES
+	fprintf(stderr, "Tracked %lf %lf\n", x_to, y_to);
+#endif
 
-	imagetmp.convertTo(ROI_to, CV_8UC1);
-
-	cv::imwrite("processed.png", ROI_to);*/
 
 	ROI_to.release();
 	result.release();

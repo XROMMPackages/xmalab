@@ -7,6 +7,7 @@
 
 #include "ui/State.h"
 #include "ui/ConsoleDockWidget.h"
+#include "ui/WizardDockWidget.h"
 #include "ui/MainWindow.h"
 #include "ui/PlotWindow.h"
 #include "core/Project.h"
@@ -237,6 +238,8 @@ void SequenceNavigationFrame::on_toolButtonStop_clicked(){
 
 	frame->toolButtonPlayBackward->setChecked(false);
 	frame->toolButtonPlay->setChecked(false);
+
+	WizardDockWidget::getInstance()->stop();
 }
 
 void SequenceNavigationFrame::on_toolButtonNext_clicked(){
@@ -261,7 +264,7 @@ void SequenceNavigationFrame::on_toolButtonFrameStart_clicked()
 void SequenceNavigationFrame::on_toolButtonFrameEnd_clicked()
 {
 	bool ok;
-	int idx = QInputDialog::getInt(this, tr("Set end frame"),
+	int idx = QInputDialog::getInt(this, "Set end frame (Max : " + QString::number(maxFrame) + ")",
 		tr("frame "), endFrame, startFrame, maxFrame, 1, &ok);
 	if (ok){
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setEndFrame(idx);

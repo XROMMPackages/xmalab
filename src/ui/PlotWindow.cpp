@@ -214,7 +214,7 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 		if (event->type() == QEvent::KeyPress)
 		{
 			QKeyEvent *_keyEvent = static_cast<QKeyEvent*>(event);
-			if (_keyEvent->key() == Qt::Key_Delete)
+			if (_keyEvent->key() == Qt::Key_Delete || _keyEvent->key() == Qt::Key_Backspace)
 			{
 				deleteData();
 			}
