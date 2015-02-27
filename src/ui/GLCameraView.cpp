@@ -165,6 +165,9 @@ void GLCameraView::mousePressEvent(QMouseEvent *e)
 			 if (e->modifiers().testFlag(Qt::ControlModifier) && !detailedView){
 				 WizardDockWidget::getInstance()->addDigitizationPoint(camera->getID(), x, y);
 			 }
+			 else if (e->modifiers().testFlag(Qt::ShiftModifier)){
+				 WizardDockWidget::getInstance()->selectDigitizationPoint(camera->getID(), x, y);
+			 }
 			 else
 			 {
 				 WizardDockWidget::getInstance()->moveDigitizationPoint(camera->getID(), x, y, detailedView);
@@ -172,7 +175,7 @@ void GLCameraView::mousePressEvent(QMouseEvent *e)
 
 			 if (!detailedView) DetailViewDockWidget::getInstance()->centerViews();
 
-			 updateGL();
+			 WizardDockWidget::getInstance()->updateDialog();
 		 }
 		 updateGL();
 	 }
@@ -353,20 +356,33 @@ void GLCameraView::drawQuad()
 	glEnd();
 }
 
-void GLCameraView::centerViewToPoint()
+void GLCameraView::centerViewToPoint(bool resetZoom)
 {
 	if (detailedView && State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
 			Marker * activeMarker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
 			if (activeMarker != NULL){
-				double x = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].x;
-				double y = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].y;
-				x_offset = -x;
-				y_offset = -y;
+				double x, y;
+				if (activeMarker->getStatus2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()] > 0){
+					double x = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].x;
+					double y = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].y;
+					x_offset = -x;
+					y_offset = -y;
+				}
+				else if (activeMarker->getMarkerPrediction(camera->getID(), State::getInstance()->getActiveFrameTrial(),x,y,true))
+				{
+					x_offset = -x;
+					y_offset = -y;
+				}
+				else if (activeMarker->getMarkerPrediction(camera->getID(), State::getInstance()->getActiveFrameTrial(), x, y, false))
+				{
+					x_offset = -x;
+					y_offset = -y;
+				}
 			}
 		}
-		setZoomRatio(0.2, false);
+		if (resetZoom) setZoomRatio(0.2, false);
 	}
 }
 
@@ -474,7 +490,6 @@ void GLCameraView::paintGL()
 			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodies(this->camera);
 			}
-
 		}
 	}
 	if(State::getInstance()->getActiveCamera() == this->camera->getID()){

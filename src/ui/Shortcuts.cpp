@@ -42,6 +42,18 @@ void Shortcuts::bindApplicationShortcuts()
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_2), WizardDockWidget::getInstance(), SLOT(trackSelectedPointForward()));
 	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_3), WizardDockWidget::getInstance(), SLOT(goToLastTrackedFrame()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_3), WizardDockWidget::getInstance(), SLOT(goToFirstTrackedFrame()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_Q), SequenceNavigationFrame::getInstance(), SLOT(on_toolButtonPrev_clicked()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_W), SequenceNavigationFrame::getInstance(), SLOT(on_toolButtonNext_clicked()));
+	shortcut->setContext(Qt::ApplicationShortcut);
 }
 
 Shortcuts* Shortcuts::getInstance()

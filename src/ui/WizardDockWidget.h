@@ -26,6 +26,7 @@ namespace xma{
 		static WizardDockWidget* getInstance();
 		void addCalibrationReference(double x, double y);
 		void addDigitizationPoint(int camera, double x, double y);
+		void selectDigitizationPoint(int camera, double x, double y);
 		void moveDigitizationPoint(int camera, double x, double y, bool noDetection);
 		void draw();
 		bool checkForPendingChanges();
@@ -45,6 +46,8 @@ namespace xma{
 		void workspaceChanged(work_state workspace);
 		void trackSelectedPointForward();
 		void trackSelectedPointBackward();
+		void goToLastTrackedFrame();
+		void goToFirstTrackedFrame();
 	};
 }
 

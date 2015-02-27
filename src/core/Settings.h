@@ -27,7 +27,12 @@ namespace xma{
 		static QByteArray getUIState(QString windowTitle);
 		static void setShowDetailView(bool value);
 		static bool getShowDetailView();
-
+		static void setShowPlot(bool value);
+		static bool getShowPlot();
+		static void setShow3DView(bool value);
+		static bool getShow3DView();
+		static void setShowConsole(bool value);
+		static bool getShowConsole();
 
 
 		//General

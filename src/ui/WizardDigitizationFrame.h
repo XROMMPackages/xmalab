@@ -18,6 +18,7 @@ namespace xma{
 		WizardDigitizationFrame(QWidget *parent = 0);
 
 		void addDigitizationPoint(int camera, double x, double y);
+		void selectDigitizationPoint(int camera, double x, double y);
 		void moveDigitizationPoint(int camera, double x, double y, bool noDetection);
 
 		void setDialog();
@@ -25,8 +26,8 @@ namespace xma{
 
 		void trackSelectedPointToNextFrame();
 		void trackSelectedPointToPrevFrame();
-
-
+		void goToLastTrackedFrame();
+		void goToFirstTrackedFrame();
 	private:
 		Ui::WizardDigitizationFrame *frame;
 

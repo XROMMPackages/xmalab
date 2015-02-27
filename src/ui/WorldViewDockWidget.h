@@ -20,7 +20,8 @@ namespace xma{
 	private:
 		QGridLayout *layout;
 	protected:
-		void  resizeEvent(QResizeEvent * event) override;
+		void resizeEvent(QResizeEvent * event) override;
+		void closeEvent(QCloseEvent *event) override;
 	};
 }
 

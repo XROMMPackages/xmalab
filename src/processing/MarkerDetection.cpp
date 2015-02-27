@@ -35,6 +35,9 @@ MarkerDetection::MarkerDetection(int camera, int trial, int frame, int marker, d
 		(Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getSize() > 0) ? Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getSize() : 5;
 	
 	thresholOffset = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getThresholdOffset();
+#ifdef WRITEIMAGES
+	fprintf(stderr, "Start Marker Detection : Camera %d Pos %lf %lf Size %lf\n", m_camera, x, y, m_input_size);
+#endif
 }
 
 MarkerDetection::~MarkerDetection(){
@@ -68,7 +71,7 @@ void MarkerDetection::detectMarker_thread(){
 	image.convertTo(img_float, CV_32FC1);
 	
 	//Create Blurred image
-	int radius = 1.3*m_input_size;
+	int radius = (int) (1.5*m_input_size + 0.5);
 	double sigma = radius * sqrt(2 * log(255)) - 1;
 	cv::Mat blurred;
 	cv::GaussianBlur(img_float, blurred, cv::Size(2 * radius + 1, 2 * radius + 1), sigma);
@@ -138,11 +141,18 @@ void MarkerDetection::detectMarker_thread(){
 		y = circle_center.y;
 		size = circle_radius;
 	}
-#ifdef WRITEIMAGES
-	fprintf(stderr, "Detected %lf %lf\n", x,y);
-#endif
+#ifdef WRITEIMAGES	
+	else
+	{
+		fprintf(stderr, "Not found\n");
+	}
 
+	fprintf(stderr, "Stop Marker Detection : Camera %d Pos %lf %lf Size %lf\n", m_camera, x, y, size);
+#endif
 	//clean
+	img_float.release();
+	blurred.release();
+	diff.release();
 	image.release();
 	hierarchy.clear();
 	contours.clear();

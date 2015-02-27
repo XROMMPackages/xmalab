@@ -28,6 +28,8 @@ namespace xma{
 		void clear();
 		void afterLoad();
 		void prepareSave();
+	protected:
+		void closeEvent(QCloseEvent *event) override;
 
 	private:
 		Ui::ConsoleDockWidget *dock;

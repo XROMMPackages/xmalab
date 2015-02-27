@@ -30,6 +30,8 @@ namespace xma{
 		void setup();
 		void clear();
 		void centerViews();
+	protected:
+		void closeEvent(QCloseEvent *event) override;
 
 	private:
 		static DetailViewDockWidget* instance;

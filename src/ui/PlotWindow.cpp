@@ -31,7 +31,8 @@ PlotWindow* PlotWindow::instance = NULL;
 PlotWindow::PlotWindow(QWidget *parent):QDockWidget(parent)
 {
     setWindowTitle(tr("Plot"));
-	
+	setObjectName(QString::fromUtf8("PlotDockWidget"));
+
 	//setup Plot 1
 	plotWidget = new QCustomPlot(this);
 	frameMarker = new QCPItemLine(plotWidget);
@@ -51,7 +52,7 @@ PlotWindow::PlotWindow(QWidget *parent):QDockWidget(parent)
 	plotWidget->axisRect()->setRangeZoom(Qt::Horizontal);
 
 	//Setup DockWidget
-	setFeatures(QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable);
+	setFeatures(QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable | DockWidgetClosable);
 	setAllowedAreas(Qt::AllDockWidgetAreas);
 	setMinimumSize(0,0);
 	setWindowFlags(windowFlags() & ~Qt::WindowStaysOnTopHint);
@@ -852,4 +853,10 @@ void PlotWindow::on_comboBoxMarker2_currentIndexChanged(int idx){
 void PlotWindow::on_pushButton_Reset_clicked()
 {
 	resetRange();
+}
+
+void PlotWindow::closeEvent(QCloseEvent *event)
+{
+	event->ignore();
+	MainWindow::getInstance()->on_actionPlot_triggered(false);
 }

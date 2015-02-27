@@ -12,6 +12,7 @@
 #include "ui/GLSharedWidget.h"
 
 #include <QLabel>
+#include <QCloseEvent>
 
 using namespace xma;
 
@@ -79,4 +80,10 @@ void DetailViewDockWidget::centerViews()
 	for (int i = 0; i < cameraViews.size(); i++){
 		 cameraViews[i]->centerViews();
 	}
+}
+
+void DetailViewDockWidget::closeEvent(QCloseEvent *event)
+{
+	event->ignore();
+	MainWindow::getInstance()->on_actionDetailed_View_triggered(false);
 }

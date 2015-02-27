@@ -73,6 +73,11 @@ void WizardDockWidget::addDigitizationPoint(int camera, double x, double y)
 	digitizationFrame->addDigitizationPoint(camera, x, y);
 }
 
+void WizardDockWidget::selectDigitizationPoint(int camera, double x, double y)
+{
+	digitizationFrame->selectDigitizationPoint(camera, x, y);
+}
+
 void WizardDockWidget::moveDigitizationPoint(int camera, double x, double y, bool noDetection )
 {
 	digitizationFrame->moveDigitizationPoint(camera, x, y, noDetection);
@@ -132,5 +137,21 @@ void WizardDockWidget::trackSelectedPointBackward()
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		digitizationFrame->trackSelectedPointToPrevFrame();
+	}
+}
+
+void WizardDockWidget::goToLastTrackedFrame()
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		digitizationFrame->goToLastTrackedFrame();
+	}
+}
+
+void WizardDockWidget::goToFirstTrackedFrame()
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		digitizationFrame->goToFirstTrackedFrame();
 	}
 }

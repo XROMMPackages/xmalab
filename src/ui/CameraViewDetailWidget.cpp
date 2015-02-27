@@ -90,7 +90,7 @@ void CameraViewDetailWidget::on_horizontalSliderScale_valueChanged(int value)
 
 void CameraViewDetailWidget::workspaceChanged(work_state workspace)
 {
-	widget->glCameraView->centerViewToPoint();
+	widget->glCameraView->centerViewToPoint(true);
 	widget->glCameraView->update();
 }
 
@@ -104,13 +104,13 @@ void CameraViewDetailWidget::activeFrameTrialChanged(int)
 
 void CameraViewDetailWidget::activeTrialChanged(int)
 {
-	widget->glCameraView->centerViewToPoint();
+	widget->glCameraView->centerViewToPoint(true);
 	widget->glCameraView->update();
 }
 
 void CameraViewDetailWidget::activePointChanged(int)
 {
-	widget->glCameraView->centerViewToPoint();
+	widget->glCameraView->centerViewToPoint(true);
 	widget->glCameraView->update();
 }
 

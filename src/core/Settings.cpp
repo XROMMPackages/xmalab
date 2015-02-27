@@ -79,6 +79,37 @@ bool Settings::getShowDetailView()
 	return settings.value("ShowDetailView", true).toBool();
 }
 
+void Settings::setShowPlot(bool value)
+{
+	QSettings settings;
+	settings.setValue("ShowPlot", value);
+}
+bool Settings::getShowPlot()
+{
+	QSettings settings;
+	return settings.value("ShowPlot", false).toBool();
+}
+void Settings::setShow3DView(bool value)
+{
+	QSettings settings;
+	settings.setValue("Show3DView", value);
+}
+bool Settings::getShow3DView()
+{
+	QSettings settings;
+	return settings.value("Show3DView", false).toBool();
+}
+
+void Settings::setShowConsole(bool value){
+	QSettings settings;
+	settings.setValue("Console", value);
+}
+
+bool Settings::getShowConsole(){
+	QSettings settings;
+	return settings.value("Console", false).toBool();
+}
+
 void Settings::setAutoConfirmPendingChanges(bool value){
 	QSettings settings;
 	settings.setValue("AutoConfirmPendingChanges",value);

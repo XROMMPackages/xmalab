@@ -11,6 +11,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QScrollBar>
+#include <QCloseEvent>
 
 using namespace xma;
 
@@ -145,4 +146,11 @@ void ConsoleDockWidget::logTimer()
 		memset(outputBuffer, 0, sizeof(outputBuffer));
 		writeLog(tmp,2);
     }
+}
+
+
+void ConsoleDockWidget::closeEvent(QCloseEvent *event)
+{
+	event->ignore();
+	MainWindow::getInstance()->on_actionConsole_triggered(false);
 }

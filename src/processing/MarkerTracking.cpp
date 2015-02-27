@@ -24,10 +24,13 @@ m_camera(camera), m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to)
 	x_from = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame_from].x;
 	y_from = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame_from].y;
 	searchArea = 30;
-	size = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getSize();
-
+	size = (int) (Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getSize() + 0.5);
+	size = (size < 3) ? 3 : size;
 	Project::getInstance()->getTrials()[m_trial]->getImage(m_camera)->getSubImage(templ, size + 3, x_from, y_from + 0.5);
 	maxPenalty = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMaxPenalty();
+#ifdef WRITEIMAGES
+	fprintf(stderr, "Start Track Marker : Camera %d Pos %lf %lf Size %d\n", camera, x_from, y_from,size);
+#endif
 }
 
 MarkerTracking::~MarkerTracking(){
@@ -48,6 +51,9 @@ void MarkerTracking::trackMarker_thread(){
 	int used_size = size + searchArea + 3;
 
 	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMarkerPrediction(m_camera, m_frame_to, x_to, y_to, m_forward);
+#ifdef WRITEIMAGES
+	fprintf(stderr, "Prediction Track Marker : Camera %d Pos %lf %lf\n", m_camera, x_to, y_to);
+#endif
 	int off_x = (int)(x_to - used_size + 0.5);
 	int off_y = (int)(y_to - used_size + 0.5);
 
@@ -115,6 +121,7 @@ void MarkerTracking::trackMarker_thread(){
 
 #ifdef WRITEIMAGES
 	fprintf(stderr, "Tracked %lf %lf\n", x_to, y_to);
+	fprintf(stderr, "Stop Track Marker : Camera %d Pos %lf %lf\n", m_camera, x_to, y_to);
 #endif
 
 

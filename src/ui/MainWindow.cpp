@@ -49,7 +49,7 @@
 #define OS_SEP "/"
 #endif
 
-#define BETA 1
+//#define BETA 1
 
 using namespace xma;
 
@@ -84,8 +84,17 @@ MainWindow::MainWindow(QWidget *parent) :
 	SequenceNavigationFrame::getInstance()->setVisible(false);
 	ui->imageScrollArea->setVisible(false);
 	ui->startTrialFrame->setVisible(false);
+
 	ui->actionDetailed_View->setChecked(Settings::getShowDetailView());
 	ui->actionDetailed_View->setEnabled(false);
+	
+	ui->actionPlot->setChecked(Settings::getShowPlot());
+	ui->actionPlot->setEnabled(false);
+
+	ui->action3D_world_view->setChecked(Settings::getShow3DView());
+	ui->action3D_world_view->setEnabled(false);
+
+	ui->actionConsole->setChecked(Settings::getShowConsole());
 
 	project = NULL;
 
@@ -103,6 +112,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	PointsDockWidget::getInstance();
 	DetailViewDockWidget::getInstance();
 	PlotWindow::getInstance();
+
 	restoreGeometry(Settings::getUIGeometry("XMALab"));
 	if(Settings::getUIState("XMALab").size()<0 ||
 		!restoreState(Settings::getUIState("XMALab"),UI_VERSION)){
@@ -115,7 +125,13 @@ MainWindow::MainWindow(QWidget *parent) :
 	}
 	
 	WizardDockWidget::getInstance()->hide();
-	ConsoleDockWidget::getInstance()->hide();
+	if (Settings::getShowConsole())
+	{
+		
+	}
+	else{
+		ConsoleDockWidget::getInstance()->hide();
+	}
 	worldViewDockWidget->hide();
 	ProgressDialog::getInstance()->hide();
 	PointsDockWidget::getInstance()->hide();
@@ -680,26 +696,24 @@ UI - SLOTS
 void MainWindow::workspaceChanged(work_state workspace){
 	if (workspace == UNDISTORTION)
 	{
-		PointsDockWidget::getInstance()->hide();
-		ui->actionDetailed_View->setEnabled(false);
-		DetailViewDockWidget::getInstance()->hide();
 		SequenceNavigationFrame::getInstance()->setVisible(false);
 		ui->imageMainFrame->setVisible(true);
 		ui->startTrialFrame->setVisible(false);
 		ui->actionExport2D_Points->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
-		ui->actionPlot->setChecked(false);
-		ui->actionPlot->setEnabled(false);
-		PlotWindow::getInstance()->hide();
 		
+		ui->actionDetailed_View->setEnabled(false);
+		ui->actionPlot->setEnabled(false);
+		ui->action3D_world_view->setEnabled(false);
+
+		PointsDockWidget::getInstance()->hide();
+		DetailViewDockWidget::getInstance()->hide();
+		PlotWindow::getInstance()->hide();
+		worldViewDockWidget->hide();
 	}
 	else if (workspace == CALIBRATION)
 	{
-		
-		PointsDockWidget::getInstance()->hide();
-		ui->actionDetailed_View->setEnabled(false);
-		DetailViewDockWidget::getInstance()->hide();
 		if (project->getNbImagesCalibration() > 1) {
 			SequenceNavigationFrame::getInstance()->setVisible(true);
 		}
@@ -714,7 +728,21 @@ void MainWindow::workspaceChanged(work_state workspace){
 		ui->actionRigidBodyTransformations->setEnabled(false);
 		ui->actionPlot->setChecked(false);
 		ui->actionPlot->setEnabled(false);
+
+		ui->actionDetailed_View->setEnabled(false);
+		ui->actionPlot->setEnabled(false);
+		ui->action3D_world_view->setEnabled(true);
+
+		PointsDockWidget::getInstance()->hide();
+		DetailViewDockWidget::getInstance()->hide();
 		PlotWindow::getInstance()->hide();
+		if (Settings::getShow3DView()) {
+			worldViewDockWidget->show();
+		}
+		else
+		{
+			worldViewDockWidget->hide();
+		}
 	}
 	else if (workspace == DIGITIZATION)
 	{
@@ -728,8 +756,29 @@ void MainWindow::workspaceChanged(work_state workspace){
 			{
 				ui->labelCalibrateFirst->setVisible(false);
 				ui->pushButtonNewTrial->setVisible(true);
-				PointsDockWidget::getInstance()->show();
+
 				ui->actionDetailed_View->setEnabled(true);
+				ui->actionPlot->setEnabled(true);
+				ui->action3D_world_view->setEnabled(true);
+
+				PointsDockWidget::getInstance()->show();
+
+				if (Settings::getShowPlot()){
+					PlotWindow::getInstance()->show();
+				}
+				else
+				{
+					PlotWindow::getInstance()->hide();
+				}
+
+				if (Settings::getShow3DView()){
+					worldViewDockWidget->show();
+				}
+				else
+				{
+					worldViewDockWidget->hide();
+				}
+
 				if (Settings::getShowDetailView()){
 					DetailViewDockWidget::getInstance()->show();
 				}
@@ -737,15 +786,20 @@ void MainWindow::workspaceChanged(work_state workspace){
 				{
 					DetailViewDockWidget::getInstance()->hide();
 				}
-
 			}
 			else
 			{
 				ui->labelCalibrateFirst->setVisible(true);
 				ui->pushButtonNewTrial->setVisible(false);
-				PointsDockWidget::getInstance()->hide();
+
 				ui->actionDetailed_View->setEnabled(false);
+				ui->actionPlot->setEnabled(false);
+				ui->action3D_world_view->setEnabled(false);
+
+				PointsDockWidget::getInstance()->hide();
 				DetailViewDockWidget::getInstance()->hide();
+				PlotWindow::getInstance()->hide();
+				worldViewDockWidget->hide();
 			}
 
 			ui->actionExport2D_Points->setEnabled(true);
@@ -757,9 +811,6 @@ void MainWindow::workspaceChanged(work_state workspace){
 			ui->imageMainFrame->setVisible(false);
 			ui->startTrialFrame->setVisible(true);
 			SequenceNavigationFrame::getInstance()->setVisible(false);
-			PointsDockWidget::getInstance()->hide();
-			ui->actionDetailed_View->setEnabled(false);
-			DetailViewDockWidget::getInstance()->hide();
 			ui->actionPlot->setEnabled(false);
 			if (project->isCalibrated())
 			{
@@ -774,6 +825,15 @@ void MainWindow::workspaceChanged(work_state workspace){
 			ui->actionExport2D_Points->setEnabled(false);
 			ui->actionExport3D_Points->setEnabled(false);
 			ui->actionRigidBodyTransformations->setEnabled(false);
+
+			ui->actionDetailed_View->setEnabled(false);
+			ui->actionPlot->setEnabled(false);
+			ui->actionShow_3D_View->setEnabled(false);
+
+			PointsDockWidget::getInstance()->hide();
+			DetailViewDockWidget::getInstance()->hide();
+			PlotWindow::getInstance()->hide();
+			worldViewDockWidget->hide();
 		}
 	}
 
@@ -949,13 +1009,28 @@ void MainWindow::on_pushButtonNewTrial_clicked()
 }
 
 void MainWindow::on_action3D_world_view_triggered(bool checked){
-	if(checked)worldViewDockWidget->show();
-	else worldViewDockWidget->hide();
+	if (checked){
+		worldViewDockWidget->show();
+		Settings::setShow3DView(true);
+	}
+	else {
+		worldViewDockWidget->hide();
+		Settings::setShow3DView(false);
+		ui->action3D_world_view->setChecked(false);
+	}
 }
 
 void MainWindow::on_actionConsole_triggered(bool checked){
-	if(checked)ConsoleDockWidget::getInstance()->show();
-	else ConsoleDockWidget::getInstance()->hide();
+	if (checked){
+		ConsoleDockWidget::getInstance()->show();
+		Settings::setShowConsole(true);
+	}
+	else
+	{
+		ConsoleDockWidget::getInstance()->hide();
+		ui->actionConsole->setChecked(false);
+		Settings::setShowConsole(false);
+	}
 }
 
 void MainWindow::on_actionDetailed_View_triggered(bool checked){
@@ -964,6 +1039,7 @@ void MainWindow::on_actionDetailed_View_triggered(bool checked){
 		Settings::setShowDetailView(true);
 	}
 	else {
+		ui->actionDetailed_View->setChecked(false);
 		DetailViewDockWidget::getInstance()->hide();
 		Settings::setShowDetailView(false);
 	}
@@ -975,8 +1051,11 @@ void MainWindow::on_actionPlot_triggered(bool checked)
 		PlotWindow::getInstance()->show();
 		PlotWindow::getInstance()->updateMarkers(false);
 		PlotWindow::getInstance()->draw();
+		Settings::setShowPlot(true);
 	}
 	else {
+		ui->actionPlot->setChecked(false);
 		PlotWindow::getInstance()->hide();
+		Settings::setShowPlot(true);
 	}
 }

@@ -44,7 +44,7 @@ namespace xma{
 		double x_to;
 		double y_to;
 
-		double size;
+		int size;
 		int searchArea;
 		int maxPenalty;
 

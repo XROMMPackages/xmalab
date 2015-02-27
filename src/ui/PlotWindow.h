@@ -32,7 +32,8 @@ namespace xma{
 		void plotBackProjectionError(int idx1);
 
 	protected:
-		bool eventFilter(QObject *target, QEvent *event);
+		bool eventFilter(QObject *target, QEvent *event) override;
+		void closeEvent(QCloseEvent *event) override;
 
 	private:
 		PlotWindow(QWidget *parent = 0);

@@ -75,6 +75,30 @@ void WizardDigitizationFrame::addDigitizationPoint(int camera, double x, double 
 	}
 }
 
+void WizardDigitizationFrame::selectDigitizationPoint(int camera, double x, double y)
+{
+	double dist = 20;
+	int idx = -1;
+	for (int i = 0; i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(); i++)
+	{
+		double x1 = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->getPoints2D()[camera][State::getInstance()->getActiveFrameTrial()].x;
+		double y1 = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->getPoints2D()[camera][State::getInstance()->getActiveFrameTrial()].y;
+		double tmpdist = sqrt((x - x1)*(x - x1) + (y - y1)*(y - y1));
+
+		if (tmpdist < dist)
+		{
+			dist = tmpdist;
+			idx = i;
+		}
+	}
+
+	if (idx >= 0)
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setActiveMarkerIdx(idx);
+		MainWindow::getInstance()->redrawGL();
+	}
+}
+
 void WizardDigitizationFrame::moveDigitizationPoint(int camera, double x, double y, bool noDetection)
 {
 	Marker * marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
@@ -89,6 +113,7 @@ void WizardDigitizationFrame::moveDigitizationPoint(int camera, double x, double
 		}
 		else{
 			MainWindow::getInstance()->redrawGL();
+			setDialog();
 		}
 	}
 }
@@ -437,6 +462,48 @@ void WizardDigitizationFrame::trackSelectedPointToNextFrame()
 	if (frame->pushButton_PointNext->isEnabled())
 	{
 		on_pushButton_PointNext_clicked();
+	}
+}
+
+void WizardDigitizationFrame::goToLastTrackedFrame()
+{
+	if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0))
+	{
+		int trackidx = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
+		for (int i = State::getInstance()->getActiveFrameTrial(); i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); i++)
+		{
+			for (int j = 0; j < Project::getInstance()->getCameras().size(); j++){
+				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackidx]->getStatus2D()[j][i] <= 0){
+					if (i - 1 > State::getInstance()->getActiveFrameTrial())
+					{
+						State::getInstance()->changeActiveFrameTrial(i - 1);
+					}
+
+					return;
+				}
+			}
+		}
+	}
+}
+
+void WizardDigitizationFrame::goToFirstTrackedFrame()
+{
+	if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0))
+	{
+		int trackidx = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
+		for (int i = State::getInstance()->getActiveFrameTrial(); i >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i--)
+		{
+			for (int j = 0; j < Project::getInstance()->getCameras().size(); j++){
+				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackidx]->getStatus2D()[j][i] <= 0){
+					if (i + 1 < State::getInstance()->getActiveFrameTrial())
+					{
+						State::getInstance()->changeActiveFrameTrial(i + 1);
+					}
+
+					return;
+				}
+			}
+		}
 	}
 }
 
