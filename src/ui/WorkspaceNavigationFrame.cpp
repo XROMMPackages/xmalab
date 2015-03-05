@@ -6,6 +6,7 @@
 #include "ui_WorkspaceNavigationFrame.h"
 #include "ui/MainWindow.h"
 #include "ui/WizardDockWidget.h"
+#include "ui/TrialDialog.h"
 
 #include "core/Project.h"
 #include "core/Camera.h"
@@ -45,44 +46,6 @@ WorkspaceNavigationFrame* WorkspaceNavigationFrame::getInstance()
 	return instance;
 }
 
-
-
-void WorkspaceNavigationFrame::updateCalibrationReference()
-{
-	updating = true;
-	int idx;
-	if (frame->comboBoxReferenceCalibration->count() > 0){
-		idx = frame->comboBoxReferenceCalibration->currentText().toInt() - 1;
-	}
-	else
-	{
-		idx = -1;
-	}
-	frame->comboBoxReferenceCalibration->clear();
-
-	for (int i = 0; i < Project::getInstance()->getCameras()[0]->getCalibrationImages().size(); i++)
-	{
-		bool calibrated = true;
-		for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
-		{
-			calibrated = calibrated && Project::getInstance()->getCameras()[j]->getCalibrationImages()[i]->isCalibrated();
-		}
-		if (calibrated) frame->comboBoxReferenceCalibration->addItem(QString::number(i + 1));
-	}
-
-	updating = false;
-	if (idx = -1)
-	{
-		if (frame->comboBoxReferenceCalibration->count() > 0){
-			frame->comboBoxReferenceCalibration->setCurrentIndex(0);
-		}
-	}
-	else
-	{
-		frame->comboBoxReferenceCalibration->setCurrentIndex(frame->comboBoxReferenceCalibration->findData(QString::number(idx + 1)));
-	}
-}
-
 void WorkspaceNavigationFrame::setUndistortion(bool hasUndistortion){
 	if(hasUndistortion){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion") );
@@ -110,7 +73,6 @@ void WorkspaceNavigationFrame::closeProject()
 {
 	updating = true;
 	frame->comboBoxTrial->clear();
-	frame->comboBoxReferenceCalibration->clear();
 	setTrialVisible(false);
 	updating = false;
 }
@@ -126,12 +88,6 @@ void WorkspaceNavigationFrame::workspaceChanged(work_state workspace){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration") );
 	}else if (workspace == DIGITIZATION){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Marker tracking"));
-		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0){
-			int referenceIdx = frame->comboBoxReferenceCalibration->findText(QString::number(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getReferenceCalibrationImage() + 1));
-			if (referenceIdx != -1) {
-				frame->comboBoxReferenceCalibration->setCurrentIndex(referenceIdx);
-			}
-		}
 	}
 }
 
@@ -159,10 +115,6 @@ void WorkspaceNavigationFrame::activeTrialChanged(int activeTrial)
 {
 	if (activeTrial >= 0){
 		frame->comboBoxTrial->setCurrentIndex(activeTrial);
-		int referenceIdx = frame->comboBoxReferenceCalibration->findText(QString::number(Project::getInstance()->getTrials()[activeTrial]->getReferenceCalibrationImage() + 1));
-		if (referenceIdx != -1) {
-			frame->comboBoxReferenceCalibration->setCurrentIndex(referenceIdx);
-		}
 	}
 }
 
@@ -171,14 +123,12 @@ void WorkspaceNavigationFrame::setTrialVisible(bool visible){
 		frame->label_Trial->show();
 		frame->toolButtonAddTrial->show();
 		frame->comboBoxTrial->show();
-		frame->comboBoxReferenceCalibration->show();
-		frame->labelReferenceCalibration->show();
+		frame->toolButtonTrialSettings->show();
 	}else{
 		frame->label_Trial->hide();
 		frame->toolButtonAddTrial->hide();
 		frame->comboBoxTrial->hide();
-		frame->comboBoxReferenceCalibration->hide();
-		frame->labelReferenceCalibration->hide();
+		frame->toolButtonTrialSettings->hide();
 	}
 }
 
@@ -239,13 +189,17 @@ void WorkspaceNavigationFrame::on_comboBoxViewspace_currentIndexChanged(QString 
 	}
 }
 
-void WorkspaceNavigationFrame::on_comboBoxReferenceCalibration_currentIndexChanged(QString value)
+void WorkspaceNavigationFrame::on_toolButtonTrialSettings_clicked()
 {
-	if (!updating){
-		int idx = value.toInt() - 1;
-		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0){
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setReferenceCalibrationImage(idx);
-		}
+	if (State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size())
+	{
+		TrialDialog * dialog = new TrialDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
+		dialog->exec();
+
+		if (dialog->result()) 
+			MainWindow::getInstance()->redrawGL();
+
+		delete dialog;
 	}
 }
 

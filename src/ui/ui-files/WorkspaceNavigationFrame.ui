@@ -44,7 +44,7 @@
    <property name="verticalSpacing">
     <number>0</number>
    </property>
-   <item row="0" column="9">
+   <item row="0" column="11">
     <widget class="QLabel" name="label_2">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
@@ -70,7 +70,7 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="10">
+   <item row="0" column="12">
     <widget class="QComboBox" name="comboBoxViewspace">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -106,7 +106,7 @@
      </item>
     </widget>
    </item>
-   <item row="0" column="8">
+   <item row="0" column="10">
     <spacer name="horizontalSpacer">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -183,25 +183,34 @@
      </property>
     </spacer>
    </item>
-   <item row="0" column="5">
+   <item row="0" column="8">
+    <widget class="QToolButton" name="toolButtonTrialSettings">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="../calibrationtool_resources.qrc">
+       <normaloff>:/images/resource-files/icons/settings.gif</normaloff>:/images/resource-files/icons/settings.gif</iconset>
+     </property>
+     <property name="popupMode">
+      <enum>QToolButton::DelayedPopup</enum>
+     </property>
+     <property name="autoRaise">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="7">
     <widget class="QToolButton" name="toolButtonAddTrial">
      <property name="text">
       <string>+</string>
      </property>
     </widget>
    </item>
-   <item row="0" column="6">
-    <widget class="QLabel" name="labelReferenceCalibration">
-     <property name="text">
-      <string>Reference Calibration</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="7">
-    <widget class="QComboBox" name="comboBoxReferenceCalibration"/>
-   </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../calibrationtool_resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

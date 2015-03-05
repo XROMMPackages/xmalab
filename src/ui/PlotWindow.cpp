@@ -10,6 +10,7 @@
 #endif
 
 #include "ui/PlotWindow.h"
+#include "ui_PlotWindow.h"
 #include <QtGui/QComboBox>
 #include <QtGui/QFrame>
 #include <QtGui/QLabel>
@@ -19,6 +20,7 @@
 #include "core/Project.h"
 #include "core/Marker.h"
 #include "core/Camera.h"
+#include "core/RigidBody.h"
 
 #include "ui/State.h"
 #include "ui/MainWindow.h"
@@ -28,135 +30,42 @@ using namespace xma;
 
 PlotWindow* PlotWindow::instance = NULL;
 
-PlotWindow::PlotWindow(QWidget *parent):QDockWidget(parent)
+PlotWindow::PlotWindow(QWidget *parent) :QDockWidget(parent), dock(new Ui::PlotWindow)
 {
-    setWindowTitle(tr("Plot"));
-	setObjectName(QString::fromUtf8("PlotDockWidget"));
+	dock->setupUi(this);
 
 	//setup Plot 1
-	plotWidget = new QCustomPlot(this);
-	frameMarker = new QCPItemLine(plotWidget);
-	plotWidget->addItem(frameMarker);
-	plotWidget->installEventFilter(this);
-	selectionMarker = new QCPItemRect(plotWidget);
-	plotWidget->addItem(selectionMarker);
+	//plotWidget = new QCustomPlot(this);
+	frameMarker = new QCPItemLine(dock->plotWidget);
+	dock->plotWidget->addItem(frameMarker);
+	dock->plotWidget->installEventFilter(this);
+	selectionMarker = new QCPItemRect(dock->plotWidget);
+	dock->plotWidget->addItem(selectionMarker);
 	selectionMarker->setPen(QPen(QColor(255, 255, 0, 50)));
 	selectionMarker->setBrush(QBrush(QColor(255,255,0,150)));
 	startFrame = 0;
 	endFrame = 0;
 
-	plotWidget->setFocusPolicy(Qt::StrongFocus);
-	plotWidget->setInteraction(QCP::iRangeDrag, true);
-	plotWidget->axisRect()->setRangeDrag(Qt::Horizontal);
-	plotWidget->setInteraction(QCP::iRangeZoom, true);
-	plotWidget->axisRect()->setRangeZoom(Qt::Horizontal);
+	dock->plotWidget->setFocusPolicy(Qt::StrongFocus);
+	dock->plotWidget->setInteraction(QCP::iRangeDrag, true);
+	dock->plotWidget->axisRect()->setRangeDrag(Qt::Horizontal);
+	dock->plotWidget->setInteraction(QCP::iRangeZoom, true);
+	dock->plotWidget->axisRect()->setRangeZoom(Qt::Horizontal);
 
 	//Setup DockWidget
-	setFeatures(QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable | DockWidgetClosable);
-	setAllowedAreas(Qt::AllDockWidgetAreas);
-	setMinimumSize(0,0);
 	setWindowFlags(windowFlags() & ~Qt::WindowStaysOnTopHint);
 	this->resize(500,500);
 
-	//create ui-objects
-	frame = new QFrame(this);
-	frame->setObjectName(QString::fromUtf8("frame"));
-    frame->setMinimumSize(QSize(0, 0));
-    frame->setMaximumSize(QSize(16777215, 16777215));
-    frame->setFrameShape(QFrame::StyledPanel);
-    frame->setFrameShadow(QFrame::Raised);
-
-	QSizePolicy sizePolicy1(QSizePolicy::Maximum, QSizePolicy::Preferred);
-	sizePolicy1.setHorizontalStretch(0);
-	sizePolicy1.setVerticalStretch(0);
-
-	labelPlotType = new QLabel(this);
-	labelPlotType->setObjectName(QString::fromUtf8("labelPlotType"));
-	labelPlotType->setMinimumSize(QSize(0, 0));
-	labelPlotType->setMaximumSize(QSize(16777215, 16777215));
-	labelPlotType->setText("Plot type : ");
-	sizePolicy1.setHeightForWidth(labelPlotType->sizePolicy().hasHeightForWidth());
-	labelPlotType->setSizePolicy(sizePolicy1);
-
-	comboBoxPlotType = new QComboBox(this);
-	comboBoxPlotType->setObjectName(QString::fromUtf8("comboBoxPlotType"));
-	comboBoxPlotType->setMinimumSize(QSize(0, 0));
-	comboBoxPlotType->setMaximumSize(QSize(16777215, 16777215));
-	comboBoxPlotType->addItem("2D positions");
-	comboBoxPlotType->addItem("3D positions");
-	comboBoxPlotType->addItem("Marker to Marker distance");
-	comboBoxPlotType->addItem("Backprojection Error");
-
-	labelCamera = new QLabel(this);
-	labelCamera->setObjectName(QString::fromUtf8("labelCamera"));
-	labelCamera->setMinimumSize(QSize(0, 0));
-	labelCamera->setMaximumSize(QSize(16777215, 16777215));
-	labelCamera->setText("Camera : ");
-	sizePolicy1.setHeightForWidth(labelCamera->sizePolicy().hasHeightForWidth());
-	labelCamera->setSizePolicy(sizePolicy1);
-
-	comboBoxCamera = new QComboBox(this);
-	comboBoxCamera->setObjectName(QString::fromUtf8("comboBoxCamera"));
-	comboBoxCamera->setMinimumSize(QSize(0, 0));
-	comboBoxCamera->setMaximumSize(QSize(16777215, 16777215));
-
-	labelMarker1 = new QLabel(this);
-	labelMarker1->setObjectName(QString::fromUtf8("labelMarker1"));
-	labelMarker1->setMinimumSize(QSize(0, 0));
-	labelMarker1->setMaximumSize(QSize(16777215, 16777215));
-	labelMarker1->setText("Marker : ");
-	sizePolicy1.setHeightForWidth(labelMarker1->sizePolicy().hasHeightForWidth());
-	labelMarker1->setSizePolicy(sizePolicy1);
-
-	comboBoxMarker1 = new QComboBox(this);
-	comboBoxMarker1->setObjectName(QString::fromUtf8("comboBoxMarker1"));
-	comboBoxMarker1->setMinimumSize(QSize(0, 0));
-	comboBoxMarker1->setMaximumSize(QSize(16777215, 16777215));
-
-	labelMarker2 = new QLabel(this);
-	labelMarker2->setObjectName(QString::fromUtf8("labelMarker2"));
-	labelMarker2->setMinimumSize(QSize(0, 0));
-	labelMarker2->setMaximumSize(QSize(16777215, 16777215));
-	labelMarker2->setText("Marker : ");
-	sizePolicy1.setHeightForWidth(labelMarker2->sizePolicy().hasHeightForWidth());
-	labelMarker2->setSizePolicy(sizePolicy1);
-
-	comboBoxMarker2 = new QComboBox(this);
-	comboBoxMarker2->setObjectName(QString::fromUtf8("comboBoxMarker2"));
-	comboBoxMarker2->setMinimumSize(QSize(0, 0));
-	comboBoxMarker2->setMaximumSize(QSize(16777215, 16777215));
-
-	pushButton_Reset = new QPushButton(this);
-	pushButton_Reset->setObjectName(QString::fromUtf8("pushButton_Reset"));
-	pushButton_Reset->setMinimumSize(QSize(0, 0));
-	pushButton_Reset->setMaximumSize(QSize(16777215, 16777215));
-	pushButton_Reset->setText("Fit plot");
-
-	//add ui-objects to layout
-	layout = new QGridLayout(frame);
-	layout->addWidget(plotWidget,		0, 0, 1, 9);
-	layout->addWidget(labelPlotType,	1, 0, 1, 1);
-	layout->addWidget(comboBoxPlotType, 1, 1, 1, 1);
-	layout->addWidget(labelCamera,		1, 2, 1, 1);
-	layout->addWidget(comboBoxCamera,	1, 3, 1, 1);
-	layout->addWidget(labelMarker1,		1, 4, 1, 1);
-	layout->addWidget(comboBoxMarker1,	1, 5, 1, 1);
-	layout->addWidget(labelMarker2,		1, 6, 1, 1);
-	layout->addWidget(comboBoxMarker2,	1, 7, 1, 1);
-	layout->addWidget(pushButton_Reset, 1, 8, 1, 1);
-
-	comboBoxPlotType->setCurrentIndex(0);
+	dock->comboBoxPlotType->setCurrentIndex(0);
 	on_comboBoxPlotType_currentIndexChanged(0);
 	plot2D(-1);
 
-	setWidget(frame);
 	updating = false;
 
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(PointsDockWidget::getInstance(), SIGNAL(activePointChanged(int)), this, SLOT(activePointChanged(int)));
-
-	QMetaObject::connectSlotsByName(this);
+	connect(PointsDockWidget::getInstance(), SIGNAL(activeRigidBodyChanged(int)), this, SLOT(activeRigidBodyChanged(int)));
 }
 
 PlotWindow::~PlotWindow(){
@@ -175,42 +84,53 @@ PlotWindow* PlotWindow::getInstance()
 
 void PlotWindow::deleteData()
 {
-	int cam;
+	int cam = -1;
 	int frameStart;
 	int frameEnd;
 	frameStart = (endFrame > startFrame) ? startFrame : endFrame;
 	frameEnd = (endFrame > startFrame) ? endFrame : startFrame;
 	QString cameras;
-	if (comboBoxPlotType->currentIndex() == 0 || comboBoxPlotType->currentIndex() == 3)
+	if (dock->comboBoxPlotType->currentIndex() == 0 || dock->comboBoxPlotType->currentIndex() == 3)
 	{
-		cam = comboBoxCamera->currentIndex() - 1;
-		cameras = comboBoxCamera->currentText();
+		cam = dock->comboBoxCamera->currentIndex() - 1;
+		cameras = dock->comboBoxCamera->currentText();
 	}
-	else if (comboBoxPlotType->currentIndex() == 1 || comboBoxPlotType->currentIndex() == 2)
+	else if (dock->comboBoxPlotType->currentIndex() == 1 || dock->comboBoxPlotType->currentIndex() == 2 || dock->comboBoxPlotType->currentIndex() == 4)
 	{
 		cam = -1;
 		cameras = "All Cameras";
 	}
 	
-	if (comboBoxPlotType->currentIndex() == 0 || comboBoxPlotType->currentIndex() == 1 || comboBoxPlotType->currentIndex() == 3)
+	if (dock->comboBoxPlotType->currentIndex() == 0 || dock->comboBoxPlotType->currentIndex() == 1 || dock->comboBoxPlotType->currentIndex() == 3)
 	{	
-		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete your data for " + cameras + " for Marker " + comboBoxMarker1->currentText() + " from Frame " +
+		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete your data for " + cameras + " for Marker " + dock->comboBoxMarker1->currentText() + " from Frame " +
 			QString::number(frameStart + 1) + " to " + QString::number(frameEnd + 1))) return;
-		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[comboBoxMarker1->currentIndex()]->resetMultipleFrames(cam,frameStart, frameEnd);
+		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd);
 	}
-	else
+	else if (dock->comboBoxPlotType->currentIndex() == 2)
 	{
-		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete your data for " + cameras + " for Marker " + comboBoxMarker1->currentText() + " and Marker " + comboBoxMarker2->currentText() + " from Frame " +
+		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete your data for " + cameras + " for Marker " + dock->comboBoxMarker1->currentText() + " and Marker " + dock->comboBoxMarker2->currentText() + " from Frame " +
 			QString::number(frameStart + 1) + " to " + QString::number(frameEnd + 1))) return;
-		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[comboBoxMarker1->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd);
-		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[comboBoxMarker2->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd);
+		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd);
+		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd);
+	}
+	else if (dock->comboBoxPlotType->currentIndex() == 4)
+	{
+		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete your data for " + cameras + " for all marker of Rigid Body " + dock->comboBoxRigidBody->currentText() + " from Frame " + QString::number(frameStart + 1) + " to " + QString::number(frameEnd + 1))) return;
+		for (int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[dock->comboBoxRigidBody->currentIndex()]->getPointsIdx().size(); i++)
+		{
+			int idx = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[dock->comboBoxRigidBody->currentIndex()]->getPointsIdx()[i];
+			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[idx]->resetMultipleFrames(cam, frameStart, frameEnd);
+		}
+
+		on_pushButtonUpdate_clicked();
 	}
 	MainWindow::getInstance()->redrawGL();
 }
 
 bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 {
-	if (target == plotWidget)
+	if (target == dock->plotWidget)
 	{
 		if (event->type() == QEvent::KeyPress)
 		{
@@ -231,15 +151,22 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 			else if (_mouseEvent->buttons() == Qt::LeftButton)
 			{
 				if (_mouseEvent->modifiers().testFlag(Qt::ShiftModifier)){
-					int x = plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x()) + 0.5;		
+					int x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x()) + 0.5;
+					if (x >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
+						x <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
+						State::getInstance()->changeActiveFrameTrial(x - 1);
+					}
 					startFrame = x - 1;
 					endFrame = x - 1;
-					State::getInstance()->changeActiveFrameTrial(x - 1);
+
 				}
 				else
 				{
-					int x = plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x()) + 0.5;
-					State::getInstance()->changeActiveFrameTrial(x - 1);
+					int x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x()) + 0.5;
+					if (x >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
+						x <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
+						State::getInstance()->changeActiveFrameTrial(x - 1);
+					}
 				}
 			}
 		}
@@ -249,14 +176,20 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 			if (_mouseEvent->buttons() == Qt::LeftButton)
 			{
 				if (_mouseEvent->modifiers().testFlag(Qt::ShiftModifier)){
-					int x = plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x()) + 0.5;
+					int x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x()) + 0.5;
+					if (x >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
+						x <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
+						State::getInstance()->changeActiveFrameTrial(x - 1);
+					}
 					endFrame = x - 1;
-					State::getInstance()->changeActiveFrameTrial(x - 1);			
 				}
 				else
 				{
-					int x = plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x()) + 0.5;
-					State::getInstance()->changeActiveFrameTrial(x - 1);
+					int x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x()) + 0.5;
+					if (x >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
+						x <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
+						State::getInstance()->changeActiveFrameTrial(x - 1);
+					}
 				}
 			}
 		}
@@ -264,13 +197,11 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 	return false;
 }
 
-
-
 void PlotWindow::resetRange()
 {
 	if (State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size()){
-		plotWidget->xAxis->setRange(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
-		if (this->isVisible())plotWidget->replot();
+		dock->plotWidget->xAxis->setRange(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
+		if (this->isVisible())dock->plotWidget->replot();
 	}
 }
 
@@ -278,7 +209,55 @@ void PlotWindow::activeTrialChanged(int activeTrial){
 	if (State::getInstance()->getWorkspace() == DIGITIZATION){
 		if (activeTrial >= 0){
 			updateMarkers(false);
+			if (dock->comboBoxPlotType->currentIndex() == 4)
+			{
+				if (!updating && State::getInstance()->getActiveTrial() >= 0) {
+					activeRigidBodyChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx());
+				}
+			}
+			else{
+				if (!updating && State::getInstance()->getActiveTrial() >= 0) {
+					activePointChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
+				}
+			}
+		}
+	}
+}
 
+void PlotWindow::draw(){
+	if (State::getInstance()->getWorkspace() == DIGITIZATION && this-isVisible()){
+		if (dock->comboBoxPlotType->currentIndex() == 0)
+		{
+			plot2D(dock->comboBoxMarker1->currentIndex());
+		}
+		else if (dock->comboBoxPlotType->currentIndex() == 1)
+		{
+			plot3D(dock->comboBoxMarker1->currentIndex());
+		}
+		else if (dock->comboBoxPlotType->currentIndex() == 2){
+			plotDistance(dock->comboBoxMarker1->currentIndex(), dock->comboBoxMarker2->currentIndex());
+		}
+		else if (dock->comboBoxPlotType->currentIndex() == 3)
+		{
+			plotBackProjectionError(dock->comboBoxMarker1->currentIndex());
+		}
+		else if (dock->comboBoxPlotType->currentIndex() == 4){
+			plotRigidBody(dock->comboBoxRigidBody->currentIndex());
+		}
+	}
+}
+
+void PlotWindow::workspaceChanged(work_state workspace){
+	if (workspace == DIGITIZATION){
+		updateMarkers(false);
+
+		if (dock->comboBoxPlotType->currentIndex() == 4)
+		{
+			if (!updating && State::getInstance()->getActiveTrial() >= 0) {
+				activeRigidBodyChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx());
+			}
+		}
+		else{
 			if (!updating && State::getInstance()->getActiveTrial() >= 0) {
 				activePointChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
 			}
@@ -286,85 +265,83 @@ void PlotWindow::activeTrialChanged(int activeTrial){
 	}
 }
 
-
-
-void PlotWindow::draw(){
-	if (State::getInstance()->getWorkspace() == DIGITIZATION && this-isVisible()){
-		if (comboBoxPlotType->currentIndex() == 0)
-		{
-			plot2D(comboBoxMarker1->currentIndex());
-		}
-		else if (comboBoxPlotType->currentIndex() == 1)
-		{
-			plot3D(comboBoxMarker1->currentIndex());
-		}
-		else if (comboBoxPlotType->currentIndex() == 2){
-			plotDistance(comboBoxMarker1->currentIndex(), comboBoxMarker2->currentIndex());
-		}
-		else if (comboBoxPlotType->currentIndex() == 3)
-		{
-			plotBackProjectionError(comboBoxMarker1->currentIndex());
-		}
-	}
-}
-
-
-void PlotWindow::workspaceChanged(work_state workspace){
-	if (workspace == DIGITIZATION){
-		updateMarkers(false);
-
-		if (!updating && State::getInstance()->getActiveTrial() >= 0) {
-			activePointChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
-		}
-	}
-}
-
 void PlotWindow::activePointChanged(int idx)
 {
-	if (comboBoxPlotType->currentIndex() == 0){
-		updating = true;
-		comboBoxMarker1->setCurrentIndex(idx);
-		updating = false;
-		plot2D(comboBoxMarker1->currentIndex());
-	}else if (comboBoxPlotType->currentIndex() == 1){
-		updating = true;
-		comboBoxMarker1->setCurrentIndex(idx);
-		updating = false;
-		plot3D(comboBoxMarker1->currentIndex());
+	if (idx >= 0){
+		if (dock->comboBoxPlotType->currentIndex() == 0){
+			updating = true;
+			dock->comboBoxMarker1->setCurrentIndex(idx);
+			updating = false;
+			plot2D(dock->comboBoxMarker1->currentIndex());
+		}
+		else if (dock->comboBoxPlotType->currentIndex() == 1){
+			updating = true;
+			dock->comboBoxMarker1->setCurrentIndex(idx);
+			updating = false;
+			plot3D(dock->comboBoxMarker1->currentIndex());
+		}
+		else if (dock->comboBoxPlotType->currentIndex() == 2)
+		{
+			updating = true;
+			dock->comboBoxMarker1->setCurrentIndex(idx);
+			updating = false;
+			plotDistance(dock->comboBoxMarker1->currentIndex(), dock->comboBoxMarker2->currentIndex());
+		}
+		else if (dock->comboBoxPlotType->currentIndex() == 3)
+		{
+			updating = true;
+			dock->comboBoxMarker1->setCurrentIndex(idx);
+			updating = false;
+			plotBackProjectionError(dock->comboBoxMarker1->currentIndex());
+		}
 	}
-	else if (comboBoxPlotType->currentIndex() == 3)
-	{
-		updating = true;
-		comboBoxMarker1->setCurrentIndex(idx);
-		updating = false;
-		plotBackProjectionError(comboBoxMarker1->currentIndex());
+}
+
+void PlotWindow::activeRigidBodyChanged(int idx)
+{
+	if (idx >= 0){
+		if (dock->comboBoxPlotType->currentIndex() == 4)
+		{
+			updating = true;
+			dock->comboBoxRigidBody->setCurrentIndex(idx);
+			updating = false;
+			plotRigidBody(dock->comboBoxRigidBody->currentIndex());
+		}
 	}
 }
 
 void PlotWindow::updateMarkers(bool rememberSelection){
 	if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0){
-		int idx1 = comboBoxMarker1->currentIndex();
-		int idx2 = comboBoxMarker2->currentIndex();
-		int idxCam = comboBoxCamera->currentIndex();
+		int idx1 = dock->comboBoxMarker1->currentIndex();
+		int idx2 = dock->comboBoxMarker2->currentIndex();
+		int idxCam = dock->comboBoxCamera->currentIndex();
+		int idxrb = dock->comboBoxRigidBody->currentIndex();
 
-		comboBoxMarker1->clear();
-		comboBoxMarker2->clear();
+		dock->comboBoxMarker1->clear();
+		dock->comboBoxMarker2->clear();
 		updating = true;
 		for (int i = 0; i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(); i++){
-			comboBoxMarker1->addItem(QString::number(i + 1));
-			comboBoxMarker2->addItem(QString::number(i + 1));
+			dock->comboBoxMarker1->addItem(QString::number(i + 1));
+			dock->comboBoxMarker2->addItem(QString::number(i + 1));
 		}
 
-		comboBoxCamera->clear();
-		comboBoxCamera->addItem("All Cameras");
+		dock->comboBoxCamera->clear();
+		dock->comboBoxCamera->addItem("All Cameras");
 		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
-			comboBoxCamera->addItem(Project::getInstance()->getCameras()[i]->getName());
+			dock->comboBoxCamera->addItem(Project::getInstance()->getCameras()[i]->getName());
 		}
 
 		
-		if (idx1 >= 0 && idx1 < comboBoxMarker1->count()) comboBoxMarker1->setCurrentIndex(idx1);
-		if (idx2 >= 0 && idx2 < comboBoxMarker2->count()) comboBoxMarker2->setCurrentIndex(idx1);
-		if (idxCam >= 0 && idxCam < comboBoxCamera->count()) comboBoxCamera->setCurrentIndex(idxCam);
+		dock->comboBoxRigidBody->clear();
+		updating = true;
+		for (int i = 0; i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size(); i++){
+			dock->comboBoxRigidBody->addItem("RB" + QString::number(i + 1) + " - " + Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getDescription());
+		}
+
+		if (idx1 >= 0 && idx1 < dock->comboBoxMarker1->count()) dock->comboBoxMarker1->setCurrentIndex(idx1);
+		if (idx2 >= 0 && idx2 < dock->comboBoxMarker2->count()) dock->comboBoxMarker2->setCurrentIndex(idx1);
+		if (idxCam >= 0 && idxCam < dock->comboBoxCamera->count()) dock->comboBoxCamera->setCurrentIndex(idxCam);
+		if (idxrb >= 0 && idxrb < dock->comboBoxRigidBody->count()) dock->comboBoxRigidBody->setCurrentIndex(idxrb);
 
 		updating = false;
 	}
@@ -373,27 +350,27 @@ void PlotWindow::updateMarkers(bool rememberSelection){
 void PlotWindow::plot2D(int idx1)
 {
 	if (this->isVisible()){
-		plotWidget->clearGraphs();
+		dock->plotWidget->clearGraphs();
 
 		double max_val_x = 0;
 		double min_val_x = 10000;
 		double max_val_y = 0;
 		double min_val_y = 10000;
 
-		plotWidget->xAxis->setLabel("Frame");
-		plotWidget->yAxis->setLabel("X - Position");
-		plotWidget->yAxis2->setVisible(true);
-		plotWidget->yAxis2->setLabel("Y - Position");
+		dock->plotWidget->xAxis->setLabel("Frame");
+		dock->plotWidget->yAxis->setLabel("X - Position");
+		dock->plotWidget->yAxis2->setVisible(true);
+		dock->plotWidget->yAxis2->setLabel("Y - Position");
 
 		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0 &&
 			idx1 >= 0 && idx1 < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()){
 			
 			for (int cam = 0; cam < Project::getInstance()->getCameras().size(); cam++){
 
-				if (comboBoxCamera->currentIndex() != 0) cam = comboBoxCamera->currentIndex() - 1;
+				if (dock->comboBoxCamera->currentIndex() != 0) cam = dock->comboBoxCamera->currentIndex() - 1;
 				
-				plotWidget->addGraph();
-				plotWidget->addGraph();
+				dock->plotWidget->addGraph();
+				dock->plotWidget->addGraph();
 
 				QVector<double>	pos, x, y;
 
@@ -432,26 +409,26 @@ void PlotWindow::plot2D(int idx1)
 					break;
 				}
 
-				if (comboBoxCamera->currentIndex() != 0) cam = 0;
+				if (dock->comboBoxCamera->currentIndex() != 0) cam = 0;
 				
-				plotWidget->graph(2 * cam + 0)->setData(pos, x);
-				plotWidget->graph(2 * cam + 0)->setLineStyle(QCPGraph::lsNone);
-				plotWidget->graph(2 * cam + 0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, 2));
-				plotWidget->graph(2 * cam + 0)->setPen(QPen(color));
+				dock->plotWidget->graph(2 * cam + 0)->setData(pos, x);
+				dock->plotWidget->graph(2 * cam + 0)->setLineStyle(QCPGraph::lsNone);
+				dock->plotWidget->graph(2 * cam + 0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, 2));
+				dock->plotWidget->graph(2 * cam + 0)->setPen(QPen(color));
 
-				plotWidget->graph(2 * cam + 1)->setData(pos, y);
-				plotWidget->graph(2 * cam + 1)->setLineStyle(QCPGraph::lsNone);
-				plotWidget->graph(2 * cam + 1)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
-				plotWidget->graph(2 * cam + 1)->setPen(QPen(color));
-				plotWidget->graph(2 * cam + 1)->setValueAxis(plotWidget->yAxis2);
+				dock->plotWidget->graph(2 * cam + 1)->setData(pos, y);
+				dock->plotWidget->graph(2 * cam + 1)->setLineStyle(QCPGraph::lsNone);
+				dock->plotWidget->graph(2 * cam + 1)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
+				dock->plotWidget->graph(2 * cam + 1)->setPen(QPen(color));
+				dock->plotWidget->graph(2 * cam + 1)->setValueAxis(dock->plotWidget->yAxis2);
 
-				if (comboBoxCamera->currentIndex() != 0) cam = Project::getInstance()->getCameras().size();
+				if (dock->comboBoxCamera->currentIndex() != 0) cam = Project::getInstance()->getCameras().size();
 			}
 
 			double range = 0.2;
 			double center = (max_val_x + min_val_x) * 0.5;
 			range = (max_val_x - min_val_x) > range ? (max_val_x - min_val_x) : range;
-			plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5);
+			dock->plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5);
 
 			selectionMarker->topLeft->setCoords(startFrame + 1, center + range * 0.5);
 			selectionMarker->bottomRight->setCoords(endFrame + 1, center - range * 0.5);
@@ -461,32 +438,32 @@ void PlotWindow::plot2D(int idx1)
 
 			center = (max_val_y + min_val_y) * 0.5;
 			range = (max_val_y - min_val_y) > range ? (max_val_y - min_val_y) : range;
-			plotWidget->yAxis2->setRange(center - range * 0.5, center + range * 0.5);
+			dock->plotWidget->yAxis2->setRange(center - range * 0.5, center + range * 0.5);
 			
 		}
-		plotWidget->replot();
-		plotWidget->show();
+		dock->plotWidget->replot();
+		dock->plotWidget->show();
 	}
 }
 
 void PlotWindow::plot3D(int idx1)
 {
 	if (this->isVisible()){
-		plotWidget->clearGraphs();
+		dock->plotWidget->clearGraphs();
 
 		double max_val = 0;
 		double min_val = 10000;
 		
-		plotWidget->xAxis->setLabel("Frame");
-		plotWidget->yAxis->setLabel("Position");
-		plotWidget->yAxis2->setVisible(false);
+		dock->plotWidget->xAxis->setLabel("Frame");
+		dock->plotWidget->yAxis->setLabel("Position");
+		dock->plotWidget->yAxis2->setVisible(false);
 
 		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0 &&
 			idx1 >= 0 && idx1 < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()){
 
-			plotWidget->addGraph();
-			plotWidget->addGraph();
-			plotWidget->addGraph();
+			dock->plotWidget->addGraph();
+			dock->plotWidget->addGraph();
+			dock->plotWidget->addGraph();
 
 			QVector<double>	pos, x, y,z;
 
@@ -507,25 +484,25 @@ void PlotWindow::plot3D(int idx1)
 			}
 
 
-			plotWidget->graph(0)->setData(pos, x);
-			plotWidget->graph(0)->setLineStyle(QCPGraph::lsNone);
-			plotWidget->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, 2));
-			plotWidget->graph(0)->setPen(QPen(QColor(Qt::red)));
+			dock->plotWidget->graph(0)->setData(pos, x);
+			dock->plotWidget->graph(0)->setLineStyle(QCPGraph::lsNone);
+			dock->plotWidget->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, 2));
+			dock->plotWidget->graph(0)->setPen(QPen(QColor(Qt::red)));
 
-			plotWidget->graph(1)->setData(pos, y);
-			plotWidget->graph(1)->setLineStyle(QCPGraph::lsNone);
-			plotWidget->graph(1)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
-			plotWidget->graph(1)->setPen(QPen(QColor(Qt::green)));
+			dock->plotWidget->graph(1)->setData(pos, y);
+			dock->plotWidget->graph(1)->setLineStyle(QCPGraph::lsNone);
+			dock->plotWidget->graph(1)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
+			dock->plotWidget->graph(1)->setPen(QPen(QColor(Qt::green)));
 
-			plotWidget->graph(2)->setData(pos, z);
-			plotWidget->graph(2)->setLineStyle(QCPGraph::lsNone);
-			plotWidget->graph(2)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
-			plotWidget->graph(2)->setPen(QPen(QColor(Qt::blue)));
+			dock->plotWidget->graph(2)->setData(pos, z);
+			dock->plotWidget->graph(2)->setLineStyle(QCPGraph::lsNone);
+			dock->plotWidget->graph(2)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
+			dock->plotWidget->graph(2)->setPen(QPen(QColor(Qt::blue)));
 
 			double range = 0.2;
 			double center = (max_val + min_val) * 0.5;
 			range = (max_val - min_val) > range ? (max_val - min_val) : range;
-			plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5);
+			dock->plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5);
 
 			selectionMarker->topLeft->setCoords(startFrame + 1, center + range * 0.5);
 			selectionMarker->bottomRight->setCoords(endFrame + 1, center - range * 0.5);
@@ -533,16 +510,250 @@ void PlotWindow::plot3D(int idx1)
 			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() + 1, center - range * 0.5);
 			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() + 1, center + range * 0.5);
 		}
-		plotWidget->replot();
-		plotWidget->show();
+		dock->plotWidget->replot();
+		dock->plotWidget->show();
+	}
+}
+
+void PlotWindow::plotRigidBody(int idx)
+{
+	if (this->isVisible()){
+		dock->plotWidget->clearGraphs();
+
+		double max_val_trans = 0;
+		double min_val_trans = 10000;
+
+		double max_val_rot = 0;
+		double min_val_rot = 10000;
+
+		dock->plotWidget->xAxis->setLabel("Frame");
+		if (dock->comboBoxRigidBodyTransPart->currentIndex() == 0)
+		{
+			//All
+			dock->plotWidget->yAxis2->setVisible(true);
+			dock->plotWidget->yAxis->setLabel("Translation");
+			dock->plotWidget->yAxis2->setLabel("Rotationangle");
+		}
+		else if (dock->comboBoxRigidBodyTransPart->currentIndex() == 1 ||
+			dock->comboBoxRigidBodyTransPart->currentIndex() == 3 || 
+			dock->comboBoxRigidBodyTransPart->currentIndex() == 4 || 
+			dock->comboBoxRigidBodyTransPart->currentIndex() == 5)
+		{
+			//Angles
+			dock->plotWidget->yAxis2->setVisible(false);
+			dock->plotWidget->yAxis->setLabel("Rotationangle");
+
+		}
+		else if (dock->comboBoxRigidBodyTransPart->currentIndex() == 2 ||
+			dock->comboBoxRigidBodyTransPart->currentIndex() == 6 ||
+			dock->comboBoxRigidBodyTransPart->currentIndex() == 7 ||
+			dock->comboBoxRigidBodyTransPart->currentIndex() == 8)
+		{
+			//Translation
+			dock->plotWidget->yAxis2->setVisible(false);
+			dock->plotWidget->yAxis->setLabel("Translation");
+		}
+
+		
+		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0 &&
+			idx >= 0 && idx < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size()){
+
+			int nbGraphs = 0;
+			if (dock->comboBoxRigidBodyTransPart->currentIndex() == 0)
+			{
+				nbGraphs = 6;
+			}
+			else if (dock->comboBoxRigidBodyTransPart->currentIndex() == 1 ||
+				dock->comboBoxRigidBodyTransPart->currentIndex() == 2 )
+			{
+				nbGraphs = 3; 
+			}
+			else
+			{
+				nbGraphs = 1;
+			}
+
+			if (dock->comboBoxRigidBodyTransType->currentIndex() == 2) nbGraphs *= 2;
+
+			for (int i = 0; i < nbGraphs; i++){
+				dock->plotWidget->addGraph();
+			}
+
+			QVector<double>	pos;
+			QVector<double>	pos_filtered;
+			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
+			{
+				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getPoseComputed()[i] > 0)
+					pos.push_back(i + 1);
+
+				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getPoseFiltered()[i] > 0)
+					pos_filtered.push_back(i + 1);
+			}
+
+			int currentPlot = 0; 
+			//Angles
+			for (int z = 0; z < 3; z++)
+			{
+				if (dock->comboBoxRigidBodyTransPart->currentIndex() == 0 || dock->comboBoxRigidBodyTransPart->currentIndex() == 1
+					|| (dock->comboBoxRigidBodyTransPart->currentIndex() == 3 && z == 0)
+					|| (dock->comboBoxRigidBodyTransPart->currentIndex() == 4 && z == 1)
+					|| (dock->comboBoxRigidBodyTransPart->currentIndex() == 5 && z == 2))
+				{
+					for (int y = 0; y < 2; y++)
+					{
+						bool filtered = (y == 0) ? true : false;
+						if ((dock->comboBoxRigidBodyTransType->currentIndex() == 0 && !filtered) ||
+							(dock->comboBoxRigidBodyTransType->currentIndex() == 1 && filtered) ||
+							(dock->comboBoxRigidBodyTransType->currentIndex() == 2))
+						{
+							QVector<double> val;
+							for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
+							{
+								if ((!filtered && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getPoseComputed()[i] > 0) ||
+									(filtered && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getPoseFiltered()[i] > 0)){
+									val.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getRotationEulerAngle(filtered, i, z));
+								}
+							}
+
+							for (int i = 0; i < val.size(); i++)
+							{
+								if (i > 0 && fabs(val[i - 1] - val[i]) > 270)
+								{
+									if (val[i] < val[i - 1]) {
+										val[i] = 360 + val[i];
+									}
+									else
+									{
+										val[i] = val[i] - 360;
+									}
+								}
+
+								if (val[i] > max_val_rot) max_val_rot = val[i];
+								if (val[i] < min_val_rot) min_val_rot = val[i];
+							}
+							
+							if (filtered) {
+								dock->plotWidget->graph(currentPlot)->setData(pos_filtered, val);
+							}
+							else
+							{
+								dock->plotWidget->graph(currentPlot)->setData(pos, val);
+							}
+							dock->plotWidget->graph(currentPlot)->setLineStyle(QCPGraph::lsNone);
+
+							if (filtered){
+								dock->plotWidget->graph(currentPlot)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, 2));
+							}
+							else
+							{
+								dock->plotWidget->graph(currentPlot)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
+							}
+							dock->plotWidget->graph(currentPlot)->setPen(QPen(Qt::GlobalColor(currentPlot + 7)));
+							currentPlot++;
+						}
+						
+					}
+				}
+			}
+			//Trans
+			for (int z = 0; z < 3; z++)
+			{
+				if (dock->comboBoxRigidBodyTransPart->currentIndex() == 0 || dock->comboBoxRigidBodyTransPart->currentIndex() == 2
+					|| (dock->comboBoxRigidBodyTransPart->currentIndex() == 6 && z == 0)
+					|| (dock->comboBoxRigidBodyTransPart->currentIndex() == 7 && z == 1)
+					|| (dock->comboBoxRigidBodyTransPart->currentIndex() == 8 && z == 2))
+				{
+					for (int y = 0; y < 2; y++)
+					{
+						bool filtered = (y == 0) ? true : false;
+						if ((dock->comboBoxRigidBodyTransType->currentIndex() == 0 && !filtered) ||
+							(dock->comboBoxRigidBodyTransType->currentIndex() == 1 && filtered) ||
+							(dock->comboBoxRigidBodyTransType->currentIndex() == 2))
+						{
+							QVector<double> val;
+							for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
+							{
+								if ((!filtered && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getPoseComputed()[i] > 0)||
+									(filtered && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getPoseFiltered()[i] > 0)){
+									val.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getTranslationVector(filtered)[i][z]);
+									if (val.last() > max_val_trans) max_val_trans = val.last();
+									if (val.last() < min_val_trans) min_val_trans = val.last();
+								}
+							}
+							
+							if (filtered) {
+								dock->plotWidget->graph(currentPlot)->setData(pos_filtered, val);
+							}
+							else
+							{
+								dock->plotWidget->graph(currentPlot)->setData(pos, val);
+							}
+							dock->plotWidget->graph(currentPlot)->setLineStyle(QCPGraph::lsNone);
+
+							if (filtered){
+								dock->plotWidget->graph(currentPlot)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, 2));
+								
+							}
+							else
+							{
+								dock->plotWidget->graph(currentPlot)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
+							}
+							dock->plotWidget->graph(currentPlot)->setPen(QPen(Qt::GlobalColor(currentPlot + 7)));
+							if (dock->comboBoxRigidBodyTransPart->currentIndex() == 0) dock->plotWidget->graph(currentPlot)->setValueAxis(dock->plotWidget->yAxis2);
+							currentPlot++;
+						}
+					}
+				}
+			}
+			double range = 0.00000000001;
+			double center;
+			if (dock->comboBoxRigidBodyTransPart->currentIndex() == 0)
+			{
+				//All
+				center = (max_val_trans + min_val_trans) * 0.5;
+				range = (max_val_trans - min_val_trans) > range ? (max_val_trans - min_val_trans) : range;
+				dock->plotWidget->yAxis2->setRange(center - range * 0.55, center + range * 0.55);
+
+				center = (max_val_rot + min_val_rot) * 0.5;
+				range = (max_val_rot - min_val_rot) > range ? (max_val_rot - min_val_rot) : range;
+				dock->plotWidget->yAxis->setRange(center - range * 0.55, center + range * 0.55);
+			}
+			else if (dock->comboBoxRigidBodyTransPart->currentIndex() == 1 ||
+				dock->comboBoxRigidBodyTransPart->currentIndex() == 3 ||
+				dock->comboBoxRigidBodyTransPart->currentIndex() == 4 ||
+				dock->comboBoxRigidBodyTransPart->currentIndex() == 5)
+			{
+				//Translation
+				center = (max_val_rot + min_val_rot) * 0.5;
+				range = (max_val_rot - min_val_rot) > range ? (max_val_rot - min_val_rot) : range;
+				dock->plotWidget->yAxis->setRange(center - range * 0.55, center + range * 0.55);
+			}
+			else if (dock->comboBoxRigidBodyTransPart->currentIndex() == 2 ||
+				dock->comboBoxRigidBodyTransPart->currentIndex() == 6 ||
+				dock->comboBoxRigidBodyTransPart->currentIndex() == 7 ||
+				dock->comboBoxRigidBodyTransPart->currentIndex() == 8)
+			{
+				//Translation
+				center = (max_val_trans + min_val_trans) * 0.5;
+				range = (max_val_trans - min_val_trans) > range ? (max_val_trans - min_val_trans) : range;
+				dock->plotWidget->yAxis->setRange(center - range * 0.55, center + range * 0.55);
+			}
+
+			selectionMarker->topLeft->setCoords(startFrame + 1, center + range * 0.55);
+			selectionMarker->bottomRight->setCoords(endFrame + 1, center - range * 0.55);
+			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() + 1, center - range * 0.55);
+			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() + 1, center + range * 0.55);
+		}
+		dock->plotWidget->replot();
+		dock->plotWidget->show();
 	}
 }
 
 void PlotWindow::plotDistance(int idx1, int idx2){
 	if (this->isVisible()){
-		plotWidget->clearGraphs();
+		dock->plotWidget->clearGraphs();
 		
-		plotWidget->yAxis2->setVisible(false);
+		dock->plotWidget->yAxis2->setVisible(false);
 
 		double sd = 0;
 		double mean = 0;
@@ -551,7 +762,7 @@ void PlotWindow::plotDistance(int idx1, int idx2){
 				idx1 >= 0 && idx1 < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() &&
 				idx2 >= 0 && idx2 < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()){
 			
-			plotWidget->addGraph();
+			dock->plotWidget->addGraph();
 
 			
 			QVector<double>
@@ -596,11 +807,11 @@ void PlotWindow::plotDistance(int idx1, int idx2){
 			if (countVisible > 0)sd = sd / countVisible;
 
 			// create graph and assign data to it:
-			plotWidget->graph(0)->setData(x, y);
-			plotWidget->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
-			plotWidget->graph(0)->setPen(QPen(QColor(Qt::blue)));
+			dock->plotWidget->graph(0)->setData(x, y);
+			dock->plotWidget->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
+			dock->plotWidget->graph(0)->setPen(QPen(QColor(Qt::blue)));
 
-			plotWidget->addGraph();
+			dock->plotWidget->addGraph();
 			QVector<double>x2,y2;
 			x2.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame());
 			x2.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
@@ -610,16 +821,16 @@ void PlotWindow::plotDistance(int idx1, int idx2){
 			QPen dotPen;
 			dotPen.setColor(Qt::darkGray);
 			dotPen.setStyle(Qt::DashLine);
-			plotWidget->graph(1)->setData(x2, y2);
-			plotWidget->graph(1)->setLineStyle(QCPGraph::lsLine);
-			plotWidget->graph(1)->setPen(dotPen);
+			dock->plotWidget->graph(1)->setData(x2, y2);
+			dock->plotWidget->graph(1)->setLineStyle(QCPGraph::lsLine);
+			dock->plotWidget->graph(1)->setPen(dotPen);
 
 			// set axes ranges, so we see all data:
 			double range = 0.2;
 			double center = (max_val + min_val) * 0.5;
 			range = (max_val - min_val) > range ? (max_val - min_val) : range;
 
-			plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5);
+			dock->plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5);
 
 			selectionMarker->topLeft->setCoords(startFrame + 1, center + range * 0.5);
 			selectionMarker->bottomRight->setCoords(endFrame + 1, center - range * 0.5);
@@ -628,19 +839,18 @@ void PlotWindow::plotDistance(int idx1, int idx2){
 			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() + 1, center + range * 0.5);
 		}
 		
-		plotWidget->xAxis->setLabel("Frame - " + QString::number(mean) + " +/- " + QString::number(sd));
-		plotWidget->yAxis->setLabel("Distance Marker " + QString::number(idx1 + 1) + " to Marker " + QString::number(idx2 + 1));
+		dock->plotWidget->xAxis->setLabel("Frame - " + QString::number(mean) + " +/- " + QString::number(sd));
+		dock->plotWidget->yAxis->setLabel("Distance Marker " + QString::number(idx1 + 1) + " to Marker " + QString::number(idx2 + 1));
 
-		plotWidget->replot();
-		plotWidget->show();
+		dock->plotWidget->replot();
+		dock->plotWidget->show();
 	}
 }
 
 void PlotWindow::plotBackProjectionError(int idx1)
 {
-
 	if (this->isVisible()){
-		plotWidget->clearGraphs();
+		dock->plotWidget->clearGraphs();
 
 		double max_val = 0;
 		double min_val = 10000;
@@ -648,16 +858,16 @@ void PlotWindow::plotBackProjectionError(int idx1)
 		double sd = 0;
 		double mean = 0;
 
-		plotWidget->yAxis->setLabel("Error in pixel");
-		plotWidget->yAxis2->setVisible(false);
+		dock->plotWidget->yAxis->setLabel("Error in pixel");
+		dock->plotWidget->yAxis2->setVisible(false);
 
 		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0 &&
 			idx1 >= 0 && idx1 < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()){
 
-			plotWidget->addGraph();
+			dock->plotWidget->addGraph();
 			QVector<double>	pos, error;
 
-			if (comboBoxCamera->currentIndex() == 0)
+			if (dock->comboBoxCamera->currentIndex() == 0)
 			{
 				for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
 				{
@@ -688,7 +898,7 @@ void PlotWindow::plotBackProjectionError(int idx1)
 			}
 			else
 			{
-				int cam = comboBoxCamera->currentIndex() - 1;
+				int cam = dock->comboBoxCamera->currentIndex() - 1;
 				for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
 				{
 					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus2D()[cam][i] > UNDEFINED &&
@@ -725,14 +935,14 @@ void PlotWindow::plotBackProjectionError(int idx1)
 
 			if (countVisible > 0)sd = sd / countVisible;
 
-			plotWidget->graph(0)->setData(pos, error);
-			plotWidget->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
-			plotWidget->graph(0)->setPen(QPen(QColor(Qt::blue)));
+			dock->plotWidget->graph(0)->setData(pos, error);
+			dock->plotWidget->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
+			dock->plotWidget->graph(0)->setPen(QPen(QColor(Qt::blue)));
 
 			double range = 0.2;
 			range = (max_val) > range ? (max_val * 1.1) : range;
 
-			plotWidget->yAxis->setRange(-0.5, range);
+			dock->plotWidget->yAxis->setRange(-0.5, range);
 
 			selectionMarker->topLeft->setCoords(startFrame + 1, range);
 			selectionMarker->bottomRight->setCoords(endFrame + 1, -0.5);
@@ -741,23 +951,23 @@ void PlotWindow::plotBackProjectionError(int idx1)
 			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() + 1, range);
 		}
 
-		plotWidget->xAxis->setLabel("Frame - " + QString::number(mean) + " +/- " + QString::number(sd));
+		dock->plotWidget->xAxis->setLabel("Frame - " + QString::number(mean) + " +/- " + QString::number(sd));
 
-		plotWidget->replot();
-		plotWidget->show();
+		dock->plotWidget->replot();
+		dock->plotWidget->show();
 	}
 }
 
 void PlotWindow::on_comboBoxCamera_currentIndexChanged(int idx)
 {
 	if (!updating){
-		if (comboBoxPlotType->currentIndex() == 0)
+		if (dock->comboBoxPlotType->currentIndex() == 0)
 		{
-			plot2D(comboBoxMarker1->currentIndex());
+			plot2D(dock->comboBoxMarker1->currentIndex());
 		}
-		else if (comboBoxPlotType->currentIndex() == 3)
+		else if (dock->comboBoxPlotType->currentIndex() == 3)
 		{
-			plotBackProjectionError(comboBoxMarker1->currentIndex());
+			plotBackProjectionError(dock->comboBoxMarker1->currentIndex());
 		}
 	}
 }
@@ -766,87 +976,110 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 {
 	if (idx == 0)
 	{
-		labelCamera->show();
-		comboBoxCamera->show();
+		dock->labelCamera->show();
+		dock->comboBoxCamera->show();
 
-		labelMarker1->show();
-		comboBoxMarker1->show();
+		dock->labelMarker1->show();
+		dock->comboBoxMarker1->show();
 
-		labelMarker2->hide();
-		comboBoxMarker2->hide();
+		dock->labelMarker2->hide();
+		dock->comboBoxMarker2->hide();
+
+		dock->frameMarkerPlot->show();
+		dock->frameRigidBodyPlot->hide(); 
 
 		if (!updating && State::getInstance()->getActiveTrial() >= 0) {
 			activePointChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
 		}
 	}
 	else if (idx == 1){
-		labelCamera->hide();
-		comboBoxCamera->hide();
+		dock->labelCamera->hide();
+		dock->comboBoxCamera->hide();
 
-		labelMarker1->show();
-		comboBoxMarker1->show();
+		dock->labelMarker1->show();
+		dock->comboBoxMarker1->show();
 
-		labelMarker2->hide();
-		comboBoxMarker2->hide();
+		dock->labelMarker2->hide();
+		dock->comboBoxMarker2->hide();
+
+		dock->frameMarkerPlot->show();
+		dock->frameRigidBodyPlot->hide();
 
 		if (!updating && State::getInstance()->getActiveTrial() >= 0) {
 			activePointChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
 		}
 	}
 	else if (idx == 2){
-		labelCamera->hide();
-		comboBoxCamera->hide();
+		dock->labelCamera->hide();
+		dock->comboBoxCamera->hide();
 
-		labelMarker1->show();
-		comboBoxMarker1->show();
+		dock->labelMarker1->show();
+		dock->comboBoxMarker1->show();
 
-		labelMarker2->show();
-		comboBoxMarker2->show();
-		if (!updating) plotDistance(comboBoxMarker1->currentIndex(), comboBoxMarker2->currentIndex());
-	}
-	else if (idx == 3)
-	{
-		labelCamera->show();
-		comboBoxCamera->show();
+		dock->labelMarker2->show();
+		dock->comboBoxMarker2->show();
 
-		labelMarker1->show();
-		comboBoxMarker1->show();
-
-		labelMarker2->hide();
-		comboBoxMarker2->hide();
+		dock->frameMarkerPlot->show();
+		dock->frameRigidBodyPlot->hide();
 
 		if (!updating && State::getInstance()->getActiveTrial() >= 0) {
 			activePointChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
 		}
 	}
+	else if (idx == 3)
+	{
+		dock->labelCamera->show();
+		dock->comboBoxCamera->show();
+
+		dock->labelMarker1->show();
+		dock->comboBoxMarker1->show();
+
+		dock->labelMarker2->hide();
+		dock->comboBoxMarker2->hide();
+
+		dock->frameMarkerPlot->show();
+		dock->frameRigidBodyPlot->hide();
+
+		if (!updating && State::getInstance()->getActiveTrial() >= 0) {
+			activePointChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
+		}
+	}
+	else if (idx == 4)
+	{
+		dock->frameMarkerPlot->hide();
+		dock->frameRigidBodyPlot->show();
+
+		on_pushButtonUpdate_clicked();
+	}
 }
 
 void PlotWindow::on_comboBoxMarker1_currentIndexChanged(int idx){
 	if (!updating){
-		if (comboBoxPlotType->currentIndex() == 0)
+		if (dock->comboBoxPlotType->currentIndex() == 0)
 		{
 			PointsDockWidget::getInstance()->selectPoint(idx + 1);
-			plot2D(comboBoxMarker1->currentIndex());
+			plot2D(dock->comboBoxMarker1->currentIndex());
 		}
-		else if (comboBoxPlotType->currentIndex() == 1)
+		else if (dock->comboBoxPlotType->currentIndex() == 1)
 		{
 			PointsDockWidget::getInstance()->selectPoint(idx + 1);
-			plot3D(comboBoxMarker1->currentIndex());
+			plot3D(dock->comboBoxMarker1->currentIndex());
 		}
-		else if (comboBoxPlotType->currentIndex() == 2){
-			plotDistance(comboBoxMarker1->currentIndex(), comboBoxMarker2->currentIndex());
+		else if (dock->comboBoxPlotType->currentIndex() == 2){
+			PointsDockWidget::getInstance()->selectPoint(idx + 1);
+			plotDistance(dock->comboBoxMarker1->currentIndex(), dock->comboBoxMarker2->currentIndex());
 		}
-		else if (comboBoxPlotType->currentIndex() == 3)
+		else if (dock->comboBoxPlotType->currentIndex() == 3)
 		{
 			PointsDockWidget::getInstance()->selectPoint(idx + 1);
-			plotBackProjectionError(comboBoxMarker1->currentIndex());
+			plotBackProjectionError(dock->comboBoxMarker1->currentIndex());
 		}
 	}
 }
 
 void PlotWindow::on_comboBoxMarker2_currentIndexChanged(int idx){
-	if (comboBoxPlotType->currentIndex() == 2){
-		if (!updating)plotDistance(comboBoxMarker1->currentIndex(), comboBoxMarker2->currentIndex());
+	if (dock->comboBoxPlotType->currentIndex() == 2){
+		if (!updating)plotDistance(dock->comboBoxMarker1->currentIndex(), dock->comboBoxMarker2->currentIndex());
 	}
 }
 
@@ -859,4 +1092,30 @@ void PlotWindow::closeEvent(QCloseEvent *event)
 {
 	event->ignore();
 	MainWindow::getInstance()->on_actionPlot_triggered(false);
+}
+
+void PlotWindow::on_pushButtonUpdate_clicked()
+{
+	if(State::getInstance()->getActiveTrial() >= 0) {
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->recomputeAndFilterRigidBodyTransformations();
+	}
+	plotRigidBody(dock->comboBoxRigidBody->currentIndex());
+}
+
+void PlotWindow::on_comboBoxRigidBody_currentIndexChanged(int idx)
+{
+	if (!updating){
+		PointsDockWidget::getInstance()->selectBody(idx + 1);
+		plotRigidBody(dock->comboBoxRigidBody->currentIndex());
+	}
+}
+
+void PlotWindow::on_comboBoxRigidBodyTransPart_currentIndexChanged(int idx)
+{
+	plotRigidBody(dock->comboBoxRigidBody->currentIndex());
+}
+
+void PlotWindow::on_comboBoxRigidBodyTransType_currentIndexChanged(int idx)
+{
+	plotRigidBody(dock->comboBoxRigidBody->currentIndex());
 }

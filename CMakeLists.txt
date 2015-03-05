@@ -40,11 +40,11 @@ set(QT_USE_QTOPENGL TRUE)
 INCLUDE(${QT_USE_FILE})
 SET(CMAKE_AUTOMOC ON)
 
-set(PROJECT_BUILD_TIME "02/27/2015")
+set(PROJECT_BUILD_TIME "03/05/2015")
 set(PROJECT_VERSION_MAJOR "1")
-set(PROJECT_VERSION_MINOR "1")
-set(PROJECT_VERSION_PATCH "7")
-set(PROJECT_VERSION_COUNT 8)
+set(PROJECT_VERSION_MINOR "2")
+set(PROJECT_VERSION_PATCH "0")
+set(PROJECT_VERSION_COUNT 9)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 set(PROJECT_VENDOR "Brown University")
 set(PROJECT_COPYRIGHT_YEAR "2014")
@@ -122,6 +122,7 @@ SET(Processing_HEADERS
 	src/processing/Calibration.h
 	src/processing/MarkerDetection.h
 	src/processing/MarkerTracking.h
+	src/processing/ButterworthLowPassFilter.h
 )
 
 SET(Processing_SOURCES
@@ -131,6 +132,7 @@ SET(Processing_SOURCES
 	src/processing/Calibration.cpp
 	src/processing/MarkerDetection.cpp
 	src/processing/MarkerTracking.cpp
+	src/processing/ButterworthLowPassFilter.cpp
 )
 
 SOURCE_GROUP(_PROCESSING FILES ${Processing_HEADERS} ${Processing_SOURCES})
@@ -184,6 +186,7 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/MarkerTreeWidgetButton.h
 	src/ui/RigidBodyDialog.h
 	src/ui/MarkerDialog.h
+	src/ui/TrialDialog.h
 	)
 
 SET(XMALab_FORMS_SOURCES
@@ -225,6 +228,7 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/MarkerTreeWidgetButton.cpp
 		src/ui/RigidBodyDialog.cpp
 		src/ui/MarkerDialog.cpp
+		src/ui/TrialDialog.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
@@ -258,6 +262,8 @@ SET(XMALab_FORMS
 		src/ui/ui-files/ImportExportPointsDialog.ui
 		src/ui/ui-files/RigidBodyDialog.ui
 		src/ui/ui-files/MarkerDialog.ui
+		src/ui/ui-files/TrialDialog.ui
+		src/ui/ui-files/PlotWindow.ui
 	)
 
 SOURCE_GROUP(UI_Files FILES ${XMALab_FORMS})
@@ -292,6 +298,8 @@ SET(XMALab_FORMS_MOC
 		${CMAKE_CURRENT_BINARY_DIR}/ui_ImportExportPointsDialog.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_RigidBodyDialog.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_MarkerDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_TrialDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_PlotWindow.h
 )
 
 SOURCE_GROUP(UI_Generated FILES ${XMALab_FORMS_MOC})

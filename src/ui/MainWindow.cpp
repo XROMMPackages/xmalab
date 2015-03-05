@@ -152,9 +152,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	Shortcuts::getInstance()->bindApplicationShortcuts();
 #ifndef BETA
-	this->setWindowTitle("XMALab V." + QString(PROJECT_VERSION));
+	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
 #else 
-	this->setWindowTitle("XMALab V." + QString(PROJECT_VERSION) + " - BETA");
+	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA");
 #endif
 }
 
@@ -423,9 +423,9 @@ void MainWindow::newProjectFromXMALab(QString filename){
 	}
 
 #ifndef BETA
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab V." + PROJECT_VERSION);
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
 #else 
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab V." + PROJECT_VERSION + " - BETA");
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA");
 #endif
 	
 }
@@ -485,9 +485,9 @@ void MainWindow::loadProjectFinished(){
 		}
 
 #ifndef BETA
-		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab V." + PROJECT_VERSION);
+		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
 #else 
-		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab V." + PROJECT_VERSION " - BETA");
+		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION " - BETA");
 #endif
 	}
 	else if (m_FutureWatcher->result() == 1)
@@ -559,9 +559,9 @@ void MainWindow::closeProject(){
     DetailViewDockWidget::getInstance()->hide();
 
 #ifndef BETA
-	this->setWindowTitle("XMALab V." + QString(PROJECT_VERSION));
+	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
 #else 
-	this->setWindowTitle("XMALab V." + QString(PROJECT_VERSION) + " - BETA");
+	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA");
 #endif
 
 	ConsoleDockWidget::getInstance()->clear();
@@ -644,9 +644,9 @@ void MainWindow::saveProjectFinished(){
 	
 
 #ifndef BETA
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab V." + PROJECT_VERSION);
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
 #else 
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab V." + PROJECT_VERSION + " - BETA");
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA");
 #endif
 
 }
@@ -702,7 +702,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		ui->actionExport2D_Points->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
-		
+		ui->actionFiltered_RigidBody_Transformations->setEnabled(false);
 		ui->actionDetailed_View->setEnabled(false);
 		ui->actionPlot->setEnabled(false);
 		ui->action3D_world_view->setEnabled(false);
@@ -726,6 +726,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		ui->actionExport2D_Points->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
+		ui->actionFiltered_RigidBody_Transformations->setEnabled(false);
 		ui->actionPlot->setChecked(false);
 		ui->actionPlot->setEnabled(false);
 
@@ -805,6 +806,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 			ui->actionExport2D_Points->setEnabled(true);
 			ui->actionExport3D_Points->setEnabled(true);
 			ui->actionRigidBodyTransformations->setEnabled(true);
+			ui->actionFiltered_RigidBody_Transformations->setEnabled(true);
 		}
 		else
 		{
@@ -825,6 +827,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 			ui->actionExport2D_Points->setEnabled(false);
 			ui->actionExport3D_Points->setEnabled(false);
 			ui->actionRigidBodyTransformations->setEnabled(false);
+			ui->actionFiltered_RigidBody_Transformations->setEnabled(false);
 
 			ui->actionDetailed_View->setEnabled(false);
 			ui->actionPlot->setEnabled(false);
@@ -971,6 +974,18 @@ void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 	if (outputPath.isNull() == false)
 	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(outputPath + OS_SEP);
+		Settings::setLastUsedDirectory(outputPath, true);
+	}
+}
+
+void MainWindow::on_actionFiltered_RigidBody_Transformations_triggered(bool checked)
+{
+	QString outputPath = QFileDialog::getExistingDirectory(this,
+		tr("Save to Directory "), Settings::getLastUsedDirectory());
+
+	if (outputPath.isNull() == false)
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformationsFiltered(outputPath + OS_SEP);
 		Settings::setLastUsedDirectory(outputPath, true);
 	}
 }

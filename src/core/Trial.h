@@ -45,6 +45,13 @@ namespace xma{
 		QString getActiveFilename(int camera);
 		int getReferenceCalibrationImage();
 		void setReferenceCalibrationImage(int value);
+		double getRecordingSpeed();
+		void setRecordingSpeed(double value);
+		double getCutOffFrequency();
+		void setCutOffFrequency(double value);
+		int getInterpolateMissingFrames();
+		void setInterpolateMissingFrames(int value);
+
 
 		int getNbImages();
 		QString getName();
@@ -66,12 +73,13 @@ namespace xma{
 		void saveRigidBodies(QString filename);
 
 		void update();
-		void changeImagePath(int camera, QString newfolder, QString oldfolder);
+		void changeImagePath(int camera, QString newfoldeFr, QString oldfolder);
 
 		void save3dPoints(QString outputfolder);
 		void save2dPoints(QString outputfolder);
 		void saveRigidBodyTransformations(QString outputfolder);
-
+		void saveRigidBodyTransformationsFiltered(QString outputfolder);
+		void recomputeAndFilterRigidBodyTransformations();
 		void resetRigidBodyByMarker(Marker * marker, int frame);
 
 	private:
@@ -83,7 +91,11 @@ namespace xma{
 		int activeBodyIdx;
 
 		int nbImages;
+
 		int referenceCalibrationImage;
+		double recordingSpeed;
+		double cutOffFrequency;
+		int interpolateMissingFrames;
 
 		int startFrame;
 		int endFrame;

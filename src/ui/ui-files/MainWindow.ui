@@ -318,6 +318,7 @@
      <addaction name="actionExport3D_Points"/>
      <addaction name="actionExport2D_Points"/>
      <addaction name="actionRigidBodyTransformations"/>
+     <addaction name="actionFiltered_RigidBody_Transformations"/>
     </widget>
     <addaction name="actionNew_Project"/>
     <addaction name="actionLoad_Project"/>
@@ -768,7 +769,12 @@
   </action>
   <action name="actionRigidBodyTransformations">
    <property name="text">
-    <string>RigidBodyTransformations</string>
+    <string>Unfiltered RigidBodyTransformations</string>
+   </property>
+  </action>
+  <action name="actionFiltered_RigidBody_Transformations">
+   <property name="text">
+    <string>Filtered RigidBody Transformations</string>
    </property>
   </action>
  </widget>

@@ -401,6 +401,10 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 				xmlWriter.writeAttribute("startFrame", QString::number(Project::getInstance()->getTrials()[i]->getStartFrame()));
 				xmlWriter.writeAttribute("endFrame", QString::number(Project::getInstance()->getTrials()[i]->getEndFrame()));
 				xmlWriter.writeAttribute("referenceCalibration", QString::number(Project::getInstance()->getTrials()[i]->getReferenceCalibrationImage()));
+				xmlWriter.writeAttribute("recordingSpeed", QString::number(Project::getInstance()->getTrials()[i]->getRecordingSpeed()));
+				xmlWriter.writeAttribute("cutOffFrequency", QString::number(Project::getInstance()->getTrials()[i]->getCutOffFrequency()));
+				xmlWriter.writeAttribute("interpolateMissingFrames", QString::number(Project::getInstance()->getTrials()[i]->getInterpolateMissingFrames()));
+			
 				for (int k = 0; k < Project::getInstance()->getTrials()[i]->getMarkers().size(); k++){
 					xmlWriter.writeStartElement("Marker");
 					xmlWriter.writeAttribute("Description", Project::getInstance()->getTrials()[i]->getMarkers()[k]->getDescription());
@@ -617,6 +621,15 @@ bool ProjectFileIO::readProjectFile(QString filename){
 							trial->setEndFrame(endFrame);
 							int referenceCalibration = attr.value("referenceCalibration").toString().toInt();
 							trial->setReferenceCalibrationImage(referenceCalibration);
+
+							QString recordingSpeed = attr.value("recordingSpeed").toString();
+							if (!recordingSpeed.isEmpty())trial->setRecordingSpeed(recordingSpeed.toDouble());
+
+							QString cutOffFrequency = attr.value("cutOffFrequency").toString();
+							if (!cutOffFrequency.isEmpty())trial->setCutOffFrequency(cutOffFrequency.toDouble());
+
+							QString interpolateMissingFrames = attr.value("interpolateMissingFrames").toString();
+							if (!interpolateMissingFrames.isEmpty())trial->setInterpolateMissingFrames(interpolateMissingFrames.toInt());
 
 							trial->loadMarkers(trialfolder + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
 							trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");

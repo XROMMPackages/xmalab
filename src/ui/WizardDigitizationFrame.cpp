@@ -94,7 +94,7 @@ void WizardDigitizationFrame::selectDigitizationPoint(int camera, double x, doub
 
 	if (idx >= 0)
 	{
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setActiveMarkerIdx(idx);
+		PointsDockWidget::getInstance()->selectPoint(idx + 1);
 		MainWindow::getInstance()->redrawGL();
 	}
 }
@@ -378,7 +378,6 @@ void WizardDigitizationFrame::setDialog()
 {
 	if (Project::getInstance()->isCalibrated())
 	{
-		frame->pushButton->setVisible(true);
 		if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
 			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() > 0){
 				frame->label->hide();
@@ -392,7 +391,7 @@ void WizardDigitizationFrame::setDialog()
 						bool visible = false;
 						for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 						{
-							if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker()->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] > UNDEFINED)
+							if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker() != NULL && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker()->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] > UNDEFINED)
 							{
 								visible = true;
 							}
@@ -470,16 +469,18 @@ void WizardDigitizationFrame::goToLastTrackedFrame()
 	if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0))
 	{
 		int trackidx = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
-		for (int i = State::getInstance()->getActiveFrameTrial(); i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); i++)
-		{
-			for (int j = 0; j < Project::getInstance()->getCameras().size(); j++){
-				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackidx]->getStatus2D()[j][i] <= 0){
-					if (i - 1 > State::getInstance()->getActiveFrameTrial())
-					{
-						State::getInstance()->changeActiveFrameTrial(i - 1);
-					}
+		if (trackidx >= 0){
+			for (int i = State::getInstance()->getActiveFrameTrial(); i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); i++)
+			{
+				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++){
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackidx]->getStatus2D()[j][i] <= 0){
+						if (i - 1 > State::getInstance()->getActiveFrameTrial())
+						{
+							State::getInstance()->changeActiveFrameTrial(i - 1);
+						}
 
-					return;
+						return;
+					}
 				}
 			}
 		}
@@ -491,16 +492,18 @@ void WizardDigitizationFrame::goToFirstTrackedFrame()
 	if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0))
 	{
 		int trackidx = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
-		for (int i = State::getInstance()->getActiveFrameTrial(); i >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i--)
-		{
-			for (int j = 0; j < Project::getInstance()->getCameras().size(); j++){
-				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackidx]->getStatus2D()[j][i] <= 0){
-					if (i + 1 < State::getInstance()->getActiveFrameTrial())
-					{
-						State::getInstance()->changeActiveFrameTrial(i + 1);
-					}
+		if (trackidx >= 0){
+			for (int i = State::getInstance()->getActiveFrameTrial(); i >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i--)
+			{
+				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++){
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackidx]->getStatus2D()[j][i] <= 0){
+						if (i + 1 < State::getInstance()->getActiveFrameTrial())
+						{
+							State::getInstance()->changeActiveFrameTrial(i + 1);
+						}
 
-					return;
+						return;
+					}
 				}
 			}
 		}

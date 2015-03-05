@@ -26,6 +26,10 @@ Trial::Trial(QString trialname, std::vector<QStringList> &imageFilenames){
 	name = trialname;
 	activeFrame = 0;
 	referenceCalibrationImage = 0;
+	recordingSpeed = 0;
+	cutOffFrequency = 0;
+	interpolateMissingFrames = 0;
+
 	activeMarkerIdx = -1; 
 	activeBodyIdx = -1;
 
@@ -46,6 +50,9 @@ Trial::Trial(QString trialname, QString folder){
 	name = trialname;
 	activeFrame = 0;
 	referenceCalibrationImage = 0;
+	recordingSpeed = 0;
+	cutOffFrequency = 0;
+	interpolateMissingFrames = 0;
 
 	activeMarkerIdx = -1;
 	activeBodyIdx = -1;
@@ -245,6 +252,36 @@ void Trial::setReferenceCalibrationImage(int value)
 		referenceCalibrationImage = value;
 		update();
 	}
+}
+
+double Trial::getRecordingSpeed()
+{
+	return recordingSpeed;
+}
+
+void Trial::setRecordingSpeed(double value)
+{
+	recordingSpeed = value;
+}
+
+double Trial::getCutOffFrequency()
+{
+	return cutOffFrequency;
+}
+
+void Trial::setCutOffFrequency(double value)
+{
+	cutOffFrequency = value;
+}
+
+int Trial::getInterpolateMissingFrames()
+{
+	return interpolateMissingFrames;
+}
+
+void Trial::setInterpolateMissingFrames(int value)
+{
+	interpolateMissingFrames = value;
 }
 
 QString Trial::getActiveFilename(int camera)
@@ -524,11 +561,33 @@ void Trial::save3dPoints(QString outputfolder)
 	}
 }
 
+void Trial::recomputeAndFilterRigidBodyTransformations()
+{
+	for (int i = 0; i < getRigidBodies().size(); i++)
+	{
+		getRigidBodies()[i]->recomputeTransformations();
+		
+		getRigidBodies()[i]->filterTransformations();
+	}
+}
+
 void Trial::saveRigidBodyTransformations(QString outputfolder)
 {
 	for (int i = 0; i < getRigidBodies().size(); i++)
 	{
-		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv", true);
+		getRigidBodies()[i]->recomputeTransformations();
+		getRigidBodies()[i]->filterTransformations();
+		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformationFiltered.csv", true, false);
+	}
+}
+
+void Trial::saveRigidBodyTransformationsFiltered(QString outputfolder)
+{
+	for (int i = 0; i < getRigidBodies().size(); i++)
+	{
+		getRigidBodies()[i]->recomputeTransformations();
+
+		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv", true,true);
 	}
 }
 

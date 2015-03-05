@@ -18,6 +18,7 @@
 	#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 #endif
+#include <processing/ButterworthLowPassFilter.h>
 
 using namespace xma;
 
@@ -43,12 +44,15 @@ public:
     }
 };
 
+
+
 int main ( int argc, char **argv )
 {
 	MApplication  app (argc, argv);
 
 	Settings::setup();
 	MainWindow *widget = MainWindow::getInstance();
+
 	widget->show();
 
 	return app.exec();

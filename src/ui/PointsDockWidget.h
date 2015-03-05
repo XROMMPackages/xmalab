@@ -45,6 +45,7 @@ namespace xma{
 			void selectPrevPoint();
 		signals:
 			void activePointChanged(int idx);
+			void activeRigidBodyChanged(int idx);
 		
 	};
 }

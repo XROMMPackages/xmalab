@@ -348,7 +348,6 @@ void WizardCalibrationCubeFrame::runCalibrationCameraAllFramesFinished(){
 	{
 		Project::getInstance()->getTrials()[i]->update();
 	}
-	WorkspaceNavigationFrame::getInstance()->updateCalibrationReference();
 	MainWindow::getInstance()->redrawGL();
 }
 

@@ -10,6 +10,8 @@
 #include "core/UndistortionObject.h"
 #include "core/CalibrationImage.h"
 
+#include "processing/ButterworthLowPassFilter.h" //should move this dependency
+
 #include <fstream>
 
 #ifdef __APPLE__
@@ -21,6 +23,10 @@
 #endif
 #include <GL/gl.h>
 #include <GL/glu.h>
+#endif
+
+#ifndef M_PI
+	#define M_PI   3.14159265358979323846	
 #endif
 
 using namespace xma;
@@ -59,6 +65,11 @@ QString RigidBody::getDescription()
 const std::vector<int>& RigidBody::getPointsIdx()
 {
 	return pointsIdx;
+}
+
+const std::vector<int>& RigidBody::getPoseFiltered()
+{
+	return poseFiltered;
 }
 
 const std::vector<int>& RigidBody::getPoseComputed()
@@ -130,14 +141,12 @@ bool RigidBody::isExpanded()
 }
 
 void RigidBody::clear(){
-	for(int i = 0 ; i < rotationvectors.size(); i ++){
-		rotationvectors[i].release();
-		translationvectors[i].release();
-	}
-	
 	rotationvectors.clear();
 	translationvectors.clear();
+	translationvectors_filtered.clear();
+	rotationvectors_filtered.clear();
 	poseComputed.clear();
+	poseFiltered.clear();
 
 	errorMean2D.clear();
 	errorSd2D.clear();
@@ -149,15 +158,13 @@ void RigidBody::init(int size){
 	clear();
 
 	for(int i = 0 ; i < size; i ++){
-		cv::Mat rotationvector;
-		rotationvector.create(3,1,CV_64F);
-		rotationvectors.push_back(rotationvector);
-
-		cv::Mat translationvector;
-		translationvector.create(3,1,CV_64F);
-		translationvectors.push_back(translationvector);
+		rotationvectors.push_back(cv::Vec3d());
+		translationvectors.push_back(cv::Vec3d());
+		rotationvectors_filtered.push_back(cv::Vec3d());
+		translationvectors_filtered.push_back(cv::Vec3d());
 
 		poseComputed.push_back(0);
+		poseFiltered.push_back(0);
 
 		errorMean2D.push_back(0);
 		errorSd2D.push_back(0);
@@ -191,7 +198,7 @@ void RigidBody::computeCoordinateSystemAverage(){
 
 						cv::Mat rotMattmp;
 						cv::Rodrigues(rotationvectors[f], rotMattmp);
-						cv::Mat tmp_mat = rotMattmp * (xmat)+translationvectors[f];
+						cv::Mat tmp_mat = rotMattmp * (xmat) + cv::Mat(translationvectors[f]);
 
 						pt.x = tmp_mat.at<double>(0, 0);
 						pt.y = tmp_mat.at<double>(1, 0);
@@ -383,6 +390,8 @@ void RigidBody::computeCoordinateSystem(int Frame){
 }
 
 void RigidBody::computePose(int Frame){
+	poseComputed[Frame] = 0;
+
 	if (initialised){
 		std::vector <cv::Point3d> src;
 		std::vector <cv::Point3d> dst;
@@ -473,7 +482,8 @@ void RigidBody::computePose(int Frame){
 
 			cv::Mat xgmat = cv::Mat(xg, true);
 			cv::Mat ygmat = cv::Mat(yg, true);
-			translationvectors[Frame] = ygmat - rotMatTmp  * xgmat;
+			cv::Mat t = ygmat - rotMatTmp  * xgmat;
+			translationvectors[Frame] = cv::Vec3d(t);
 
 			poseComputed[Frame] = 1;
 		}
@@ -639,23 +649,217 @@ void RigidBody::recomputeTransformations()
 	{
 		computePose(i);
 	}
+
+	//set rotations numerically steady
+	for (int i = 1; i < trial->getNbImages(); i++)
+	{
+		if (poseComputed[i - 1] && poseComputed[i])
+		{
+			double d = rotationvectors[i - 1].dot(rotationvectors[i]);
+			double diffangle = d / cv::norm(rotationvectors[i - 1]) / cv::norm(rotationvectors[i]);
+
+			if (180 / M_PI * acos(diffangle) > 150)
+			{
+				double angle = cv::norm(rotationvectors[i]);
+				rotationvectors[i][0] = - rotationvectors[i][0] / angle * (2 * M_PI - angle);
+				rotationvectors[i][1] = -rotationvectors[i][1] / angle * (2 * M_PI - angle);
+				rotationvectors[i][2] = -rotationvectors[i][2] / angle * (2 * M_PI - angle);
+			}
+		}
+	}
 }
 
-void RigidBody::saveTransformations(QString filename, bool inverse)
+void RigidBody::filterData(std::vector<int> idx)
 {
-	recomputeTransformations();
+	if (idx.size() <= 10)
+	{
+		for (int i = 0; i < idx.size(); i++)
+		{
+			translationvectors_filtered[idx[i]][0] = translationvectors[idx[i]][0];
+			translationvectors_filtered[idx[i]][1] = translationvectors[idx[i]][1];
+			translationvectors_filtered[idx[i]][2] = translationvectors[idx[i]][2];
 
+			rotationvectors_filtered[idx[i]][0] = rotationvectors[idx[i]][0];
+			rotationvectors_filtered[idx[i]][1] = rotationvectors[idx[i]][1];
+			rotationvectors_filtered[idx[i]][2] = rotationvectors[idx[i]][2];
+			poseFiltered[idx[i]] = 1;
+		}
+	}else{
+		std::vector<double> t1;
+		std::vector<double> t2;
+		std::vector<double> t3;
+		std::vector<double> r1;
+		std::vector<double> r2;
+		std::vector<double> r3;
+		std::vector<double> r4;
+
+		for (int i = 0; i < idx.size(); i++)
+		{
+			double angle = cv::norm(rotationvectors[idx[i]]);
+
+			r1.push_back(rotationvectors[idx[i]][0]);
+			r2.push_back(rotationvectors[idx[i]][1]);
+			r3.push_back(rotationvectors[idx[i]][2]);
+
+			t1.push_back(translationvectors[idx[i]][0]);
+			t2.push_back(translationvectors[idx[i]][1]);
+			t3.push_back(translationvectors[idx[i]][2]);
+		}
+
+		std::vector<double> t1_out;
+		std::vector<double> t2_out;
+		std::vector<double> t3_out;
+		std::vector<double> r1_out;
+		std::vector<double> r2_out;
+		std::vector<double> r3_out;
+
+		ButterworthLowPassFilter * filter = new ButterworthLowPassFilter(4, trial->getCutOffFrequency(), trial->getRecordingSpeed());
+
+		filter->filter(t1, t1_out);
+		filter->filter(t2, t2_out);
+		filter->filter(t3, t3_out);
+		filter->filter(r1, r1_out);
+		filter->filter(r2, r2_out);
+		filter->filter(r3, r3_out);
+
+		for (int i = 0; i < idx.size(); i++)
+		{
+			translationvectors_filtered[idx[i]][0] = t1_out[i];
+			translationvectors_filtered[idx[i]][1] = t2_out[i];
+			translationvectors_filtered[idx[i]][2] = t3_out[i];
+
+			rotationvectors_filtered[idx[i]][0] = r1_out[i];
+			rotationvectors_filtered[idx[i]][1] = r2_out[i];
+			rotationvectors_filtered[idx[i]][2] = r3_out[i];
+			poseFiltered[idx[i]] = 1;
+		}
+
+		delete filter;
+
+		t1_out.clear();
+		t2_out.clear();
+		t3_out.clear();
+		r1_out.clear();
+		r2_out.clear();
+		r3_out.clear();
+		t1.clear();
+		t2.clear();
+		t3.clear();
+		r1.clear();
+		r2.clear();
+		r3.clear();
+	}
+}
+
+
+void RigidBody::filterTransformations()
+{
+	for (int i = 0; i < trial->getNbImages(); i++)
+	{
+		poseFiltered[i] = 0;
+	}
+
+	if (trial->getCutOffFrequency() > 0 && trial->getRecordingSpeed() > 0 &&
+		0 < (trial->getCutOffFrequency() / (trial->getRecordingSpeed() * 0.5)) &&
+		(trial->getCutOffFrequency() / (trial->getRecordingSpeed() * 0.5)) < 1){
+		
+		std::vector<int> idx;
+		for (int i = 0; i < trial->getNbImages(); i++)
+		{
+			if (poseComputed[i])
+			{
+				idx.push_back(i);
+			}
+			else
+			{
+				if (idx.size() >= 1)
+				{
+					filterData(idx);
+				}
+				idx.clear();
+			}
+
+			if (i == trial->getNbImages() - 1)
+			{
+				if (idx.size() >= 1)
+				{
+					filterData(idx);
+				}
+				idx.clear();
+			}
+		}
+	}
+}
+
+const std::vector<cv::Vec3d>& RigidBody::getRotationVector(bool filtered)
+{
+	if (filtered)
+	{
+		return rotationvectors_filtered;
+	}
+	else
+	{
+		return rotationvectors;
+	}
+}
+
+const std::vector<cv::Vec3d>& RigidBody::getTranslationVector(bool filtered)
+{
+	if (filtered)
+	{
+		return translationvectors_filtered;
+	}
+	else
+	{
+		return translationvectors;
+	}
+}
+
+double RigidBody::getRotationEulerAngle(bool filtered, int frame, int part)
+{
+	cv::Mat rotMat;
+	if (filtered)
+	{
+		cv::Rodrigues(rotationvectors_filtered[frame], rotMat);
+	}
+	else
+	{
+		cv::Rodrigues(rotationvectors[frame], rotMat);
+	}
+	double conv = 180 / M_PI;
+	if (part == 0)
+	{
+		return conv * atan2(rotMat.at<double>(2, 1), rotMat.at<double>(2, 2));
+	}
+	else if (part == 1)
+	{
+		return conv * atan2(-rotMat.at<double>(2, 0), sqrt(rotMat.at<double>(2, 1) * rotMat.at<double>(2, 1) + rotMat.at<double>(2, 2)*rotMat.at<double>(2, 2)));
+	}
+	else if (part == 2)
+	{
+		return conv * atan2(rotMat.at<double>(1, 0), rotMat.at<double>(0, 0));
+	}
+}
+
+void RigidBody::saveTransformations(QString filename, bool inverse, bool filtered)
+{
 	if (!filename.isEmpty()){
 		std::ofstream outfile(filename.toAscii().data());
 		for (unsigned int i = 0; i < trial->getNbImages(); i++){
-			if (poseComputed[i]){
+			if ((poseComputed[i] && !filtered) || (poseFiltered[i] && filtered)){
 				double m[16];
 				//inversere Rotation = transposed rotation
 				//and opengl requires transposed, so we set R
 				if (inverse){
 
 					cv::Mat rotationMat;
-					cv::Rodrigues(rotationvectors[i], rotationMat);
+					if (!filtered){
+						cv::Rodrigues(rotationvectors[i], rotationMat);
+					}
+					else
+					{
+						cv::Rodrigues(rotationvectors_filtered[i], rotationMat);
+					}
 					for (unsigned int y = 0; y < 3; y++)
 					{
 						m[y * 4] = rotationMat.at<double>(y, 0);
@@ -665,15 +869,30 @@ void RigidBody::saveTransformations(QString filename, bool inverse)
 					}
 					//inverse translation = translation rotated with inverse rotation/transposed rotation
 					//R-1 * -t = R^tr * -t
-					m[12] = m[0] * -translationvectors[i].at<double>(0, 0) + m[4] * -translationvectors[i].at<double>(1, 0) + m[8] * -translationvectors[i].at<double>(2, 0);
-					m[13] = m[1] * -translationvectors[i].at<double>(0, 0) + m[5] * -translationvectors[i].at<double>(1, 0) + m[9] * -translationvectors[i].at<double>(2, 0);
-					m[14] = m[2] * -translationvectors[i].at<double>(0, 0) + m[6] * -translationvectors[i].at<double>(1, 0) + m[10] * -translationvectors[i].at<double>(2, 0);
+
+					cv::Vec3d trans;
+					if (!filtered){
+						trans = translationvectors[i];
+					}
+					else
+					{
+						trans = translationvectors_filtered[i];
+					}
+					m[12] = m[0] * -trans[0] + m[4] * -trans[1] + m[8] * -trans[2];
+					m[13] = m[1] * -trans[0] + m[5] * -trans[1] + m[9] * -trans[2];
+					m[14] = m[2] * -trans[0] + m[6] * -trans[1] + m[10] * -trans[2];
 					m[15] = 1.0;
 				}
 				else
 				{
 					cv::Mat rotationMat;
-					cv::Rodrigues(rotationvectors[i], rotationMat);
+					if (!filtered){
+						cv::Rodrigues(rotationvectors[i], rotationMat);
+					}
+					else
+					{
+						cv::Rodrigues(rotationvectors_filtered[i], rotationMat);
+					}
 					for (unsigned int y = 0; y < 3; y++)
 					{
 						m[y * 4] = rotationMat.at<double>(0, y);
@@ -682,9 +901,18 @@ void RigidBody::saveTransformations(QString filename, bool inverse)
 						m[y * 4 + 3] = 0.0;
 					}
 
-					m[12] = translationvectors[i].at<double>(0, 0);
-					m[13] = translationvectors[i].at<double>(1, 0);
-					m[14] = translationvectors[i].at<double>(2, 0);
+					cv::Vec3d trans;
+					if (!filtered){
+						trans = translationvectors[i];
+					}
+					else
+					{
+						trans = translationvectors_filtered[i];
+					}
+
+					m[12] = trans[0];
+					m[13] = trans[1];
+					m[14] = trans[2];
 					m[15] = 1.0;
 				}
 
@@ -715,7 +943,7 @@ std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, boo
 	if (with_center){
 		cv::Mat xmat = cv::Mat(center, true);
 		
-		cv::Mat tmp_mat = rotMatTmp.t() * ((xmat)-translationvectors[Frame]);
+		cv::Mat tmp_mat = rotMatTmp.t() * ((xmat)-cv::Mat(translationvectors[Frame]));
 
 		cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
 			tmp_mat.at<double>(1, 0),
@@ -727,7 +955,7 @@ std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, boo
 	for (unsigned int i = 0; i<points3D.size(); i++){
 		cv::Mat xmat = cv::Mat(points3D[i], true);
 
-		cv::Mat tmp_mat = rotMatTmp.t() * ((xmat)-translationvectors[Frame]);
+		cv::Mat tmp_mat = rotMatTmp.t() * ((xmat) - cv::Mat(translationvectors[Frame]));
 
 		cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
 			tmp_mat.at<double>(1, 0),
@@ -978,9 +1206,9 @@ void RigidBody::draw3D(int frame)
 		}
 		//inverse translation = translation rotated with inverse rotation/transposed rotation
 		//R-1 * -t = R^tr * -t
-		m[12] = m[0] * -translationvectors[frame].at<double>(0, 0) + m[4] * -translationvectors[frame].at<double>(1, 0) + m[8] * -translationvectors[frame].at<double>(2, 0);
-		m[13] = m[1] * -translationvectors[frame].at<double>(0, 0) + m[5] * -translationvectors[frame].at<double>(1, 0) + m[9] * -translationvectors[frame].at<double>(2, 0);
-		m[14] = m[2] * -translationvectors[frame].at<double>(0, 0) + m[6] * -translationvectors[frame].at<double>(1, 0) + m[10] * -translationvectors[frame].at<double>(2, 0);
+		m[12] = m[0] * -translationvectors[frame][0] + m[4] * -translationvectors[frame][1] + m[8] * -translationvectors[frame][2];
+		m[13] = m[1] * -translationvectors[frame][0] + m[5] * -translationvectors[frame][1] + m[9] * -translationvectors[frame][2];
+		m[14] = m[2] * -translationvectors[frame][0] + m[6] * -translationvectors[frame][1] + m[10] * -translationvectors[frame][2];
 		m[15] = 1.0;
 		
 		glMultMatrixd(m);
