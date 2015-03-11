@@ -14,6 +14,7 @@ namespace xma
 			virtual void setActiveFrame(int _activeFrame) = 0;
 			
 			virtual QString getFrameName(int frameNumber) = 0;
+			virtual void reloadFile() = 0;
 
 			QStringList getFilenames();
 			void changeImagePath(QString newfolder, QString oldfolder);

@@ -29,3 +29,8 @@ QString ImageSequence::getFrameName(int frameNumber)
 	QFileInfo info(filenames.at(frameNumber));
 	return info.fileName();
 }
+
+void ImageSequence::reloadFile()
+{
+	//nothing to do
+}

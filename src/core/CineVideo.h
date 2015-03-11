@@ -28,10 +28,12 @@ namespace xma{
 		
 			void setActiveFrame(int _activeFrame) override;
 			QString getFrameName(int frameNumber) override;
-
+			void reloadFile() override;
 		private:
 			//IMAGE POSITIONS
 			std::vector <unsigned long long> image_addresses;
+
+			void loadCineInfo();
 
 			//CINEFILEHEADER
 			CHAR Type[2];

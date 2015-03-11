@@ -10,6 +10,8 @@ using namespace xma;
 VideoStream::VideoStream(QStringList _filenames)
 {
 	filenames = _filenames;
+	image = new Image("");
+	nbImages = 0;
 }
 
 VideoStream::~VideoStream()
@@ -38,11 +40,10 @@ void VideoStream::bindTexture()
 	image->bindTexture();
 }
 
-
-
 void VideoStream::changeImagePath(QString newfolder, QString oldfolder)
 {
 	filenames = filenames.replaceInStrings(oldfolder, newfolder);
+	reloadFile();
 }
 
 void VideoStream::save(QString path)

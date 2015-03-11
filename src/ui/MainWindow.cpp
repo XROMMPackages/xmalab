@@ -626,13 +626,25 @@ void MainWindow::checkTrialImagePaths()
 			QFileInfo fileinfo(filename);
 			if (!QFile::exists(filename))
 			{
-				QString newfolder = QFileDialog::getExistingDirectory(this, fileinfo.fileName() + "not found. Enter a new directory for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
+				if (Project::getInstance()->getTrials()[t]->getVideoStreams()[c]->getFilenames().size()>1){
+					QString newfolder = QFileDialog::getExistingDirectory(this, fileinfo.fileName() + "not found. Enter a new directory for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
 
-				if (!newfolder.isEmpty())
+					if (!newfolder.isEmpty())
+					{
+						QString oldfolder = filename.replace(fileinfo.fileName(), "");
+						Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder + OS_SEP, oldfolder);
+						Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
+					}
+				}
+				else
 				{
-					QString oldfolder = filename.replace(fileinfo.fileName(), "");
-					Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder + OS_SEP, oldfolder);
-					Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
+					QString newfolder = QFileDialog::getOpenFileName(this, fileinfo.fileName() + "not found. Enter a file for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
+
+					if (!newfolder.isEmpty())
+					{
+						Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder, filename);
+						Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
+					}
 				}
 			}
 		}

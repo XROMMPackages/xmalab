@@ -11,6 +11,7 @@ namespace xma{
 		
 			void setActiveFrame(int _activeFrame) override;
 			QString getFrameName(int frameNumber) override;
+			void reloadFile() override;
 		private:
 	};
 }
