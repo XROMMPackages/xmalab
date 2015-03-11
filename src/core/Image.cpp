@@ -48,6 +48,16 @@ Image::Image(Image *_image){
 	image_reset = false;
 }
 
+Image::Image(cv::Mat &_image){
+	color = false;
+	image = _image.clone();
+
+	width = image.cols;
+	height = image.rows;
+	textureLoaded = false;
+	image_reset = false;
+}
+
 Image::~Image(){
 	deleteTexture();
 }

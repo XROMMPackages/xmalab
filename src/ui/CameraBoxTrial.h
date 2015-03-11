@@ -14,6 +14,7 @@ namespace xma{
 
 	private:
 		QStringList imageFileNames;
+		QString commonPrefix(QStringList fileNames);
 
 	public:
 		explicit CameraBoxTrial(QWidget *parent = 0);

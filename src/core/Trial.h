@@ -4,12 +4,14 @@
 #include <vector>
 #include <QString>
 #include <QStringList>
+#include "VideoStream.h"
 
 namespace xma{
 	class Image;
 	class RigidBody;
 	class Marker;
 	class Camera;
+	class VideoStream;
 
 	class Trial{
 
@@ -20,9 +22,8 @@ namespace xma{
 
 		int getActiveFrame();
 		void setActiveFrame(int _activeFrame);
-		Image * getImage(int cameraID);
 
-		const std::vector <QStringList> & getFilenames();
+		const std::vector <VideoStream *> & getVideoStreams();
 		const std::vector <Marker * > &getMarkers();
 		const std::vector <RigidBody * > &getRigidBodies();
 
@@ -51,7 +52,6 @@ namespace xma{
 		void setCutOffFrequency(double value);
 		int getInterpolateMissingFrames();
 		void setInterpolateMissingFrames(int value);
-
 
 		int getNbImages();
 		QString getName();
@@ -84,7 +84,7 @@ namespace xma{
 
 	private:
 		QString name;
-		void clear();
+		void setNbImages();
 
 		int activeFrame;
 		int activeMarkerIdx;
@@ -100,8 +100,7 @@ namespace xma{
 		int startFrame;
 		int endFrame;
 
-		std::vector <Image * > images;
-		std::vector <QStringList> filenames;
+		std::vector <VideoStream*> videos;
 		std::vector <RigidBody * > rigidBodies;
 		std::vector <Marker * > markers;
 		int id;

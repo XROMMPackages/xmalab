@@ -622,7 +622,7 @@ void MainWindow::checkTrialImagePaths()
 	{
 		for (int c = 0; c < Project::getInstance()->getCameras().size(); c++)
 		{
-			QString filename = Project::getInstance()->getTrials()[t]->getFilenames()[c].at(0);
+			QString filename = Project::getInstance()->getTrials()[t]->getVideoStreams()[c]->getFilenames()[0];
 			QFileInfo fileinfo(filename);
 			if (!QFile::exists(filename))
 			{
@@ -632,6 +632,7 @@ void MainWindow::checkTrialImagePaths()
 				{
 					QString oldfolder = filename.replace(fileinfo.fileName(), "");
 					Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder + OS_SEP, oldfolder);
+					Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
 				}
 			}
 		}

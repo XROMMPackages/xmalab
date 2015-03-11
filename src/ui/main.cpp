@@ -18,7 +18,6 @@
 	#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 #endif
-#include <processing/ButterworthLowPassFilter.h>
 
 using namespace xma;
 

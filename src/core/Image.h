@@ -20,6 +20,7 @@ namespace xma{
 		public:
 			Image(QString imageFileName);
 			Image(Image *_image);
+			Image(cv::Mat &_image);
 			virtual ~Image();
 		
 			void loadTexture();

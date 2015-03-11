@@ -60,7 +60,7 @@ void MarkerDetection::detectMarker_thread(){
 
 	//preprocess image
 	cv::Mat image;
-	Project::getInstance()->getTrials()[m_trial]->getImage(m_camera)->getSubImage(image, m_searchArea, off_x, off_y);
+	Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[m_camera]->getImage()->getSubImage(image, m_searchArea, off_x, off_y);
 
 #ifdef WRITEIMAGES
 	cv::imwrite("Det_original.png", image);

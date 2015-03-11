@@ -26,7 +26,7 @@ m_camera(camera), m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to)
 	searchArea = 30;
 	size = (int) (Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getSize() + 0.5);
 	size = (size < 3) ? 3 : size;
-	Project::getInstance()->getTrials()[m_trial]->getImage(m_camera)->getSubImage(templ, size + 3, x_from, y_from + 0.5);
+	Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[m_camera]->getImage()->getSubImage(templ, size + 3, x_from, y_from + 0.5);
 	maxPenalty = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMaxPenalty();
 #ifdef WRITEIMAGES
 	fprintf(stderr, "Start Track Marker : Camera %d Pos %lf %lf Size %d\n", camera, x_from, y_from,size);
@@ -57,7 +57,7 @@ void MarkerTracking::trackMarker_thread(){
 	int off_x = (int)(x_to - used_size + 0.5);
 	int off_y = (int)(y_to - used_size + 0.5);
 
-	Project::getInstance()->getTrials()[m_trial]->getImage(m_camera)->getSubImage(ROI_to, used_size, off_x, off_y);
+	Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[m_camera]->getImage()->getSubImage(ROI_to, used_size, off_x, off_y);
 
 	/// Create the result matrix
 	int result_cols = ROI_to.cols - templ.cols + 1;

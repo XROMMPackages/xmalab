@@ -98,6 +98,10 @@ SET(XMALab_HEADERS
 	src/core/Trial.h
 	src/core/Marker.h
 	src/core/RigidBody.h
+	src/core/CineVideo.h
+	src/core/AviVideo.h
+	src/core/VideoStream.h
+	src/core/ImageSequence.h
 )
 
 SET(XMALab_SOURCES
@@ -111,6 +115,10 @@ SET(XMALab_SOURCES
 	src/core/Trial.cpp
 	src/core/Marker.cpp
 	src/core/RigidBody.cpp
+	src/core/CineVideo.cpp
+	src/core/AviVideo.cpp
+	src/core/VideoStream.cpp
+	src/core/ImageSequence.cpp
 )
 
 SOURCE_GROUP(_CORE FILES ${XMALab_HEADERS} ${XMALab_SOURCES})

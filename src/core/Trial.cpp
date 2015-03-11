@@ -3,6 +3,9 @@
 #endif
 
 #include "core/Trial.h"
+#include "core/ImageSequence.h"
+#include "core/CineVideo.h"
+#include "core/AviVideo.h"
 #include "core/Image.h"
 #include "core/Camera.h"
 #include "core/Project.h"
@@ -19,10 +22,11 @@
 #define OS_SEP "/"
 #endif
 
+
+
 using namespace xma;
 
 Trial::Trial(QString trialname, std::vector<QStringList> &imageFilenames){
-	filenames = imageFilenames;
 	name = trialname;
 	activeFrame = 0;
 	referenceCalibrationImage = 0;
@@ -33,14 +37,28 @@ Trial::Trial(QString trialname, std::vector<QStringList> &imageFilenames){
 	activeMarkerIdx = -1; 
 	activeBodyIdx = -1;
 
-	images.clear();
-	nbImages = imageFilenames[0].size();
-	for (std::vector< QStringList>::iterator filenameList = filenames.begin(); filenameList != filenames.end(); ++filenameList)
+	for (std::vector< QStringList>::iterator filenameList = imageFilenames.begin(); filenameList != imageFilenames.end(); ++filenameList)
 	{
-		Image * newImage = new Image(filenameList->at(0));
-		images.push_back(newImage);
-		assert(nbImages == filenameList->size());
+		VideoStream * newSequence = NULL;
+		if ((*filenameList).size() > 1){
+			newSequence = new ImageSequence(*filenameList);
+		}
+		else
+		{
+			QFileInfo info((*filenameList).at(0));
+			if (info.suffix() == "cine")
+			{
+				newSequence = new CineVideo(*filenameList);
+			}
+			else if (info.suffix() == "avi")
+			{
+				newSequence = new AviVideo(*filenameList);
+			}
+		}
+		videos.push_back(newSequence);
 	}
+
+	setNbImages();
 
 	startFrame = 1;
 	endFrame = nbImages;
@@ -57,8 +75,6 @@ Trial::Trial(QString trialname, QString folder){
 	activeMarkerIdx = -1;
 	activeBodyIdx = -1;
 
-	images.clear();
-	filenames.clear();
 	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
 		QStringList filenameList;
 		QString camera_filenames = folder + Project::getInstance()->getCameras()[i]->getName() + "_filenames_absolute.txt";
@@ -67,27 +83,39 @@ Trial::Trial(QString trialname, QString folder){
 		{
 			filenameList << QString::fromStdString(line);
 		}
-		filenames.push_back(filenameList);
-		
 		fin.close();
-	}
 
-	nbImages = filenames[0].size();
-	for (std::vector< QStringList>::iterator filenameList = filenames.begin(); filenameList != filenames.end(); ++filenameList)
-	{
-		Image * newImage = new Image(filenameList->at(0));
-		images.push_back(newImage);
-		assert(nbImages == filenameList->size());
+		VideoStream * newSequence = NULL;
+		if (filenameList.size() > 1){
+			newSequence = new ImageSequence(filenameList);
+		}
+		else
+		{
+			QFileInfo info(filenameList.at(0));
+			if (info.suffix() == "cine")
+			{
+				newSequence = new CineVideo(filenameList);
+			}
+			else if (info.suffix() == "avi")
+			{
+				newSequence = new AviVideo(filenameList);
+			}
+		}
+
+		videos.push_back(newSequence);
 	}
+	setNbImages();
 
 	startFrame = 1;
 	endFrame = nbImages;
 }
 
+
+
 Trial::~Trial(){
-	for (std::vector< Image* >::iterator image = images.begin(); image != images.end(); ++image)
+	for (std::vector< VideoStream* >::iterator video = videos.begin(); video != videos.end(); ++video)
 	{
-		delete *image;
+		delete *video;
 	}
 
 	for (std::vector< RigidBody* >::iterator rigidBody = rigidBodies.begin(); rigidBody != rigidBodies.end(); ++rigidBody)
@@ -101,25 +129,36 @@ Trial::~Trial(){
 	}
 }
 
+void Trial::setNbImages()
+{
+	for (int i = 0; i < videos.size(); i++)
+	{
+		if (i == 0)
+		{
+			nbImages = videos[i]->getNbImages();
+		}
+		else
+		{
+			assert(nbImages == videos[i]->getNbImages());
+		}
+	}
+}
+
 void Trial::bindTextures()
 {
-	for (std::vector<Image *>::iterator image = images.begin(); image != images.end(); ++image)
+	for (std::vector< VideoStream* >::iterator video = videos.begin(); video != videos.end(); ++video)
 	{
-		(*image)->bindTexture();
+		(*video)->bindTexture();
 	}
 }
 
 void Trial::save(QString path)
 {
-	for (int i = 0; i < filenames.size(); i++)
+	for (int i = 0; i < videos.size(); i++)
 	{
-		QString camera_filenames = path + Project::getInstance()->getCameras()[i]->getName() + "_filenames_absolute.txt";
-		std::ofstream outfile(camera_filenames.toAscii().data());
-		for (unsigned int j = 0; j < filenames[i].size(); ++j){
-			outfile << filenames[i].at(j).toAscii().data() << std::endl;;
-		}
 
-		outfile.close();
+		QString cameraPath = path + Project::getInstance()->getCameras()[i]->getName() + "_filenames_absolute.txt";
+		videos[i]->save(cameraPath);
 	}
 }
 
@@ -131,21 +170,17 @@ int Trial::getActiveFrame()
 void Trial::setActiveFrame(int _activeFrame)
 {
 	activeFrame = _activeFrame;
-	for (int i = 0; i < images.size(); i++)
+	for (std::vector< VideoStream* >::iterator video = videos.begin(); video != videos.end(); ++video)
 	{
-		images[i]->setImage(filenames[i].at(activeFrame));
+		(*video)->setActiveFrame(activeFrame);
 	}
 }
 
-Image* Trial::getImage(int cameraID)
+const std::vector<VideoStream*>& Trial::getVideoStreams()
 {
-	return images[cameraID];
+	return videos;
 }
 
-const std::vector<QStringList>& Trial::getFilenames()
-{
-	return filenames;
-}
 
 const std::vector<Marker*>& Trial::getMarkers()
 {
@@ -286,8 +321,7 @@ void Trial::setInterpolateMissingFrames(int value)
 
 QString Trial::getActiveFilename(int camera)
 {
-	QFileInfo info(filenames[camera].at(activeFrame));
-	return info.fileName();
+	return videos[camera]->getFrameName(activeFrame);
 }
 
 int Trial::getNbImages()
@@ -299,15 +333,6 @@ QString Trial::getName()
 {
 	return name;
 }
-
-void Trial::clear(){
-	for (std::vector< Image*>::iterator image_it = images.begin(); image_it != images.end(); ++image_it){
-		delete *image_it;
-	}
-
-	images.clear();
-}
-
 
 void Trial::drawRigidBodies(Camera * cam)
 {
@@ -541,16 +566,7 @@ void Trial::update()
 
 void Trial::changeImagePath(int camera, QString newfolder, QString oldfolder)
 {
-	fprintf(stderr, "Change from %s to %s\n", oldfolder.toAscii().data(), newfolder.toAscii().data());
-	filenames[camera] = filenames[camera].replaceInStrings(oldfolder, newfolder);
-
-	for (int i = 0; i < filenames[camera].size(); i++)
-	{
-		//fprintf(stderr, "%s\n", filenames[camera].at(i).toAscii().data());
-	}
-
-
-	images[camera]->setImage(filenames[camera].at(activeFrame));
+	videos[camera]->changeImagePath(newfolder, oldfolder);
 }
 
 void Trial::save3dPoints(QString outputfolder)

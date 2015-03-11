@@ -331,7 +331,7 @@ void GLCameraView::drawTexture()
 	else if (State::getInstance()->getWorkspace() == DIGITIZATION){
 		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
 		{
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getImage(camera->getID())->bindTexture();
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getVideoStreams()[camera->getID()]->bindTexture();
 		}
 	}
 	if (drawImage){

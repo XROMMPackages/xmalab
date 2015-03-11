@@ -41,7 +41,7 @@ State* State::getInstance()
 
 void State::changeWorkspace(work_state newWorkspace, bool force){
 	if(force || workspace != newWorkspace){
-		workspace = newWorkspace;
+		workspace = newWorkspace; 
 		emit workspaceChanged(newWorkspace);
 	}
 }

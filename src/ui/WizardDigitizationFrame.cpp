@@ -391,7 +391,7 @@ void WizardDigitizationFrame::setDialog()
 						bool visible = false;
 						for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 						{
-							if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker() != NULL && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker()->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] > UNDEFINED)
+							if (State::getInstance()->getActiveFrameTrial() >=0 && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker() != NULL && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker()->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] > UNDEFINED)
 							{
 								visible = true;
 							}
