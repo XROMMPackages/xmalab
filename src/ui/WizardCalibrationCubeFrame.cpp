@@ -137,7 +137,7 @@ bool WizardCalibrationCubeFrame::checkForPendingChanges(){
 	}
 	
 	if(hasPendingChanges){
-		if(Settings::getAutoConfirmPendingChanges() || ConfirmationDialog::getInstance()->showConfirmationDialog(
+		if (Settings::getInstance()->getBoolSetting("AutoConfirmPendingChanges") || ConfirmationDialog::getInstance()->showConfirmationDialog(
 			"You have modified the calibration input and before continuing you first have to recompute the calibration. If you want to recompute click \'yes\', if you want to continue changing calibration parameters click \'cancel\' "
 			)){
 			QEventLoop loop;
@@ -264,7 +264,7 @@ void WizardCalibrationCubeFrame::addCalibrationReference(double x, double y){
 			frame->checkBoxReference4->setChecked(true);
 			frame->labelReference4->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
 			//run calibration
-			if (Settings::getAutoCalibAfterReference()) on_pushButton_clicked();
+			if (Settings::getInstance()->getBoolSetting("AutoConfirmPendingChanges")) on_pushButton_clicked();
 		}
 	}
 }

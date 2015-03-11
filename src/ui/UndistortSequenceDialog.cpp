@@ -36,7 +36,7 @@ UndistortSequenceDialog::UndistortSequenceDialog(QWidget *parent) :
 	diag->progressBar->setValue(0);
 	diag->progressBar->hide();
 
-	diag->lineEdit_pattern->setText(Settings::getUndistortNamingPattern());
+	diag->lineEdit_pattern->setText(Settings::getInstance()->getQStringSetting("UndistortNamingPattern"));
 }
 
 UndistortSequenceDialog::~UndistortSequenceDialog(){
@@ -93,12 +93,12 @@ int UndistortSequenceDialog::getNumber(QStringList fileNames){
 
 void UndistortSequenceDialog::on_toolButton_Input_clicked(){
 	fileNames = QFileDialog::getOpenFileNames(this,
-		tr("Open Files"),Settings::getLastUsedDirectory(),tr("Image Files (*.png *.jpg *.jpeg *.bmp *.tif)"));
+		tr("Open Files"),Settings::getInstance()->getLastUsedDirectory(),tr("Image Files (*.png *.jpg *.jpeg *.bmp *.tif)"));
 
 	fileNames.sort();
 	if ( fileNames.size() > 0 && fileNames[0].isNull() == false )
     {
-        Settings::setLastUsedDirectory(fileNames[0]);
+        Settings::getInstance()->setLastUsedDirectory(fileNames[0]);
 		commonPrefixString = commonPrefix(fileNames);
 		commonPostfixString = commonPostfix(fileNames);
 		diag->lineEdit_Input->setText(commonPrefixString);
@@ -108,17 +108,17 @@ void UndistortSequenceDialog::on_toolButton_Input_clicked(){
 
 void UndistortSequenceDialog::on_toolButton_OutputFolder_clicked(){
 	outputfolder = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getLastUsedDirectory());
+		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 	if ( outputfolder.isNull() == false )
     {
 		diag->lineEdit_Outputfolder->setText(outputfolder);
-		Settings::setLastUsedDirectory(outputfolder,true);
+		Settings::getInstance()->setLastUsedDirectory(outputfolder,true);
     }
 }
 
 void UndistortSequenceDialog::on_lineEdit_pattern_textChanged(QString text){
-	Settings::setUndistortNamingPattern(text);
+	Settings::getInstance()->set("UndistortNamingPattern",text);
 }
 
 void UndistortSequenceDialog::on_pushButton_clicked(){

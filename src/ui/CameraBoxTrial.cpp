@@ -62,7 +62,7 @@ bool CameraBoxTrial::isComplete(){
 
 void CameraBoxTrial::on_toolButton_clicked(){
 	imageFileNames = QFileDialog::getOpenFileNames(this,
-		tr("Open video stream movie file or images"), Settings::getLastUsedDirectory(), tr("Image and Video Files (*.cine *.avi *.png *.jpg *.jpeg *.bmp *.tif)"));
+		tr("Open video stream movie file or images"), Settings::getInstance()->getLastUsedDirectory(), tr("Image and Video Files (*.cine *.avi *.png *.jpg *.jpeg *.bmp *.tif)"));
 
 	imageFileNames.sort();
 
@@ -70,7 +70,7 @@ void CameraBoxTrial::on_toolButton_clicked(){
 	{
 		widget->lineEdit->setText(commonPrefix(imageFileNames));
 		widget->label->setText("(" + QString::number(imageFileNames.size()) + ")");
-		Settings::setLastUsedDirectory(widget->lineEdit->text());
+		Settings::getInstance()->setLastUsedDirectory(widget->lineEdit->text());
     }
 }
 

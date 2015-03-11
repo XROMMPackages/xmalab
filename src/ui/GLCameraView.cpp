@@ -182,7 +182,7 @@ void GLCameraView::mousePressEvent(QMouseEvent *e)
 }
 
 void GLCameraView::wheelEvent(QWheelEvent *e){
-	if (!detailedView || !Settings::getCenterDetailView()){
+	if (!detailedView || !Settings::getInstance()->getBoolSetting("CenterDetailView")){
 		State::getInstance()->changeActiveCamera(this->camera->getID());
 		double zoom_prev = zoomRatio;
 
@@ -393,7 +393,7 @@ void GLCameraView::paintGL()
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity();
 
-	if (detailedView && Settings::getCenterDetailView()) centerViewToPoint();
+	if (detailedView && Settings::getInstance()->getBoolSetting("CenterDetailView")) centerViewToPoint();
 
 	glOrtho(-0.5 * (zoomRatio * window_width) - x_offset - 0.5, 
 			 0.5 * (zoomRatio * window_width) - x_offset - 0.5,

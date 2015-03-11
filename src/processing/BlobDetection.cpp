@@ -51,34 +51,35 @@ void BlobDetection::detectBlobs_thread(){
 
 	cv::SimpleBlobDetector::Params paramsBlob;
 
-	paramsBlob.thresholdStep = Settings::getBlobDetectorThresholdStep();
-	paramsBlob.minThreshold = Settings::getBlobDetectorMinThreshold(); 
-	paramsBlob.maxThreshold = Settings::getBlobDetectorMaxThreshold();
-	paramsBlob.minRepeatability = Settings::getBlobDetectorMinRepeatability();
-	paramsBlob.minDistBetweenBlobs = Settings::getBlobDetectorMinDistBetweenBlobs();
+	paramsBlob.thresholdStep = Settings::getInstance()->getFloatSetting("BlobDetectorThresholdStep");
+	paramsBlob.minThreshold = Settings::getInstance()->getFloatSetting("BlobDetectorMinThreshold");
+	paramsBlob.maxThreshold = Settings::getInstance()->getFloatSetting("BlobDetectorMaxThreshold");
+	paramsBlob.minRepeatability = Settings::getInstance()->getIntSetting("BlobDetectorMinRepeatability");
+	paramsBlob.minDistBetweenBlobs = Settings::getInstance()->getFloatSetting("BlobDetectorMinDistBetweenBlobs");
 
-	paramsBlob.filterByColor = Settings::getBlobDetectorFilterByColor();
-	if(m_image < 0){
-		paramsBlob.blobColor = Settings::getBlobDetectorBlobColor();
-	}else{
-		paramsBlob.blobColor = 255 - Settings::getBlobDetectorBlobColor();
+	paramsBlob.filterByColor = Settings::getInstance()->getBoolSetting("BlobDetectorFilterByColor");
+	if (m_image < 0){
+		paramsBlob.blobColor = Settings::getInstance()->getIntSetting("BlobDetectorBlobColor");
+	}
+	else{
+		paramsBlob.blobColor = 255 - Settings::getInstance()->getIntSetting("BlobDetectorBlobColor");
 	}
 
-	paramsBlob.filterByArea = Settings::getBlobDetectorFilterByArea();
-	paramsBlob.minArea =Settings::getBlobDetectorMinArea();
-	paramsBlob.maxArea = Settings::getBlobDetectorMaxArea();
+	paramsBlob.filterByArea = Settings::getInstance()->getBoolSetting("BlobDetectorFilterByArea");
+	paramsBlob.minArea = Settings::getInstance()->getFloatSetting("BlobDetectorMinArea");
+	paramsBlob.maxArea = Settings::getInstance()->getFloatSetting("BlobDetectorMaxArea");
 
-	paramsBlob.filterByCircularity = Settings::getBlobDetectorFilterByCircularity();
-	paramsBlob.minCircularity =	Settings::getBlobDetectorMinCircularity();
-	paramsBlob.maxCircularity =	Settings::getBlobDetectorMaxCircularity();
-				
-	paramsBlob.filterByInertia = Settings::getBlobDetectorFilterByInertia();
-	paramsBlob.minInertiaRatio = Settings::getBlobDetectorMinInertiaRatio();
-	paramsBlob.maxInertiaRatio = Settings::getBlobDetectorMaxInertiaRatio();
+	paramsBlob.filterByCircularity = Settings::getInstance()->getBoolSetting("BlobDetectorFilterByCircularity");
+	paramsBlob.minCircularity = Settings::getInstance()->getFloatSetting("BlobDetectorMinCircularity");
+	paramsBlob.maxCircularity = Settings::getInstance()->getFloatSetting("BlobDetectorMaxCircularity");
 
-	paramsBlob.filterByConvexity =  Settings::getBlobDetectorFilterByConvexity();
-	paramsBlob.minConvexity = Settings::getBlobDetectorMinConvexity();
-	paramsBlob.maxConvexity= Settings::getBlobDetectorMaxConvexity();
+	paramsBlob.filterByInertia = Settings::getInstance()->getBoolSetting("BlobDetectorFilterByInertia");
+	paramsBlob.minInertiaRatio = Settings::getInstance()->getFloatSetting("BlobDetectorMinInertiaRatio");
+	paramsBlob.maxInertiaRatio = Settings::getInstance()->getFloatSetting("BlobDetectorMaxInertiaRatio");
+
+	paramsBlob.filterByConvexity = Settings::getInstance()->getBoolSetting("BlobDetectorFilterByConvexity");
+	paramsBlob.minConvexity = Settings::getInstance()->getFloatSetting("BlobDetectorMinConvexity");
+	paramsBlob.maxConvexity = Settings::getInstance()->getFloatSetting("BlobDetectorMaxConvexity");
 
 	cv::FeatureDetector * detector = new cv::SimpleBlobDetector(paramsBlob);
 	cv::vector<cv::KeyPoint> keypoints;

@@ -378,7 +378,7 @@ void Trial::drawPoints(int cameraId, bool detailView)
 		glVertex2f(x, y + 12);
 		glEnd();
 
-		if (Settings::getAdvancedCrosshairDetailView()){
+		if (Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView")){
 			glBegin(GL_LINES);
 			for (int i = 0; i < 6; i++)
 			{
@@ -420,7 +420,7 @@ void Trial::drawPoints(int cameraId, bool detailView)
 	}
 
 	if (activeMarkerIdx >= 0 && activeMarkerIdx < markers.size() && markers[activeMarkerIdx]->getStatus3D()[activeFrame] > 0){
-		if (!detailView || Settings::getShow3dPointDetailView()){
+		if (!detailView || Settings::getInstance()->getBoolSetting("Show3dPointDetailView")){
 			glBegin(GL_LINES);
 			glColor3f(0.0, 1.0, 1.0);
 			glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x - 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y - 5);

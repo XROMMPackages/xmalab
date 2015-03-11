@@ -164,7 +164,7 @@ void RigidBodyDialog::updateColorButton()
 
 void RigidBodyDialog::on_pushButton_setFromFile_clicked()
 {
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open rigid body references"), Settings::getLastUsedDirectory(), ("CSV Files (*.csv)"));
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open rigid body references"), Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
 
 	if (fileName.isNull() == false){
 

@@ -206,7 +206,7 @@ int LocalUndistortion::computeLWM(cv::Mat &detectedPts, cv::Mat &controlPts, cv:
 	B.release();
 	radii.release();
 
-	int nbNeighbours = Settings::getLocalUndistortionNeighbours();
+	int nbNeighbours = Settings::getInstance()->getIntSetting("LocalUndistortionNeighbours");
 
 	A.create(cv::Size(6,detectedPts.rows),CV_64F);
 	B.create(cv::Size(6,detectedPts.rows),CV_64F);

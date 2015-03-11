@@ -49,7 +49,7 @@ int main ( int argc, char **argv )
 {
 	MApplication  app (argc, argv);
 
-	Settings::setup();
+	Settings::getInstance();
 	MainWindow *widget = MainWindow::getInstance();
 
 	widget->show();

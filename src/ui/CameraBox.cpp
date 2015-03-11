@@ -101,23 +101,23 @@ void CameraBox::addUndistortionImage(QString filename)
 
 void CameraBox::on_toolButtonImages_clicked(){
 	imageFileNames = QFileDialog::getOpenFileNames(this,
-									tr("Open Calibration Images"), Settings::getLastUsedDirectory(),tr("Image Files (*.png *.jpg *.jpeg *.bmp *.tif)"));
+									tr("Open Calibration Images"), Settings::getInstance()->getLastUsedDirectory(),tr("Image Files (*.png *.jpg *.jpeg *.bmp *.tif)"));
 
 	imageFileNames.sort();
 	if ( imageFileNames.size() > 0 && imageFileNames[0].isNull() == false )
     {
         widget->lineEditImages->setText(commonPrefix(imageFileNames));
 		widget->labelNbImages->setText("(" + QString::number(imageFileNames.size()) + ")" );
-		Settings::setLastUsedDirectory(widget->lineEditImages->text());
+		Settings::getInstance()->setLastUsedDirectory(widget->lineEditImages->text());
     }
 }
 
 void CameraBox::on_toolButtonUndistortionGrid_clicked(){
 	QString fileName = QFileDialog::getOpenFileName(this,
-									tr("Open undistortion grid"), Settings::getLastUsedDirectory(),("Image Files (*.png *.jpg *.jpeg *.bmp *.tif)"));
+									tr("Open undistortion grid"), Settings::getInstance()->getLastUsedDirectory(),("Image Files (*.png *.jpg *.jpeg *.bmp *.tif)"));
 	if ( fileName.isNull() == false )
     {
-		Settings::setLastUsedDirectory(fileName);
+		Settings::getInstance()->setLastUsedDirectory(fileName);
 		widget->lineEditUndistortionGrid->setText(fileName);
     }
 }

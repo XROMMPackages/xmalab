@@ -81,7 +81,7 @@ bool WizardUndistortionFrame::checkForPendingChanges(){
 	}
 
 	if(hasPendingChanges){
-		if(Settings::getAutoConfirmPendingChanges() || ConfirmationDialog::getInstance()->showConfirmationDialog(
+		if (Settings::getInstance()->getBoolSetting("AutoConfirmPendingChanges") || ConfirmationDialog::getInstance()->showConfirmationDialog(
 			"You have modified the undistortion input and before continuing you first have to recompute the undistortion. If you want to recompute click \'yes\', if you want to continue changing undistortion parameters click \'cancel\' "
 			)){
 			QEventLoop loop;

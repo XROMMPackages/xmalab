@@ -94,20 +94,20 @@ void ImportExportPointsDialog::on_radioButtonTrial_clicked(bool checked)
 
 void ImportExportPointsDialog::on_toolButtonMarkers_clicked(){
 	QString fileName = QFileDialog::getOpenFileName(this,
-		tr("Open marker description"), Settings::getLastUsedDirectory(), ("Txt files (*.txt)"));
+		tr("Open marker description"), Settings::getInstance()->getLastUsedDirectory(), ("Txt files (*.txt)"));
 	if (fileName.isNull() == false)
 	{
-		Settings::setLastUsedDirectory(fileName);
+		Settings::getInstance()->setLastUsedDirectory(fileName);
 		diag->lineEditMarkers->setText(fileName);
 	}
 }
 
 void ImportExportPointsDialog::on_toolButtonRigidBodies_clicked(){
 	QString fileName = QFileDialog::getOpenFileName(this,
-		tr("Open rigid body description"), Settings::getLastUsedDirectory(), ("Txt files (*.txt)"));
+		tr("Open rigid body description"), Settings::getInstance()->getLastUsedDirectory(), ("Txt files (*.txt)"));
 	if (fileName.isNull() == false)
 	{
-		Settings::setLastUsedDirectory(fileName);
+		Settings::getInstance()->setLastUsedDirectory(fileName);
 		diag->lineEditRigidBodies->setText(fileName);
 	}
 }
@@ -159,20 +159,20 @@ bool ImportExportPointsDialog::exportData()
 		if (diag->checkBoxMarkers->isChecked())
 		{
 			QString fileNameMarkers = QFileDialog::getSaveFileName(this,
-				tr("Save marker description as"), Settings::getLastUsedDirectory() , tr("Txt files (*.txt)"));
+				tr("Save marker description as"), Settings::getInstance()->getLastUsedDirectory() , tr("Txt files (*.txt)"));
 			if (fileNameMarkers.isNull() == false)
 			{
-				Settings::setLastUsedDirectory(fileNameMarkers);
+				Settings::getInstance()->setLastUsedDirectory(fileNameMarkers);
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveMarkers(fileNameMarkers);
 			}
 		}
 		if (diag->checkBoxRigidBodies->isChecked())
 		{
 			QString fileNameRigidBodies = QFileDialog::getSaveFileName(this,
-				tr("Save rigid body description as"), Settings::getLastUsedDirectory(), tr("Txt files (*.txt)"));
+				tr("Save rigid body description as"), Settings::getInstance()->getLastUsedDirectory(), tr("Txt files (*.txt)"));
 			if (fileNameRigidBodies.isNull() == false)
 			{
-				Settings::setLastUsedDirectory(fileNameRigidBodies);
+				Settings::getInstance()->setLastUsedDirectory(fileNameRigidBodies);
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodies(fileNameRigidBodies);
 			}
 		}

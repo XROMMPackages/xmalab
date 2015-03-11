@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QSettings>
+#include <vector>
 
 #define UI_VERSION 0
 
@@ -10,99 +11,43 @@ namespace xma{
 	class Settings{
 
 	public:
-		Settings();
+		static Settings * getInstance();
 		virtual ~Settings();
 
-		//setup Application and Company Name
-		static void setup();
+		bool getBoolSetting(QString name);
+		int getIntSetting(QString name);
+		float getFloatSetting(QString name);
+		QString getQStringSetting(QString name);
 
+		void set(QString name, bool value);
+		void set(QString name, int value);
+		void set(QString name, float value);
+		void set(QString name, QString value);
+
+		//Special Settings
 		//Filename
-		static void setLastUsedDirectory(QString Filename, bool directory = false);
-		static QString getLastUsedDirectory();
+		void setLastUsedDirectory(QString Filename, bool directory = false);
+		QString getLastUsedDirectory();
 
-		//UI
-		static void setUIGeometry(QString windowTitle, QByteArray geometry);
-		static QByteArray getUIGeometry(QString windowTitle);
-		static void setUIState(QString windowTitle, QByteArray state);
-		static QByteArray getUIState(QString windowTitle);
-		static void setShowDetailView(bool value);
-		static bool getShowDetailView();
-		static void setShowPlot(bool value);
-		static bool getShowPlot();
-		static void setShow3DView(bool value);
-		static bool getShow3DView();
-		static void setShowConsole(bool value);
-		static bool getShowConsole();
+		//UI QByteArray
+		void setUIGeometry(QString windowTitle, QByteArray geometry);
+		QByteArray getUIGeometry(QString windowTitle);
+		void setUIState(QString windowTitle, QByteArray state);
+		QByteArray getUIState(QString windowTitle);
 
+	private:
+		Settings();
+		static Settings * instance;
 
-		//General
-		static void setAutoConfirmPendingChanges(bool value);
-		static bool getAutoConfirmPendingChanges();
+		std::vector < std::pair <QString, bool> > booleanSettings;
+		std::vector < std::pair <QString, int> > intSettings;
+		std::vector < std::pair <QString, float> > floatSettings;
+		std::vector < std::pair <QString, QString> > qstringSettings;
 
-		//Calibration
-		static void setAutoCalibAfterReference(bool value);
-		static bool getAutoCalibAfterReference();
-
-		//Digitizing
-		static void setCenterDetailView(bool value);
-		static bool getCenterDetailView();
-		static void setAdvancedCrosshairDetailView(bool value);
-		static bool getAdvancedCrosshairDetailView();
-		static void setShow3dPointDetailView(bool value);
-		static bool getShow3dPointDetailView();
-
-		//NamingPattern
-		static void setUndistortNamingPattern(QString pattern);
-		static QString getUndistortNamingPattern();
-
-		//BlobDetector
-		static void setBlobDetectorThresholdStep(float value);
-		static float getBlobDetectorThresholdStep();
-		static void setBlobDetectorMinThreshold(float value);
-		static float getBlobDetectorMinThreshold();
-		static void setBlobDetectorMaxThreshold(float value);
-		static float getBlobDetectorMaxThreshold();
-		static void setBlobDetectorMinRepeatability(int value);
-		static int getBlobDetectorMinRepeatability();
-		static void setBlobDetectorMinDistBetweenBlobs(float value);
-		static float getBlobDetectorMinDistBetweenBlobs();
-
-		static void setBlobDetectorFilterByColor(bool value);
-		static bool getBlobDetectorFilterByColor();
-		static void setBlobDetectorBlobColor(int value);
-		static int getBlobDetectorBlobColor();
-
-		static void setBlobDetectorFilterByArea(bool value);
-		static bool getBlobDetectorFilterByArea();
-		static void setBlobDetectorMinArea(float value);
-		static float getBlobDetectorMinArea();
-		static void setBlobDetectorMaxArea(float value);
-		static float getBlobDetectorMaxArea();
-
-		static void setBlobDetectorFilterByCircularity(bool value);
-		static bool getBlobDetectorFilterByCircularity();
-		static void setBlobDetectorMinCircularity(float value);
-		static float getBlobDetectorMinCircularity();
-		static void setBlobDetectorMaxCircularity(float value);
-		static float getBlobDetectorMaxCircularity();
-
-		static void setBlobDetectorFilterByInertia(bool value);
-		static bool getBlobDetectorFilterByInertia();
-		static void setBlobDetectorMinInertiaRatio(float value);
-		static float getBlobDetectorMinInertiaRatio();
-		static void setBlobDetectorMaxInertiaRatio(float value);
-		static float getBlobDetectorMaxInertiaRatio();
-
-		static void setBlobDetectorFilterByConvexity(bool value);
-		static bool getBlobDetectorFilterByConvexity();
-		static void setBlobDetectorMinConvexity(float value);
-		static float getBlobDetectorMinConvexity();
-		static void setBlobDetectorMaxConvexity(float value);
-		static float getBlobDetectorMaxConvexity();
-
-		//Local Undistortion Params
-		static void setLocalUndistortionNeighbours(int value);
-		static int getLocalUndistortionNeighbours();
+		void addBoolSetting(QString name, bool defaultValue);
+		void addIntSetting(QString name, int defaultValue);
+		void addFloatSetting(QString name, float defaultValue);
+		void addQStringSetting(QString name, QString defaultValue);
 	};
 }
 

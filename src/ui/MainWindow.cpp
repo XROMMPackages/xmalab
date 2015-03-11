@@ -85,16 +85,16 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->imageScrollArea->setVisible(false);
 	ui->startTrialFrame->setVisible(false);
 
-	ui->actionDetailed_View->setChecked(Settings::getShowDetailView());
+	ui->actionDetailed_View->setChecked(Settings::getInstance()->getBoolSetting("ShowDetailView"));
 	ui->actionDetailed_View->setEnabled(false);
 	
-	ui->actionPlot->setChecked(Settings::getShowPlot());
+	ui->actionPlot->setChecked(Settings::getInstance()->getBoolSetting("ShowPlot"));
 	ui->actionPlot->setEnabled(false);
 
-	ui->action3D_world_view->setChecked(Settings::getShow3DView());
+	ui->action3D_world_view->setChecked(Settings::getInstance()->getBoolSetting("Show3DView"));
 	ui->action3D_world_view->setEnabled(false);
 
-	ui->actionConsole->setChecked(Settings::getShowConsole());
+	ui->actionConsole->setChecked(Settings::getInstance()->getBoolSetting("Console"));
 
 	project = NULL;
 
@@ -113,9 +113,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	DetailViewDockWidget::getInstance();
 	PlotWindow::getInstance();
 
-	restoreGeometry(Settings::getUIGeometry("XMALab"));
-	if(Settings::getUIState("XMALab").size()<0 ||
-		!restoreState(Settings::getUIState("XMALab"),UI_VERSION)){
+	restoreGeometry(Settings::getInstance()->getUIGeometry("XMALab"));
+	if (Settings::getInstance()->getUIState("XMALab").size()<0 ||
+		!restoreState(Settings::getInstance()->getUIState("XMALab"), UI_VERSION)){
 		WizardDockWidget::getInstance()->setFloating(true);
 		ProgressDialog::getInstance()->setFloating(true);
 		worldViewDockWidget->setFloating(true);	
@@ -125,7 +125,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	}
 	
 	WizardDockWidget::getInstance()->hide();
-	if (Settings::getShowConsole())
+	if (Settings::getInstance()->getBoolSetting("Console"))
 	{
 		
 	}
@@ -191,8 +191,8 @@ void MainWindow::resizeEvent(QResizeEvent *event){
 } 
 
 void MainWindow::closeEvent (QCloseEvent * event){
-	Settings::setUIGeometry("XMALab",saveGeometry());
-    Settings::setUIState("XMALab", saveState(UI_VERSION));
+	Settings::getInstance()->setUIGeometry("XMALab", saveGeometry());
+	Settings::getInstance()->setUIState("XMALab", saveState(UI_VERSION));
     QMainWindow::closeEvent(event);
 	QApplication::quit();
 }	
@@ -438,12 +438,12 @@ void MainWindow::loadProject(){
 		closeProject();
 
 	project = Project::getInstance();
-
+	
 	QString fileName = QFileDialog::getOpenFileName(this,
-									tr("Select dataset"), Settings::getLastUsedDirectory(),tr("Dataset (*.xma  *.zip)"));
+									tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(),tr("Dataset (*.xma  *.zip)"));
 	if ( fileName.isNull() == false )
     {
-		Settings::setLastUsedDirectory(fileName);
+		Settings::getInstance()->setLastUsedDirectory(fileName);
 
 		m_FutureWatcher = new QFutureWatcher<int>();
 		connect( m_FutureWatcher, SIGNAL( finished() ), this, SLOT( loadProjectFinished() ) );
@@ -585,13 +585,13 @@ void MainWindow::saveProject(){
 void MainWindow::saveProjectAs(){
 	if(WizardDockWidget::getInstance()->checkForPendingChanges()){
 		QString fileName = QFileDialog::getSaveFileName(this,
-			tr("Save dataset as"), project->getProjectFilename().isEmpty() ? Settings::getLastUsedDirectory() : project->getProjectFilename(),tr("Dataset (*.xma *.zip)"));
+			tr("Save dataset as"), project->getProjectFilename().isEmpty() ? Settings::getInstance()->getLastUsedDirectory() : project->getProjectFilename(),tr("Dataset (*.xma *.zip)"));
 
 		ConsoleDockWidget::getInstance()->prepareSave();
 
 		if ( fileName.isNull() == false )
 		{
-			Settings::setLastUsedDirectory(fileName);
+			Settings::getInstance()->setLastUsedDirectory(fileName);
     
 			m_FutureWatcher = new QFutureWatcher<int>();
 			connect( m_FutureWatcher, SIGNAL( finished() ), this, SLOT( saveProjectFinished() ) );
@@ -626,7 +626,7 @@ void MainWindow::checkTrialImagePaths()
 			QFileInfo fileinfo(filename);
 			if (!QFile::exists(filename))
 			{
-				QString newfolder = QFileDialog::getExistingDirectory(this, fileinfo.fileName() + "not found. Enter a new directory for " + fileinfo.fileName(), Settings::getLastUsedDirectory());
+				QString newfolder = QFileDialog::getExistingDirectory(this, fileinfo.fileName() + "not found. Enter a new directory for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
 
 				if (!newfolder.isEmpty())
 				{
@@ -738,7 +738,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		PointsDockWidget::getInstance()->hide();
 		DetailViewDockWidget::getInstance()->hide();
 		PlotWindow::getInstance()->hide();
-		if (Settings::getShow3DView()) {
+		if (Settings::getInstance()->getBoolSetting("Show3DView")) {
 			worldViewDockWidget->show();
 		}
 		else
@@ -765,7 +765,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 
 				PointsDockWidget::getInstance()->show();
 
-				if (Settings::getShowPlot()){
+				if (Settings::getInstance()->getBoolSetting("ShowPlot")){
 					PlotWindow::getInstance()->show();
 				}
 				else
@@ -773,7 +773,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 					PlotWindow::getInstance()->hide();
 				}
 
-				if (Settings::getShow3DView()){
+				if (Settings::getInstance()->getBoolSetting("Show3DView")){
 					worldViewDockWidget->show();
 				}
 				else
@@ -781,7 +781,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 					worldViewDockWidget->hide();
 				}
 
-				if (Settings::getShowDetailView()){
+				if (Settings::getInstance()->getBoolSetting("ShowDetailView")){
 					DetailViewDockWidget::getInstance()->show();
 				}
 				else
@@ -902,92 +902,92 @@ void MainWindow::on_actionSave_Project_as_triggered(bool checked){
 //File->Export Menu Slots
 void MainWindow::on_actionExportDLT_triggered(bool checked){
 	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getLastUsedDirectory());
+		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 	if ( outputPath.isNull() == false )
     {
         Project::getInstance()->exportDLT(outputPath);
-		Settings::setLastUsedDirectory(outputPath,true);
+		Settings::getInstance()->setLastUsedDirectory(outputPath,true);
     }
 }
 
 void MainWindow::on_actionExportLUT_triggered(bool checked){
 	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getLastUsedDirectory());
+		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 	if ( outputPath.isNull() == false )
     {
         Project::getInstance()->exportLUT(outputPath);
-		Settings::setLastUsedDirectory(outputPath,true);
+		Settings::getInstance()->setLastUsedDirectory(outputPath,true);
     }
 }
 
 void MainWindow::on_actionExportMayacams_triggered(bool checked){
 	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getLastUsedDirectory());
+		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 	if ( outputPath.isNull() == false )
     {
         Project::getInstance()->exportMayaCam(outputPath);
-		Settings::setLastUsedDirectory(outputPath,true);
+		Settings::getInstance()->setLastUsedDirectory(outputPath,true);
     }
 }
 
 void MainWindow::on_actionExportAll_triggered(bool checked){
 	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getLastUsedDirectory());
+		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 	if ( outputPath.isNull() == false )
     {
         Project::getInstance()->exportDLT(outputPath);
 		Project::getInstance()->exportMayaCam(outputPath);
 		Project::getInstance()->exportLUT(outputPath);
-		Settings::setLastUsedDirectory(outputPath,true);
+		Settings::getInstance()->setLastUsedDirectory(outputPath,true);
     }
 }
 
 void MainWindow::on_actionExport3D_Points_triggered(bool checked)
 {
 	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getLastUsedDirectory());
+		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 	if (outputPath.isNull() == false)
 	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(outputPath + OS_SEP);
-		Settings::setLastUsedDirectory(outputPath, true);
+		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 	}
 }
 
 void MainWindow::on_actionExport2D_Points_triggered(bool checked)
 {
 	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getLastUsedDirectory());
+		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 	if (outputPath.isNull() == false)
 	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(outputPath + OS_SEP);
-		Settings::setLastUsedDirectory(outputPath, true);
+		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 	}
 }
 
 void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 {
 	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getLastUsedDirectory());
+		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 	if (outputPath.isNull() == false)
 	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(outputPath + OS_SEP);
-		Settings::setLastUsedDirectory(outputPath, true);
+		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 	}
 }
 
 void MainWindow::on_actionFiltered_RigidBody_Transformations_triggered(bool checked)
 {
 	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getLastUsedDirectory());
+		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 	if (outputPath.isNull() == false)
 	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformationsFiltered(outputPath + OS_SEP);
-		Settings::setLastUsedDirectory(outputPath, true);
+		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 	}
 }
 
@@ -1027,11 +1027,11 @@ void MainWindow::on_pushButtonNewTrial_clicked()
 void MainWindow::on_action3D_world_view_triggered(bool checked){
 	if (checked){
 		worldViewDockWidget->show();
-		Settings::setShow3DView(true);
+		Settings::getInstance()->set("Show3DView", true);
 	}
 	else {
 		worldViewDockWidget->hide();
-		Settings::setShow3DView(false);
+		Settings::getInstance()->set("Show3DView",false);
 		ui->action3D_world_view->setChecked(false);
 	}
 }
@@ -1039,25 +1039,25 @@ void MainWindow::on_action3D_world_view_triggered(bool checked){
 void MainWindow::on_actionConsole_triggered(bool checked){
 	if (checked){
 		ConsoleDockWidget::getInstance()->show();
-		Settings::setShowConsole(true);
+		Settings::getInstance()->set("Console", true);
 	}
 	else
 	{
 		ConsoleDockWidget::getInstance()->hide();
 		ui->actionConsole->setChecked(false);
-		Settings::setShowConsole(false);
+		Settings::getInstance()->set("Console", false);
 	}
 }
 
 void MainWindow::on_actionDetailed_View_triggered(bool checked){
 	if (checked){
 		DetailViewDockWidget::getInstance()->show();
-		Settings::setShowDetailView(true);
+		Settings::getInstance()->set("ShowDetailView", true);
 	}
 	else {
 		ui->actionDetailed_View->setChecked(false);
 		DetailViewDockWidget::getInstance()->hide();
-		Settings::setShowDetailView(false);
+		Settings::getInstance()->set("ShowDetailView", false);
 	}
 }
 
@@ -1067,11 +1067,11 @@ void MainWindow::on_actionPlot_triggered(bool checked)
 		PlotWindow::getInstance()->show();
 		PlotWindow::getInstance()->updateMarkers(false);
 		PlotWindow::getInstance()->draw();
-		Settings::setShowPlot(true);
+		Settings::getInstance()->set("ShowPlot", true);
 	}
 	else {
 		ui->actionPlot->setChecked(false);
 		PlotWindow::getInstance()->hide();
-		Settings::setShowPlot(true);
+		Settings::getInstance()->set("ShowPlot", false);
 	}
 }

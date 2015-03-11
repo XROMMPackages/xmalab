@@ -173,20 +173,20 @@ void NewProjectDialog::on_radioButtonCube_clicked(){
 //Calibrationcube files
 void NewProjectDialog::on_toolButtonFrameSpecifications_clicked(){
 	QString fileName = QFileDialog::getOpenFileName(this,
-									tr("Open frame specification of calibration object"), Settings::getLastUsedDirectory(),tr("Framespec File (*.csv)"));
+									tr("Open frame specification of calibration object"), Settings::getInstance()->getLastUsedDirectory(),tr("Framespec File (*.csv)"));
 	if ( fileName.isNull() == false )
     {
-		Settings::setLastUsedDirectory(fileName);
+		Settings::getInstance()->setLastUsedDirectory(fileName);
 		diag->lineEditFrameSpecifications->setText(fileName);
     }
 }
 
 void NewProjectDialog::on_toolButtonReferencePoints_clicked(){
 	QString fileName = QFileDialog::getOpenFileName(this,
-									tr("Open reference points file of calibration object"), Settings::getLastUsedDirectory(),tr("Reference File (*.ref)"));
+									tr("Open reference points file of calibration object"), Settings::getInstance()->getLastUsedDirectory(),tr("Reference File (*.ref)"));
 	if ( fileName.isNull() == false )
     {
-		Settings::setLastUsedDirectory(fileName);
+		Settings::getInstance()->setLastUsedDirectory(fileName);
 		diag->lineEditReferencePoints->setText(fileName);
     }
 }
