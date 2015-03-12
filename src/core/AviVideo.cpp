@@ -8,31 +8,7 @@
 using namespace xma;
 
 AviVideo::AviVideo(QStringList _filenames) :VideoStream(_filenames){
-	nbImages = 0;
-	cv::VideoCapture cap(filenames.at(0).toAscii().data()); // open the default camera
-	if (cap.isOpened())
-	{
-		double frnb(cap.get(CV_CAP_PROP_FRAME_COUNT));
-		nbImages = (int) (frnb+0.45);
-
-		cap.set(CV_CAP_PROP_POS_FRAMES, 0);
-		cv::Mat frame;
-		cap.read(frame);
-		if (frame.channels() > 1)
-		{
-			cv::Mat grayimage;
-			cv::cvtColor(frame, grayimage, CV_BGR2GRAY);
-			image->setImage(grayimage);
-			grayimage.release();
-		}
-		else
-		{
-			image->setImage(frame);
-		}
-		frame.release();
-	}
-
-	cap.release();
+	reloadFile();
 }
 
 AviVideo::~AviVideo(){
@@ -45,6 +21,7 @@ void AviVideo::setActiveFrame(int _activeFrame)
 	if (cap.isOpened() && _activeFrame >= 0 && _activeFrame < nbImages)
 	{
 		cap.set(CV_CAP_PROP_POS_FRAMES, _activeFrame);
+
 		cv::Mat frame;
 		cap.read(frame);
 		if (frame.channels() > 1)
@@ -78,8 +55,8 @@ void AviVideo::reloadFile()
 	{
 		double frnb(cap.get(CV_CAP_PROP_FRAME_COUNT));
 		nbImages = (int)(frnb + 0.45);
+		fps = cap.get(CV_CAP_PROP_FPS);
 
-		cap.set(CV_CAP_PROP_POS_FRAMES, 0);
 		cv::Mat frame;
 		cap.read(frame);
 		if (frame.channels() > 1)

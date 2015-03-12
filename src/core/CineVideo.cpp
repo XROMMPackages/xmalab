@@ -398,6 +398,7 @@ void CineVideo::loadCineInfo()
 		delete[] imageAddressarray;
 
 		nbImages = ImageCount;
+		fps = FrameRate; 
 
 		if (ImageCount > 0){
 			is.seekg(image_addresses[0]);

@@ -60,6 +60,8 @@ Trial::Trial(QString trialname, std::vector<QStringList> &imageFilenames){
 
 	setNbImages();
 
+	recordingSpeed = videos[0]->getFPS();
+
 	startFrame = 1;
 	endFrame = nbImages;
 }
@@ -104,7 +106,11 @@ Trial::Trial(QString trialname, QString folder){
 
 		videos.push_back(newSequence);
 	}
+
+
 	setNbImages();
+
+	recordingSpeed = videos[0]->getFPS();
 
 	startFrame = 1;
 	endFrame = nbImages;
@@ -131,15 +137,20 @@ Trial::~Trial(){
 
 void Trial::setNbImages()
 {
+	nbImages = 0;
 	for (int i = 0; i < videos.size(); i++)
 	{
-		if (i == 0)
-		{
-			nbImages = videos[i]->getNbImages();
-		}
-		else
-		{
-			assert(nbImages == videos[i]->getNbImages());
+		if (videos[i]->getNbImages() >= 0){
+			if (i == 0)
+			{
+
+				nbImages = videos[i]->getNbImages();
+			}
+			else
+			{
+
+				assert(nbImages == videos[i]->getNbImages());
+			}
 		}
 	}
 }

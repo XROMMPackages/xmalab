@@ -22,11 +22,14 @@ namespace xma
 			int getNbImages();
 			Image* getImage();
 			void bindTexture();
+			double getFPS();
+
 
 		protected:
 			Image * image;
 			int nbImages;
 			QStringList filenames;
+			double fps;
 	};
 }
 

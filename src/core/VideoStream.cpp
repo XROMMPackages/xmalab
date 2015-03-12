@@ -11,7 +11,8 @@ VideoStream::VideoStream(QStringList _filenames)
 {
 	filenames = _filenames;
 	image = new Image("");
-	nbImages = 0;
+	nbImages = -1;
+	fps = 0;
 }
 
 VideoStream::~VideoStream()
@@ -38,6 +39,11 @@ Image* VideoStream::getImage()
 void VideoStream::bindTexture()
 {
 	image->bindTexture();
+}
+
+double VideoStream::getFPS()
+{
+	return fps;
 }
 
 void VideoStream::changeImagePath(QString newfolder, QString oldfolder)
