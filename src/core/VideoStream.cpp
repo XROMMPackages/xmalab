@@ -46,6 +46,26 @@ double VideoStream::getFPS()
 	return fps;
 }
 
+QString VideoStream::getFileBasename()
+{
+	bool isValid = true;
+	int count = 0;
+	//int max = (fileNames.size() > 20) ? 20 : fileNames.size();
+
+	while (isValid && count < filenames.at(0).length()){
+		QString prefix = filenames.at(0).left(count + 1);
+		for (int i = 0; i <filenames.size(); i++){
+			if (!filenames.at(i).contains(prefix)){
+				isValid = false;
+				break;
+			}
+		}
+
+		if (isValid)count++;
+	}
+	return filenames.at(0).left(count);
+}
+
 void VideoStream::changeImagePath(QString newfolder, QString oldfolder)
 {
 	filenames = filenames.replaceInStrings(oldfolder, newfolder);

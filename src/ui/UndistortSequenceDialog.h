@@ -31,12 +31,17 @@ namespace xma{
 		QString commonPrefix(QStringList fileNames);
 		QString commonPostfix(QStringList fileNames);
 		int getNumber(QStringList fileNames);
+		QString getFilename(QFileInfo fileinfo, int number);
+		bool overwriteFile(QString filename, bool &overwrite);
+		void updatePreview();
 
 		public slots:
 		void on_toolButton_Input_clicked();
 		void on_toolButton_OutputFolder_clicked();
 		void on_pushButton_clicked();
 		void on_lineEdit_pattern_textChanged(QString text);
+		void on_spinBox_NumberStart_valueChanged(int i);
+		void on_spinBox_NumberLength_valueChanged(int i);
 	};
 }
 

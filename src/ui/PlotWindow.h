@@ -27,6 +27,7 @@ namespace xma{
 		void updateMarkers(bool rememberSelection);
 		void draw();
 		void resetRange();
+		void updateTimeCheckBox();
 
 	private:
 		void plot2D(int idx1);
@@ -65,6 +66,7 @@ namespace xma{
 		void on_comboBoxRigidBody_currentIndexChanged(int idx);
 		void on_comboBoxRigidBodyTransPart_currentIndexChanged(int idx);
 		void on_comboBoxRigidBodyTransType_currentIndexChanged(int idx);
+		void on_checkBoxTime_clicked();
 
 		void activeTrialChanged(int activeTrial);
 		void workspaceChanged(work_state workspace);

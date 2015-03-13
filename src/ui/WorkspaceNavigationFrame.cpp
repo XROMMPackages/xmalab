@@ -51,12 +51,13 @@ void WorkspaceNavigationFrame::setUndistortion(bool hasUndistortion){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion") );
 		on_comboBoxWorkspace_currentIndexChanged(frame->comboBoxWorkspace->currentText());
 		frame->horizontalSpacer->changeSize(10,10,QSizePolicy::Expanding, QSizePolicy::Minimum);
-		frame->comboBoxWorkspace->setVisible(true);
+		frame->comboBoxWorkspace->setVisible(true);	
 	}else{
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration") );
 		on_comboBoxWorkspace_currentIndexChanged(frame->comboBoxWorkspace->currentText());
 		frame->horizontalSpacer->changeSize(10,10,QSizePolicy::Ignored, QSizePolicy::Minimum);
-		frame->comboBoxWorkspace->setVisible(false);
+		frame->comboBoxWorkspace->setVisible(true);
+		frame->comboBoxWorkspace->removeItem(frame->comboBoxWorkspace->findText("Undistortion"));
 	}
 }
 

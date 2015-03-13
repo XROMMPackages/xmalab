@@ -22,8 +22,15 @@ namespace xma{
 
 		int getActiveFrame();
 		void setActiveFrame(int _activeFrame);
-
 		const std::vector <VideoStream *> & getVideoStreams();
+		QString getActiveFilename(int camera);
+		double getRecordingSpeed();
+		void setRecordingSpeed(double value);
+
+		
+		int getReferenceCalibrationImage();
+		void setReferenceCalibrationImage(int value);
+
 		const std::vector <Marker * > &getMarkers();
 		const std::vector <RigidBody * > &getRigidBodies();
 
@@ -39,15 +46,10 @@ namespace xma{
 
 		void addRigidBody();
 		void removeRigidBody(int idx);
-
 		void addMarker();
 		void removeMarker(int idx);
 		
-		QString getActiveFilename(int camera);
-		int getReferenceCalibrationImage();
-		void setReferenceCalibrationImage(int value);
-		double getRecordingSpeed();
-		void setRecordingSpeed(double value);
+
 		double getCutOffFrequency();
 		void setCutOffFrequency(double value);
 		int getInterpolateMissingFrames();
@@ -77,8 +79,10 @@ namespace xma{
 
 		void save3dPoints(QString outputfolder);
 		void save2dPoints(QString outputfolder);
+
 		void saveRigidBodyTransformations(QString outputfolder);
 		void saveRigidBodyTransformationsFiltered(QString outputfolder);
+		void saveTrialImages(QString outputfolder);
 		void recomputeAndFilterRigidBodyTransformations();
 		void resetRigidBodyByMarker(Marker * marker, int frame);
 

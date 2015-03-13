@@ -12,7 +12,9 @@
 #include "core/RigidBody.h"
 #include "core/Marker.h"
 #include "core/Settings.h"
+#include "core/UndistortionObject.h"
 #include <QFileInfo>
+#include <QDir>
 
 #include <fstream>
 
@@ -615,6 +617,35 @@ void Trial::saveRigidBodyTransformationsFiltered(QString outputfolder)
 		getRigidBodies()[i]->recomputeTransformations();
 
 		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv", true,true);
+	}
+}
+
+void Trial::saveTrialImages(QString outputfolder)
+{
+	for (int i = 0; i < videos.size(); i++)
+	{
+		QFileInfo info(videos[i]->getFileBasename());
+		QString foldername = outputfolder + info.baseName();
+		if (!QDir().mkpath(foldername)){
+			return;
+		}
+		if (Project::getInstance()->getCameras()[i]->hasUndistortion()){
+			for (int j = 0; j < videos[i]->getNbImages(); j++)
+			{
+				QString outname = foldername + OS_SEP + info.baseName() + "_" + QString("%1").arg(j + 1, 6, 10, QChar('0')) + ".tif";
+				videos[i]->setActiveFrame(j);
+				Project::getInstance()->getCameras()[i]->getUndistortionObject()->undistort(videos[i]->getImage(), outname);
+			}
+		}
+		else
+		{
+			for (int j = 0; j < videos[i]->getNbImages(); j++)
+			{
+				QString outname = foldername + OS_SEP + info.baseName() + "_" + QString("%1").arg(j + 1, 6, 10, QChar('0')) + ".tif";
+				videos[i]->setActiveFrame(j);
+				videos[i]->getImage()->save(outname);
+			}
+		}
 	}
 }
 

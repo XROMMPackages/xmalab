@@ -10,6 +10,8 @@
 #include "core/Settings.h"
 #include "core/Project.h"
 #include "core/Camera.h"
+#include "core/CineVideo.h"
+#include "core/AviVideo.h"
 #include "core/UndistortionObject.h"
 
 #include <QFileDialog>
@@ -20,6 +22,7 @@
 #else
 	#define OS_SEP "/"
 #endif
+
 
 using namespace xma;
 
@@ -93,7 +96,7 @@ int UndistortSequenceDialog::getNumber(QStringList fileNames){
 
 void UndistortSequenceDialog::on_toolButton_Input_clicked(){
 	fileNames = QFileDialog::getOpenFileNames(this,
-		tr("Open Files"),Settings::getInstance()->getLastUsedDirectory(),tr("Image Files (*.png *.jpg *.jpeg *.bmp *.tif)"));
+		tr("Open Files"),Settings::getInstance()->getLastUsedDirectory(),tr("Video and Image Files (*.cine *.avi *.png *.jpg *.jpeg *.bmp *.tif)"));
 
 	fileNames.sort();
 	if ( fileNames.size() > 0 && fileNames[0].isNull() == false )
@@ -104,6 +107,7 @@ void UndistortSequenceDialog::on_toolButton_Input_clicked(){
 		diag->lineEdit_Input->setText(commonPrefixString);
 		diag->spinBox_NumberStart->setValue(getNumber(fileNames));
     }
+	updatePreview();
 }
 
 void UndistortSequenceDialog::on_toolButton_OutputFolder_clicked(){
@@ -119,12 +123,60 @@ void UndistortSequenceDialog::on_toolButton_OutputFolder_clicked(){
 
 void UndistortSequenceDialog::on_lineEdit_pattern_textChanged(QString text){
 	Settings::getInstance()->set("UndistortNamingPattern",text);
+	updatePreview();
+}
+
+void UndistortSequenceDialog::on_spinBox_NumberStart_valueChanged(int i)
+{
+	updatePreview();
+}
+
+void UndistortSequenceDialog::on_spinBox_NumberLength_valueChanged(int i)
+{
+	updatePreview();
+}
+
+void UndistortSequenceDialog::updatePreview()
+{
+	if (fileNames.size() > 0){
+		QFileInfo info(fileNames.at(0));
+		QString name = getFilename(info, diag->spinBox_NumberStart->value());
+		name.replace(OS_SEP, "");
+		diag->label_Preview->setText(name);
+	}
+}
+
+QString UndistortSequenceDialog::getFilename(QFileInfo fileinfo, int numberFrame)
+{
+	QFileInfo infoNameBase(commonPrefixString);
+	QString filenameBase = infoNameBase.baseName();
+	QString filename = fileinfo.baseName();
+
+	QString number = QString("%1").arg(numberFrame, diag->spinBox_NumberLength->value(), 10, QChar('0'));
+	QString outfilename = outputfolder + OS_SEP + diag->lineEdit_pattern->text() + ".tif";
+	outfilename.replace(QString("%NAME%"), filename);
+	outfilename.replace(QString("%NAMEBASE%"), filenameBase);
+	outfilename.replace(QString("%NUMBER%"), number);
+	return outfilename;
+}
+
+bool UndistortSequenceDialog::overwriteFile(QString outfilename, bool &overwrite)
+{
+	QFile outfile(outfilename);
+	if (!overwrite && outfile.exists()){
+		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("The file " + outfilename + " already exists. Are you sure you want to overwrite it?")){
+			return false;
+		}
+		else{
+			overwrite = true;
+			return true;
+		}
+	}
+	return true;
 }
 
 void UndistortSequenceDialog::on_pushButton_clicked(){
 	int frameStart = diag->spinBox_NumberStart->value();
-	QFileInfo infoNameBase(commonPrefixString);
-	QString filenameBase = infoNameBase.baseName() ;
 	bool overwrite = false;
 
 	int camera_id = -1;
@@ -142,30 +194,58 @@ void UndistortSequenceDialog::on_pushButton_clicked(){
 		diag->progressBar->show();
 		for(int i = 0; i <fileNames.size();i++){
 			QFileInfo infoName(fileNames.at(i));
-			QString filename = infoName.baseName() ;
-
-			QString number = QString("%1").arg(frameStart, diag->spinBox_NumberLength->value(), 10, QChar('0'));
-			QString outfilename = outputfolder + OS_SEP +  diag->lineEdit_pattern->text() + ".tif";
-			outfilename.replace(QString("%NAME%"),filename);
-			outfilename.replace(QString("%NAMEBASE%"),filenameBase);
-			outfilename.replace(QString("%NUMBER%"),number);
-			fprintf(stderr, "Save %s\n",outfilename.toAscii().data());
-
-			QFile outfile(outfilename);
-			if(!overwrite && outfile.exists()){
-				if(!ConfirmationDialog::getInstance()->showConfirmationDialog("The file " + outfilename + " already exists. Are you sure you want to overwrite it?")){
-					break;
-				}else{
-					overwrite = true;
+			if (infoName.suffix() == "cine")
+			{
+				QStringList list;
+				list << fileNames.at(i);
+				CineVideo video(list);
+				diag->progressBar->setMaximum(video.getNbImages());
+				for (int f = 0; i < video.getNbImages(); i++)
+				{
+					QString outfilename = getFilename(infoName, frameStart + f);
+					if (!overwriteFile(outfilename, overwrite)) return;
+					video.setActiveFrame(f);
+					if (!Project::getInstance()->getCameras()[camera_id]->getUndistortionObject()->undistort(video.getImage(), outfilename)){
+						ErrorDialog::getInstance()->showErrorDialog("There was a PRoblem during Undistortion. Check your data, e.g. the resolutions.");
+						break;
+					}
+					frameStart++;
+					diag->progressBar->setValue(f);
+					QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 				}
 			}
-
-			if(!Project::getInstance()->getCameras()[camera_id]->getUndistortionObject()->undistort(fileNames.at(i),outfilename)){
-				ErrorDialog::getInstance()->showErrorDialog("There was a PRoblem during Undistortion. Check your data, e.g. the resolutions.");
-				break;
+			else if (infoName.suffix() == "avi")
+			{
+				QStringList list;
+				list << fileNames.at(i);
+				AviVideo video(list);
+				diag->progressBar->setMaximum(video.getNbImages());
+				for (int f = 0; i < video.getNbImages(); i++)
+				{
+					QString outfilename = getFilename(infoName, frameStart + f);
+					if (!overwriteFile(outfilename, overwrite)) return;
+					video.setActiveFrame(f);
+					if (!Project::getInstance()->getCameras()[camera_id]->getUndistortionObject()->undistort(video.getImage(), outfilename)){
+						ErrorDialog::getInstance()->showErrorDialog("There was a PRoblem during Undistortion. Check your data, e.g. the resolutions.");
+						break;
+					}
+					frameStart++;
+					diag->progressBar->setValue(f);
+					QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+				}
 			}
-			diag->progressBar->setValue(i);
-			frameStart++;
+			else{
+				QString outfilename = getFilename(infoName, frameStart);
+				if (!overwriteFile(outfilename,overwrite)) return;
+
+				if (!Project::getInstance()->getCameras()[camera_id]->getUndistortionObject()->undistort(fileNames.at(i), outfilename)){
+					ErrorDialog::getInstance()->showErrorDialog("There was a PRoblem during Undistortion. Check your data, e.g. the resolutions.");
+					break;
+				}
+				frameStart++;
+				diag->progressBar->setValue(i);
+				QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+			}	
 		}
 	}
 	diag->progressBar->hide();

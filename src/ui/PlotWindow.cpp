@@ -151,21 +151,33 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 			else if (_mouseEvent->buttons() == Qt::LeftButton)
 			{
 				if (_mouseEvent->modifiers().testFlag(Qt::ShiftModifier)){
-					int x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x()) + 0.5;
-					if (x >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
-						x <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
-						State::getInstance()->changeActiveFrameTrial(x - 1);
+					double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+						? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+					int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+						? 0 : 1;
+
+					double x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x());
+					int frame = (x - posOffset) / posMultiplier + 0.5;;
+					if (frame  >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() -1 &&
+						frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
+						State::getInstance()->changeActiveFrameTrial(frame);
 					}
-					startFrame = x - 1;
-					endFrame = x - 1;
+					startFrame = frame;
+					endFrame = frame;
 
 				}
 				else
 				{
-					int x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x()) + 0.5;
-					if (x >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
-						x <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
-						State::getInstance()->changeActiveFrameTrial(x - 1);
+					double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+						? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+					int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+						? 0 : 1;
+
+					double x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x());
+					int frame = (x - posOffset) / posMultiplier + 0.5;;
+					if (frame >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
+						frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
+						State::getInstance()->changeActiveFrameTrial(frame);
 					}
 				}
 			}
@@ -176,19 +188,31 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 			if (_mouseEvent->buttons() == Qt::LeftButton)
 			{
 				if (_mouseEvent->modifiers().testFlag(Qt::ShiftModifier)){
-					int x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x()) + 0.5;
-					if (x >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
-						x <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
-						State::getInstance()->changeActiveFrameTrial(x - 1);
+					double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+						? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+					int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+						? 0 : 1;
+
+					double x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x());
+					int frame = (x - posOffset) / posMultiplier + 0.5;;
+					if (frame >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
+						frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
+						State::getInstance()->changeActiveFrameTrial(frame);
 					}
-					endFrame = x - 1;
+					endFrame = frame;
 				}
 				else
 				{
-					int x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x()) + 0.5;
-					if (x >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
-						x <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
-						State::getInstance()->changeActiveFrameTrial(x - 1);
+					double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+						? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+					int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+						? 0 : 1;
+
+					double x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x());
+					int frame = (x - posOffset) / posMultiplier + 0.5;;
+					if (frame >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
+						frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
+						State::getInstance()->changeActiveFrameTrial(frame);
 					}
 				}
 			}
@@ -200,7 +224,14 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 void PlotWindow::resetRange()
 {
 	if (State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size()){
-		dock->plotWidget->xAxis->setRange(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
+		double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+		int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 0 : 1;
+
+		dock->plotWidget->xAxis->setRange(
+			(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1) * posMultiplier + posOffset,
+			(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1) * posMultiplier + posOffset);
 		if (this->isVisible())dock->plotWidget->replot();
 	}
 }
@@ -221,6 +252,7 @@ void PlotWindow::activeTrialChanged(int activeTrial){
 				}
 			}
 		}
+		updateTimeCheckBox();
 	}
 }
 
@@ -261,6 +293,22 @@ void PlotWindow::workspaceChanged(work_state workspace){
 			if (!updating && State::getInstance()->getActiveTrial() >= 0) {
 				activePointChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
 			}
+		}
+		updateTimeCheckBox();
+	}
+}
+
+void PlotWindow::updateTimeCheckBox()
+{
+	if (!updating && State::getInstance()->getActiveTrial() >= 0)
+	{
+		if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+		{
+			dock->checkBoxTime->show();
+		}
+		else
+		{
+			dock->checkBoxTime->hide();
 		}
 	}
 }
@@ -350,6 +398,11 @@ void PlotWindow::updateMarkers(bool rememberSelection){
 void PlotWindow::plot2D(int idx1)
 {
 	if (this->isVisible()){
+		double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+		int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 0 : 1;
+
 		dock->plotWidget->clearGraphs();
 
 		double max_val_x = 0;
@@ -357,7 +410,13 @@ void PlotWindow::plot2D(int idx1)
 		double max_val_y = 0;
 		double min_val_y = 10000;
 
-		dock->plotWidget->xAxis->setLabel("Frame");
+		if (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0){
+			dock->plotWidget->xAxis->setLabel("Time in seconds");
+		}
+		else
+		{
+			dock->plotWidget->xAxis->setLabel("Frame");
+		}
 		dock->plotWidget->yAxis->setLabel("X - Position");
 		dock->plotWidget->yAxis2->setVisible(true);
 		dock->plotWidget->yAxis2->setLabel("Y - Position");
@@ -373,13 +432,13 @@ void PlotWindow::plot2D(int idx1)
 				dock->plotWidget->addGraph();
 
 				QVector<double>	pos, x, y;
-
+				
 				for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
 				{
 					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus2D()[cam][i] > UNDEFINED){
 						x.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getPoints2D()[cam][i].x);
 						y.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getPoints2D()[cam][i].y);
-						pos.push_back(i+1);
+						pos.push_back(i * posMultiplier + posOffset);
 						if (x[pos.size() - 1] > max_val_x) max_val_x = x[pos.size() - 1];
 						if (x[pos.size() - 1] < min_val_x) min_val_x = x[pos.size() - 1];
 						if (y[pos.size() - 1] > max_val_y) max_val_y = y[pos.size() - 1];
@@ -430,11 +489,11 @@ void PlotWindow::plot2D(int idx1)
 			range = (max_val_x - min_val_x) > range ? (max_val_x - min_val_x) : range;
 			dock->plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5);
 
-			selectionMarker->topLeft->setCoords(startFrame + 1, center + range * 0.5);
-			selectionMarker->bottomRight->setCoords(endFrame + 1, center - range * 0.5);
-
-			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() + 1, center - range * 0.5);
-			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() + 1, center + range * 0.5);
+			selectionMarker->topLeft->setCoords(startFrame * posMultiplier + posOffset, center + range * 0.5);
+			selectionMarker->bottomRight->setCoords(endFrame * posMultiplier + posOffset, center - range * 0.5);
+			
+			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center - range * 0.5);
+			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center + range * 0.5);
 
 			center = (max_val_y + min_val_y) * 0.5;
 			range = (max_val_y - min_val_y) > range ? (max_val_y - min_val_y) : range;
@@ -449,12 +508,23 @@ void PlotWindow::plot2D(int idx1)
 void PlotWindow::plot3D(int idx1)
 {
 	if (this->isVisible()){
+		double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+		int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 0 : 1;
+
 		dock->plotWidget->clearGraphs();
 
 		double max_val = 0;
 		double min_val = 10000;
 		
-		dock->plotWidget->xAxis->setLabel("Frame");
+		if (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0){
+			dock->plotWidget->xAxis->setLabel("Time in seconds");
+		}
+		else
+		{
+			dock->plotWidget->xAxis->setLabel("Frame");
+		}
 		dock->plotWidget->yAxis->setLabel("Position");
 		dock->plotWidget->yAxis2->setVisible(false);
 
@@ -473,7 +543,9 @@ void PlotWindow::plot3D(int idx1)
 					x.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getPoints3D()[i].x);
 					y.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getPoints3D()[i].y);
 					z.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getPoints3D()[i].z);
-					pos.push_back(i+1);
+
+					pos.push_back(i * posMultiplier + posOffset);
+				
 					if (x[pos.size() - 1] > max_val) max_val= x[pos.size() - 1];
 					if (x[pos.size() - 1] < min_val) min_val = x[pos.size() - 1];
 					if (y[pos.size() - 1] > max_val) max_val = y[pos.size() - 1];
@@ -504,11 +576,11 @@ void PlotWindow::plot3D(int idx1)
 			range = (max_val - min_val) > range ? (max_val - min_val) : range;
 			dock->plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5);
 
-			selectionMarker->topLeft->setCoords(startFrame + 1, center + range * 0.5);
-			selectionMarker->bottomRight->setCoords(endFrame + 1, center - range * 0.5);
+			selectionMarker->topLeft->setCoords(startFrame * posMultiplier + posOffset, center + range * 0.5);
+			selectionMarker->bottomRight->setCoords(endFrame * posMultiplier + posOffset, center - range * 0.5);
 
-			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() + 1, center - range * 0.5);
-			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() + 1, center + range * 0.5);
+			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center - range * 0.5);
+			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center + range * 0.5);
 		}
 		dock->plotWidget->replot();
 		dock->plotWidget->show();
@@ -518,6 +590,11 @@ void PlotWindow::plot3D(int idx1)
 void PlotWindow::plotRigidBody(int idx)
 {
 	if (this->isVisible()){
+		double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+		int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 0 : 1;
+
 		dock->plotWidget->clearGraphs();
 
 		double max_val_trans = 0;
@@ -526,7 +603,13 @@ void PlotWindow::plotRigidBody(int idx)
 		double max_val_rot = 0;
 		double min_val_rot = 10000;
 
-		dock->plotWidget->xAxis->setLabel("Frame");
+		if (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0){
+			dock->plotWidget->xAxis->setLabel("Time in seconds");
+		}
+		else
+		{
+			dock->plotWidget->xAxis->setLabel("Frame");
+		}
 		if (dock->comboBoxRigidBodyTransPart->currentIndex() == 0)
 		{
 			//All
@@ -581,13 +664,14 @@ void PlotWindow::plotRigidBody(int idx)
 
 			QVector<double>	pos;
 			QVector<double>	pos_filtered;
+
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
 			{
 				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getPoseComputed()[i] > 0)
-					pos.push_back(i + 1);
+					pos.push_back(i * posMultiplier + posOffset);
 
 				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getPoseFiltered()[i] > 0)
-					pos_filtered.push_back(i + 1);
+					pos_filtered.push_back(i * posMultiplier + posOffset);
 			}
 
 			int currentPlot = 0; 
@@ -739,10 +823,10 @@ void PlotWindow::plotRigidBody(int idx)
 				dock->plotWidget->yAxis->setRange(center - range * 0.55, center + range * 0.55);
 			}
 
-			selectionMarker->topLeft->setCoords(startFrame + 1, center + range * 0.55);
-			selectionMarker->bottomRight->setCoords(endFrame + 1, center - range * 0.55);
-			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() + 1, center - range * 0.55);
-			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() + 1, center + range * 0.55);
+			selectionMarker->topLeft->setCoords(startFrame * posMultiplier + posOffset, center + range * 0.55);
+			selectionMarker->bottomRight->setCoords(endFrame * posMultiplier + posOffset, center - range * 0.55);
+			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center - range * 0.55);
+			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center + range * 0.55);
 		}
 		dock->plotWidget->replot();
 		dock->plotWidget->show();
@@ -751,6 +835,11 @@ void PlotWindow::plotRigidBody(int idx)
 
 void PlotWindow::plotDistance(int idx1, int idx2){
 	if (this->isVisible()){
+		double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+		int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 0 : 1;
+
 		dock->plotWidget->clearGraphs();
 		
 		dock->plotWidget->yAxis2->setVisible(false);
@@ -771,11 +860,10 @@ void PlotWindow::plotDistance(int idx1, int idx2){
 			double max_val = 0;
 			double min_val = 10000;
 
-			
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++, count++)
 			{
 
-				x[count] = i + 1; // x goes from -1 to 1
+				x[count] = i * posMultiplier + posOffset; // x goes from -1 to 1
 				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getStatus3D()[i] > UNDEFINED){
 					cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getPoints3D()[i] - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getPoints3D()[i];
 					y[count] = cv::sqrt(diff.x*diff.x + diff.y*diff.y + diff.z*diff.z);
@@ -788,19 +876,19 @@ void PlotWindow::plotDistance(int idx1, int idx2){
 				}
 			}
 			int countVisible = 0;
-			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); i++, count++)
+			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
 			{
 				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getStatus3D()[i] > UNDEFINED){
-					mean += y[count];
+					mean += y[i];
 					countVisible++;
 				}
 			}
 			if (countVisible > 0)mean = mean / countVisible;
 			
-			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); i++, count++)
+			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() -1; i++)
 			{
 				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getStatus3D()[i] > UNDEFINED){
-					sd += fabs(y[count] - mean);
+					sd += fabs(y[i] - mean);
 				}
 			}
 
@@ -813,8 +901,8 @@ void PlotWindow::plotDistance(int idx1, int idx2){
 
 			dock->plotWidget->addGraph();
 			QVector<double>x2,y2;
-			x2.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame());
-			x2.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
+			x2.push_back((Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1)* posMultiplier + posOffset);
+			x2.push_back((Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1)* posMultiplier + posOffset);
 			y2.push_back(mean);
 			y2.push_back(mean);
 
@@ -832,14 +920,20 @@ void PlotWindow::plotDistance(int idx1, int idx2){
 
 			dock->plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5);
 
-			selectionMarker->topLeft->setCoords(startFrame + 1, center + range * 0.5);
-			selectionMarker->bottomRight->setCoords(endFrame + 1, center - range * 0.5);
-
-			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() + 1, center - range * 0.5);
-			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() + 1, center + range * 0.5);
+			selectionMarker->topLeft->setCoords(startFrame * posMultiplier + posOffset, center + range * 0.5);
+			selectionMarker->bottomRight->setCoords(endFrame * posMultiplier + posOffset, center - range * 0.5);
+			
+			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center - range * 0.5);
+			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center + range * 0.5);
+		}
+		if (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0){
+			dock->plotWidget->xAxis->setLabel("Time in seconds - " + QString::number(mean) + " +/- " + QString::number(sd));
+		}
+		else
+		{
+			dock->plotWidget->xAxis->setLabel("Frame - " + QString::number(mean) + " +/- " + QString::number(sd));
 		}
 		
-		dock->plotWidget->xAxis->setLabel("Frame - " + QString::number(mean) + " +/- " + QString::number(sd));
 		dock->plotWidget->yAxis->setLabel("Distance Marker " + QString::number(idx1 + 1) + " to Marker " + QString::number(idx2 + 1));
 
 		dock->plotWidget->replot();
@@ -850,6 +944,11 @@ void PlotWindow::plotDistance(int idx1, int idx2){
 void PlotWindow::plotBackProjectionError(int idx1)
 {
 	if (this->isVisible()){
+		double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+		int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 0 : 1;
+
 		dock->plotWidget->clearGraphs();
 
 		double max_val = 0;
@@ -866,7 +965,7 @@ void PlotWindow::plotBackProjectionError(int idx1)
 
 			dock->plotWidget->addGraph();
 			QVector<double>	pos, error;
-
+			
 			if (dock->comboBoxCamera->currentIndex() == 0)
 			{
 				for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
@@ -885,14 +984,14 @@ void PlotWindow::plotBackProjectionError(int idx1)
 					if (set)
 					{
 						error.push_back(error_val);
-						pos.push_back(i + 1);
+						pos.push_back(i * posMultiplier + posOffset);
 						if (error[pos.size() - 1] > max_val) max_val = error[pos.size() - 1];
 						if (error[pos.size() - 1] < min_val) min_val = error[pos.size() - 1];
 					}
 					else
 					{
 						error.push_back(-2);
-						pos.push_back(i + 1);
+						pos.push_back(i * posMultiplier + posOffset);
 					}
 				}
 			}
@@ -905,14 +1004,14 @@ void PlotWindow::plotBackProjectionError(int idx1)
 						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED)
 					{
 						error.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getError2D()[cam][i]);
-						pos.push_back(i + 1);
+						pos.push_back(i * posMultiplier + posOffset);
 						if (error[pos.size() - 1] > max_val) max_val = error[pos.size() - 1];
 						if (error[pos.size() - 1] < min_val) min_val = error[pos.size() - 1];
 					}
 					else
 					{
 						error.push_back(-2);
-						pos.push_back(i + 1);
+						pos.push_back(i * posMultiplier + posOffset);
 					}
 				}
 			}
@@ -943,15 +1042,23 @@ void PlotWindow::plotBackProjectionError(int idx1)
 			range = (max_val) > range ? (max_val * 1.1) : range;
 
 			dock->plotWidget->yAxis->setRange(-0.5, range);
-
-			selectionMarker->topLeft->setCoords(startFrame + 1, range);
-			selectionMarker->bottomRight->setCoords(endFrame + 1, -0.5);
-
-			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() + 1, -0.5);
-			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() + 1, range);
+			
+			selectionMarker->topLeft->setCoords(startFrame * posMultiplier + posOffset, range);
+			selectionMarker->bottomRight->setCoords(endFrame * posMultiplier + posOffset, -0.5);
+			
+			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, -0.5);
+			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, range);
 		}
 
-		dock->plotWidget->xAxis->setLabel("Frame - " + QString::number(mean) + " +/- " + QString::number(sd));
+		if (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0){
+			dock->plotWidget->xAxis->setLabel("Time in seconds - " + QString::number(mean) + " +/- " + QString::number(sd));
+		}
+		else
+		{
+			dock->plotWidget->xAxis->setLabel("Frame - " + QString::number(mean) + " +/- " + QString::number(sd));
+		}
+
+		
 
 		dock->plotWidget->replot();
 		dock->plotWidget->show();
@@ -1118,4 +1225,10 @@ void PlotWindow::on_comboBoxRigidBodyTransPart_currentIndexChanged(int idx)
 void PlotWindow::on_comboBoxRigidBodyTransType_currentIndexChanged(int idx)
 {
 	plotRigidBody(dock->comboBoxRigidBody->currentIndex());
+}
+
+void PlotWindow::on_checkBoxTime_clicked()
+{
+	resetRange();
+	draw();
 }

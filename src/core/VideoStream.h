@@ -17,6 +17,7 @@ namespace xma
 			virtual void reloadFile() = 0;
 
 			QStringList getFilenames();
+			QString getFileBasename();
 			void changeImagePath(QString newfolder, QString oldfolder);
 			void save(QString path);
 			int getNbImages();

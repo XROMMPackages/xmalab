@@ -17,6 +17,7 @@ namespace xma{
 
 		int getWidth(){ return width; }
 		int getHeight(){ return height; }
+
 		QString getFilename();
 		QString getFilenameBase();
 

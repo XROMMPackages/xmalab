@@ -264,7 +264,7 @@ void WizardCalibrationCubeFrame::addCalibrationReference(double x, double y){
 			frame->checkBoxReference4->setChecked(true);
 			frame->labelReference4->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
 			//run calibration
-			if (Settings::getInstance()->getBoolSetting("AutoConfirmPendingChanges")) on_pushButton_clicked();
+			if (Settings::getInstance()->getBoolSetting("AutoCalibAfterReference")) on_pushButton_clicked();
 		}
 	}
 }

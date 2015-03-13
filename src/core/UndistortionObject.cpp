@@ -53,6 +53,22 @@ bool UndistortionObject::undistort(Image* distorted, Image * undistorted){
 	return false;
 }
 
+bool UndistortionObject::undistort(Image* distorted, QString filenameOut){
+	bool success = false;
+	if (computed){
+		cv::Mat imageMat;
+		distorted->getImage(imageMat);
+		if (imageMat.size().width == undistortionMapX.size().width &&
+			imageMat.size().height == undistortionMapX.size().height){
+			cv::remap(imageMat, imageMat, undistortionMapX, undistortionMapY, cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+			cv::imwrite(filenameOut.toAscii().data(), imageMat);
+			success = true;
+		}
+		imageMat.release();
+	}
+	return success;
+}
+
 bool UndistortionObject::undistort(QString filenameIn, QString filenameOut){
 	bool success = false;
 	if(computed){

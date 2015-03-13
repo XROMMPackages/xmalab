@@ -27,6 +27,7 @@ namespace xma{
 		void setComputed(bool value){ computed = value; }
 
 		bool undistort(Image* distorted, Image * undistorted);
+		bool undistort(Image* distorted, QString filenameOut);
 		bool undistort(QString filenameIn, QString filenameOut);
 		void setDetectedPoints(cv::vector <cv::Point2d> &points);
 		void getDetectedPoints(cv::vector <cv::Point2d> &points);

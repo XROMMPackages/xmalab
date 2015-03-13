@@ -16,6 +16,7 @@ namespace xma{
 	typedef unsigned int DWORD;
 	typedef int LONG;
 	typedef int INT;
+	typedef unsigned int UINT;
 	typedef float FLOAT;
 	typedef double DOUBLE;
 	typedef double WBGAIN;

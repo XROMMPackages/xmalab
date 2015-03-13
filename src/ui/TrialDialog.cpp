@@ -5,6 +5,7 @@
 #include "ui/TrialDialog.h"
 #include "ui_TrialDialog.h"
 #include "ui/State.h"
+#include "ui/PlotWindow.h"
 
 #include "core/Trial.h"
 #include "core/Project.h""
@@ -65,6 +66,7 @@ bool TrialDialog::isComplete()
 		int ref = diag->comboBoxReferenceCalibration->currentText().toInt() - 1;
 		m_trial->setReferenceCalibrationImage(ref);
 	}
+	PlotWindow::getInstance()->updateTimeCheckBox();
 
 	return true;
 }

@@ -167,7 +167,6 @@ MainWindow::~MainWindow(){
 	instance = NULL;
 }
 
-
 MainWindow* MainWindow::getInstance()
 {
 	if(!instance) 
@@ -227,7 +226,10 @@ void MainWindow::setupProjectUI(){
 	WorkspaceNavigationFrame::getInstance()->setUndistortion(hasUndistorion);
 	
 	if (hasUndistorion) State::getInstance()->changeWorkspace(UNDISTORTION);
-	else  State::getInstance()->changeWorkspace(CALIBRATION);
+	else  {
+		State::getInstance()->changeUndistortion(UNDISTORTED);
+		State::getInstance()->changeWorkspace(CALIBRATION, true);
+	}
 	
 	relayoutCameras();
 	DetailViewDockWidget::getInstance()->setup();
@@ -430,9 +432,6 @@ void MainWindow::newProjectFromXMALab(QString filename){
 	
 }
 
-
-
-
 void MainWindow::loadProject(){
 	if(project) 
 		closeProject();
@@ -481,6 +480,10 @@ void MainWindow::loadProjectFinished(){
 		}
 		if (!LocalUndistortion::isRunning()){
 			MainWindow::getInstance()->redrawGL();
+			for (std::vector <Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
+			{
+				(*it)->undistort();
+			}
 			UndistortionAfterloadProjectFinished();
 		}
 
@@ -568,7 +571,6 @@ void MainWindow::closeProject(){
 	ui->actionPlot->setChecked(false);
 	PlotWindow::getInstance()->hide();
 }
-
 
 void MainWindow::saveProject(){
 	if(WizardDockWidget::getInstance()->checkForPendingChanges()){
@@ -716,6 +718,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
 		ui->actionFiltered_RigidBody_Transformations->setEnabled(false);
+		ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 		ui->actionDetailed_View->setEnabled(false);
 		ui->actionPlot->setEnabled(false);
 		ui->action3D_world_view->setEnabled(false);
@@ -740,6 +743,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
 		ui->actionFiltered_RigidBody_Transformations->setEnabled(false);
+		ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 		ui->actionPlot->setChecked(false);
 		ui->actionPlot->setEnabled(false);
 
@@ -820,6 +824,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 			ui->actionExport3D_Points->setEnabled(true);
 			ui->actionRigidBodyTransformations->setEnabled(true);
 			ui->actionFiltered_RigidBody_Transformations->setEnabled(true);
+			ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(true);
 		}
 		else
 		{
@@ -841,6 +846,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 			ui->actionExport3D_Points->setEnabled(false);
 			ui->actionRigidBodyTransformations->setEnabled(false);
 			ui->actionFiltered_RigidBody_Transformations->setEnabled(false);
+			ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 
 			ui->actionDetailed_View->setEnabled(false);
 			ui->actionPlot->setEnabled(false);
@@ -999,6 +1005,18 @@ void MainWindow::on_actionFiltered_RigidBody_Transformations_triggered(bool chec
 	if (outputPath.isNull() == false)
 	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformationsFiltered(outputPath + OS_SEP);
+		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+	}
+}
+
+void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(bool checked)
+{
+	QString outputPath = QFileDialog::getExistingDirectory(this,
+		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+
+	if (outputPath.isNull() == false)
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveTrialImages(outputPath + OS_SEP);
 		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 	}
 }

@@ -29,8 +29,6 @@ namespace xma{
 		const std::vector <markerStatus>  &getStatus3D();
 		std::vector< cv::Point3d> &getPoints3D();
 
-		//void movePoint(int camera, int activeFrame, double x, double y);
-		//void setTrackedPoint(int camera, int activeFrame, double x, double y);
 		void setPoint(int camera, int activeFrame, double x, double y, markerStatus status);
 		std::vector < cv::Point2d > getEpipolarLine(int cameraOrigin, int CameraDestination, int frame);
 		void reconstruct3DPoint(int frame);
@@ -56,7 +54,6 @@ namespace xma{
 
 		int getMaxPenalty();
 		void setMaxPenalty(int value);
-
 
 	private:
 		void init(int nbCameras, int size);

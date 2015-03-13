@@ -143,6 +143,12 @@ void Camera::undistort(){
 			if(isCalibrated())setRecalibrationRequired(1);
 		}
 	}
+	else if (!undistortionObject)
+	{
+		for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it){
+			(*it)->undistortPoints();
+		}
+	}
 }
 
 void Camera::setCalibrated(bool value)
