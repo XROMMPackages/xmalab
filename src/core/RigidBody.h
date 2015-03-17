@@ -17,12 +17,13 @@ namespace xma{
 	public:
 
 		RigidBody(int size, Trial * trial);
+		void copyData(RigidBody *rb);
 		virtual ~RigidBody();
 
 		void setDescription(QString _description);
 		QString getDescription();
 
-		const std::vector <int > &getPointsIdx();
+		const std::vector <int> &getPointsIdx();
 		const std::vector <int> &getPoseComputed();
 		const std::vector <int> &getPoseFiltered();
 		const std::vector <QString> &getReferenceNames();

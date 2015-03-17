@@ -199,6 +199,15 @@ bool ImportExportPointsDialog::copyFromTrial()
 
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setDescription(
 					Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getDescription());
+
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setMaxPenalty(
+					Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getMaxPenalty());
+
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setSizeOverride(
+					Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getSizeOverride());
+
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setThresholdOffset(
+					Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getThresholdOffset());
 			}
 
 			for (int i = 0; i < Project::getInstance()->getTrials()[idx]->getRigidBodies().size(); i++)
@@ -206,15 +215,8 @@ bool ImportExportPointsDialog::copyFromTrial()
 				if (i >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size())
 					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addRigidBody();
 
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->setDescription(
-					Project::getInstance()->getTrials()[idx]->getRigidBodies()[i]->getDescription());
-
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->clearPointIdx();
-
-				for (int j = 0; j < Project::getInstance()->getTrials()[idx]->getRigidBodies().size(); j++){
-					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->addPointIdx(
-						Project::getInstance()->getTrials()[idx]->getRigidBodies()[i]->getPointsIdx()[j]);
-				}
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->copyData(
+					Project::getInstance()->getTrials()[idx]->getRigidBodies()[i]);
 			}
 			PlotWindow::getInstance()->updateMarkers(false);
 			return true;

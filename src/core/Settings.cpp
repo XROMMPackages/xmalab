@@ -26,7 +26,8 @@ Settings::Settings(){
 
 	//General
 	addBoolSetting("AutoConfirmPendingChanges", false);
-	
+	addBoolSetting("ConfirmQuitXMALab", true);
+
 	//Undistortion
 	addIntSetting("LocalUndistortionNeighbours", 12);
 	addQStringSetting("UndistortNamingPattern", "%NAMEBASE%%NUMBER%");
@@ -36,8 +37,8 @@ Settings::Settings(){
 
 	//Digitizing
 	addBoolSetting("CenterDetailView", false);
-	addBoolSetting("AdvancedCrosshairDetailView", true);
-	addBoolSetting("Show3dPointDetailView", true);
+	addBoolSetting("AdvancedCrosshairDetailView", false);
+	addBoolSetting("Show3dPointDetailView", false);
 
 	//BlobDetector
 	addFloatSetting("BlobDetectorThresholdStep", 10.0);

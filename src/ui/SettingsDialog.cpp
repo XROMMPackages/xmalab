@@ -18,7 +18,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 	diag->scrollArea_Digitizing->hide();
 
 	diag->checkBox_AutoConfirmPendingChanges->setChecked(Settings::getInstance()->getBoolSetting("AutoConfirmPendingChanges"));
-	
+	diag->checkBox_ConfirmQuitXMALab->setChecked(Settings::getInstance()->getBoolSetting("ConfirmQuitXMALab"));
 	diag->checkBox_AutoCalibAfterReference->setChecked(Settings::getInstance()->getBoolSetting("AutoCalibAfterReference"));
 
 	diag->checkBox_UseCenteredDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("CenterDetailView"));
@@ -61,6 +61,11 @@ void SettingsDialog::on_checkBox_UseCenteredDetailWindow_stateChanged(int state)
 void SettingsDialog::on_checkBox_ShowAdvancedCrosshairDetailWindow_stateChanged(int state)
 {
 	Settings::getInstance()->set("AdvancedCrosshairDetailView", diag->checkBox_ShowAdvancedCrosshairDetailWindow->isChecked());
+}
+
+void SettingsDialog::on_checkBox_ConfirmQuitXMALab_stateChanged(int state)
+{
+	Settings::getInstance()->set("ConfirmQuitXMALab", diag->checkBox_ConfirmQuitXMALab->isChecked());
 }
 
 void SettingsDialog::on_checkBox_Show3DPointDetailWindow_stateChanged(int state)

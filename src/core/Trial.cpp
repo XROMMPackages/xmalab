@@ -56,6 +56,10 @@ Trial::Trial(QString trialname, std::vector<QStringList> &imageFilenames){
 			{
 				newSequence = new AviVideo(*filenameList);
 			}
+			else
+			{
+				newSequence = new ImageSequence(*filenameList);
+			}
 		}
 		videos.push_back(newSequence);
 	}
@@ -103,6 +107,10 @@ Trial::Trial(QString trialname, QString folder){
 			else if (info.suffix() == "avi")
 			{
 				newSequence = new AviVideo(filenameList);
+			}
+			else
+			{
+				newSequence = new ImageSequence(filenameList);
 			}
 		}
 
@@ -247,6 +255,7 @@ void Trial::addRigidBody()
 	RigidBody *rb = new RigidBody(nbImages, this);
 	rigidBodies.push_back(rb);
 }
+
 
 void Trial::removeRigidBody(int idx)
 {
@@ -606,7 +615,7 @@ void Trial::saveRigidBodyTransformations(QString outputfolder)
 	{
 		getRigidBodies()[i]->recomputeTransformations();
 		getRigidBodies()[i]->filterTransformations();
-		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformationFiltered.csv", true, false);
+		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv", true, false);
 	}
 }
 
@@ -616,7 +625,7 @@ void Trial::saveRigidBodyTransformationsFiltered(QString outputfolder)
 	{
 		getRigidBodies()[i]->recomputeTransformations();
 
-		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv", true,true);
+		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformationFiltered.csv", true,true);
 	}
 }
 
@@ -655,7 +664,7 @@ void Trial::resetRigidBodyByMarker(Marker* marker, int frame)
 	{
 		for (int j = 0; j < getRigidBodies()[i]->getPointsIdx().size(); j++)
 		{
-			if (getMarkers()[getRigidBodies()[i]->getPointsIdx()[j]] == marker)
+			if (getRigidBodies()[i]->getPointsIdx()[j] < getMarkers().size() && getMarkers()[getRigidBodies()[i]->getPointsIdx()[j]] == marker)
 			{
 				getRigidBodies()[i]->computePose(frame);
 				return;

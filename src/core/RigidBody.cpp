@@ -43,6 +43,33 @@ RigidBody::RigidBody(int size, Trial * _trial){
 	init(size);
 }
 
+void RigidBody::copyData(RigidBody *rb)
+{
+	setDescription(rb->getDescription());
+
+	clearPointIdx();
+
+	for (int j = 0; j < rb->getPointsIdx().size(); j++){
+		addPointIdx(rb->getPointsIdx()[j]);
+	}
+
+	if (rb->isReferencesSet())
+	{
+		setReferencesSet(true);
+
+		for (int i = 0; i < rb->referenceNames.size(); i++)
+		{
+			referenceNames[i] = rb->referenceNames[i];
+		}
+		for (int i = 0; i < rb->points3D.size(); i++)
+		{
+			points3D[i] = rb->points3D[i];
+		}
+
+		updateCenter();
+	}
+}
+
 RigidBody::~RigidBody(){
 	pointsIdx.clear();
 	points3D.clear();

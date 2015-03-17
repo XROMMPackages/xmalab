@@ -189,11 +189,18 @@ void MainWindow::resizeEvent(QResizeEvent *event){
 	QMainWindow::resizeEvent(event);
 } 
 
-void MainWindow::closeEvent (QCloseEvent * event){
-	Settings::getInstance()->setUIGeometry("XMALab", saveGeometry());
-	Settings::getInstance()->setUIState("XMALab", saveState(UI_VERSION));
-    QMainWindow::closeEvent(event);
-	QApplication::quit();
+void MainWindow::closeEvent(QCloseEvent * event){
+	if (!Settings::getInstance()->getBoolSetting("ConfirmQuitXMALab") || ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to quit XMALab. Please make sure your data have been saved. \nAre you sure you want to quit?"))
+	{
+		Settings::getInstance()->setUIGeometry("XMALab", saveGeometry());
+		Settings::getInstance()->setUIState("XMALab", saveState(UI_VERSION));
+		QMainWindow::closeEvent(event);
+		QApplication::quit();
+	}
+	else
+	{
+		event->ignore();
+	}
 }	
 
 void MainWindow::recountFrames(){

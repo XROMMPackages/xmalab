@@ -30,6 +30,7 @@ namespace xma{
 		void on_checkBox_UseCenteredDetailWindow_stateChanged(int state);
 		void on_checkBox_ShowAdvancedCrosshairDetailWindow_stateChanged(int state);
 		void on_checkBox_Show3DPointDetailWindow_stateChanged(int state);
+		void on_checkBox_ConfirmQuitXMALab_stateChanged(int state);
 	};
 }
 #endif  // SETTINGSDIALOG_H
