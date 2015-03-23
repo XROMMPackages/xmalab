@@ -158,13 +158,14 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 
 					double x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x());
 					int frame = (x - posOffset) / posMultiplier + 0.5;;
+
+					startFrame = frame;
+					endFrame = frame;
+
 					if (frame  >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() -1 &&
 						frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
 						State::getInstance()->changeActiveFrameTrial(frame);
 					}
-					startFrame = frame;
-					endFrame = frame;
-
 				}
 				else
 				{
@@ -193,13 +194,16 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 					int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
 						? 0 : 1;
 
+					
+
 					double x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x());
 					int frame = (x - posOffset) / posMultiplier + 0.5;;
+					endFrame = frame; 
+					
 					if (frame >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
 						frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
 						State::getInstance()->changeActiveFrameTrial(frame);
 					}
-					endFrame = frame;
 				}
 				else
 				{
@@ -218,6 +222,7 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 			}
 		}
 	}
+
 	return false;
 }
 
