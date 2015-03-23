@@ -40,6 +40,9 @@ RigidBody::RigidBody(int size, Trial * _trial){
 	color.setRgb(255,0,0);
 	visible = false;
 
+	cutoffFrequency = 0;
+	overrideCutoffFrequency = false;
+
 	init(size);
 }
 
@@ -740,7 +743,9 @@ void RigidBody::filterData(std::vector<int> idx)
 		std::vector<double> r2_out;
 		std::vector<double> r3_out;
 
-		ButterworthLowPassFilter * filter = new ButterworthLowPassFilter(4, trial->getCutOffFrequency(), trial->getRecordingSpeed());
+		double cutoff = (getOverrideCutoffFrequency()) ? getCutoffFrequency() : trial->getCutoffFrequency();
+
+		ButterworthLowPassFilter * filter = new ButterworthLowPassFilter(4, cutoff, trial->getRecordingSpeed());
 
 		filter->filter(t1, t1_out);
 		filter->filter(t2, t2_out);
@@ -786,9 +791,11 @@ void RigidBody::filterTransformations()
 		poseFiltered[i] = 0;
 	}
 
-	if (trial->getCutOffFrequency() > 0 && trial->getRecordingSpeed() > 0 &&
-		0 < (trial->getCutOffFrequency() / (trial->getRecordingSpeed() * 0.5)) &&
-		(trial->getCutOffFrequency() / (trial->getRecordingSpeed() * 0.5)) < 1){
+	double cutoff = (getOverrideCutoffFrequency()) ? getCutoffFrequency() : trial->getCutoffFrequency();
+
+	if (cutoff > 0 && trial->getRecordingSpeed() > 0 &&
+		0 < (cutoff / (trial->getRecordingSpeed() * 0.5)) &&
+		(cutoff / (trial->getRecordingSpeed() * 0.5)) < 1){
 		
 		std::vector<int> idx;
 		for (int i = 0; i < trial->getNbImages(); i++)
@@ -816,6 +823,11 @@ void RigidBody::filterTransformations()
 			}
 		}
 	}
+}
+
+Trial* RigidBody::getTrial()
+{
+	return trial;
 }
 
 const std::vector<cv::Vec3d>& RigidBody::getRotationVector(bool filtered)
@@ -1153,6 +1165,26 @@ void RigidBody::setReferencesSet(bool value)
 {
 	referencesSet = value;
 	updateCenter();
+}
+
+bool RigidBody::getOverrideCutoffFrequency()
+{
+	return overrideCutoffFrequency;
+}
+
+void RigidBody::setOverrideCutoffFrequency(bool value)
+{
+	overrideCutoffFrequency = value;
+}
+
+double RigidBody::getCutoffFrequency()
+{
+	return cutoffFrequency;
+}
+
+void RigidBody::setCutoffFrequency(double value)
+{
+	cutoffFrequency = value;
 }
 
 void RigidBody::updateCenter()

@@ -402,7 +402,7 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 				xmlWriter.writeAttribute("endFrame", QString::number(Project::getInstance()->getTrials()[i]->getEndFrame()));
 				xmlWriter.writeAttribute("referenceCalibration", QString::number(Project::getInstance()->getTrials()[i]->getReferenceCalibrationImage()));
 				xmlWriter.writeAttribute("recordingSpeed", QString::number(Project::getInstance()->getTrials()[i]->getRecordingSpeed()));
-				xmlWriter.writeAttribute("cutOffFrequency", QString::number(Project::getInstance()->getTrials()[i]->getCutOffFrequency()));
+				xmlWriter.writeAttribute("cutOffFrequency", QString::number(Project::getInstance()->getTrials()[i]->getCutoffFrequency()));
 				xmlWriter.writeAttribute("interpolateMissingFrames", QString::number(Project::getInstance()->getTrials()[i]->getInterpolateMissingFrames()));
 			
 				for (int k = 0; k < Project::getInstance()->getTrials()[i]->getMarkers().size(); k++){
@@ -429,6 +429,8 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 					}
 					xmlWriter.writeAttribute("Visible", QString::number(Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getVisible()));
 					xmlWriter.writeAttribute("Color", Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getColor().name());
+					xmlWriter.writeAttribute("OverrideCutOffFrequency", QString::number(Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getOverrideCutoffFrequency()));
+					xmlWriter.writeAttribute("CutOffFrequency", QString::number(Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getCutoffFrequency()));
 					xmlWriter.writeEndElement();
 					
 				}
@@ -626,7 +628,7 @@ bool ProjectFileIO::readProjectFile(QString filename){
 							if (!recordingSpeed.isEmpty())trial->setRecordingSpeed(recordingSpeed.toDouble());
 
 							QString cutOffFrequency = attr.value("cutOffFrequency").toString();
-							if (!cutOffFrequency.isEmpty())trial->setCutOffFrequency(cutOffFrequency.toDouble());
+							if (!cutOffFrequency.isEmpty())trial->setCutoffFrequency(cutOffFrequency.toDouble());
 
 							QString interpolateMissingFrames = attr.value("interpolateMissingFrames").toString();
 							if (!interpolateMissingFrames.isEmpty())trial->setInterpolateMissingFrames(interpolateMissingFrames.toInt());
@@ -693,6 +695,19 @@ bool ProjectFileIO::readProjectFile(QString filename){
 										{
 											trial->getRigidBodies()[id]->setColor(QColor(color));
 										}
+
+										QString overrideCutOffFrequency = attr.value("OverrideCutOffFrequency").toString();
+										if (!overrideCutOffFrequency.isEmpty())
+										{
+											trial->getRigidBodies()[id]->setOverrideCutoffFrequency(overrideCutOffFrequency.toInt());
+										}
+
+										QString cutOffFrequency = attr.value("CutOffFrequency").toString();
+										if (!cutOffFrequency.isEmpty())
+										{
+											trial->getRigidBodies()[id]->setCutoffFrequency(cutOffFrequency.toDouble());
+										}
+
 									}
 								}
 								xml.readNext();

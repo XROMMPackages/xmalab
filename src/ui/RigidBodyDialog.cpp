@@ -11,6 +11,7 @@
 #include "core/Settings.h"
 #include "core/RigidBody.h"
 #include "core/Marker.h"
+#include "core/Trial.h"
 
 #include <QLabel>
 #include <QComboBox>
@@ -68,6 +69,18 @@ RigidBodyDialog::RigidBodyDialog(RigidBody * body, QWidget *parent) :
 		diag->gridLayout->addWidget(label_RefPoint[i], i, 0, 1, 1);
 		diag->gridLayout->addWidget(comboBox[i], i, 1, 1, 1);
 		diag->gridLayout->addWidget(label_DescPoint[i], i, 2, 1, 1);
+	}
+
+	if (m_body->getOverrideCutoffFrequency()){
+		diag->checkBoxCutoffOverride->setChecked(true);
+		diag->doubleSpinBoxCutoff->setEnabled(true);
+		diag->doubleSpinBoxCutoff->setValue(m_body->getCutoffFrequency());
+	}
+	else
+	{
+		diag->checkBoxCutoffOverride->setChecked(false);
+		diag->doubleSpinBoxCutoff->setEnabled(false);
+		diag->doubleSpinBoxCutoff->setValue(m_body->getTrial()->getCutoffFrequency());
 	}
 }
 
@@ -232,4 +245,26 @@ void RigidBodyDialog::on_toolButton_Color_clicked()
 	updateColorButton();
 
 	delete cdiag;
+}
+
+void RigidBodyDialog::on_checkBoxCutoffOverride_clicked()
+{
+	if (diag->checkBoxCutoffOverride->isChecked()){
+		m_body->setOverrideCutoffFrequency(true);
+		diag->doubleSpinBoxCutoff->setEnabled(true);
+		diag->doubleSpinBoxCutoff->setValue(m_body->getCutoffFrequency());
+	}
+	else
+	{
+		m_body->setOverrideCutoffFrequency(false);
+		diag->doubleSpinBoxCutoff->setEnabled(false);
+		diag->doubleSpinBoxCutoff->setValue(m_body->getTrial()->getCutoffFrequency());
+	}
+}
+
+void RigidBodyDialog::on_doubleSpinBoxCutoff_valueChanged(double value)
+{
+	if (diag->checkBoxCutoffOverride->isChecked()){
+		m_body->setCutoffFrequency(value);
+	}
 }

@@ -50,8 +50,8 @@ namespace xma{
 		void removeMarker(int idx);
 		
 
-		double getCutOffFrequency();
-		void setCutOffFrequency(double value);
+		double getCutoffFrequency();
+		void setCutoffFrequency(double value);
 		int getInterpolateMissingFrames();
 		void setInterpolateMissingFrames(int value);
 
@@ -99,7 +99,7 @@ namespace xma{
 
 		int referenceCalibrationImage;
 		double recordingSpeed;
-		double cutOffFrequency;
+		double cutoffFrequency;
 		int interpolateMissingFrames;
 
 		int startFrame;

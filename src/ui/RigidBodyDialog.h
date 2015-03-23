@@ -46,6 +46,9 @@ namespace xma{
 
 		void on_checkBox_Draw_clicked();
 		void on_toolButton_Color_clicked();
+
+		void on_checkBoxCutoffOverride_clicked();
+		void on_doubleSpinBoxCutoff_valueChanged(double value);
 	};
 }
 

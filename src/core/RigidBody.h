@@ -59,6 +59,11 @@ namespace xma{
 		void resetReferences();
 		void updateCenter();
 
+		bool getOverrideCutoffFrequency();
+		void setOverrideCutoffFrequency(bool value);
+		double getCutoffFrequency();
+		void setCutoffFrequency(double value);
+
 		bool getVisible();
 		void setVisible(bool value);
 
@@ -69,6 +74,8 @@ namespace xma{
 		void draw3D(int frame);
 		void recomputeTransformations();
 		void filterTransformations();
+
+		Trial * getTrial();
 
 	private:
 		void init(int size);
@@ -83,6 +90,9 @@ namespace xma{
 		bool expanded;
 		bool initialised;
 		bool referencesSet;
+
+		bool overrideCutoffFrequency;
+		double cutoffFrequency;
 
 		Trial * trial;
 

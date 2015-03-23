@@ -33,7 +33,7 @@ Trial::Trial(QString trialname, std::vector<QStringList> &imageFilenames){
 	activeFrame = 0;
 	referenceCalibrationImage = 0;
 	recordingSpeed = 0;
-	cutOffFrequency = 0;
+	cutoffFrequency = 0;
 	interpolateMissingFrames = 0;
 
 	activeMarkerIdx = -1; 
@@ -77,7 +77,7 @@ Trial::Trial(QString trialname, QString folder){
 	activeFrame = 0;
 	referenceCalibrationImage = 0;
 	recordingSpeed = 0;
-	cutOffFrequency = 0;
+	cutoffFrequency = 0;
 	interpolateMissingFrames = 0;
 
 	activeMarkerIdx = -1;
@@ -321,14 +321,14 @@ void Trial::setRecordingSpeed(double value)
 	recordingSpeed = value;
 }
 
-double Trial::getCutOffFrequency()
+double Trial::getCutoffFrequency()
 {
-	return cutOffFrequency;
+	return cutoffFrequency;
 }
 
-void Trial::setCutOffFrequency(double value)
+void Trial::setCutoffFrequency(double value)
 {
-	cutOffFrequency = value;
+	cutoffFrequency = value;
 }
 
 int Trial::getInterpolateMissingFrames()
@@ -622,7 +622,7 @@ void Trial::saveRigidBodyTransformations(QString outputfolder)
 	{
 		getRigidBodies()[i]->recomputeTransformations();
 		
-		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv", true, false);
+		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i + 1) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv", true, false);
 	}
 }
 
@@ -632,7 +632,7 @@ void Trial::saveRigidBodyTransformationsFiltered(QString outputfolder)
 	{
 		getRigidBodies()[i]->recomputeTransformations();
 		getRigidBodies()[i]->filterTransformations();
-		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformationFiltered.csv", true,true);
+		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i + 1) + "_" + getRigidBodies()[i]->getDescription() + "_transformationFiltered_" + QString::number(getRigidBodies()[i]->getOverrideCutoffFrequency() ? getRigidBodies()[i]->getCutoffFrequency() : getCutoffFrequency()) + "Hz.csv", true, true);
 	}
 }
 

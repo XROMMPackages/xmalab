@@ -595,57 +595,77 @@ void PlotWindow::plot3D(int idx1)
 void PlotWindow::plotRigidBody(int idx)
 {
 	if (this->isVisible()){
-		double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
-			? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
-		int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
-			? 0 : 1;
-
 		dock->plotWidget->clearGraphs();
 
-		double max_val_trans = 0;
-		double min_val_trans = 10000;
-
-		double max_val_rot = 0;
-		double min_val_rot = 10000;
-
-		if (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0){
-			dock->plotWidget->xAxis->setLabel("Time in seconds");
-		}
-		else
-		{
-			dock->plotWidget->xAxis->setLabel("Frame");
-		}
-		if (dock->comboBoxRigidBodyTransPart->currentIndex() == 0)
-		{
-			//All
-			dock->plotWidget->yAxis2->setVisible(true);
-			dock->plotWidget->yAxis->setLabel("Translation");
-			dock->plotWidget->yAxis2->setLabel("Rotationangle");
-		}
-		else if (dock->comboBoxRigidBodyTransPart->currentIndex() == 1 ||
-			dock->comboBoxRigidBodyTransPart->currentIndex() == 3 || 
-			dock->comboBoxRigidBodyTransPart->currentIndex() == 4 || 
-			dock->comboBoxRigidBodyTransPart->currentIndex() == 5)
-		{
-			//Angles
-			dock->plotWidget->yAxis2->setVisible(false);
-			dock->plotWidget->yAxis->setLabel("Rotationangle");
-
-		}
-		else if (dock->comboBoxRigidBodyTransPart->currentIndex() == 2 ||
-			dock->comboBoxRigidBodyTransPart->currentIndex() == 6 ||
-			dock->comboBoxRigidBodyTransPart->currentIndex() == 7 ||
-			dock->comboBoxRigidBodyTransPart->currentIndex() == 8)
-		{
-			//Translation
-			dock->plotWidget->yAxis2->setVisible(false);
-			dock->plotWidget->yAxis->setLabel("Translation");
-		}
-
-		
 		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0 &&
 			idx >= 0 && idx < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size()){
 
+			double cutoff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getOverrideCutoffFrequency() ? Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getCutoffFrequency() :
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getCutoffFrequency();
+
+			double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+				? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+			int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+				? 0 : 1;
+
+			double max_val_trans = 0;
+			double min_val_trans = 10000;
+
+			double max_val_rot = 0;
+			double min_val_rot = 10000;
+
+		
+			if (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0){
+				if (dock->comboBoxRigidBodyTransType->currentIndex() > 0)
+				{
+					dock->plotWidget->xAxis->setLabel("Time in seconds - Cutoff Frequency " + QString::number(cutoff) + "Hz");
+				}
+				else
+				{
+					dock->plotWidget->xAxis->setLabel("Time in seconds");
+				}
+			}
+			else
+			{
+				if (dock->comboBoxRigidBodyTransType->currentIndex() > 0)
+				{
+					dock->plotWidget->xAxis->setLabel("Frame - Cutoff Frequency "+ QString::number(cutoff)  +"Hz");
+				}
+				else
+				{
+					dock->plotWidget->xAxis->setLabel("Frame");
+				}
+			}
+
+			if (dock->comboBoxRigidBodyTransPart->currentIndex() == 0)
+			{
+				//All
+				dock->plotWidget->yAxis2->setVisible(true);
+				dock->plotWidget->yAxis->setLabel("Translation");
+				dock->plotWidget->yAxis2->setLabel("Rotationangle");
+			}
+			else if (dock->comboBoxRigidBodyTransPart->currentIndex() == 1 ||
+				dock->comboBoxRigidBodyTransPart->currentIndex() == 3 || 
+				dock->comboBoxRigidBodyTransPart->currentIndex() == 4 || 
+				dock->comboBoxRigidBodyTransPart->currentIndex() == 5)
+			{
+				//Angles
+				dock->plotWidget->yAxis2->setVisible(false);
+				dock->plotWidget->yAxis->setLabel("Rotationangle");
+
+			}
+			else if (dock->comboBoxRigidBodyTransPart->currentIndex() == 2 ||
+				dock->comboBoxRigidBodyTransPart->currentIndex() == 6 ||
+				dock->comboBoxRigidBodyTransPart->currentIndex() == 7 ||
+				dock->comboBoxRigidBodyTransPart->currentIndex() == 8)
+			{
+				//Translation
+				dock->plotWidget->yAxis2->setVisible(false);
+				dock->plotWidget->yAxis->setLabel("Translation");
+			}
+
+		
+		
 			int nbGraphs = 0;
 			if (dock->comboBoxRigidBodyTransPart->currentIndex() == 0)
 			{

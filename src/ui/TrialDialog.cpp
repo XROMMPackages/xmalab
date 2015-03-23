@@ -46,7 +46,7 @@ TrialDialog::TrialDialog(Trial * trial, QWidget *parent) :
 	
 
 	diag->doubleSpinBoxRecSpeedFPS->setValue(m_trial->getRecordingSpeed());
-	diag->doubleSpinBoxCutoffFrq->setValue(m_trial->getCutOffFrequency());
+	diag->doubleSpinBoxCutoffFrq->setValue(m_trial->getCutoffFrequency());
 	diag->spinBoxInterpolateNFrames->setValue(m_trial->getInterpolateMissingFrames());
 }
 
@@ -59,7 +59,7 @@ TrialDialog::~TrialDialog(){
 bool TrialDialog::isComplete()
 {
 	m_trial->setRecordingSpeed(diag->doubleSpinBoxRecSpeedFPS->value());
-	m_trial->setCutOffFrequency(diag->doubleSpinBoxCutoffFrq->value());
+	m_trial->setCutoffFrequency(diag->doubleSpinBoxCutoffFrq->value());
 	m_trial->setInterpolateMissingFrames(diag->spinBoxInterpolateNFrames->value());
 
 	if (diag->comboBoxReferenceCalibration->count() > 0){
