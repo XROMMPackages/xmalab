@@ -621,7 +621,7 @@ void Trial::saveRigidBodyTransformations(QString outputfolder)
 	for (int i = 0; i < getRigidBodies().size(); i++)
 	{
 		getRigidBodies()[i]->recomputeTransformations();
-		getRigidBodies()[i]->filterTransformations();
+		
 		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv", true, false);
 	}
 }
@@ -631,7 +631,7 @@ void Trial::saveRigidBodyTransformationsFiltered(QString outputfolder)
 	for (int i = 0; i < getRigidBodies().size(); i++)
 	{
 		getRigidBodies()[i]->recomputeTransformations();
-
+		getRigidBodies()[i]->filterTransformations();
 		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i) + "_" + getRigidBodies()[i]->getDescription() + "_transformationFiltered.csv", true,true);
 	}
 }
