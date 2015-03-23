@@ -291,6 +291,7 @@ void Marker::load(QString points_filename, QString status_filename, QString mark
 			tmp.push_back(value);
 		}
 		if (tmp.size() > 0) {
+			if (points2D[0].size() <= linecount) addFrame();
 			for (unsigned int i = 0; i < points2D.size(); i ++){
 				points2D[i][linecount].x = tmp[2 * i];
 				points2D[i][linecount].y = tmp[2 * i+1];
@@ -346,7 +347,7 @@ void Marker::load(QString points_filename, QString status_filename, QString mark
 
 void Marker::resetMultipleFrames(int camera, int frameStart, int frameEnd)
 {
-	fprintf(stderr, "Delete %d - from %d  to %d\n", camera, frameStart, frameEnd);
+	//fprintf(stderr, "Delete %d - from %d  to %d\n", camera, frameStart, frameEnd);
 	for (int i = frameStart; i <= frameEnd; i++)
 	{
 		if (camera == -1)
@@ -691,4 +692,19 @@ void Marker::init(int nbCameras, int size){
 		status3D.push_back(UNDEFINED);
 		error3D.push_back(0);
 	}
+}
+
+void Marker::addFrame()
+{
+	for (int c = 0; c < points2D.size(); c++){
+		points2D[c].push_back(cv::Point2d(-2, -2));
+		points2D_projected[c].push_back(cv::Point2d(-2, -2));
+		status2D[c].push_back(UNDEFINED);
+		error2D[c].push_back(0.0);
+		markerSize[c].push_back(-1.0);
+	}
+
+	points3D.push_back(cv::Point3d(-1000, -1000, -1000));
+	status3D.push_back(UNDEFINED);
+	error3D.push_back(0);
 }

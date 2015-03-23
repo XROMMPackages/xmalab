@@ -588,7 +588,14 @@ void Trial::update()
 
 void Trial::changeImagePath(int camera, QString newfolder, QString oldfolder)
 {
-	videos[camera]->changeImagePath(newfolder, oldfolder);
+	videos[camera]->changeImagePath(newfolder, oldfolder); 	
+}
+
+void Trial::updateAfterChangeImagePath()
+{
+	setNbImages();
+
+	recordingSpeed = videos[0]->getFPS();
 }
 
 void Trial::save3dPoints(QString outputfolder)

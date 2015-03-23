@@ -57,6 +57,7 @@ namespace xma{
 
 	private:
 		void init(int nbCameras, int size);
+		void addFrame();
 		void clear();
 		void reprojectPoint(int frame);
 		void updateError(int frame);

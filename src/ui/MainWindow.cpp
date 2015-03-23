@@ -629,6 +629,7 @@ void MainWindow::checkTrialImagePaths()
 {
 	for (int t = 0; t < Project::getInstance()->getTrials().size(); t++)
 	{
+		bool requiresReload = false;
 		for (int c = 0; c < Project::getInstance()->getCameras().size(); c++)
 		{
 			QString filename = Project::getInstance()->getTrials()[t]->getVideoStreams()[c]->getFilenames()[0];
@@ -653,10 +654,12 @@ void MainWindow::checkTrialImagePaths()
 					{
 						Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder, filename);
 						Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
+						requiresReload = true;
 					}
 				}
 			}
 		}
+		if (requiresReload) Project::getInstance()->getTrials()[t]->updateAfterChangeImagePath();
 	}
 }
 
