@@ -44,7 +44,7 @@ namespace xma{
 		void computeCoordinateSystem(int Frame);
 		void computePose(int Frame);
 
-		std::vector <cv::Point2d> projectToImage(Camera * cam, int Frame, bool with_center);
+		std::vector <cv::Point2d> projectToImage(Camera * cam, int Frame, bool with_center, bool dummy = false, bool dummy_frame = false);
 		void setMissingPoints(int Frame);
 
 		int setReferenceFromFile(QString filename);
@@ -77,6 +77,11 @@ namespace xma{
 
 		Trial * getTrial();
 
+		void addDummyPoint(QString name, QString filenamePointRef, QString filenamePointCoords);
+		void saveDummy(int count, QString filenamePointRef, QString filenamePointCoords);
+		void clearAllDummyPoints();
+		const std::vector <QString> &getDummyNames();
+
 	private:
 		void init(int size);
 		void clear();
@@ -100,6 +105,12 @@ namespace xma{
 		std::vector <cv::Point3d> points3D;
 		cv::Point3d center;
 		std::vector <QString> referenceNames;
+
+		std::vector <QString> dummyNames;
+		std::vector <cv::Point3d> dummypoints;
+		std::vector <std::vector <cv::Point3d> > dummypointsCoords;
+		std::vector <std::vector <bool> > dummypointsCoordsSet;
+
 
 		//for each frame
 		std::vector <int> poseComputed;

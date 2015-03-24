@@ -146,6 +146,12 @@ int ProjectFileIO::saveProject(QString filename){
 							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferenceNames.csv",
 							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d.csv");
 					}
+					for (int p = 0; p < Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getDummyNames().size(); p++)
+					{
+						Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->saveDummy(p,
+						path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences.csv",
+						path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointCoordinates.csv");
+					}
 				}
 			}
 		}
@@ -431,6 +437,15 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 					xmlWriter.writeAttribute("Color", Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getColor().name());
 					xmlWriter.writeAttribute("OverrideCutOffFrequency", QString::number(Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getOverrideCutoffFrequency()));
 					xmlWriter.writeAttribute("CutOffFrequency", QString::number(Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getCutoffFrequency()));
+					for (int p = 0; p < Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getDummyNames().size(); p++)
+					{
+						xmlWriter.writeStartElement("DummyMarker");
+						xmlWriter.writeAttribute("Name", Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getDummyNames()[p]);
+						xmlWriter.writeAttribute("PointReferences", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p)  + "PointReferences.csv");
+						xmlWriter.writeAttribute("PointCoordinates", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointCoordinates.csv");
+						xmlWriter.writeEndElement();
+					}
+
 					xmlWriter.writeEndElement();
 					
 				}
@@ -708,6 +723,30 @@ bool ProjectFileIO::readProjectFile(QString filename){
 											trial->getRigidBodies()[id]->setCutoffFrequency(cutOffFrequency.toDouble());
 										}
 
+
+										while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "RigidBody")) {
+											if (xml.tokenType() == QXmlStreamReader::StartElement) {
+												if (xml.name() == "DummyMarker")
+												{
+													QXmlStreamAttributes attr = xml.attributes();
+
+													QString dummyName = attr.value("Name").toString();
+													QString dummyPointReferences = basedir + OS_SEP + attr.value("PointReferences").toString();
+													QString dummyPointCoordinates = basedir + OS_SEP +  attr.value("PointCoordinates").toString();
+
+													dummyPointReferences.replace("\\", OS_SEP);
+													dummyPointReferences.replace("/", OS_SEP);
+
+													dummyPointCoordinates.replace("\\", OS_SEP);
+													dummyPointCoordinates.replace("/", OS_SEP);
+
+													trial->getRigidBodies()[id]->addDummyPoint(dummyName, dummyPointReferences, dummyPointCoordinates);
+												}
+											}
+											xml.readNext();
+										}
+
+										
 									}
 								}
 								xml.readNext();

@@ -27,11 +27,17 @@ namespace xma{
 		std::vector <QComboBox *> comboBox;
 		std::vector <QLabel *> label_DescPoint;
 
+		std::vector <QLabel *> label_Dummy;
+
+
 		void updateLabels();
 		void updateIcon();
 		bool isComplete();
 		bool setRigidBodyIdxByDialog();
 		void updateColorButton();
+		void reloadDummyPoints();
+
+
 	public:
 		explicit RigidBodyDialog(RigidBody* body, QWidget *parent = 0);
 		virtual ~RigidBodyDialog();
@@ -49,6 +55,10 @@ namespace xma{
 
 		void on_checkBoxCutoffOverride_clicked();
 		void on_doubleSpinBoxCutoff_valueChanged(double value);
+
+		void on_pushButton_AddDummy_clicked();
+		void on_pushButton_DeleteDummy_clicked();
+
 	};
 }
 

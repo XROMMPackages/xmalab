@@ -184,6 +184,20 @@ void RigidBody::clear(){
 	errorSd3D.clear();
 }
 
+void RigidBody::clearAllDummyPoints()
+{
+	fprintf(stderr, "Clear\n");
+	dummyNames.clear();
+	dummypoints.clear();
+	dummypointsCoords.clear();
+	dummypointsCoordsSet.clear();
+}
+
+const std::vector<QString>& RigidBody::getDummyNames()
+{
+	return dummyNames;
+}
+
 void RigidBody::init(int size){
 	clear();
 
@@ -436,6 +450,17 @@ void RigidBody::computePose(int Frame){
 				dst.push_back(cv::Point3f(points3D[i].x
 					, points3D[i].y
 					, points3D[i].z));
+			}
+		}
+
+		for (unsigned int i = 0; i < dummypoints.size(); i++){
+			if (dummypointsCoordsSet[i][Frame]){
+				src.push_back(cv::Point3f(dummypointsCoords[i][Frame].x
+					, dummypointsCoords[i][Frame].y
+					, dummypointsCoords[i][Frame].z));
+				dst.push_back(cv::Point3f(dummypoints[i].x
+					, dummypoints[i].y
+					, dummypoints[i].z));
 			}
 		}
 
@@ -830,6 +855,99 @@ Trial* RigidBody::getTrial()
 	return trial;
 }
 
+std::istream& safeGetline(std::istream& is, std::string& t)
+{
+	t.clear();
+
+	// The characters in the stream are read one-by-one using a std::streambuf.
+	// That is faster than reading them one-by-one using the std::istream.
+	// Code that uses streambuf this way must be guarded by a sentry object.
+	// The sentry object performs various tasks,
+	// such as thread synchronization and updating the stream state.
+
+	std::istream::sentry se(is, true);
+	std::streambuf* sb = is.rdbuf();
+
+	for (;;) {
+		int c = sb->sbumpc();
+		switch (c) {
+		case '\n':
+			return is;
+		case '\r':
+			if (sb->sgetc() == '\n')
+				sb->sbumpc();
+			return is;
+		case EOF:
+			// Also handle the case when the last line has no line ending
+			if (t.empty())
+				is.setstate(std::ios::eofbit);
+			return is;
+		default:
+			t += (char)c;
+		}
+	}
+}
+
+void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString filenamePointCoords)
+{
+	dummyNames.push_back(name);
+
+	std::ifstream fin;
+	std::string line;
+
+	fin.open(filenamePointRef.toAscii().data());
+	safeGetline(fin, line);
+	safeGetline(fin, line);
+	fin.close();
+	QString tmp_coords = QString::fromStdString(line);
+	QStringList coords_list = tmp_coords.split(",");
+	dummypoints.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
+
+	fin.open(filenamePointCoords.toAscii().data());
+	safeGetline(fin, line);
+	std::vector<cv::Point3d> tmpCoords;
+	std::vector<bool> tmpDef;
+	while (!safeGetline(fin, line).eof())
+	{
+		tmp_coords = QString::fromStdString(line);
+		coords_list = tmp_coords.split(","); 
+		if (coords_list.at(0) == "NaN" || coords_list.at(1) == "NaN" || coords_list.at(2) == "NaN")
+		{
+			tmpDef.push_back(false);
+			tmpCoords.push_back(cv::Point3d(0, 0, 0));
+		}
+		else{
+			tmpDef.push_back(true);
+			tmpCoords.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
+		}
+	}
+	dummypointsCoords.push_back(tmpCoords);
+	dummypointsCoordsSet.push_back(tmpDef);
+	fin.close();
+}
+
+void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenamePointCoords)
+{
+	std::ofstream outfileRef(filenamePointRef.toAscii().data());
+	outfileRef << "x,y,z" << std::endl;
+	outfileRef << dummypoints[count].x << "," << dummypoints[count].y << "," << dummypoints[count].z << std::endl;
+	outfileRef.close();
+
+	std::ofstream outfileCoords(filenamePointCoords.toAscii().data());
+	outfileCoords << "x,y,z" << std::endl;
+	for (int i = 0; i < dummypointsCoords[count].size(); i++){
+		if (dummypointsCoordsSet[count][i]){
+			outfileCoords << dummypointsCoords[count][i].x << "," << dummypointsCoords[count][i].y << "," << dummypointsCoords[count][i].z << std::endl;
+		}
+		else
+		{
+			outfileCoords << "NaN,NaN,NaN" << std::endl;
+		}
+	}
+	outfileRef.close();
+
+}
+
 const std::vector<cv::Vec3d>& RigidBody::getRotationVector(bool filtered)
 {
 	if (filtered)
@@ -837,7 +955,7 @@ const std::vector<cv::Vec3d>& RigidBody::getRotationVector(bool filtered)
 		return rotationvectors_filtered;
 	}
 	else
-	{
+	{ 
 		return rotationvectors;
 	}
 }
@@ -974,14 +1092,14 @@ void RigidBody::saveTransformations(QString filename, bool inverse, bool filtere
 	}
 }
 
-std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, bool with_center){
+std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, bool with_center, bool dummy, bool dummy_frame){
 	std::vector <cv::Point3d> points3D_frame;
 	cv::Mat rotMatTmp;
 	cv::Rodrigues(rotationvectors[Frame], rotMatTmp);
 
 	if (with_center){
 		cv::Mat xmat = cv::Mat(center, true);
-		
+
 		cv::Mat tmp_mat = rotMatTmp.t() * ((xmat)-cv::Mat(translationvectors[Frame]));
 
 		cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
@@ -991,16 +1109,41 @@ std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, boo
 		points3D_frame.push_back(pt3d);
 	}
 
-	for (unsigned int i = 0; i<points3D.size(); i++){
+	if (!dummy){
+		for (unsigned int i = 0; i < points3D.size(); i++){
 		cv::Mat xmat = cv::Mat(points3D[i], true);
 
-		cv::Mat tmp_mat = rotMatTmp.t() * ((xmat) - cv::Mat(translationvectors[Frame]));
+		cv::Mat tmp_mat = rotMatTmp.t() * ((xmat)-cv::Mat(translationvectors[Frame]));
 
 		cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
 			tmp_mat.at<double>(1, 0),
 			tmp_mat.at<double>(2, 0));
 
 		points3D_frame.push_back(pt3d);
+		}
+	}
+	else
+	{
+		if (!dummy_frame){
+			for (unsigned int i = 0; i < dummypoints.size(); i++){
+				cv::Mat xmat = cv::Mat(dummypoints[i], true);
+
+				cv::Mat tmp_mat = rotMatTmp.t() * ((xmat)-cv::Mat(translationvectors[Frame]));
+
+				cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
+					tmp_mat.at<double>(1, 0),
+					tmp_mat.at<double>(2, 0));
+
+				points3D_frame.push_back(pt3d);
+			}
+		}
+		else
+		{
+			for (unsigned int i = 0; i < dummypointsCoords.size(); i++){
+				if (dummypointsCoordsSet[i][Frame])
+					points3D_frame.push_back(dummypointsCoords[i][Frame]);
+			}
+		}
 	}
 	rotMatTmp.release();
 
@@ -1242,6 +1385,41 @@ void RigidBody::draw2D(Camera * cam, int frame)
 			glVertex2f(points2D_projected[i].x, points2D_projected[i].y);
 			glEnd();
 		}
+
+		if (dummyNames.size() > 0){
+			points2D_projected.clear();
+			points2D_projected = projectToImage(cam, frame, true, true);
+
+			glLineStipple(10, 0xAAAA);
+			glEnable(GL_LINE_STIPPLE);
+			for (int i = 1; i < points2D_projected.size(); i++){
+				double x = points2D_projected[i].x;
+				double y = points2D_projected[i].y;
+
+				glBegin(GL_LINES);
+				glColor3ub(color.red(), color.green(), color.blue());
+				glVertex2f(points2D_projected[0].x, points2D_projected[0].y);
+				glVertex2f(points2D_projected[i].x, points2D_projected[i].y);
+				glEnd();
+			}
+			glDisable(GL_LINE_STIPPLE);
+
+			points2D_projected.clear();
+			points2D_projected = projectToImage(cam, frame, false, true, true);
+
+			for (int i = 0; i < points2D_projected.size(); i++){
+				double x = points2D_projected[i].x;
+				double y = points2D_projected[i].y;
+
+				glBegin(GL_LINES);
+				glColor3ub(color.red(), color.green(), color.blue());
+				glVertex2f(x - 5, y);
+				glVertex2f(x + 5, y);
+				glVertex2f(x, y - 5);
+				glVertex2f(x, y + 5);
+				glEnd();
+			}
+		}
 	}
 }
 
@@ -1279,6 +1457,19 @@ void RigidBody::draw3D(int frame)
 			glVertex3d(center.x, center.y, center.z);
 			glVertex3d(points3D[i].x, points3D[i].y, points3D[i].z);
 			glEnd();
+		}
+
+		if (dummypoints.size() > 0){
+			glLineStipple(10, 0xAAAA);
+			glEnable(GL_LINE_STIPPLE);
+			for (int i = 1; i < dummypoints.size(); i++){
+				glBegin(GL_LINES);
+				glColor3ub(color.red(), color.green(), color.blue());
+				glVertex3d(center.x, center.y, center.z);
+				glVertex3d(dummypoints[i].x, dummypoints[i].y, dummypoints[i].z);
+				glEnd();
+			}
+			glDisable(GL_LINE_STIPPLE);
 		}
 
 		glPopMatrix();

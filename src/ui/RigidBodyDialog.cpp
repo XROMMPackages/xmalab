@@ -16,8 +16,9 @@
 #include <QLabel>
 #include <QComboBox>
 #include <QColorDialog>
-
+#include <QInputDialog>
 #include <QFileDialog>
+
 using namespace xma;
 
 RigidBodyDialog::RigidBodyDialog(RigidBody * body, QWidget *parent) :
@@ -82,6 +83,8 @@ RigidBodyDialog::RigidBodyDialog(RigidBody * body, QWidget *parent) :
 		diag->doubleSpinBoxCutoff->setEnabled(false);
 		diag->doubleSpinBoxCutoff->setValue(m_body->getTrial()->getCutoffFrequency());
 	}
+
+	reloadDummyPoints();
 }
 
 
@@ -173,6 +176,23 @@ void RigidBodyDialog::updateColorButton()
 	QPixmap pix(16,16);
 	pix.fill(m_body->getColor());
 	diag->toolButton_Color->setIcon(pix);
+}
+
+void RigidBodyDialog::reloadDummyPoints()
+{
+	for (int i = 0; i < label_Dummy.size(); i++)
+	{
+		diag->gridLayout_5->removeWidget(label_Dummy[i]);
+		delete label_Dummy[i];
+	}
+	label_Dummy.clear();
+
+	for (int i = 0; i < m_body->getDummyNames().size(); i++)
+	{
+		QLabel * label = new QLabel(m_body->getDummyNames()[i]);
+		diag->gridLayout_5->addWidget(label , i + 1, 0,1,2);
+		label_Dummy.push_back(label);
+	}
 }
 
 void RigidBodyDialog::on_pushButton_setFromFile_clicked()
@@ -267,4 +287,54 @@ void RigidBodyDialog::on_doubleSpinBoxCutoff_valueChanged(double value)
 	if (diag->checkBoxCutoffOverride->isChecked()){
 		m_body->setCutoffFrequency(value);
 	}
+}
+
+void RigidBodyDialog::on_pushButton_AddDummy_clicked()
+{
+	bool ok;
+	QString name = QInputDialog::getText(this, tr("QInputDialog::getText()"),
+		tr("Enter a name for the dummy point:"), QLineEdit::Normal, "Dummy " + QString::number(m_body->getDummyNames().size()+1), &ok);
+	QString filenameCoords;
+	QString filenameRef;
+
+	if (ok && !name.isEmpty())
+	{
+		filenameRef = QFileDialog::getOpenFileName(this, tr("Open CT coordinate file"), Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
+		if (!filenameRef.isEmpty())
+		{
+			Settings::getInstance()->setLastUsedDirectory(filenameRef);
+		}
+		else
+		{
+			return;
+		}
+		filenameCoords = QFileDialog::getOpenFileName(this, tr("Open tracked dummy data file"), Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
+		if (!filenameCoords.isEmpty())
+		{
+			Settings::getInstance()->setLastUsedDirectory(filenameCoords);
+		}
+		else
+		{
+			return;
+		}
+	}
+	else
+	{
+		return;
+	}
+
+	m_body->addDummyPoint(name, filenameRef, filenameCoords);
+	
+	reloadDummyPoints();
+
+	m_body->recomputeTransformations();
+}
+
+void RigidBodyDialog::on_pushButton_DeleteDummy_clicked()
+{
+	m_body->clearAllDummyPoints();
+
+	reloadDummyPoints();
+
+	m_body->recomputeTransformations();
 }
