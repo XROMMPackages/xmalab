@@ -26,6 +26,8 @@
 #include "ui/PlotWindow.h"
 #include "ui/AboutDialog.h"
 #include "ui/Shortcuts.h"
+#include "ui/PointImportExportDialog.h"
+
 
 #include "core/Project.h"
 #include "core/Camera.h"
@@ -149,6 +151,15 @@ MainWindow::MainWindow(QWidget *parent) :
 	setCorner(Qt::BottomLeftCorner, Qt::BottomDockWidgetArea);
 	setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
 	setCorner(Qt::BottomRightCorner, Qt::BottomDockWidgetArea);
+
+	ui->actionExport2D_Points->setEnabled(false);
+	ui->actionExport3D_Points->setEnabled(false);
+	ui->actionRigidBodyTransformations->setEnabled(false);
+	ui->actionImport2D_Points->setEnabled(false);
+	ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
+	ui->actionDetailed_View->setEnabled(false);
+	ui->actionPlot->setEnabled(false);
+	ui->action3D_world_view->setEnabled(false);
 
 	Shortcuts::getInstance()->bindApplicationShortcuts();
 #ifndef BETA
@@ -727,7 +738,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		ui->actionExport2D_Points->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
-		ui->actionFiltered_RigidBody_Transformations->setEnabled(false);
+		ui->actionImport2D_Points->setEnabled(false);
 		ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 		ui->actionDetailed_View->setEnabled(false);
 		ui->actionPlot->setEnabled(false);
@@ -752,7 +763,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		ui->actionExport2D_Points->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
-		ui->actionFiltered_RigidBody_Transformations->setEnabled(false);
+		ui->actionImport2D_Points->setEnabled(false);
 		ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 		ui->actionPlot->setChecked(false);
 		ui->actionPlot->setEnabled(false);
@@ -833,7 +844,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 			ui->actionExport2D_Points->setEnabled(true);
 			ui->actionExport3D_Points->setEnabled(true);
 			ui->actionRigidBodyTransformations->setEnabled(true);
-			ui->actionFiltered_RigidBody_Transformations->setEnabled(true);
+			ui->actionImport2D_Points->setEnabled(true);
 			ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(true);
 		}
 		else
@@ -855,7 +866,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 			ui->actionExport2D_Points->setEnabled(false);
 			ui->actionExport3D_Points->setEnabled(false);
 			ui->actionRigidBodyTransformations->setEnabled(false);
-			ui->actionFiltered_RigidBody_Transformations->setEnabled(false);
+			ui->actionImport2D_Points->setEnabled(false);
 			ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 
 			ui->actionDetailed_View->setEnabled(false);
@@ -928,94 +939,146 @@ void MainWindow::on_actionSave_Project_as_triggered(bool checked){
 }
 
 //File->Export Menu Slots
-void MainWindow::on_actionExportDLT_triggered(bool checked){
-	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
-	if ( outputPath.isNull() == false )
-    {
-        Project::getInstance()->exportDLT(outputPath);
-		Settings::getInstance()->setLastUsedDirectory(outputPath,true);
-    }
-}
-
-void MainWindow::on_actionExportLUT_triggered(bool checked){
-	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
-	if ( outputPath.isNull() == false )
-    {
-        Project::getInstance()->exportLUT(outputPath);
-		Settings::getInstance()->setLastUsedDirectory(outputPath,true);
-    }
-}
-
-void MainWindow::on_actionExportMayacams_triggered(bool checked){
-	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
-	if ( outputPath.isNull() == false )
-    {
-        Project::getInstance()->exportMayaCam(outputPath);
-		Settings::getInstance()->setLastUsedDirectory(outputPath,true);
-    }
-}
-
 void MainWindow::on_actionExportAll_triggered(bool checked){
-	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+	if (Project::getInstance()->isCalibrated()){
+		QString outputPath = QFileDialog::getExistingDirectory(this,
+			tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
-	if ( outputPath.isNull() == false )
-    {
-        Project::getInstance()->exportDLT(outputPath);
-		Project::getInstance()->exportMayaCam(outputPath);
-		Project::getInstance()->exportLUT(outputPath);
-		Settings::getInstance()->setLastUsedDirectory(outputPath,true);
-    }
+		if (outputPath.isNull() == false)
+		{
+			Project::getInstance()->exportDLT(outputPath);
+			Project::getInstance()->exportMayaCam(outputPath);
+			Project::getInstance()->exportLUT(outputPath);
+			Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+		}
+	}
+	else
+	{
+		ErrorDialog::getInstance()->showErrorDialog("You have to first calibrate the cameras to be able to export");
+	}
 }
 
 void MainWindow::on_actionExport3D_Points_triggered(bool checked)
 {
-	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+	PointImportExportDialog * diag = new PointImportExportDialog(EXPORT3D, this);
 
-	if (outputPath.isNull() == false)
+	diag->exec();
+
+	if (diag->result())
 	{
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(outputPath + OS_SEP);
-		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+		if (Settings::getInstance()->getBoolSetting("Export3DSingle")){
+			QString outputPath = QFileDialog::getExistingDirectory(this,
+				tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+
+			if (outputPath.isNull() == false)
+			{
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(outputPath + OS_SEP
+					, Settings::getInstance()->getBoolSetting("Export3DMulti")
+					, Settings::getInstance()->getBoolSetting("Export3DHeader"));
+				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+			}
+		}
+		else if (Settings::getInstance()->getBoolSetting("Export3DMulti"))
+		{
+			QString fileName = QFileDialog::getSaveFileName(this,
+				tr("Save 3D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+
+			if (fileName.isNull() == false)
+			{
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(fileName
+					, Settings::getInstance()->getBoolSetting("Export3DMulti")
+					, Settings::getInstance()->getBoolSetting("Export3DHeader"));
+				Settings::getInstance()->setLastUsedDirectory(fileName);
+			}
+		}
 	}
+
+	delete diag;
 }
 
 void MainWindow::on_actionExport2D_Points_triggered(bool checked)
 {
-	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+	PointImportExportDialog * diag = new PointImportExportDialog(EXPORT2D, this);
 
-	if (outputPath.isNull() == false)
+	diag->exec();
+
+	if (diag->result())
 	{
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(outputPath + OS_SEP);
-		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+		if (Settings::getInstance()->getBoolSetting("Export2DSingle")){
+			QString outputPath = QFileDialog::getExistingDirectory(this, tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+
+			if (outputPath.isNull() == false)
+			{
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(outputPath + OS_SEP
+					, Settings::getInstance()->getBoolSetting("Export2DMulti")
+					, Settings::getInstance()->getBoolSetting("Export2DDistorted")
+					, Settings::getInstance()->getBoolSetting("Export2DCount1")
+					, Settings::getInstance()->getBoolSetting("Export2DYUp")
+					, Settings::getInstance()->getBoolSetting("Export2DHeader")
+					, Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
+				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+			}
+		}
+		else if (Settings::getInstance()->getBoolSetting("Export2DMulti"))
+		{
+			QString fileName = QFileDialog::getSaveFileName(this,
+				tr("Save 2D points as"),Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+			
+
+			if (fileName.isNull() == false)
+			{
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(fileName
+					, Settings::getInstance()->getBoolSetting("Export2DMulti")
+					, Settings::getInstance()->getBoolSetting("Export2DDistorted")
+					, Settings::getInstance()->getBoolSetting("Export2DCount1")
+					, Settings::getInstance()->getBoolSetting("Export2DYUp")
+					, Settings::getInstance()->getBoolSetting("Export2DHeader")
+					, Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
+				Settings::getInstance()->setLastUsedDirectory(fileName);
+			}
+		}
 	}
+
+	delete diag;
 }
 
 void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 {
-	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+	PointImportExportDialog * diag = new PointImportExportDialog(EXPORTTRANS, this);
 
-	if (outputPath.isNull() == false)
+
+	diag->exec();
+	if (diag->result())
 	{
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(outputPath + OS_SEP);
-		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
-	}
-}
+		if (Settings::getInstance()->getBoolSetting("ExportTransSingle")){
+			QString outputPath = QFileDialog::getExistingDirectory(this, tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
-void MainWindow::on_actionFiltered_RigidBody_Transformations_triggered(bool checked)
-{
-	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+			if (outputPath.isNull() == false)
+			{
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(outputPath + OS_SEP
+					, Settings::getInstance()->getBoolSetting("ExportTransMulti")
+					, Settings::getInstance()->getBoolSetting("ExportTransHeader")
+					, Settings::getInstance()->getBoolSetting("ExportTransFiltered"));
+				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+			}
+		}
+		else if (Settings::getInstance()->getBoolSetting("ExportTransMulti"))
+		{
+			QString fileName = QFileDialog::getSaveFileName(this,
+				tr("Save 2D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
 
-	if (outputPath.isNull() == false)
-	{
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformationsFiltered(outputPath + OS_SEP);
-		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+
+			if (fileName.isNull() == false)
+			{
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(fileName
+					, Settings::getInstance()->getBoolSetting("ExportTransMulti")
+					, Settings::getInstance()->getBoolSetting("ExportTransHeader")
+					, Settings::getInstance()->getBoolSetting("ExportTransFiltered"));
+				Settings::getInstance()->setLastUsedDirectory(fileName);
+			}
+		}
+
+
 	}
 }
 
@@ -1034,6 +1097,41 @@ void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(boo
 void MainWindow::on_actionUndistort_sequence_triggered(bool checked){
 	UndistortSequenceDialog * diag = new UndistortSequenceDialog(this);
 	diag->exec();
+	delete diag;
+}
+
+void MainWindow::on_actionImport2D_Points_triggered(bool checked)
+{
+	PointImportExportDialog * diag = new PointImportExportDialog(IMPORT2D, this);
+
+	int loadPoints = 0;
+
+	diag->exec();
+	if (diag->result())
+	{
+		QStringList fileNames = QFileDialog::getOpenFileNames(this,
+			tr("Open csv files for 2D points"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+
+		if (!fileNames.isEmpty())
+		{
+			ProgressDialog::getInstance()->showProgressbar(0,0,"Importing points");
+			for (int i = 0; i < fileNames.size(); i++)
+			{
+				loadPoints += Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->load2dPoints(fileNames.at(i)
+					, Settings::getInstance()->getBoolSetting("Import2DDistorted")
+					, Settings::getInstance()->getBoolSetting("Import2DCount1")
+					, Settings::getInstance()->getBoolSetting("Import2DYUp")
+					, Settings::getInstance()->getBoolSetting("Import2DHeader")
+					, Settings::getInstance()->getBoolSetting("Import2DOffsetCols"));
+			}
+			ProgressDialog::getInstance()->closeProgressbar();
+			Settings::getInstance()->setLastUsedDirectory(fileNames.at(0));
+		}
+
+		redrawGL();
+		PointsDockWidget::getInstance()->reloadListFromObject();
+		PlotWindow::getInstance()->updateMarkers(true);
+	}
 	delete diag;
 }
 

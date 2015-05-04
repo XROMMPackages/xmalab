@@ -310,16 +310,18 @@
      <property name="title">
       <string>Export</string>
      </property>
-     <addaction name="actionExportDLT"/>
-     <addaction name="actionExportLUT"/>
-     <addaction name="actionExportMayacams"/>
-     <addaction name="actionExportAll"/>
-     <addaction name="separator"/>
      <addaction name="actionExport3D_Points"/>
      <addaction name="actionExport2D_Points"/>
      <addaction name="actionRigidBodyTransformations"/>
-     <addaction name="actionFiltered_RigidBody_Transformations"/>
      <addaction name="actionExport_Undistorted_Trial_images_for_Maya"/>
+     <addaction name="separator"/>
+     <addaction name="actionExportAll"/>
+    </widget>
+    <widget class="QMenu" name="menuImport">
+     <property name="title">
+      <string>Import</string>
+     </property>
+     <addaction name="actionImport2D_Points"/>
     </widget>
     <addaction name="actionNew_Project"/>
     <addaction name="actionLoad_Project"/>
@@ -329,6 +331,7 @@
     <addaction name="actionSave_Project_as"/>
     <addaction name="separator"/>
     <addaction name="menuExport"/>
+    <addaction name="menuImport"/>
     <addaction name="separator"/>
     <addaction name="actionUndistort_sequence"/>
    </widget>
@@ -728,7 +731,7 @@
   </action>
   <action name="actionExportAll">
    <property name="text">
-    <string>All</string>
+    <string>XRayProject Matlab Format</string>
    </property>
   </action>
   <action name="actionConsole">
@@ -770,7 +773,7 @@
   </action>
   <action name="actionRigidBodyTransformations">
    <property name="text">
-    <string>Unfiltered RigidBodyTransformations</string>
+    <string>RigidBodyTransformations</string>
    </property>
   </action>
   <action name="actionFiltered_RigidBody_Transformations">
@@ -780,7 +783,12 @@
   </action>
   <action name="actionExport_Undistorted_Trial_images_for_Maya">
    <property name="text">
-    <string>Export Undistorted Trial images</string>
+    <string>Undistorted Trial images</string>
+   </property>
+  </action>
+  <action name="actionImport2D_Points">
+   <property name="text">
+    <string>2D Points</string>
    </property>
   </action>
  </widget>

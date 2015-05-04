@@ -52,9 +52,6 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget *parent) :
 	trackType = 0; 
 	trackDirection = 0; 
 	singleTrack = false;
-	//track_timer = new QTimer(this);
-	//track_timer->setSingleShot(true);
-	//connect(track_timer, SIGNAL(timeout()), this, SLOT(on_pushButton_trackPoint_clicked()));
 }
 
 void WizardDigitizationFrame::addDigitizationPoint(int camera, double x, double y)

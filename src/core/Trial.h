@@ -78,11 +78,11 @@ namespace xma{
 		void changeImagePath(int camera, QString newfoldeFr, QString oldfolder);
 		void updateAfterChangeImagePath();
 
-		void save3dPoints(QString outputfolder);
-		void save2dPoints(QString outputfolder);
+		void save3dPoints(QString outputfolder, bool onefile, bool headerRow);
+		void save2dPoints(QString outputfolder, bool onefile, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols);
+		int load2dPoints(QString outputfolder, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols);
 
-		void saveRigidBodyTransformations(QString outputfolder);
-		void saveRigidBodyTransformationsFiltered(QString outputfolder);
+		void saveRigidBodyTransformations(QString outputfolder, bool onefile, bool headerRow, bool filtered);
 		void saveTrialImages(QString outputfolder);
 		void recomputeAndFilterRigidBodyTransformations();
 		void resetRigidBodyByMarker(Marker * marker, int frame);
@@ -110,7 +110,7 @@ namespace xma{
 		std::vector <Marker * > markers;
 		int id;
 		
-
+		std::istream &safeGetline(std::istream& is, std::string& t);
 		std::istream &comma(std::istream& in);
 		std::istream &getline(std::istream &is, std::string &s);
 	};

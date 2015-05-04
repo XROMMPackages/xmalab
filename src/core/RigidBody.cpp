@@ -1092,6 +1092,48 @@ void RigidBody::saveTransformations(QString filename, bool inverse, bool filtere
 	}
 }
 
+bool RigidBody::getTransformationMatrix(int frame, bool filtered, double* trans)
+{
+	if ((poseComputed[frame] && !filtered) || (poseFiltered[frame] && filtered)){
+		cv::Mat rotationMat;
+		if (!filtered){
+			cv::Rodrigues(rotationvectors[frame], rotationMat);
+		}
+		else
+		{
+			cv::Rodrigues(rotationvectors_filtered[frame], rotationMat);
+		}
+		for (unsigned int y = 0; y < 3; y++)
+		{
+			trans[y * 4] = rotationMat.at<double>(y, 0);
+			trans[y * 4 + 1] = rotationMat.at<double>(y, 1);
+			trans[y * 4 + 2] = rotationMat.at<double>(y, 2);
+			trans[y * 4 + 3] = 0.0;
+		}
+		//inverse translation = translation rotated with inverse rotation/transposed rotation
+		//R-1 * -t = R^tr * -t
+
+		cv::Vec3d trans;
+		if (!filtered){
+			trans = translationvectors[frame];
+		}
+		else
+		{
+			trans = translationvectors_filtered[frame];
+		}
+		trans[12] = trans[0] * -trans[0] + trans[4] * -trans[1] + trans[8] * -trans[2];
+		trans[13] = trans[1] * -trans[0] + trans[5] * -trans[1] + trans[9] * -trans[2];
+		trans[14] = trans[2] * -trans[0] + trans[6] * -trans[1] + trans[10] * -trans[2];
+		trans[15] = 1.0;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
+}
+
 std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, bool with_center, bool dummy, bool dummy_frame){
 	std::vector <cv::Point3d> points3D_frame;
 	cv::Mat rotMatTmp;

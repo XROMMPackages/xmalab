@@ -23,7 +23,7 @@
 #else
 #define OS_SEP "/"
 #endif
-
+#include <QtGui/QApplication>
 
 
 using namespace xma;
@@ -598,14 +598,6 @@ void Trial::updateAfterChangeImagePath()
 	recordingSpeed = videos[0]->getFPS();
 }
 
-void Trial::save3dPoints(QString outputfolder)
-{
-	for (int i = 0; i < getMarkers().size(); i++)
-	{
-		getMarkers()[i]->save("", "", "", outputfolder + "Marker" + QString().sprintf("%03d", i) + "_" + getMarkers()[i]->getDescription() + "_points3d.csv");
-	}
-}
-
 void Trial::recomputeAndFilterRigidBodyTransformations()
 {
 	for (int i = 0; i < getRigidBodies().size(); i++)
@@ -616,25 +608,169 @@ void Trial::recomputeAndFilterRigidBodyTransformations()
 	}
 }
 
-void Trial::saveRigidBodyTransformations(QString outputfolder)
+void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, bool headerRow, bool filtered)
 {
 	for (int i = 0; i < getRigidBodies().size(); i++)
 	{
 		getRigidBodies()[i]->recomputeTransformations();
-		
-		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i + 1) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv", true, false);
+		if (filtered)getRigidBodies()[i]->filterTransformations();
+	}
+
+	if (onefile)
+	{
+		std::ofstream outfile(outputfolder.toAscii().data());
+		if (headerRow)
+		{
+			for (int i = 0; i < getRigidBodies().size(); i++)
+			{
+				QString name;
+				QString filterRate = "";
+				if (getRigidBodies()[i]->getDescription().isEmpty())
+				{
+					name = "RigidBody" + QString().sprintf("%03d", i + 1);
+				}
+				else
+				{
+					name = getRigidBodies()[i]->getDescription();
+				}
+
+				if (filtered)
+				{
+					filterRate = "_" + QString::number(getRigidBodies()[i]->getOverrideCutoffFrequency() ? getRigidBodies()[i]->getCutoffFrequency() : getCutoffFrequency()) + "Hz";
+				}
+
+				outfile << name.toAscii().data() << "_R11" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_R12" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_R13" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_01" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_R21" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_R22" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_R23" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_02" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_R31" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_R32" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_R33" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_03" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_TX" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
+						<< name.toAscii().data() << "_1" << filterRate.toAscii().data() ;
+
+				if (i != getRigidBodies().size() - 1){
+					outfile << " , ";
+				}
+				else
+				{
+					outfile << std::endl;
+				}
+			}
+
+			double trans[16];
+			for (unsigned int f = 0; f < nbImages; f++){
+				for (int i = 0; i < getRigidBodies().size(); i++)
+				{
+					if (getRigidBodies()[i]->getTransformationMatrix(f,filtered,&trans[0]))
+					{
+						outfile << trans[0] << " , " << trans[1] << " , " << trans[2] << " , " << trans[3] << " , ";
+						outfile << trans[4] << " , " << trans[5] << " , " << trans[6] << " , " << trans[7] << " , ";
+						outfile << trans[8] << " , " << trans[9] << " , " << trans[10] << " , " << trans[11] << " , ";
+						outfile << trans[12] << " , " << trans[13] << " , " << trans[14] << " , " << trans[15];
+					}
+					else{
+						outfile << "NaN , NaN , NaN , NaN , ";
+						outfile << "NaN , NaN , NaN , NaN , ";
+						outfile << "NaN , NaN , NaN , NaN , ";
+						outfile << "NaN , NaN , NaN , NaN";
+					}
+
+					if (i != getRigidBodies().size() - 1){
+						outfile << " , ";
+					}
+					else
+					{
+						outfile << std::endl;
+					}
+				}
+			}
+		}
+		outfile.close();
+	}
+	else
+	{
+		for (int i = 0; i < getRigidBodies().size(); i++)
+		{
+			QString filename;
+			if (filtered)
+			{
+				filename = outputfolder + "RigidBody" + QString().sprintf("%03d", i + 1) + "_" + getRigidBodies()[i]->getDescription() + "_transformationFiltered_" + QString::number(getRigidBodies()[i]->getOverrideCutoffFrequency() ? getRigidBodies()[i]->getCutoffFrequency() : getCutoffFrequency()) + "Hz.csv";
+			}
+			else
+			{
+				filename = outputfolder + "RigidBody" + QString().sprintf("%03d", i + 1) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv";
+			}
+
+			std::ofstream outfile(filename.toAscii().data());
+			if (headerRow)
+			{
+				QString name;
+				QString filterRate = "";
+				if (getRigidBodies()[i]->getDescription().isEmpty())
+				{
+					name = "RigidBody" + QString().sprintf("%03d", i + 1);
+				}
+				else
+				{
+					name = getRigidBodies()[i]->getDescription();
+				}
+
+				if (filtered)
+				{
+					filterRate = "_" + QString::number(getRigidBodies()[i]->getOverrideCutoffFrequency() ? getRigidBodies()[i]->getCutoffFrequency() : getCutoffFrequency()) + "Hz";
+				}
+
+				outfile << name.toAscii().data() << "_R11" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R12" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R13" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_01" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R21" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R22" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R23" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_02" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R31" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R32" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R33" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_03" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_TX" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_1" << filterRate.toAscii().data();
+
+				outfile << std::endl;
+			}
+
+			double trans[16];
+			for (unsigned int f = 0; f < nbImages; f++){
+				if (getRigidBodies()[i]->getTransformationMatrix(f, filtered, &trans[0]))
+				{
+					outfile << trans[0] << " , " << trans[1] << " , " << trans[2] << " , " << trans[3] << " , ";
+					outfile << trans[4] << " , " << trans[5] << " , " << trans[6] << " , " << trans[7] << " , ";
+					outfile << trans[8] << " , " << trans[9] << " , " << trans[10] << " , " << trans[11] << " , ";
+					outfile << trans[12] << " , " << trans[13] << " , " << trans[14] << " , " << trans[15];
+				}
+				else{
+					outfile << "NaN , NaN , NaN , NaN , ";
+					outfile << "NaN , NaN , NaN , NaN , ";
+					outfile << "NaN , NaN , NaN , NaN , ";
+					outfile << "NaN , NaN , NaN , NaN";
+				}
+
+				outfile << std::endl;
+			}
+			outfile.close();
+		}
 	}
 }
 
-void Trial::saveRigidBodyTransformationsFiltered(QString outputfolder)
-{
-	for (int i = 0; i < getRigidBodies().size(); i++)
-	{
-		getRigidBodies()[i]->recomputeTransformations();
-		getRigidBodies()[i]->filterTransformations();
-		getRigidBodies()[i]->saveTransformations(outputfolder + "RigidBody" + QString().sprintf("%03d", i + 1) + "_" + getRigidBodies()[i]->getDescription() + "_transformationFiltered_" + QString::number(getRigidBodies()[i]->getOverrideCutoffFrequency() ? getRigidBodies()[i]->getCutoffFrequency() : getCutoffFrequency()) + "Hz.csv", true, true);
-	}
-}
 
 void Trial::saveTrialImages(QString outputfolder)
 {
@@ -681,10 +817,430 @@ void Trial::resetRigidBodyByMarker(Marker* marker, int frame)
 	}
 }
 
-void Trial::save2dPoints(QString outputfolder)
+void Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow)
 {
-	for (int i = 0; i < getMarkers().size(); i++)
+	if (onefile)
 	{
-		getMarkers()[i]->save(outputfolder + "Marker" + QString().sprintf("%03d", i) + "_" + getMarkers()[i]->getDescription() + "_points2d.csv", "", "", "");
+		std::ofstream outfile(outputfolder.toAscii().data());
+		if (headerRow)
+		{
+			for (int i = 0; i < getMarkers().size(); i++)
+			{
+				QString name;
+				if (getMarkers()[i]->getDescription().isEmpty())
+				{
+					name = "marker" + QString().sprintf("%03d", i + 1);
+				}
+				else
+				{
+					name = getMarkers()[i]->getDescription();
+				}
+
+				outfile << name.toAscii().data() << "_X" << " , " << name.toAscii().data() << "_Y" << " , " << name.toAscii().data() << "_Z";
+
+				if (i != getMarkers().size() - 1){
+					outfile << " , ";
+				}
+				else
+				{
+					outfile << std::endl;
+				}
+			}
+		}
+
+		for (unsigned int f = 0; f < nbImages; f++){
+			for (int i = 0; i < getMarkers().size(); i++)
+			{				
+				if (getMarkers()[i]->getStatus3D()[f] <= 0)
+				{
+					outfile << "NaN" << " , " << "NaN" << " , " << "NaN";
+				}
+				else{
+					outfile << getMarkers()[i]->getPoints3D()[f].x << " , " << getMarkers()[i]->getPoints3D()[f].y << " , " << getMarkers()[i]->getPoints3D()[f].z ;
+				}
+
+				if (i != getMarkers().size() - 1){
+					outfile << " , ";
+				}
+				else
+				{
+					outfile << std::endl;
+				}
+			}		
+		}
+		outfile.close();
 	}
+	else
+	{
+		for (int i = 0; i < getMarkers().size(); i++)
+		{
+			QString filename = outputfolder + "Marker" + QString().sprintf("%03d", i + 1) + "_" + getMarkers()[i]->getDescription() + "_points3d.csv";
+			std::ofstream outfile(filename.toAscii().data());
+			if (headerRow)
+			{
+				QString name;
+				if (getMarkers()[i]->getDescription().isEmpty())
+				{
+					name = "marker" + QString().sprintf("%03d", i + 1);
+				}
+				else
+				{
+					name = getMarkers()[i]->getDescription();
+				}
+
+				outfile << name.toAscii().data() << "_X" << " , " << name.toAscii().data() << "_Y" << " , " << name.toAscii().data() << "_Z";
+
+				outfile << std::endl;
+			}
+			for (unsigned int f = 0; f < nbImages; f++){
+				if (getMarkers()[i]->getStatus3D()[f] <= 0)
+				{
+					outfile << "NaN" << " , " << "NaN" << " , " << "NaN";
+				}
+				else{
+					outfile << getMarkers()[i]->getPoints3D()[f].x << " , " << getMarkers()[i]->getPoints3D()[f].y << " , " << getMarkers()[i]->getPoints3D()[f].z ;
+				}
+
+				outfile << std::endl;
+							
+			}
+			outfile.close();
+		}
+	}
+}
+
+void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, bool offset1, bool yinvert, bool headerRow,bool offsetCols)
+{
+	if (onefile)
+	{
+		std::ofstream outfile(outputfolder.toAscii().data());
+		if (headerRow)
+		{
+			if (offsetCols){
+				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				{
+					outfile << "cam" << j << "_offset";
+				}
+			}
+
+			for (int i = 0; i < getMarkers().size(); i++)
+			{
+				QString name;
+				if (getMarkers()[i]->getDescription().isEmpty())
+				{
+					name = "marker" + QString().sprintf("%03d", i + 1);
+				}
+				else
+				{
+					name = getMarkers()[i]->getDescription();
+				}
+
+				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				{
+					outfile << name.toAscii().data() << "_cam" << j + 1 << "_X" << " , " << name.toAscii().data() << "_cam" << j + 1 << "_Y";
+
+					if (i != getMarkers().size() - 1 || j != Project::getInstance()->getCameras().size() - 1){
+						outfile << " , ";
+					}
+					else
+					{
+						outfile << std::endl;
+					}
+				}
+			}
+		}
+		
+		for (unsigned int f = 0; f < nbImages; f++){
+			if (offsetCols){
+				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				{
+					outfile << 0.0 << " , ";
+				}
+			}
+			for (int i = 0; i < getMarkers().size(); i++)
+			{
+				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				{
+					if (getMarkers()[i]->getStatus2D()[j][f] > 0){
+
+						double x;
+						double y;
+						if (distorted)
+						{
+							x = getMarkers()[i]->getPoints2D()[j][f].x;
+							y = getMarkers()[i]->getPoints2D()[j][f].y;
+						}
+						else
+						{
+							if (Project::getInstance()->getCameras()[j]->hasUndistortion())
+							{
+								cv::Point2d pt = Project::getInstance()->getCameras()[j]->getUndistortionObject()->transformPoint(getMarkers()[i]->getPoints2D()[j][f], true);
+								x = pt.x;
+								y = pt.y;
+							}
+							else
+							{
+								x = getMarkers()[i]->getPoints2D()[j][f].x;
+								y = getMarkers()[i]->getPoints2D()[j][f].y;
+							}
+						}
+
+						if (yinvert)
+						{
+							y = Project::getInstance()->getCameras()[j]->getHeight() - y - 1;
+
+						}
+
+						if (offset1)
+						{
+							y += 1;
+							x += 1;
+						}
+						outfile << x << " , " << y;
+					}
+					else
+					{
+						outfile << "NaN" << " , " << "NaN";
+					}
+					
+					if (i != getMarkers().size() - 1 || j != Project::getInstance()->getCameras().size() - 1){
+						outfile << " , ";
+					}
+					else
+					{
+						outfile << std::endl;
+					}
+				}
+			}
+		}
+		outfile.close();
+	}
+	else
+	{
+		for (int i = 0; i < getMarkers().size(); i++)
+		{
+			QString filename = outputfolder + "Marker" + QString().sprintf("%03d", i + 1) + "_" + getMarkers()[i]->getDescription() + "_points2d.csv";
+			std::ofstream outfile(filename.toAscii().data());
+			if (headerRow)
+			{
+				if (offsetCols){
+					for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+					{
+						outfile << "cam" << j << "_offset";
+					}
+				}
+
+				QString name;
+				if (getMarkers()[i]->getDescription().isEmpty())
+				{
+					name = "marker" + QString().sprintf("%03d", i + 1);
+				}
+				else
+				{
+					name = getMarkers()[i]->getDescription();
+				}
+
+				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				{
+					outfile << name.toAscii().data() << "_cam" << j + 1 << "_X"<< " , " << name.toAscii().data() << "_cam" << j + 1 << "_Y";
+
+					if (j != Project::getInstance()->getCameras().size() - 1){
+						outfile << " , ";
+					}
+					else
+					{
+						outfile << std::endl;
+					}
+				}
+			}
+			
+			for (unsigned int f = 0; f < nbImages; f++){
+				if (offsetCols){
+					for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+					{
+						outfile << 0.0 << " , ";
+					}
+				}
+
+				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				{
+					if (getMarkers()[i]->getStatus2D()[j][f] > 0){
+						double x;
+						double y;
+						if (distorted)
+						{
+							x = getMarkers()[i]->getPoints2D()[j][f].x;
+							y = getMarkers()[i]->getPoints2D()[j][f].y;
+						}
+						else
+						{
+							if (Project::getInstance()->getCameras()[j]->hasUndistortion())
+							{
+								cv::Point2d pt = Project::getInstance()->getCameras()[j]->getUndistortionObject()->transformPoint(getMarkers()[i]->getPoints2D()[j][f], true);
+								x = pt.x;
+								y = pt.y;
+							}
+							else
+							{
+								x = getMarkers()[i]->getPoints2D()[j][f].x;
+								y = getMarkers()[i]->getPoints2D()[j][f].y;
+							}
+						}
+
+						if (yinvert)
+						{
+							y = Project::getInstance()->getCameras()[j]->getHeight() - y - 1;
+
+						}
+
+						if (offset1)
+						{
+							y += 1;
+							x += 1;
+						}
+						outfile << x << " , " << y;
+					}
+					else
+					{
+						outfile << "NaN" << " , " << "NaN";
+					}
+
+					if (j != Project::getInstance()->getCameras().size() - 1){
+						outfile << " , ";
+					}
+					else
+					{
+						outfile << std::endl;
+					}
+				}
+			}
+		
+			outfile.close();
+		}
+	}
+}
+
+std::istream& Trial::safeGetline(std::istream& is, std::string& t)
+{
+	t.clear();
+
+	// The characters in the stream are read one-by-one using a std::streambuf.
+	// That is faster than reading them one-by-one using the std::istream.
+	// Code that uses streambuf this way must be guarded by a sentry object.
+	// The sentry object performs various tasks,
+	// such as thread synchronization and updating the stream state.
+
+	std::istream::sentry se(is, true);
+	std::streambuf* sb = is.rdbuf();
+
+	for (;;) {
+		int c = sb->sbumpc();
+		switch (c) {
+		case '\n':
+			return is;
+		case '\r':
+			if (sb->sgetc() == '\n')
+				sb->sbumpc();
+			return is;
+		case EOF:
+			// Also handle the case when the last line has no line ending
+			if (t.empty())
+				is.setstate(std::ios::eofbit);
+			return is;
+		default:
+			t += (char)c;
+		}
+	}
+}
+
+int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols)
+{
+	std::vector <Marker *> newMarkers;
+
+	std::ifstream fin;
+	fin.open(input.toAscii().data());
+	std::istringstream in;
+	std::string line;
+	QString tmp_names;
+	QStringList list;
+	
+	bool firstRun = true;
+	bool readHeader = headerRow;
+	int frame = 0;
+	int offset = offsetCols ? Project::getInstance()->getCameras().size() : 0;
+
+	while (!safeGetline(fin, line).eof())
+	{
+		QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+		tmp_names = QString::fromStdString(line);
+		list = tmp_names.split(",");
+		
+		if (firstRun)
+		{
+			int nbNewMarker = (list.size() - offset) / 2 / Project::getInstance()->getCameras().size();
+			for (int i = 0; i < nbNewMarker; i++)
+			{
+				addMarker();
+				newMarkers.push_back(markers[markers.size() - 1]);
+			}
+			firstRun = false;
+		}
+
+		if (readHeader)
+		{
+			for (int i = 0; i < newMarkers.size(); i++)
+			{
+				QString name = list.at(i * 2 * Project::getInstance()->getCameras().size() + offset);
+				name.replace("_cam1_X", "");
+				while (name.startsWith(" "))
+				{
+					name = name.right(name.length() - 1);
+				}
+				while (name.endsWith(" "))
+				{
+					name = name.left(name.length() - 1);
+				}
+				newMarkers[i]->setDescription(name);
+			}
+			readHeader = false;
+		}
+		else
+		{
+			for (int i = 0; i < newMarkers.size(); i++)
+			{
+				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				{
+					if (!list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + offset).contains("NaN")
+						&& !list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + 1 + offset).contains("NaN"))
+					{
+						
+						double x = list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + offset).toDouble();
+						double y = list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + 1 + offset).toDouble();
+					
+						if (offset1)
+						{
+							x -= 1;
+							y -= 1;
+						}
+
+						if (yinvert)
+						{
+							y = Project::getInstance()->getCameras()[j]->getHeight() - y - 1;
+						}
+
+						newMarkers[i]->setPoint(j, frame, x, y, SET);
+					}
+				}
+			}
+			frame++;
+		}
+	}
+
+	for (int i = 0; i < newMarkers.size(); i++)
+	{
+		newMarkers[i]->update();
+	}
+	fin.close();
+
+	return newMarkers.size();
 }

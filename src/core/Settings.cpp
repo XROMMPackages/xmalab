@@ -65,6 +65,44 @@ Settings::Settings(){
 	addBoolSetting("BlobDetectorFilterByConvexity", true);
 	addFloatSetting("BlobDetectorMinConvexity", 0.9);
 	addFloatSetting("BlobDetectorMaxConvexity", 5000000.0);
+
+	//ImportExport Points
+	addBoolSetting("Import2DCount0",true);
+	addBoolSetting("Import2DCount1",false);
+	addBoolSetting("Import2DYDown",true);
+	addBoolSetting("Import2DYUp",false);
+	addBoolSetting("Import2DNoHeader",false);
+	addBoolSetting("Import2DHeader",true);
+	addBoolSetting("Import2DDistorted", true);
+	addBoolSetting("Import2DUndistorted", false);
+	addBoolSetting("Import2DNoCols", true);
+	addBoolSetting("Import2DOffsetCols", false); 
+
+	addBoolSetting("Export2DMulti", true);
+	addBoolSetting("Export2DSingle", false);
+	addBoolSetting("Export2DCount0", true);
+	addBoolSetting("Export2DCount1", false);
+	addBoolSetting("Export2DYDown", true);
+	addBoolSetting("Export2DYUp", false);
+	addBoolSetting("Export2DNoHeader", false);
+	addBoolSetting("Export2DHeader", true);
+	addBoolSetting("Export2DDistorted", true);
+	addBoolSetting("Export2DUndistorted", false);
+	addBoolSetting("Export2DNoCols", true);
+	addBoolSetting("Export2DOffsetCols", false);
+
+	addBoolSetting("Export3DMulti", true);
+	addBoolSetting("Export3DSingle", false);
+	addBoolSetting("Export3DNoHeader", false);
+	addBoolSetting("Export3DHeader", true);
+
+	addBoolSetting("ExportTransMulti", true);
+	addBoolSetting("ExportTransSingle", false);
+	addBoolSetting("ExportTransNoHeader", false);
+	addBoolSetting("ExportTransHeader", true);
+	addBoolSetting("ExportTransUnfiltered", false);
+	addBoolSetting("ExportTransFiltered", true);
+
 }
 
 Settings::~Settings(){

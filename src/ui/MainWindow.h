@@ -87,17 +87,15 @@ namespace xma{
 		void on_actionSave_Project_as_triggered(bool checked);
 
 		//File->Export Menu Slots
-		void on_actionExportDLT_triggered(bool checked);
-		void on_actionExportLUT_triggered(bool checked);
-		void on_actionExportMayacams_triggered(bool checked);
 		void on_actionExportAll_triggered(bool checked);
 
 		void on_actionExport3D_Points_triggered(bool checked);
 		void on_actionExport2D_Points_triggered(bool checked);
 		void on_actionRigidBodyTransformations_triggered(bool checked);
-		void on_actionFiltered_RigidBody_Transformations_triggered(bool checked);
 		void on_actionExport_Undistorted_Trial_images_for_Maya_triggered(bool checked);
 		void on_actionUndistort_sequence_triggered(bool checked);
+
+		void on_actionImport2D_Points_triggered(bool checked);
 
 		void on_actionSettings_triggered(bool checked);
 		void on_actionAbout_triggered(bool checked);

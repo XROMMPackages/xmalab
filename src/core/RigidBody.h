@@ -53,6 +53,9 @@ namespace xma{
 		void save(QString filename_referenceNames, QString filename_points3D);
 		void load(QString filename_referenceNames, QString filename_points3D);
 		void saveTransformations(QString filename, bool inverse, bool filtered);
+		bool getTransformationMatrix(int frame, bool filtered, double *trans);
+
+
 
 		bool isReferencesSet();
 		void setReferencesSet(bool value);

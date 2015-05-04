@@ -195,6 +195,7 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/RigidBodyDialog.h
 	src/ui/MarkerDialog.h
 	src/ui/TrialDialog.h
+	src/ui/PointImportExportDialog.h
 	)
 
 SET(XMALab_FORMS_SOURCES
@@ -237,6 +238,7 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/RigidBodyDialog.cpp
 		src/ui/MarkerDialog.cpp
 		src/ui/TrialDialog.cpp
+		src/ui/PointImportExportDialog.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
@@ -272,6 +274,7 @@ SET(XMALab_FORMS
 		src/ui/ui-files/MarkerDialog.ui
 		src/ui/ui-files/TrialDialog.ui
 		src/ui/ui-files/PlotWindow.ui
+		src/ui/ui-files/PointImportExportDialog.ui
 	)
 
 SOURCE_GROUP(UI_Files FILES ${XMALab_FORMS})
@@ -308,6 +311,7 @@ SET(XMALab_FORMS_MOC
 		${CMAKE_CURRENT_BINARY_DIR}/ui_MarkerDialog.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_TrialDialog.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_PlotWindow.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_PointImportExportDialog.h
 )
 
 SOURCE_GROUP(UI_Generated FILES ${XMALab_FORMS_MOC})
