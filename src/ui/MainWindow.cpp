@@ -35,6 +35,7 @@
 #include "core/CalibrationImage.h"
 #include "core/UndistortionObject.h"
 #include "core/Settings.h"
+#include "core/HelperFunctions.h"
 
 #include "processing/BlobDetection.h"
 #include "processing/LocalUndistortion.h"
@@ -643,12 +644,12 @@ void MainWindow::checkTrialImagePaths()
 		bool requiresReload = false;
 		for (int c = 0; c < Project::getInstance()->getCameras().size(); c++)
 		{
-			QString filename = Project::getInstance()->getTrials()[t]->getVideoStreams()[c]->getFilenames()[0];
+			QString filename = littleHelper::adjustPathToOS(Project::getInstance()->getTrials()[t]->getVideoStreams()[c]->getFilenames()[0]);
 			QFileInfo fileinfo(filename);
 			if (!QFile::exists(filename))
 			{
 				if (Project::getInstance()->getTrials()[t]->getVideoStreams()[c]->getFilenames().size()>1){
-					QString newfolder = QFileDialog::getExistingDirectory(this, fileinfo.fileName() + "not found. Enter a new directory for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
+					QString newfolder = QFileDialog::getExistingDirectory(this, fileinfo.fileName() + " not found. Enter a new directory for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
 
 					if (!newfolder.isEmpty())
 					{
@@ -659,7 +660,7 @@ void MainWindow::checkTrialImagePaths()
 				}
 				else
 				{
-					QString newfolder = QFileDialog::getOpenFileName(this, fileinfo.fileName() + "not found. Enter a file for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
+					QString newfolder = QFileDialog::getOpenFileName(this, fileinfo.fileName() + " not found. Enter a file for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
 
 					if (!newfolder.isEmpty())
 					{

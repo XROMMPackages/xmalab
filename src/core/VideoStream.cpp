@@ -70,9 +70,9 @@ QString VideoStream::getFileBasename()
 
 void VideoStream::changeImagePath(QString newfolder, QString oldfolder)
 {
-	filenames = filenames.replaceInStrings(oldfolder, newfolder);
 	filenames = filenames.replaceInStrings("\\", OS_SEP);
 	filenames = filenames.replaceInStrings("/", OS_SEP);
+	filenames = filenames.replaceInStrings(oldfolder, newfolder);
 	reloadFile();
 }
 
