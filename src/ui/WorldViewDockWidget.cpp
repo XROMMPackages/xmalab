@@ -4,6 +4,7 @@
 
 #include "ui/WorldViewDockWidget.h"
 #include "ui/MainWindow.h"
+#include "ui/Shortcuts.h"
 
 #include <QtGui/QApplication>
 #include <QtGui/QCloseEvent>
@@ -21,7 +22,8 @@ WorldViewDockWidget::WorldViewDockWidget(QWidget *parent):QDockWidget(parent)
     layout->addWidget(openGL, 0, 0);
 	setWidget(openGL);
 	setWindowTitle(QApplication::translate("WorldViewDockWidget", "External view", 0, QApplication::UnicodeUTF8));
-	
+
+	Shortcuts::getInstance()->installEventFilterToChildren(this);
 }
 
 void  WorldViewDockWidget::resizeEvent ( QResizeEvent * event )

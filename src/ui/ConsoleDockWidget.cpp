@@ -12,6 +12,7 @@
 #include <QTextStream>
 #include <QScrollBar>
 #include <QCloseEvent>
+#include "ui/Shortcuts.h"
 
 using namespace xma;
 
@@ -43,6 +44,8 @@ ConsoleDockWidget::ConsoleDockWidget(QWidget *parent) :
     connect(timer, SIGNAL(timeout()), this, SLOT(logTimer()));
 
 	LoadText = "";
+
+	Shortcuts::getInstance()->installEventFilterToChildren(this);
 }
 
 

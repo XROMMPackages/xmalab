@@ -11,6 +11,7 @@
 #include "ui/WizardDockWidget.h"
 #include "ui/PlotWindow.h"
 #include "ui/MarkerTreeWidgetButton.h"
+#include "ui/Shortcuts.h"
 
 #include "core/Project.h"
 #include "core/Trial.h"
@@ -20,6 +21,7 @@
 #include <QMouseEvent>
 #include <QInputDialog>
 #include <QToolButton>
+
 using namespace xma;
 
 PointsDockWidget* PointsDockWidget::instance = NULL;
@@ -33,6 +35,8 @@ PointsDockWidget::PointsDockWidget(QWidget *parent) :
 	qApp->installEventFilter( this );
 
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
+
+	Shortcuts::getInstance()->installEventFilterToChildren(this);
 }
 	
 PointsDockWidget::~PointsDockWidget(){

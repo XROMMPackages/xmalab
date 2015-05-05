@@ -8,11 +8,12 @@
 #include "ui/DetailViewDockWidget.h"
 #include "ui_DetailViewDockWidget.h"
 #include "ui/CameraViewDetailWidget.h"
-
+#include "ui/Shortcuts.h"
 #include "ui/GLSharedWidget.h"
 
 #include <QLabel>
 #include <QCloseEvent>
+
 
 using namespace xma;
 
@@ -22,6 +23,8 @@ DetailViewDockWidget::DetailViewDockWidget(QWidget *parent) :
 												QDockWidget(parent),
 												dock(new Ui::DetailViewDockWidget){
 	dock->setupUi(this);
+
+	Shortcuts::getInstance()->installEventFilterToChildren(this);
 }
 
 DetailViewDockWidget::~DetailViewDockWidget(){
@@ -61,6 +64,8 @@ void DetailViewDockWidget::setup()
 	for (int i = 0; i < cameraViews.size(); i++){
 		dock->horizontalLayout->addWidget(cameraViews[i]);
 	}
+
+	Shortcuts::getInstance()->installEventFilterToChildren(this);
 }
 
 void DetailViewDockWidget::clear()

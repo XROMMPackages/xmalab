@@ -15,6 +15,12 @@ namespace xma{
 
 		void bindApplicationShortcuts();
 
+		void installEventFilterToChildren(QObject* object);
+		bool checkShortcut(QObject *target, QEvent *event);
+
+	protected:
+		bool eventFilter(QObject *target, QEvent *event) override;
+
 	private:
 		Shortcuts();
 		static Shortcuts* instance;

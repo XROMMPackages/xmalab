@@ -35,6 +35,7 @@
 #else
 #define OS_SEP "/"
 #endif
+#include "Shortcuts.h"
 
 using namespace xma;
 
@@ -154,9 +155,13 @@ void PlotWindow::deleteData()
 
 bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 {
-	
 	if (event->type() == QEvent::KeyPress)
 	{
+		if(Shortcuts::getInstance()->checkShortcut(target, event))
+		{
+			return true;
+		}
+
 		QKeyEvent *_keyEvent = static_cast<QKeyEvent*>(event);
 		if (_keyEvent->key() == Qt::Key_Delete || _keyEvent->key() == Qt::Key_Backspace)
 		{

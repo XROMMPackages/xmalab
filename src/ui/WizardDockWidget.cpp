@@ -9,6 +9,8 @@
 #include "ui/WizardCalibrationCubeFrame.h"
 #include "ui/WizardDigitizationFrame.h"
 
+#include "ui/Shortcuts.h"
+
 #include <QLabel>
 
 using namespace xma;
@@ -31,6 +33,8 @@ WizardDockWidget::WizardDockWidget(QWidget *parent) :
 
 	dock->gridLayout->setSizeConstraint(QLayout::SetFixedSize);
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
+
+	Shortcuts::getInstance()->installEventFilterToChildren(this);
 }
 
 bool WizardDockWidget::checkForPendingChanges(){
