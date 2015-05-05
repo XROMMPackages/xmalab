@@ -63,7 +63,7 @@ QString CalibrationImage::getFilename(){
 
 QString CalibrationImage::getFilenameBase(){
 	QFileInfo info (imageFileName);
-	return info.baseName();
+	return info.completeBaseName();
 }
 
 void CalibrationImage::loadTextures(){
@@ -421,23 +421,23 @@ void CalibrationImage::setPointManual(double x, double y, bool isDistortedView){
 
 QString CalibrationImage::getFilenamePointsInlier(){
 	QFileInfo info (imageFileName);
-	return info.baseName() + "_PointsInlier.csv";
+	return info.completeBaseName() + "_PointsInlier.csv";
 }
 QString CalibrationImage::getFilenamePointsDetected(){
 	QFileInfo info (imageFileName);
-	return info.baseName() + "_PointsDetected.csv";
+	return info.completeBaseName() + "_PointsDetected.csv";
 }
 QString CalibrationImage::getFilenamePointsDetectedAll(){
 	QFileInfo info (imageFileName);
-	return info.baseName() + "_PointsDetectedAll.csv";
+	return info.completeBaseName() + "_PointsDetectedAll.csv";
 }
 QString CalibrationImage::getFilenameRotationMatrix(){
 	QFileInfo info (imageFileName);
-	return info.baseName() + "_RotationMatrix.csv";
+	return info.completeBaseName() + "_RotationMatrix.csv";
 }
 QString CalibrationImage::getFilenameTranslationVector(){
 	QFileInfo info (imageFileName);
-	return info.baseName() + "_TranslationVector.csv";
+	return info.completeBaseName() + "_TranslationVector.csv";
 }
 
 void CalibrationImage::savePoints(std::vector <cv::Point2d> &points, QString filename){

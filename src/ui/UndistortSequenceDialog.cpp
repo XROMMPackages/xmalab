@@ -149,8 +149,8 @@ void UndistortSequenceDialog::updatePreview()
 QString UndistortSequenceDialog::getFilename(QFileInfo fileinfo, int numberFrame)
 {
 	QFileInfo infoNameBase(commonPrefixString);
-	QString filenameBase = infoNameBase.baseName();
-	QString filename = fileinfo.baseName();
+	QString filenameBase = infoNameBase.completeBaseName();
+	QString filename = fileinfo.completeBaseName();
 
 	QString number = QString("%1").arg(numberFrame, diag->spinBox_NumberLength->value(), 10, QChar('0'));
 	QString outfilename = outputfolder + OS_SEP + diag->lineEdit_pattern->text() + ".tif";

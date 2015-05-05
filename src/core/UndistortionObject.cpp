@@ -624,23 +624,23 @@ QString UndistortionObject::getFilename(){
 }
 QString UndistortionObject::getFilenameBase(){
 	QFileInfo info (imageFileName);
-	return info.baseName();
+	return info.completeBaseName();
 }
 QString UndistortionObject::getFilenamePointsDetected(){
 	QFileInfo info (imageFileName);
-	return info.baseName() + "_PointsDetected.csv";
+	return info.completeBaseName() + "_PointsDetected.csv";
 }
 QString UndistortionObject::getFilenameGridPointsDistorted(){
 	QFileInfo info (imageFileName);
-	return info.baseName() + "_GridPointsDistorted.csv";
+	return info.completeBaseName() + "_GridPointsDistorted.csv";
 }
 QString UndistortionObject::getFilenameGridPointsReferences(){
 	QFileInfo info (imageFileName);
-	return info.baseName() + "_GridPointsReferences.csv";
+	return info.completeBaseName() + "_GridPointsReferences.csv";
 }
 QString UndistortionObject::getFilenameGridPointsInlier(){
 	QFileInfo info (imageFileName);
-	return info.baseName() + "_GridPointsInlier.csv";
+	return info.completeBaseName() + "_GridPointsInlier.csv";
 }
 
 void UndistortionObject::savePoints(std::vector <cv::Point2d> &points, QString filename){
