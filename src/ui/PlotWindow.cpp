@@ -15,6 +15,9 @@
 #include <QtGui/QFrame>
 #include <QtGui/QLabel>
 #include <QtGui/QPushButton>
+#include <QtGui/QFileDialog>
+
+#include <fstream>
 
 #include "core/Trial.h"
 #include "core/Project.h"
@@ -25,6 +28,13 @@
 #include "ui/State.h"
 #include "ui/MainWindow.h"
 #include "ui/ConfirmationDialog.h"
+#include "core/Settings.h"
+
+#ifdef WIN32
+#define OS_SEP "\\"
+#else
+#define OS_SEP "/"
+#endif
 
 using namespace xma;
 
@@ -138,6 +148,32 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 			if (_keyEvent->key() == Qt::Key_Delete || _keyEvent->key() == Qt::Key_Backspace)
 			{
 				deleteData();
+			}
+			if (_keyEvent->key() == Qt::Key_S && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
+			{
+				if (dock->comboBoxPlotType->currentIndex() == 2)
+				{
+					QString text = "Save intermarker distance between Marker " + dock->comboBoxMarker1->currentText() + " and Marker " + dock->comboBoxMarker2->currentText();
+					QString fileName = QFileDialog::getSaveFileName(this,
+						text, Settings::getInstance()->getLastUsedDirectory() + OS_SEP + "Distance" + dock->comboBoxMarker1->currentText() + "To" + dock->comboBoxMarker2->currentText() + ".csv", tr("Comma seperated data (*.csv)"));
+					if (fileName.isNull() == false)
+					{
+						std::ofstream outfile(fileName.toAscii().data());
+						for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++, count++)
+						{
+
+							if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getStatus3D()[i] > UNDEFINED){
+								cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getPoints3D()[i] - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getPoints3D()[i];
+								outfile << cv::sqrt(diff.x*diff.x + diff.y*diff.y + diff.z*diff.z) << std::endl;
+							}
+							else
+							{
+								outfile << "NaN" << std::endl;
+							}
+						}
+						outfile.close();
+					}
+				}
 			}
 		}
 
