@@ -102,6 +102,7 @@ SET(XMALab_HEADERS
 	src/core/AviVideo.h
 	src/core/VideoStream.h
 	src/core/ImageSequence.h
+	src/core/HelperFunctions.h
 )
 
 SET(XMALab_SOURCES
@@ -119,6 +120,7 @@ SET(XMALab_SOURCES
 	src/core/AviVideo.cpp
 	src/core/VideoStream.cpp
 	src/core/ImageSequence.cpp
+	src/core/HelperFunctions.cpp
 )
 
 SOURCE_GROUP(_CORE FILES ${XMALab_HEADERS} ${XMALab_SOURCES})

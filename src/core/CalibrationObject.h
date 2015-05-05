@@ -46,9 +46,6 @@ namespace xma{
 		int nbHorizontalSquares;
 		int nbVerticalSquares;
 		int squareSize;
-
-		std::istream& comma(std::istream& in);
-		std::istream& getline(std::istream &is, std::string &s);
 	};
 }
 

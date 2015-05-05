@@ -83,9 +83,6 @@ namespace xma{
 		std::vector <cv::Point3d> points3D;
 		std::vector <markerStatus> status3D;
 		std::vector <double> error3D;
-
-		std::istream &comma(std::istream& in);
-		std::istream &getline(std::istream &is, std::string &s);
 	};
 }
 

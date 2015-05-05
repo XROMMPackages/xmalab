@@ -13,6 +13,7 @@
 #include "core/Marker.h"
 #include "core/Settings.h"
 #include "core/UndistortionObject.h"
+#include "core/HelperFunctions.h"
 #include <QFileInfo>
 #include <QDir>
 
@@ -87,7 +88,7 @@ Trial::Trial(QString trialname, QString folder){
 		QStringList filenameList;
 		QString camera_filenames = folder + Project::getInstance()->getCameras()[i]->getName() + "_filenames_absolute.txt";
 		std::ifstream fin(camera_filenames.toAscii().data());
-		for (std::string line; std::getline(fin, line);)
+		for (std::string line; littleHelper::safeGetline(fin, line);)
 		{
 			filenameList << QString::fromStdString(line);
 		}
@@ -493,30 +494,12 @@ void Trial::setEndFrame(int value)
 	endFrame = value;
 }
 
-std::istream& Trial::comma(std::istream& in)
-{
-	if ((in >> std::ws).peek() != std::char_traits<char>::to_int_type(',')) {
-		in.setstate(std::ios_base::failbit);
-	}
-	return in.ignore();
-}
-
-std::istream &Trial::getline(std::istream &is, std::string &s) {
-	char ch;
-
-	s.clear();
-
-	while (is.get(ch) && ch != '\n' && ch != '\r')
-		s += ch;
-	return is;
-}
-
 void Trial::loadMarkers(QString filename){
 	std::ifstream fin;
 	fin.open(filename.toAscii().data());
 	std::string line;
 	unsigned int count = 0;
-	for (; getline(fin, line);)
+	for (; littleHelper::safeGetline(fin, line);)
 	{
 		if (count >= this->getMarkers().size())
 			this->addMarker();
@@ -536,7 +519,7 @@ void Trial::loadRigidBodies(QString filename){
 	std::string desc;
 	std::string indices;
 	int count = 0;
-	for (; getline(fin, line);)
+	for (; littleHelper::safeGetline(fin, line);)
 	{
 		if (count >= this->getRigidBodies().size()){
 			this->addRigidBody();
@@ -548,7 +531,7 @@ void Trial::loadRigidBodies(QString filename){
 		this->getRigidBodies()[count]->clearPointIdx();
 		in.clear();
 		in.str(indices);
-		for (int value; in >> value; comma(in)) {
+		for (int value; in >> value; littleHelper::comma(in)) {
 			this->getRigidBodies()[count]->addPointIdx(value - 1);
 		}
 		count++;
@@ -1122,39 +1105,6 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 	}
 }
 
-std::istream& Trial::safeGetline(std::istream& is, std::string& t)
-{
-	t.clear();
-
-	// The characters in the stream are read one-by-one using a std::streambuf.
-	// That is faster than reading them one-by-one using the std::istream.
-	// Code that uses streambuf this way must be guarded by a sentry object.
-	// The sentry object performs various tasks,
-	// such as thread synchronization and updating the stream state.
-
-	std::istream::sentry se(is, true);
-	std::streambuf* sb = is.rdbuf();
-
-	for (;;) {
-		int c = sb->sbumpc();
-		switch (c) {
-		case '\n':
-			return is;
-		case '\r':
-			if (sb->sgetc() == '\n')
-				sb->sbumpc();
-			return is;
-		case EOF:
-			// Also handle the case when the last line has no line ending
-			if (t.empty())
-				is.setstate(std::ios::eofbit);
-			return is;
-		default:
-			t += (char)c;
-		}
-	}
-}
-
 int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols)
 {
 	std::vector <Marker *> newMarkers;
@@ -1171,7 +1121,7 @@ int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinver
 	int frame = 0;
 	int offset = offsetCols ? Project::getInstance()->getCameras().size() : 0;
 
-	while (!safeGetline(fin, line).eof())
+	while (!littleHelper::safeGetline(fin, line).eof())
 	{
 		QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 		tmp_names = QString::fromStdString(line);

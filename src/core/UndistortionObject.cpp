@@ -5,6 +5,7 @@
 #include "core/UndistortionObject.h"
 #include "core/Image.h"
 #include "core/Camera.h"
+#include "core/HelperFunctions.h"
 
 #include <QFileInfo>
 #include <fstream>
@@ -700,31 +701,16 @@ void UndistortionObject::exportData(QString csvFileNameLUT,QString csvFileNameIn
 	outfile3.close();
 }
 
-std::istream& UndistortionObject::comma(std::istream& in)
-{
-    if ((in >> std::ws).peek() != std::char_traits<char>::to_int_type(',')) {
-        in.setstate(std::ios_base::failbit);
-    }
-    return in.ignore();
-}
-std::istream& UndistortionObject::getline(std::istream &is, std::string &s)
-{ 
-    char ch;
-    s.clear();
-    while (is.get(ch) && ch != '\n' && ch != '\r')
-        s += ch;
-    return is;
-}
 void UndistortionObject::loadPoints(cv::vector <cv::Point2d> &points, QString filename){
 	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
     std::istringstream in;
-    for (std::string line; std::getline(fin, line); )
+	for (std::string line; littleHelper::safeGetline(fin, line);)
     {
         in.clear();
         in.str(line);
         std::vector<double> tmp;
-        for (double value; in >> value; comma(in)) {
+		for (double value; in >> value; littleHelper::comma(in)) {
             tmp.push_back(value);
         }
         if(tmp.size()>0) values.push_back(tmp);
@@ -759,12 +745,12 @@ void UndistortionObject::loadGridPointsInlier( QString filename){
 	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
     std::istringstream in;
-    for (std::string line; std::getline(fin, line); )
+	for (std::string line; littleHelper::safeGetline(fin, line);)
     {
         in.clear();
         in.str(line);
         std::vector<double> tmp;
-        for (double value; in >> value; comma(in)) {
+		for (double value; in >> value; littleHelper::comma(in)) {
             tmp.push_back(value);
         }
         if(tmp.size()>0) values.push_back(tmp);

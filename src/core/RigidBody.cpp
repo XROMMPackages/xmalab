@@ -9,6 +9,7 @@
 #include "core/Project.h"
 #include "core/UndistortionObject.h"
 #include "core/CalibrationImage.h"
+#include "core/HelperFunctions.h"
 
 #include "processing/ButterworthLowPassFilter.h" //should move this dependency
 
@@ -672,7 +673,7 @@ void RigidBody::load(QString filename_referenceNames, QString filename_points3D)
 
 	fin.open(filename_points3D.toAscii().data());
 	points3D.clear();
-	for (; getline(fin, line);)
+	for (; littleHelper::safeGetline(fin, line);)
 	{
 		QString tmp_coords = QString::fromStdString(line);
 		QStringList coords_list = tmp_coords.split(",");
@@ -685,7 +686,7 @@ void RigidBody::load(QString filename_referenceNames, QString filename_points3D)
 
 	fin.open(filename_referenceNames.toAscii().data());
 	referenceNames.clear();
-	for (; getline(fin, line);)
+	for (; littleHelper::safeGetline(fin, line);)
 	{
 		QString tmp_Name = QString::fromStdString(line);
 		referenceNames.push_back(tmp_Name);
@@ -855,39 +856,6 @@ Trial* RigidBody::getTrial()
 	return trial;
 }
 
-std::istream& safeGetline(std::istream& is, std::string& t)
-{
-	t.clear();
-
-	// The characters in the stream are read one-by-one using a std::streambuf.
-	// That is faster than reading them one-by-one using the std::istream.
-	// Code that uses streambuf this way must be guarded by a sentry object.
-	// The sentry object performs various tasks,
-	// such as thread synchronization and updating the stream state.
-
-	std::istream::sentry se(is, true);
-	std::streambuf* sb = is.rdbuf();
-
-	for (;;) {
-		int c = sb->sbumpc();
-		switch (c) {
-		case '\n':
-			return is;
-		case '\r':
-			if (sb->sgetc() == '\n')
-				sb->sbumpc();
-			return is;
-		case EOF:
-			// Also handle the case when the last line has no line ending
-			if (t.empty())
-				is.setstate(std::ios::eofbit);
-			return is;
-		default:
-			t += (char)c;
-		}
-	}
-}
-
 void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString filenamePointCoords)
 {
 	dummyNames.push_back(name);
@@ -896,18 +864,18 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString fi
 	std::string line;
 
 	fin.open(filenamePointRef.toAscii().data());
-	safeGetline(fin, line);
-	safeGetline(fin, line);
+	littleHelper::safeGetline(fin, line);
+	littleHelper::safeGetline(fin, line);
 	fin.close();
 	QString tmp_coords = QString::fromStdString(line);
 	QStringList coords_list = tmp_coords.split(",");
 	dummypoints.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
 
 	fin.open(filenamePointCoords.toAscii().data());
-	safeGetline(fin, line);
+	littleHelper::safeGetline(fin, line);
 	std::vector<cv::Point3d> tmpCoords;
 	std::vector<bool> tmpDef;
-	while (!safeGetline(fin, line).eof())
+	while (!littleHelper::safeGetline(fin, line).eof())
 	{
 		tmp_coords = QString::fromStdString(line);
 		coords_list = tmp_coords.split(","); 
@@ -1270,9 +1238,9 @@ int RigidBody::setReferenceFromFile(QString filename)
 	fin.open(filename.toAscii().data());
 	std::istringstream in;
 	std::string line;
-	getline(fin, line);
+	littleHelper::safeGetline(fin, line);
 	tmp_names = QString::fromStdString(line);
-	getline(fin, line);
+	littleHelper::safeGetline(fin, line);
 	tmp_coords = QString::fromStdString(line);
 
 	QStringList names_list = tmp_names.split(",");

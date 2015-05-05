@@ -7,6 +7,7 @@
 #include "core/Project.h"
 #include "core/CalibrationImage.h"
 #include "core/UndistortionObject.h"
+#include "core/HelperFunctions.h"
 
 #include <QApplication>
 
@@ -195,33 +196,17 @@ void Camera::saveCameraMatrix( QString filename){
 	
 	outfile.close();
 }
-std::istream&Camera::comma(std::istream& in)
-{
-    if ((in >> std::ws).peek() != std::char_traits<char>::to_int_type(',')) {
-        in.setstate(std::ios_base::failbit);
-    }
-    return in.ignore();
-}
-std::istream& Camera::getline(std::istream &is, std::string &s)
-{ 
-    char ch;
-    s.clear();
-    while (is.get(ch) && ch != '\n' && ch != '\r')
-        s += ch;
-    return is;
-}
-
 
 void Camera::loadCameraMatrix( QString filename){
 	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
     std::istringstream in;
-    for (std::string line; std::getline(fin, line); )
+	for (std::string line; littleHelper::safeGetline(fin, line);)
     {
         in.clear();
         in.str(line);
         std::vector<double> tmp;
-        for (double value; in >> value; comma(in)) {
+        for (double value; in >> value; littleHelper::comma(in)) {
             tmp.push_back(value);
         }
 		if(tmp.size()>0) values.push_back(tmp);

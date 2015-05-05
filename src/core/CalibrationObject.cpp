@@ -3,6 +3,8 @@
 #endif
 
 #include "core/CalibrationObject.h"
+#include "core/HelperFunctions.h"
+
 #include <QFileInfo>
 
 using namespace xma;
@@ -29,23 +31,6 @@ CalibrationObject* CalibrationObject::getInstance()
 	return instance;
 }
 
-std::istream& CalibrationObject::comma(std::istream& in)
-{
-    if ((in >> std::ws).peek() != std::char_traits<char>::to_int_type(',')) {
-        in.setstate(std::ios_base::failbit);
-    }
-    return in.ignore();
-}
-
-std::istream& CalibrationObject::getline(std::istream &is, std::string &s)
-{ 
-    char ch;
-    s.clear();
-    while (is.get(ch) && ch != '\n' && ch != '\r')
-        s += ch;
-    return is;
-}
-
 int CalibrationObject::loadCoords(QString pointsfilename , QString references)
 {
 	frameSpecificationsFilename = pointsfilename;
@@ -61,13 +46,13 @@ int CalibrationObject::loadCoords(QString pointsfilename , QString references)
     std::istringstream in;
 	std::string line;
 	//read first line 
-	getline(fin, line);
-    for (; getline(fin, line); )
+	littleHelper::safeGetline(fin, line);
+	for (; littleHelper::safeGetline(fin, line);)
     {
         in.clear();
         in.str(line);
         std::vector<double> tmp;
-        for (double value; in >> value; comma(in)) {
+        for (double value; in >> value; littleHelper::comma(in)) {
             tmp.push_back(value);
         }
 		if(tmp.size()>0) frameSpecifications.push_back(cv::Point3d(tmp[0],tmp[1],tmp[2]));
@@ -78,7 +63,7 @@ int CalibrationObject::loadCoords(QString pointsfilename , QString references)
 		in.clear();
         in.str(line);
         std::vector<double> tmp;
-        for (double value; in >> value; comma(in)) {
+		for (double value; in >> value; littleHelper::comma(in)) {
             tmp.push_back(value);
         }
 		if(tmp.size()>0) frameSpecifications.push_back(cv::Point3d(tmp[0],tmp[1],tmp[2]));
@@ -91,7 +76,7 @@ int CalibrationObject::loadCoords(QString pointsfilename , QString references)
 	char str[100];
 	int id;
 
-	for (; std::getline(fin, line); ){
+	for (; littleHelper::safeGetline(fin, line);){
 		if(sscanf (line.c_str(),"%i %20[0-9a-zA-Z ]s",&id, &str[0]) == 2){
 			referenceIDs.push_back(id-1);
 			referenceNames.push_back(str);

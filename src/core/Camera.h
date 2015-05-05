@@ -86,9 +86,6 @@ namespace xma{
 
 		cv::Mat cameramatrix;
 
-		std::istream& comma(std::istream& in);
-		std::istream& getline(std::istream &is, std::string &s);
-
 		void paramsToMayaCam(double * out, cv::Mat _camera, cv::Mat _rotation, cv::Mat _translation);
 	};
 }

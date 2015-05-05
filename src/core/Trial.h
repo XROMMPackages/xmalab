@@ -109,10 +109,6 @@ namespace xma{
 		std::vector <RigidBody * > rigidBodies;
 		std::vector <Marker * > markers;
 		int id;
-		
-		std::istream &safeGetline(std::istream& is, std::string& t);
-		std::istream &comma(std::istream& in);
-		std::istream &getline(std::istream &is, std::string &s);
 	};
 }
 

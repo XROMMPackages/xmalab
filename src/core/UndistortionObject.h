@@ -119,8 +119,6 @@ namespace xma{
 		cv::Mat undistortionMatrixRadii;
 		cv::Mat undistortionPoints;
 
-		std::istream& comma(std::istream& in);
-		std::istream& getline(std::istream &is, std::string &s);
 		void savePoints(std::vector <cv::Point2d> &points, QString filename);
 		void loadPoints(cv::vector <cv::Point2d> &points, QString filename);
 		void drawPoints(std::vector <cv::Point2d> &points);

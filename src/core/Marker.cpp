@@ -7,6 +7,7 @@
 #include "core/Camera.h"
 #include "core/Trial.h"
 #include "core/UndistortionObject.h"
+#include "core/HelperFunctions.h"
 
 #include <fstream>
 
@@ -256,24 +257,6 @@ void Marker::save(QString points_filename, QString status_filename, QString mark
 	}
 }
 
-std::istream& Marker::comma(std::istream& in)
-{
-	if ((in >> std::ws).peek() != std::char_traits<char>::to_int_type(',')) {
-		in.setstate(std::ios_base::failbit);
-	}
-	return in.ignore();
-}
-
-std::istream &Marker::getline(std::istream &is, std::string &s) {
-	char ch;
-
-	s.clear();
-
-	while (is.get(ch) && ch != '\n' && ch != '\r')
-		s += ch;
-	return is;
-}
-
 void Marker::load(QString points_filename, QString status_filename, QString markersize_filename)
 {
 	std::ifstream fin;
@@ -282,12 +265,12 @@ void Marker::load(QString points_filename, QString status_filename, QString mark
 	std::string line;
 	//read first line 
 	int linecount = 0;
-	for (; getline(fin, line);)
+	for (; littleHelper::safeGetline(fin, line);)
 	{
 		in.clear();
 		in.str(line);
 		std::vector<double> tmp;
-		for (double value; in >> value; comma(in)) {
+		for (double value; in >> value; littleHelper::comma(in)) {
 			tmp.push_back(value);
 		}
 		if (tmp.size() > 0) {
@@ -304,12 +287,12 @@ void Marker::load(QString points_filename, QString status_filename, QString mark
 
 	fin.open(status_filename.toAscii().data());
 	linecount = 0;
-	for (; getline(fin, line);)
+	for (; littleHelper::safeGetline(fin, line);)
 	{
 		in.clear();
 		in.str(line);
 		std::vector<int> tmp;
-		for (double value; in >> value; comma(in)) {
+		for (double value; in >> value; littleHelper::comma(in)) {
 			tmp.push_back(value);
 		}
 		if (tmp.size() > 0) {
@@ -324,12 +307,12 @@ void Marker::load(QString points_filename, QString status_filename, QString mark
 
 	fin.open(markersize_filename.toAscii().data());
 	linecount = 0;
-	for (; getline(fin, line);)
+	for (; littleHelper::safeGetline(fin, line);)
 	{
 		in.clear();
 		in.str(line);
 		std::vector<double> tmp;
-		for (double value; in >> value; comma(in)) {
+		for (double value; in >> value; littleHelper::comma(in)) {
 			tmp.push_back(value);
 		}
 		if (tmp.size() > 0) {
