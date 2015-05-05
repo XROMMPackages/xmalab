@@ -136,20 +136,20 @@
    <item row="3" column="0" colspan="4">
     <widget class="QGroupBox" name="groupBox_4">
      <property name="title">
-      <string>Dummy Points</string>
+      <string>Virtual Points</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_5">
       <item row="0" column="0">
        <widget class="QPushButton" name="pushButton_AddDummy">
         <property name="text">
-         <string>Add dummy point</string>
+         <string>Add virtual point</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
        <widget class="QPushButton" name="pushButton_DeleteDummy">
         <property name="text">
-         <string>Delete all dummy points</string>
+         <string>Delete all virtual points</string>
         </property>
        </widget>
       </item>

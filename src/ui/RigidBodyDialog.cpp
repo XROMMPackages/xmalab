@@ -293,7 +293,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 {
 	bool ok;
 	QString name = QInputDialog::getText(this, tr("QInputDialog::getText()"),
-		tr("Enter a name for the dummy point:"), QLineEdit::Normal, "Dummy " + QString::number(m_body->getDummyNames().size()+1), &ok);
+		tr("Enter a name for the virtual point:"), QLineEdit::Normal, "Virtual " + QString::number(m_body->getDummyNames().size()+1), &ok);
 	QString filenameCoords;
 	QString filenameRef;
 
@@ -308,7 +308,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 		{
 			return;
 		}
-		filenameCoords = QFileDialog::getOpenFileName(this, tr("Open tracked dummy data file"), Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
+		filenameCoords = QFileDialog::getOpenFileName(this, tr("Open tracked virtual data file"), Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
 		if (!filenameCoords.isEmpty())
 		{
 			Settings::getInstance()->setLastUsedDirectory(filenameCoords);
