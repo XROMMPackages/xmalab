@@ -35,6 +35,7 @@ namespace xma{
 		void plotDistance(int idx1, int idx2);
 		void plotBackProjectionError(int idx1);
 		void plotRigidBody(int idx);
+		void installEventFilterToChildren(QObject* widget);
 
 	protected:
 		bool eventFilter(QObject *target, QEvent *event) override;

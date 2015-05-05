@@ -48,7 +48,10 @@ PlotWindow::PlotWindow(QWidget *parent) :QDockWidget(parent), dock(new Ui::PlotW
 	//plotWidget = new QCustomPlot(this);
 	frameMarker = new QCPItemLine(dock->plotWidget);
 	dock->plotWidget->addItem(frameMarker);
-	dock->plotWidget->installEventFilter(this);
+	//dock->plotWidget->installEventFilter(this);
+	installEventFilterToChildren(this);
+
+
 	selectionMarker = new QCPItemRect(dock->plotWidget);
 	dock->plotWidget->addItem(selectionMarker);
 	selectionMarker->setPen(QPen(QColor(255, 255, 0, 50)));
@@ -76,6 +79,17 @@ PlotWindow::PlotWindow(QWidget *parent) :QDockWidget(parent), dock(new Ui::PlotW
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(PointsDockWidget::getInstance(), SIGNAL(activePointChanged(int)), this, SLOT(activePointChanged(int)));
 	connect(PointsDockWidget::getInstance(), SIGNAL(activeRigidBodyChanged(int)), this, SLOT(activeRigidBodyChanged(int)));
+}
+
+void PlotWindow::installEventFilterToChildren(QObject* object)
+{
+	QObjectList list = object->children();
+	for (int i = 0; i < list.size(); i++)
+	{
+		installEventFilterToChildren(list.at(i));
+	}
+
+	object->installEventFilter(this);
 }
 
 PlotWindow::~PlotWindow(){
@@ -140,43 +154,46 @@ void PlotWindow::deleteData()
 
 bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 {
-	if (target == dock->plotWidget)
+	
+	if (event->type() == QEvent::KeyPress)
 	{
-		if (event->type() == QEvent::KeyPress)
+		QKeyEvent *_keyEvent = static_cast<QKeyEvent*>(event);
+		if (_keyEvent->key() == Qt::Key_Delete || _keyEvent->key() == Qt::Key_Backspace)
 		{
-			QKeyEvent *_keyEvent = static_cast<QKeyEvent*>(event);
-			if (_keyEvent->key() == Qt::Key_Delete || _keyEvent->key() == Qt::Key_Backspace)
+			deleteData();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_S && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
+		{
+			if (dock->comboBoxPlotType->currentIndex() == 2)
 			{
-				deleteData();
-			}
-			if (_keyEvent->key() == Qt::Key_S && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
-			{
-				if (dock->comboBoxPlotType->currentIndex() == 2)
+				QString text = "Save intermarker distance between Marker " + dock->comboBoxMarker1->currentText() + " and Marker " + dock->comboBoxMarker2->currentText();
+				QString fileName = QFileDialog::getSaveFileName(this,
+					text, Settings::getInstance()->getLastUsedDirectory() + OS_SEP + "Distance" + dock->comboBoxMarker1->currentText() + "To" + dock->comboBoxMarker2->currentText() + ".csv", tr("Comma seperated data (*.csv)"));
+				if (fileName.isNull() == false)
 				{
-					QString text = "Save intermarker distance between Marker " + dock->comboBoxMarker1->currentText() + " and Marker " + dock->comboBoxMarker2->currentText();
-					QString fileName = QFileDialog::getSaveFileName(this,
-						text, Settings::getInstance()->getLastUsedDirectory() + OS_SEP + "Distance" + dock->comboBoxMarker1->currentText() + "To" + dock->comboBoxMarker2->currentText() + ".csv", tr("Comma seperated data (*.csv)"));
-					if (fileName.isNull() == false)
+					std::ofstream outfile(fileName.toAscii().data());
+					for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++, count++)
 					{
-						std::ofstream outfile(fileName.toAscii().data());
-						for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++, count++)
-						{
 
-							if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getStatus3D()[i] > UNDEFINED){
-								cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getPoints3D()[i] - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getPoints3D()[i];
-								outfile << cv::sqrt(diff.x*diff.x + diff.y*diff.y + diff.z*diff.z) << std::endl;
-							}
-							else
-							{
-								outfile << "NaN" << std::endl;
-							}
+						if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getStatus3D()[i] > UNDEFINED){
+							cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getPoints3D()[i] - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getPoints3D()[i];
+							outfile << cv::sqrt(diff.x*diff.x + diff.y*diff.y + diff.z*diff.z) << std::endl;
 						}
-						outfile.close();
+						else
+						{
+							outfile << "NaN" << std::endl;
+						}
 					}
+					outfile.close();
 				}
+				return true;
 			}
 		}
-
+	}
+	
+	if (target == dock->plotWidget)
+	{
 		if (event->type() == QEvent::MouseButtonPress)
 		{
 			QMouseEvent *_mouseEvent = static_cast<QMouseEvent*>(event);
