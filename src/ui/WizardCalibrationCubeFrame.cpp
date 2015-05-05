@@ -52,6 +52,10 @@ WizardCalibrationCubeFrame::WizardCalibrationCubeFrame(QWidget *parent) :
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
 	connect(State::getInstance(), SIGNAL(activeFrameCalibrationChanged(int)), this, SLOT(activeFrameCalibrationChanged(int)));
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
+
+#ifndef WIN32
+	frame->label_5->setText("Add a correspondance by using COMMAND+click.");
+#endif
 }
 
 void WizardCalibrationCubeFrame::loadCalibrationSettings(){

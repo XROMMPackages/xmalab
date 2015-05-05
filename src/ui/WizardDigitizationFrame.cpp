@@ -419,7 +419,11 @@ void WizardDigitizationFrame::setDialog()
 			}else
 			{
 				frame->label->show();
+#ifdef WIN32
 				frame->label->setText("You first have to add points by using CTRL + left Click in the image or by using the point widget");
+#else
+				frame->label->setText("You first have to add points by using COMMAND + left Click in the image or by using the point widget");
+#endif
 				frame->pushButton->hide();
 				frame->groupBox_All->hide();
 				frame->groupBox_Point->hide();
