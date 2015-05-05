@@ -43,6 +43,21 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget *parent) :
     frame->pushButton_PointBack->setMinimumHeight(26);
     frame->pushButton_PointForw->setMinimumHeight(26);
 
+	frame->pushButton_RBBack->setFocusPolicy(Qt::StrongFocus);
+	frame->pushButton_RBPrev->setFocusPolicy(Qt::StrongFocus);
+	frame->pushButton_RBForw->setFocusPolicy(Qt::StrongFocus);
+	frame->pushButton_RBNext->setFocusPolicy(Qt::StrongFocus);
+
+	frame->pushButton_AllPrev->setFocusPolicy(Qt::StrongFocus);
+	frame->pushButton_AllNext->setFocusPolicy(Qt::StrongFocus);
+	frame->pushButton_AllBack->setFocusPolicy(Qt::StrongFocus);
+	frame->pushButton_AllForw->setFocusPolicy(Qt::StrongFocus);
+
+	frame->pushButton_PointNext->setFocusPolicy(Qt::StrongFocus);
+	frame->pushButton_PointPrev->setFocusPolicy(Qt::StrongFocus);
+	frame->pushButton_PointBack->setFocusPolicy(Qt::StrongFocus);
+	frame->pushButton_PointForw->setFocusPolicy(Qt::StrongFocus);
+
 #endif
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
 	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameTrialChanged(int)));

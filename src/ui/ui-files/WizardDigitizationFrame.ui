@@ -116,10 +116,6 @@
        </widget>
       </item>
      </layout>
-     <zorder>pushButton_RBBack</zorder>
-     <zorder>pushButton_RBPrev</zorder>
-     <zorder>pushButton_RBNext</zorder>
-     <zorder>pushButton_RBForw</zorder>
      <zorder>pushButton_AllForw</zorder>
      <zorder>pushButton_AllPrev</zorder>
      <zorder>pushButton_AllNext</zorder>
