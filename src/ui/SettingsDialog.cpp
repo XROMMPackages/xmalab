@@ -24,6 +24,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 	diag->checkBox_UseCenteredDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("CenterDetailView"));
 	diag->checkBox_ShowAdvancedCrosshairDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView"));
 	diag->checkBox_Show3DPointDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("Show3dPointDetailView"));
+	diag->checkBox_ShowEpiLineDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("ShowEpiLineDetailView"));
+
 }
 
 SettingsDialog::~SettingsDialog(){
@@ -71,4 +73,9 @@ void SettingsDialog::on_checkBox_ConfirmQuitXMALab_stateChanged(int state)
 void SettingsDialog::on_checkBox_Show3DPointDetailWindow_stateChanged(int state)
 {
 	Settings::getInstance()->set("Show3dPointDetailView",diag->checkBox_Show3DPointDetailWindow->isChecked());
+}
+
+void SettingsDialog::on_checkBox_ShowEpiLineDetailWindow_stateChanged(int state)
+{
+	Settings::getInstance()->set("ShowEpiLineDetailView", diag->checkBox_ShowEpiLineDetailWindow->isChecked());
 }

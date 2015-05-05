@@ -455,17 +455,19 @@ void Trial::drawPoints(int cameraId, bool detailView)
 
 	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 	{
-		if (activeMarkerIdx >= 0 && activeMarkerIdx < markers.size() && markers[activeMarkerIdx]->getStatus2D()[i][activeFrame] > 0){
-			if (cameraId != i)
-			{
-				std::vector < cv::Point2d > epiline = markers[activeMarkerIdx]->getEpipolarLine(i, cameraId, activeFrame);
-				glBegin(GL_LINE_STRIP);
-				glColor3f(0.0, 0.0, 1.0);
-				for (std::vector < cv::Point2d >::const_iterator pt = epiline.begin(); pt != epiline.end(); ++pt){
-					glVertex2f(pt->x,pt->y);
+		if (!detailView || Settings::getInstance()->getBoolSetting("ShowEpiLineDetailView")){
+			if (activeMarkerIdx >= 0 && activeMarkerIdx < markers.size() && markers[activeMarkerIdx]->getStatus2D()[i][activeFrame] > 0){
+				if (cameraId != i)
+				{
+					std::vector < cv::Point2d > epiline = markers[activeMarkerIdx]->getEpipolarLine(i, cameraId, activeFrame);
+					glBegin(GL_LINE_STRIP);
+					glColor3f(0.0, 0.0, 1.0);
+					for (std::vector < cv::Point2d >::const_iterator pt = epiline.begin(); pt != epiline.end(); ++pt){
+						glVertex2f(pt->x, pt->y);
+					}
+					epiline.clear();
+					glEnd();
 				}
-				epiline.clear();
-				glEnd();
 			}
 		}
 	}
