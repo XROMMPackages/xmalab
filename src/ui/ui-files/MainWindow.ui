@@ -313,7 +313,9 @@
      <addaction name="actionExport3D_Points"/>
      <addaction name="actionExport2D_Points"/>
      <addaction name="actionRigidBodyTransformations"/>
+     <addaction name="separator"/>
      <addaction name="actionExport_Undistorted_Trial_images_for_Maya"/>
+     <addaction name="actionMayaCams"/>
      <addaction name="separator"/>
      <addaction name="actionExportAll"/>
     </widget>
@@ -789,6 +791,11 @@
   <action name="actionImport2D_Points">
    <property name="text">
     <string>2D Points</string>
+   </property>
+  </action>
+  <action name="actionMayaCams">
+   <property name="text">
+    <string>MayaCams</string>
    </property>
   </action>
  </widget>

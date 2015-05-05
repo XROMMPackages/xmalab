@@ -1094,6 +1094,24 @@ void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(boo
 	}
 }
 
+void MainWindow::on_actionMayaCams_triggered(bool checked)
+{
+	if (Project::getInstance()->isCalibrated()){
+		QString outputPath = QFileDialog::getExistingDirectory(this,
+			tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+
+		if (outputPath.isNull() == false)
+		{
+			Project::getInstance()->exportMayaCam(outputPath);
+			Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+		}
+	}
+	else
+	{
+		ErrorDialog::getInstance()->showErrorDialog("You have to first calibrate the cameras to be able to export");
+	}
+}
+
 void MainWindow::on_actionUndistort_sequence_triggered(bool checked){
 	UndistortSequenceDialog * diag = new UndistortSequenceDialog(this);
 	diag->exec();

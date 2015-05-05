@@ -46,4 +46,12 @@ namespace littleHelper{
 		}
 		return in.ignore();
 	}
+
+	QString adjustPathToOS(QString filename)
+	{
+		QString tmp = filename;
+		tmp.replace("\\", OS_SEP);
+		tmp.replace("/", OS_SEP);
+		return tmp;
+	}
 }

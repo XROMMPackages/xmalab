@@ -3,6 +3,8 @@
 #endif
 
 #include "core/VideoStream.h"
+#include "core/HelperFunctions.h"
+
 #include <fstream>
 
 using namespace xma;
@@ -69,6 +71,8 @@ QString VideoStream::getFileBasename()
 void VideoStream::changeImagePath(QString newfolder, QString oldfolder)
 {
 	filenames = filenames.replaceInStrings(oldfolder, newfolder);
+	filenames = filenames.replaceInStrings("\\", OS_SEP);
+	filenames = filenames.replaceInStrings("/", OS_SEP);
 	reloadFile();
 }
 

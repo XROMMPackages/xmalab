@@ -19,6 +19,7 @@
 #include "core/CalibrationImage.h"
 #include "core/UndistortionObject.h"
 #include "core/CalibrationObject.h"
+#include "core/HelperFunctions.h"
 
 #include <QDir>
 #include <QXmlStreamWriter>
@@ -33,6 +34,7 @@
 #else
 	#define OS_SEP "/"
 #endif
+
 
 using namespace xma;
 
@@ -628,9 +630,7 @@ bool ProjectFileIO::readProjectFile(QString filename){
 							QXmlStreamAttributes attr = xml.attributes();
 							QString trialname = attr.value("Name").toString();
 							QString trialfolder = basedir + OS_SEP + trialname + OS_SEP;
-							trialfolder.replace("\\", OS_SEP);
-							trialfolder.replace("/", OS_SEP);
-							Trial* trial = new Trial(trialname, trialfolder);
+							Trial* trial = new Trial(trialname, littleHelper::adjustPathToOS(trialfolder));
 
 							int startFrame = attr.value("startFrame").toString().toInt();
 							trial->setStartFrame(startFrame);
@@ -656,19 +656,11 @@ bool ProjectFileIO::readProjectFile(QString filename){
 									if (xml.name() == "Marker"){
 										QXmlStreamAttributes attr = xml.attributes();
 										QString filename_points2D = basedir + OS_SEP + attr.value("FilenamePoints2D").toString();
-										filename_points2D.replace("\\", OS_SEP);
-										filename_points2D.replace("/", OS_SEP);
-
 										QString filename_status2D = basedir + OS_SEP + attr.value("FilenameStatus2D").toString();
-										filename_status2D.replace("\\", OS_SEP);
-										filename_status2D.replace("/", OS_SEP);
-
 										QString filename_size = basedir + OS_SEP + attr.value("FilenameSize").toString();
-										filename_size.replace("\\", OS_SEP);
-										filename_size.replace("/", OS_SEP);
 
 										int id = attr.value("ID").toString().toInt();
-										trial->getMarkers()[id]->load(filename_points2D, filename_status2D, filename_size);
+										trial->getMarkers()[id]->load(littleHelper::adjustPathToOS(filename_points2D), littleHelper::adjustPathToOS(filename_status2D), littleHelper::adjustPathToOS(filename_size));
 
 										QString TrackingPenalty = attr.value("TrackingPenalty").toString();
 										if (!TrackingPenalty.isEmpty())trial->getMarkers()[id]->setMaxPenalty(TrackingPenalty.toInt());
@@ -692,12 +684,7 @@ bool ProjectFileIO::readProjectFile(QString filename){
 
 											QString filename_referenceNames = basedir + OS_SEP + filename_referenceNames_attr;
 											QString filename_referencePoints3D = basedir + OS_SEP + filename_referencePoints3D_attr;
-											filename_referenceNames.replace("\\", OS_SEP);
-											filename_referenceNames.replace("/", OS_SEP);
-
-											filename_referencePoints3D.replace("\\", OS_SEP);
-											filename_referencePoints3D.replace("/", OS_SEP);
-											trial->getRigidBodies()[id]->load(filename_referenceNames, filename_referencePoints3D);
+											trial->getRigidBodies()[id]->load(littleHelper::adjustPathToOS(filename_referenceNames), littleHelper::adjustPathToOS(filename_referencePoints3D));
 										}
 
 										QString visible = attr.value("Visible").toString();
@@ -734,13 +721,7 @@ bool ProjectFileIO::readProjectFile(QString filename){
 													QString dummyPointReferences = basedir + OS_SEP + attr.value("PointReferences").toString();
 													QString dummyPointCoordinates = basedir + OS_SEP +  attr.value("PointCoordinates").toString();
 
-													dummyPointReferences.replace("\\", OS_SEP);
-													dummyPointReferences.replace("/", OS_SEP);
-
-													dummyPointCoordinates.replace("\\", OS_SEP);
-													dummyPointCoordinates.replace("/", OS_SEP);
-
-													trial->getRigidBodies()[id]->addDummyPoint(dummyName, dummyPointReferences, dummyPointCoordinates);
+													trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), littleHelper::adjustPathToOS(dummyPointCoordinates));
 												}
 											}
 											xml.readNext();
