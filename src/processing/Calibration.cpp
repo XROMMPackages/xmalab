@@ -59,7 +59,6 @@ Calibration::Calibration(int camera):QObject(){
 	}
 	else
 	{
-		std::cerr << "Set Manual" << std::endl;
 		setInitialByReferences();
 	}
 }
@@ -139,8 +138,6 @@ void Calibration::setInitialByReferences()
 		A.at<double>(2 * i + 1, 10) = -image_points[0][i].y * object_points[0][i].z;
 		A.at<double>(2 * i + 1, 11) = -image_points[0][i].y;
 	}
-	std::cerr << A << std::endl;
-
 	cv::SVD::solveZ(A, f);
 
 	//set projection matrix
@@ -198,7 +195,6 @@ void Calibration::setInitialByReferences()
 	cv::Mat rot;
 	cv::Mat trans;
 
-	std::cerr << intrinsic_matrix << std::endl;
 	intrinsic_matrix.at<double>(0, 1) = 0;
 
 	projection.release();
