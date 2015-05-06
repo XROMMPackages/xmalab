@@ -8,6 +8,7 @@
 #include "core/CalibrationImage.h"
 #include "core/UndistortionObject.h"
 #include "core/HelperFunctions.h"
+#include "core/CalibrationObject.h"
 
 #include <QApplication>
 
@@ -22,6 +23,7 @@
 #ifndef _PI
 	#define _PI 3.141592653
 #endif
+#include "CalibrationObject.h"
 
 using namespace xma;
 
@@ -59,6 +61,7 @@ void Camera::reset(){
 	setUpdateInfoRequired(true);
 	for(std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it){
 		(*it)->reset();
+		(*it)->init(CalibrationObject::getInstance()->getFrameSpecifications().size());
 	}
 }
 

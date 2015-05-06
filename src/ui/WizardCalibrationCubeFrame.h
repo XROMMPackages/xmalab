@@ -2,6 +2,7 @@
 #define WIZARDCALIBRATIONCUBEFRAME_H_
 
 #include <QFrame>
+
 #include "ui/State.h"
 
 #include <opencv/cv.h>
@@ -9,6 +10,10 @@
 namespace Ui {
 	class WizardCalibrationCubeFrame;
 }
+
+class QLabel;
+class QCheckBox;
+class QRadioButton;
 
 namespace xma{
 	class WizardCalibrationCubeFrame : public QFrame{
@@ -20,6 +25,7 @@ namespace xma{
 		WizardCalibrationCubeFrame(QWidget *parent = 0);
 
 		void loadCalibrationSettings();
+		bool manualCalibrationRunning();
 		void addCalibrationReference(double x, double y);
 		void draw();
 
@@ -30,6 +36,9 @@ namespace xma{
 		Ui::WizardCalibrationCubeFrame *frame;
 		bool planarCalibrationObject;
 		void setDialog();
+		void reloadManualPoints();
+		void setupManualPoints();
+
 		void resetReferences();
 		void calibrateOtherFrames();
 		void checkForCalibrationError();
@@ -40,6 +49,10 @@ namespace xma{
 		std::vector <cv::Mat> temporaryTransformationMatrix;
 		std::vector <int> temporaryCamIdx;
 		std::vector <int> temporaryFrameIdx;
+
+		std::vector <QCheckBox * > manualReferencesCheckBox;
+		std::vector <QLabel * > manualReferencesLabel;
+		std::vector <QRadioButton * > manualReferencesRadioButton;
 
 		public slots:
 		void activeCameraChanged(int activeCamera);
@@ -64,6 +77,9 @@ namespace xma{
 		void runCalibrationFinished();
 		void runCalibrationCameraAllFramesFinished();
 		void setTransformationMatrix();
+
+		void on_checkBoxManual_clicked();
+		void checkBoxManualReference_clicked();
 	};
 }
 

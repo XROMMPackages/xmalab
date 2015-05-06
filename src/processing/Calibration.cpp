@@ -26,13 +26,6 @@ Calibration::Calibration(int camera):QObject(){
 	intrinsic_matrix.create( 3, 3, CV_64F );
 	distortion_coeffs.create( 8, 1, CV_64F );
 
-	for( int i = 0; i < 3; ++i ){
-		for( int j = 0; j < 3; ++j ){
-			intrinsic_matrix.at<double>(i,j) = Project::getInstance()->getCameras()[m_camera]->getCameraMatrix().at<double>(i,j);
-		}
-	}
-	intrinsic_matrix.at<double>(0,1) = 0;
-
 	for( int i = 0; i < 8; ++i ){
 		distortion_coeffs.at<double>(i,0) = 0;
 	}
@@ -54,6 +47,20 @@ Calibration::Calibration(int camera):QObject(){
 			object_points.push_back(pt3D_tmp);
 			image_points.push_back(pt2D_tmp);
 		}
+	}
+
+	if (Project::getInstance()->getCameras()[m_camera]->isCalibrated()){
+		for (int i = 0; i < 3; ++i){
+			for (int j = 0; j < 3; ++j){
+				intrinsic_matrix.at<double>(i, j) = Project::getInstance()->getCameras()[m_camera]->getCameraMatrix().at<double>(i, j);
+			}
+		}
+		intrinsic_matrix.at<double>(0, 1) = 0;
+	}
+	else
+	{
+		std::cerr << "Set Manual" << std::endl;
+		setInitialByReferences();
 	}
 }
 
@@ -93,9 +100,119 @@ void Calibration::computeCameraPosesAndCam_threadFinished(){
 
 }
 
+void Calibration::setInitialByReferences()
+{
+	cv::Mat projection;
+	projection.create(3, 4, CV_64F);
+
+	cv::Mat f;
+	f.create(12, 1, CV_64F);
+
+	cv::Mat A;
+	A.create(image_points[0].size() * 2, 12, CV_64F);
+
+	//Fill A-Matrix
+	for (unsigned int i = 0; i < image_points[0].size(); i++){
+		A.at<double>(2 * i, 0) = object_points[0][i].x;
+		A.at<double>(2 * i, 1) = object_points[0][i].y;
+		A.at<double>(2 * i, 2) = object_points[0][i].z;
+		A.at<double>(2 * i, 3) = 1.0;
+		A.at<double>(2 * i, 4) = 0;
+		A.at<double>(2 * i, 5) = 0;
+		A.at<double>(2 * i, 6) = 0;
+		A.at<double>(2 * i, 7) = 0;
+		A.at<double>(2 * i, 8) = -image_points[0][i].x * object_points[0][i].x;
+		A.at<double>(2 * i, 9) = -image_points[0][i].x * object_points[0][i].y;
+		A.at<double>(2 * i, 10) = -image_points[0][i].x * object_points[0][i].z;
+		A.at<double>(2 * i, 11) = -image_points[0][i].x;
+
+		A.at<double>(2 * i + 1, 0) = 0;
+		A.at<double>(2 * i + 1, 1) = 0;
+		A.at<double>(2 * i + 1, 2) = 0;
+		A.at<double>(2 * i + 1, 3) = 0;
+		A.at<double>(2 * i + 1, 4) = object_points[0][i].x;
+		A.at<double>(2 * i + 1, 5) = object_points[0][i].y;
+		A.at<double>(2 * i + 1, 6) = object_points[0][i].z;
+		A.at<double>(2 * i + 1, 7) = 1.0;
+		A.at<double>(2 * i + 1, 8) = -image_points[0][i].y * object_points[0][i].x;
+		A.at<double>(2 * i + 1, 9) = -image_points[0][i].y * object_points[0][i].y;
+		A.at<double>(2 * i + 1, 10) = -image_points[0][i].y * object_points[0][i].z;
+		A.at<double>(2 * i + 1, 11) = -image_points[0][i].y;
+	}
+	std::cerr << A << std::endl;
+
+	cv::SVD::solveZ(A, f);
+
+	//set projection matrix
+	projection.at<double>(0, 0) = f.at<double>(0, 0);
+	projection.at<double>(0, 1) = f.at<double>(1, 0);
+	projection.at<double>(0, 2) = f.at<double>(2, 0);
+	projection.at<double>(0, 3) = f.at<double>(3, 0);
+
+	projection.at<double>(1, 0) = f.at<double>(4, 0);
+	projection.at<double>(1, 1) = f.at<double>(5, 0);
+	projection.at<double>(1, 2) = f.at<double>(6, 0);
+	projection.at<double>(1, 3) = f.at<double>(7, 0);
+
+	projection.at<double>(2, 0) = f.at<double>(8, 0);
+	projection.at<double>(2, 1) = f.at<double>(9, 0);
+	projection.at<double>(2, 2) = f.at<double>(10, 0);
+	projection.at<double>(2, 3) = f.at<double>(11, 0);
+
+	cv::Mat B;
+	B.create(3, 3, CV_64F);
+	cv::Mat BT;
+	BT.create(3, 3, CV_64F);
+	B.at<double>(0,0) =  projection.at<double>(0,0);
+	B.at<double>(0,1) =  projection.at<double>(0,1);
+	B.at<double>(0,2) =  projection.at<double>(0,2);
+	B.at<double>(1,0) =  projection.at<double>(1,0);
+	B.at<double>(1,1) =  projection.at<double>(1,1);
+	B.at<double>(1,2) =  projection.at<double>(1,2);
+	B.at<double>(2,0) =  projection.at<double>(2,0);
+	B.at<double>(2,1) =  projection.at<double>(2,1);
+	B.at<double>(2,2) =  projection.at<double>(2,2);
+	transpose(B,BT);
+	
+	cv::Mat C = B*BT;
+	
+	double u0 = C.at<double>(0, 2) / C.at<double>(2, 2);
+	double v0 = C.at<double>(1, 2) / C.at<double>(2, 2);
+	double ku = C.at<double>(0, 0) / C.at<double>(2, 2);
+	double kc = C.at<double>(0, 1) / C.at<double>(2, 2);
+	double kv = C.at<double>(1, 1) / C.at<double>(2, 2);
+	double b = ((kv - v0*v0) > 0) ? sqrt(kv - v0*v0) : -999;
+	double g = (kc - u0*v0) / b;
+	double a = (ku - u0*u0 - g*g > 0) ? sqrt(ku - u0*u0 - g*g) : -999;
+
+	intrinsic_matrix.at<double>(0, 0) = a;
+	intrinsic_matrix.at<double>(0, 1) = g;
+	intrinsic_matrix.at<double>(0, 2) = u0;
+	intrinsic_matrix.at<double>(1, 0) = 0;
+	intrinsic_matrix.at<double>(1, 1) = b;
+	intrinsic_matrix.at<double>(1, 2) = v0;
+	intrinsic_matrix.at<double>(2, 0) = 0;
+	intrinsic_matrix.at<double>(2, 1) = 0;
+	intrinsic_matrix.at<double>(2, 2) = C.at<double>(2, 2) / C.at<double>(2, 2);
+
+	cv::Mat rot;
+	cv::Mat trans;
+
+	std::cerr << intrinsic_matrix << std::endl;
+	intrinsic_matrix.at<double>(0, 1) = 0;
+
+	projection.release();
+}
+
 void Calibration::computeCameraPosesAndCam_thread(){
 	try
 	{
+		if (intrinsic_matrix.at<double>(0, 2) < 0) intrinsic_matrix.at<double>(0, 2) = 1;
+		if (intrinsic_matrix.at<double>(0, 2) > Project::getInstance()->getCameras()[m_camera]->getWidth()) intrinsic_matrix.at<double>(0, 2) = Project::getInstance()->getCameras()[m_camera]->getWidth() - 1;
+		if (intrinsic_matrix.at<double>(1, 2) < 0) intrinsic_matrix.at<double>(1, 2) = 0;
+		if (intrinsic_matrix.at<double>(1, 2) > Project::getInstance()->getCameras()[m_camera]->getHeight()) intrinsic_matrix.at<double>(1, 2) = Project::getInstance()->getCameras()[m_camera]->getHeight() - 1;
+
+		
 		int flags =  CV_CALIB_USE_INTRINSIC_GUESS+CV_CALIB_FIX_K1 + CV_CALIB_FIX_K2 +CV_CALIB_FIX_K3 + CV_CALIB_ZERO_TANGENT_DIST;
 		double calib_error = cv::calibrateCamera(object_points, image_points, cv::Size(Project::getInstance()->getCameras()[m_camera]->getWidth(),Project::getInstance()->getCameras()[m_camera]->getHeight()), intrinsic_matrix, distortion_coeffs, rvecs, tvecs, flags);
 		

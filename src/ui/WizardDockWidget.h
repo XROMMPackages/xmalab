@@ -24,6 +24,7 @@ namespace xma{
 
 		void update();
 		static WizardDockWidget* getInstance();
+		bool manualCalibrationRunning();
 		void addCalibrationReference(double x, double y);
 		void addDigitizationPoint(int camera, double x, double y);
 		void selectDigitizationPoint(int camera, double x, double y);

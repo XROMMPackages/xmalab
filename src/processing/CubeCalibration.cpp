@@ -201,7 +201,6 @@ void CubeCalibration::setPose_thread(){
 		translationvector.at<double>(j,0) = trans_inv.at<double>(j,3) ;
 	}
 	
-	
 	//redetect points;
 	reprojectAndComputeError();
 	maxinlier = setCorrespondances(15.0,true);

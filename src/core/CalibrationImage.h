@@ -13,6 +13,7 @@ namespace xma{
 	public:
 
 		CalibrationImage(Camera* _camera, QString imageFileName);
+		
 		virtual ~CalibrationImage();
 
 		int getWidth(){ return width; }
@@ -29,9 +30,11 @@ namespace xma{
 
 		QString getImageFilename();
 		void loadTextures();
+		void init(int nbPoints);
 
 		void setDetectedPoints(cv::vector <cv::Point2d> &points);
 		cv::vector <cv::Point2d>& getDetectedPointsAll(){ return detectedPoints_ALL; }
+		cv::vector <cv::Point2d>& getDetectedPoints(){ return detectedPoints; }
 		cv::vector <int>& getInliers(){ return Inlier; }
 		cv::vector <double>& getErrorDist(){ return error; }
 		cv::vector <double>& getErrorUndist(){ return errorUndistorted; }
@@ -52,6 +55,8 @@ namespace xma{
 		cv::Mat getTransformationMatrix();
 
 		void toggleInlier(double x, double y, bool isDistortedView);
+		void setInlier(int id, bool value);
+		void setPoint(int idx, double x, double y, bool distorted);
 		void setPointManual(double x, double y, bool isDistortedView);
 
 		QString getFilenamePointsInlier();

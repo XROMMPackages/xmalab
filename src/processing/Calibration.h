@@ -30,6 +30,7 @@ namespace xma{
 
 		void computeCameraPosesAndCam_thread();
 		void reproject();
+		void setInitialByReferences();
 
 		QFutureWatcher<void>* m_FutureWatcher;
 		static int nbInstances;

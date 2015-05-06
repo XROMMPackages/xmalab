@@ -496,13 +496,13 @@ void MainWindow::loadProjectFinished(){
 				connect(localUndistortion, SIGNAL(localUndistortion_finished()), this, SLOT(UndistortionAfterloadProjectFinished()));
 				localUndistortion->computeUndistortion(true);
 			}
+			else if (!Project::getInstance()->getCameras()[i]->hasUndistortion())
+			{
+				Project::getInstance()->getCameras()[i]->undistort();
+			}
 		}
 		if (!LocalUndistortion::isRunning()){
 			MainWindow::getInstance()->redrawGL();
-			for (std::vector <Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
-			{
-				(*it)->undistort();
-			}
 			UndistortionAfterloadProjectFinished();
 		}
 

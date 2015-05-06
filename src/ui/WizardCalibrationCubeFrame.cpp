@@ -68,6 +68,7 @@ void WizardCalibrationCubeFrame::loadCalibrationSettings(){
 		frame->toolButtonReference2->setText( QString::number(selectedReferencePointsIdx[1] + 1) + "  " + CalibrationObject::getInstance()->getReferenceNames()[1]);
 		frame->toolButtonReference3->setText( QString::number(selectedReferencePointsIdx[2] + 1) + "  " + CalibrationObject::getInstance()->getReferenceNames()[2]);
 		frame->toolButtonReference4->setText( QString::number(selectedReferencePointsIdx[3] + 1) + "  " + CalibrationObject::getInstance()->getReferenceNames()[3]);
+		setupManualPoints();
 	}else{
 		
 	
@@ -238,37 +239,66 @@ void WizardCalibrationCubeFrame::on_comboBoxText_currentIndexChanged(int idx){
 	MainWindow::getInstance()->redrawGL();
 }
 
+bool WizardCalibrationCubeFrame::manualCalibrationRunning()
+{
+	return frame->checkBoxManual->isChecked();
+}
+
+
 void WizardCalibrationCubeFrame::addCalibrationReference(double x, double y){
-	if (State::getInstance()->getUndistortion() == UNDISTORTED)
+	if (frame->checkBoxManual->isChecked())
 	{
-		if (frame->radioButtonReference1->isChecked()){
-			selectedReferencePoints[0].x = x;
-			selectedReferencePoints[0].y = y;
-			frame->checkBoxReference1->setChecked(true);
-			frame->labelReference1->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
-			frame->radioButtonReference2->setChecked(true);
+		for (int i = 0; i < manualReferencesRadioButton.size(); i++)
+		{
+			if (manualReferencesRadioButton[i]->isChecked())
+			{
+				if (State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE)
+				{
+					Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->setPoint(i,x,y, true);		
+				}
+				else
+				{
+					Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->setPoint(i, x, y, false);
+				}
+				Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->setInlier(i, true);
+				reloadManualPoints();
+				if (i + 1 < manualReferencesRadioButton.size())manualReferencesRadioButton[i + 1]->setChecked(true);
+					return;
+			}
 		}
-		else if (frame->radioButtonReference2->isChecked()){
-			selectedReferencePoints[1].x = x;
-			selectedReferencePoints[1].y = y;
-			frame->checkBoxReference2->setChecked(true);
-			frame->labelReference2->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
-			frame->radioButtonReference3->setChecked(true);
-		}
-		else if (frame->radioButtonReference3->isChecked()){
-			selectedReferencePoints[2].x = x;
-			selectedReferencePoints[2].y = y;
-			frame->checkBoxReference3->setChecked(true);
-			frame->labelReference3->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
-			frame->radioButtonReference4->setChecked(true);
-		}
-		else if (frame->radioButtonReference4->isChecked()){
-			selectedReferencePoints[3].x = x;
-			selectedReferencePoints[3].y = y;
-			frame->checkBoxReference4->setChecked(true);
-			frame->labelReference4->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
-			//run calibration
-			if (Settings::getInstance()->getBoolSetting("AutoCalibAfterReference")) on_pushButton_clicked();
+	}
+	else{
+		if (State::getInstance()->getUndistortion() == UNDISTORTED)
+		{
+			if (frame->radioButtonReference1->isChecked()){
+				selectedReferencePoints[0].x = x;
+				selectedReferencePoints[0].y = y;
+				frame->checkBoxReference1->setChecked(true);
+				frame->labelReference1->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
+				frame->radioButtonReference2->setChecked(true);
+			}
+			else if (frame->radioButtonReference2->isChecked()){
+				selectedReferencePoints[1].x = x;
+				selectedReferencePoints[1].y = y;
+				frame->checkBoxReference2->setChecked(true);
+				frame->labelReference2->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
+				frame->radioButtonReference3->setChecked(true);
+			}
+			else if (frame->radioButtonReference3->isChecked()){
+				selectedReferencePoints[2].x = x;
+				selectedReferencePoints[2].y = y;
+				frame->checkBoxReference3->setChecked(true);
+				frame->labelReference3->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
+				frame->radioButtonReference4->setChecked(true);
+			}
+			else if (frame->radioButtonReference4->isChecked()){
+				selectedReferencePoints[3].x = x;
+				selectedReferencePoints[3].y = y;
+				frame->checkBoxReference4->setChecked(true);
+				frame->labelReference4->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
+				//run calibration
+				if (Settings::getInstance()->getBoolSetting("AutoCalibAfterReference")) on_pushButton_clicked();
+			}
 		}
 	}
 }
@@ -291,6 +321,17 @@ void WizardCalibrationCubeFrame::setDialog(){
 			resetReferences();
 			frame->label->setText("Select the references");
 			frame->frameReferences->show();
+			if (frame->checkBoxManual->isChecked())
+			{
+				frame->frameReferences->hide();
+				frame->frameManual->show();
+				reloadManualPoints();
+			}
+			else
+			{
+				frame->frameReferences->show();
+				frame->frameManual->hide();
+			}
 			frame->frameModifyCalibration->hide();
 			frame->pushButtonRemoveOutlierAutomatically->hide();
 			frame->pushButtonResetCamera->hide();
@@ -299,6 +340,15 @@ void WizardCalibrationCubeFrame::setDialog(){
 			frame->pushButton->setText("compute calibration");
 		}else{
 			resetReferences();
+			if (!frame->checkBoxManual->isChecked())
+			{
+				frame->frameManual->hide();
+			}
+			else
+			{
+				frame->frameManual->show();
+				reloadManualPoints();
+			}
 			frame->label->setText("Modify calibration");
 			frame->frameReferences->hide();
 			frame->frameModifyCalibration->show();
@@ -312,20 +362,41 @@ void WizardCalibrationCubeFrame::setDialog(){
 }
 
 void WizardCalibrationCubeFrame::on_pushButton_clicked(){
-	if(!Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() > 0){
+	if (frame->checkBoxManual->isChecked())
+	{
 		int count = 0;
-		for(int i = 0 ; i < 4 ; i ++){
-			if(selectedReferencePoints[i].x >= 0 && selectedReferencePoints[i].y >= 0 )count ++;
+		for (int i = 0; i < manualReferencesCheckBox.size(); i++)
+		{
+			if (manualReferencesCheckBox[i]->isChecked())count++;
 		}
-		if(count < 3 ){
-			ErrorDialog::getInstance()->showErrorDialog("You need to at least select 3 reference points"); 
-		}else{
-			BlobDetection * blobdetection = new BlobDetection(State::getInstance()->getActiveCamera(),State::getInstance()->getActiveFrameCalibration());
-			connect(blobdetection, SIGNAL(detectBlobs_finished()), this, SLOT(runCalibration()));
-			blobdetection->detectBlobs();	
+
+		if (count < 7){
+			ErrorDialog::getInstance()->showErrorDialog("You need to at least select 7 points for a manual calibration");
 		}
-	}else{
-		runCalibrationCameraAllFrames();
+		else
+		{
+			Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->setCalibrated(1);
+			runCalibrationCameraAllFrames();
+		}
+	}
+	else{
+		if (!Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() > 0){
+			int count = 0;
+			for (int i = 0; i < 4; i++){
+				if (selectedReferencePoints[i].x >= 0 && selectedReferencePoints[i].y >= 0)count++;
+			}
+			if (count < 3){
+				ErrorDialog::getInstance()->showErrorDialog("You need to at least select 3 reference points");
+			}
+			else{
+				BlobDetection * blobdetection = new BlobDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveFrameCalibration());
+				connect(blobdetection, SIGNAL(detectBlobs_finished()), this, SLOT(runCalibration()));
+				blobdetection->detectBlobs();
+			}
+		}
+		else{
+			runCalibrationCameraAllFrames();
+		}
 	}
 }
 
@@ -484,6 +555,71 @@ void WizardCalibrationCubeFrame::calibrateOtherFrames(){
 	CamJToCamKTransformationSet.clear();
 }
 
+
+void WizardCalibrationCubeFrame::reloadManualPoints()
+{
+	if (CalibrationObject::getInstance()->getFrameSpecifications().size() > Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getInliers().size()){
+		Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->init(CalibrationObject::getInstance()->getFrameSpecifications().size());
+	}
+
+	for (int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); i++)
+	{
+		
+		manualReferencesCheckBox[i]->setChecked(
+				Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getInliers()[i] > 0
+			);
+		manualReferencesLabel[i]->setText(
+			QString::number(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getDetectedPoints()[i].x) + " / "+ 
+			QString::number(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getDetectedPoints()[i].y)
+			);
+	}
+}
+
+void WizardCalibrationCubeFrame::setupManualPoints()
+{
+	for (int i = 0; i < manualReferencesCheckBox.size(); i++)
+	{
+		frame->gridLayout_10->removeWidget(manualReferencesCheckBox[i]);
+		delete manualReferencesCheckBox[i];
+		frame->gridLayout_10->removeWidget(manualReferencesLabel[i]);
+		delete manualReferencesLabel[i];
+		frame->gridLayout_10->removeWidget(manualReferencesRadioButton[i]);
+		delete manualReferencesRadioButton[i];
+	}
+	manualReferencesCheckBox.clear();
+	manualReferencesLabel.clear();
+	manualReferencesRadioButton.clear();
+
+	for (int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); i++)
+	{
+		manualReferencesCheckBox.push_back(new QCheckBox(this));
+		manualReferencesLabel.push_back(new QLabel("",this));
+		manualReferencesRadioButton.push_back(new QRadioButton(QString::number(i + 1),this));
+
+		frame->gridLayout_10->addWidget(manualReferencesRadioButton[i], i, 0, 1, 1);
+		frame->gridLayout_10->addWidget(manualReferencesLabel[i], i, 1, 1, 1);
+		frame->gridLayout_10->addWidget(manualReferencesCheckBox[i], i, 2, 1, 1);
+		connect(manualReferencesCheckBox[i], SIGNAL(clicked()), this, SLOT(checkBoxManualReference_clicked()));
+	}
+	manualReferencesRadioButton[0]->setChecked(true);
+}
+
+void WizardCalibrationCubeFrame::checkBoxManualReference_clicked()
+{
+	for (int i = 0; i < manualReferencesCheckBox.size(); i++)
+	{
+		Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->setInlier(
+			i, manualReferencesCheckBox[i]->isChecked());
+	}
+	MainWindow::getInstance()->redrawGL();
+}
+
+void WizardCalibrationCubeFrame::on_checkBoxManual_clicked()
+{
+	reloadManualPoints();
+	setDialog();
+}
+
 void WizardCalibrationCubeFrame::setTransformationMatrix(){
 	for (int p = 0 ; p < temporaryCamIdx.size(); p++){
 		CubeCalibration * calibration = new CubeCalibration(temporaryCamIdx[p],temporaryFrameIdx[p], selectedReferencePoints,selectedReferencePointsIdx);
@@ -539,6 +675,7 @@ void WizardCalibrationCubeFrame::on_pushButtonResetFrame_clicked(){
 			MainWindow::getInstance()->redrawGL();
 		}else if(countCalibrated > 1){
 			Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->reset();
+			Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->init(CalibrationObject::getInstance()->getFrameSpecifications().size());
 			Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->setRecalibrationRequired(1);
 			runCalibrationCameraAllFrames();
 		}

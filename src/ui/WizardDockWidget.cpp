@@ -68,6 +68,11 @@ WizardDockWidget* WizardDockWidget::getInstance()
 	return instance;
 }
 
+bool WizardDockWidget::manualCalibrationRunning()
+{
+	return calibrationFrame->manualCalibrationRunning();
+}
+
 void WizardDockWidget::addCalibrationReference(double x, double y){
 	calibrationFrame->addCalibrationReference(x,y);
 }

@@ -152,13 +152,20 @@ void GLCameraView::mousePressEvent(QMouseEvent *e)
 				
 				}
 			}
-		 }else if(State::getInstance()->getWorkspace() == CALIBRATION){
-			 if(camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() <= 0){
-				WizardDockWidget::getInstance()->addCalibrationReference(x, y);
+		 }
+		 else if (State::getInstance()->getWorkspace() == CALIBRATION){
+			 if (WizardDockWidget::getInstance()->manualCalibrationRunning()){
+				 WizardDockWidget::getInstance()->addCalibrationReference(x, y);
+				 updateGL();
 			 }else{
-				 if(e->modifiers().testFlag(Qt::ControlModifier)){
-					camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->setPointManual(x, y , State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
-					updateGL();
+				 if (camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() <= 0){
+					WizardDockWidget::getInstance()->addCalibrationReference(x, y);
+				 }
+				 else{
+					 if (e->modifiers().testFlag(Qt::ControlModifier)){
+						 camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->setPointManual(x, y, State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
+						 updateGL();
+					 }
 				 }
 			 }
 		 }else if (State::getInstance()->getWorkspace() == DIGITIZATION){
@@ -281,7 +288,8 @@ void GLCameraView::renderPointText(){
 	std::vector<QString> text;
 	std::vector<bool> inlier;
 
-	camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getDrawTextData(State::getInstance()->getCalibrationVisText(), State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE, x, y, text, inlier);
+	camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getDrawTextData(
+		(!camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() && WizardDockWidget::getInstance()->manualCalibrationRunning()) ? IDCALIBTEXT  : State::getInstance()->getCalibrationVisText(), State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE, x, y, text, inlier);
 	setFont(QFont(this->font().family(), 15.0 ));
 	QFontMetrics fm(this->font());
 	if(State::getInstance()->getCalibrationVisText() < 3){
@@ -477,7 +485,8 @@ void GLCameraView::paintGL()
 	else if (State::getInstance()->getWorkspace() == CALIBRATION)
 	{
 		camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->draw(State::getInstance()->getCalibrationVisPoints());
-		if(State::getInstance()->getCalibrationVisText() > 0){
+		if(State::getInstance()->getCalibrationVisText() > 0 || 
+			(!camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() && WizardDockWidget::getInstance()->manualCalibrationRunning())){
 			renderPointText();
 		}
 	}
