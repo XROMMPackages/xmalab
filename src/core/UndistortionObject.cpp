@@ -705,7 +705,8 @@ void UndistortionObject::loadPoints(cv::vector <cv::Point2d> &points, QString fi
 	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
     std::istringstream in;
-	for (std::string line; littleHelper::safeGetline(fin, line);)
+	std::string line; 
+	while (!littleHelper::safeGetline(fin, line).eof())
     {
         in.clear();
         in.str(line);
@@ -745,9 +746,10 @@ void UndistortionObject::loadGridPointsInlier( QString filename){
 	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
     std::istringstream in;
-	for (std::string line; littleHelper::safeGetline(fin, line);)
+	std::string line; 
+	while (!littleHelper::safeGetline(fin, line).eof())
     {
-        in.clear();
+		in.clear();
         in.str(line);
         std::vector<double> tmp;
 		for (double value; in >> value; littleHelper::comma(in)) {

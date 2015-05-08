@@ -88,9 +88,10 @@ Trial::Trial(QString trialname, QString folder){
 		QStringList filenameList;
 		QString camera_filenames = folder + Project::getInstance()->getCameras()[i]->getName() + "_filenames_absolute.txt";
 		std::ifstream fin(camera_filenames.toAscii().data());
-		for (std::string line; littleHelper::safeGetline(fin, line);)
+		std::string line;
+		while (!littleHelper::safeGetline(fin, line).eof())
 		{
-			filenameList << QString::fromStdString(line);
+				filenameList << QString::fromStdString(line);
 		}
 		fin.close();
 
@@ -499,14 +500,14 @@ void Trial::loadMarkers(QString filename){
 	fin.open(filename.toAscii().data());
 	std::string line;
 	unsigned int count = 0;
-	for (; littleHelper::safeGetline(fin, line);)
+	while (!littleHelper::safeGetline(fin, line).eof())
 	{
 		if (count >= this->getMarkers().size())
 			this->addMarker();
 
 		this->getMarkers()[count]->setDescription(QString::fromStdString(line));
 		count++;
-		line.clear();
+		line.clear();	
 	}
 	fin.close();
 }
@@ -519,25 +520,27 @@ void Trial::loadRigidBodies(QString filename){
 	std::string desc;
 	std::string indices;
 	int count = 0;
-	for (; littleHelper::safeGetline(fin, line);)
+	while (!littleHelper::safeGetline(fin, line).eof())
 	{
-		if (count >= this->getRigidBodies().size()){
-			this->addRigidBody();
-		}
-		desc = line.substr(0, line.find('['));
-		indices = line.substr(line.find('[') + 1, line.find(']') - 1);
-		this->getRigidBodies()[count]->setDescription(QString::fromStdString(desc));
+		if (!line.empty()){
+			if (count >= this->getRigidBodies().size()){
+				this->addRigidBody();
+			}
+			desc = line.substr(0, line.find('['));
+			indices = line.substr(line.find('[') + 1, line.find(']') - 1);
+			this->getRigidBodies()[count]->setDescription(QString::fromStdString(desc));
 
-		this->getRigidBodies()[count]->clearPointIdx();
-		in.clear();
-		in.str(indices);
-		for (int value; in >> value; littleHelper::comma(in)) {
-			this->getRigidBodies()[count]->addPointIdx(value - 1);
+			this->getRigidBodies()[count]->clearPointIdx();
+			in.clear();
+			in.str(indices);
+			for (int value; in >> value; littleHelper::comma(in)) {
+				this->getRigidBodies()[count]->addPointIdx(value - 1);
+			}
+			count++;
+			line.clear();
+			desc.clear();
+			indices.clear();
 		}
-		count++;
-		line.clear();
-		desc.clear();
-		indices.clear();
 	}
 	fin.close();
 }
@@ -1123,76 +1126,78 @@ int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinver
 
 	while (!littleHelper::safeGetline(fin, line).eof())
 	{
-		QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
-		tmp_names = QString::fromStdString(line);
-		list = tmp_names.split(",");
-		
-		if (firstRun)
-		{
-			int nbNewMarker = (list.size() - offset) / 2 / Project::getInstance()->getCameras().size();
-			for (int i = 0; i < nbNewMarker; i++)
-			{
-				addMarker();
-				newMarkers.push_back(markers[markers.size() - 1]);
-			}
-			firstRun = false;
-		}
+		if (!line.empty()){
+			QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+			tmp_names = QString::fromStdString(line);
+			list = tmp_names.split(",");
 
-		if (readHeader)
-		{
-			for (int i = 0; i < newMarkers.size(); i++)
+			if (firstRun)
 			{
-				QString name = list.at(i * 2 * Project::getInstance()->getCameras().size() + offset);
-				name.replace("_cam1_X", "");
-				while (name.startsWith(" "))
+				int nbNewMarker = (list.size() - offset) / 2 / Project::getInstance()->getCameras().size();
+				for (int i = 0; i < nbNewMarker; i++)
 				{
-					name = name.right(name.length() - 1);
+					addMarker();
+					newMarkers.push_back(markers[markers.size() - 1]);
 				}
-				while (name.endsWith(" "))
-				{
-					name = name.left(name.length() - 1);
-				}
-				newMarkers[i]->setDescription(name);
+				firstRun = false;
 			}
-			readHeader = false;
-		}
-		else
-		{
-			for (int i = 0; i < newMarkers.size(); i++)
+
+			if (readHeader)
 			{
-				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				for (int i = 0; i < newMarkers.size(); i++)
 				{
-					if (!list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + offset).contains("NaN")
-						&& !list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + 1 + offset).contains("NaN"))
+					QString name = list.at(i * 2 * Project::getInstance()->getCameras().size() + offset);
+					name.replace("_cam1_X", "");
+					while (name.startsWith(" "))
 					{
-						
-						double x = list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + offset).toDouble();
-						double y = list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + 1 + offset).toDouble();
-					
-						if (offset1)
+						name = name.right(name.length() - 1);
+					}
+					while (name.endsWith(" "))
+					{
+						name = name.left(name.length() - 1);
+					}
+					newMarkers[i]->setDescription(name);
+				}
+				readHeader = false;
+			}
+			else
+			{
+				for (int i = 0; i < newMarkers.size(); i++)
+				{
+					for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+					{
+						if (!list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + offset).contains("NaN")
+							&& !list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + 1 + offset).contains("NaN"))
 						{
-							x -= 1;
-							y -= 1;
-						}
 
-						if (yinvert)
-						{
-							y = Project::getInstance()->getCameras()[j]->getHeight() - y - 1;
-						}
+							double x = list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + offset).toDouble();
+							double y = list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + 1 + offset).toDouble();
 
-						newMarkers[i]->setPoint(j, frame, x, y, SET);
+							if (offset1)
+							{
+								x -= 1;
+								y -= 1;
+							}
+
+							if (yinvert)
+							{
+								y = Project::getInstance()->getCameras()[j]->getHeight() - y - 1;
+							}
+
+							newMarkers[i]->setPoint(j, frame, x, y, SET);
+						}
 					}
 				}
+				frame++;
 			}
-			frame++;
 		}
-	}
 
-	for (int i = 0; i < newMarkers.size(); i++)
-	{
-		newMarkers[i]->update();
-	}
-	fin.close();
+		for (int i = 0; i < newMarkers.size(); i++)
+		{
+			newMarkers[i]->update();
+		}
+		fin.close();
 
-	return newMarkers.size();
+		return newMarkers.size();
+	}
 }

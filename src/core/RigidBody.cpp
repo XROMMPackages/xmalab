@@ -673,7 +673,7 @@ void RigidBody::load(QString filename_referenceNames, QString filename_points3D)
 
 	fin.open(filename_points3D.toAscii().data());
 	points3D.clear();
-	for (; littleHelper::safeGetline(fin, line);)
+	while (!littleHelper::safeGetline(fin, line).eof())
 	{
 		QString tmp_coords = QString::fromStdString(line);
 		QStringList coords_list = tmp_coords.split(",");
@@ -686,10 +686,12 @@ void RigidBody::load(QString filename_referenceNames, QString filename_points3D)
 
 	fin.open(filename_referenceNames.toAscii().data());
 	referenceNames.clear();
-	for (; littleHelper::safeGetline(fin, line);)
+	while (!littleHelper::safeGetline(fin, line).eof())
 	{
-		QString tmp_Name = QString::fromStdString(line);
-		referenceNames.push_back(tmp_Name);
+		if (!line.empty()){
+			QString tmp_Name = QString::fromStdString(line);
+			referenceNames.push_back(tmp_Name);
+		}
 	}
 	fin.close();
 
@@ -875,18 +877,21 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString fi
 	littleHelper::safeGetline(fin, line);
 	std::vector<cv::Point3d> tmpCoords;
 	std::vector<bool> tmpDef;
+
 	while (!littleHelper::safeGetline(fin, line).eof())
 	{
 		tmp_coords = QString::fromStdString(line);
-		coords_list = tmp_coords.split(","); 
-		if (coords_list.at(0) == "NaN" || coords_list.at(1) == "NaN" || coords_list.at(2) == "NaN")
-		{
-			tmpDef.push_back(false);
-			tmpCoords.push_back(cv::Point3d(0, 0, 0));
-		}
-		else{
-			tmpDef.push_back(true);
-			tmpCoords.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
+		coords_list = tmp_coords.split(",");
+		if (coords_list.size() == 3){
+			if (coords_list.at(0) == "NaN" || coords_list.at(1) == "NaN" || coords_list.at(2) == "NaN")
+			{
+				tmpDef.push_back(false);
+				tmpCoords.push_back(cv::Point3d(0, 0, 0));
+			}
+			else{
+				tmpDef.push_back(true);
+				tmpCoords.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
+			}
 		}
 	}
 	dummypointsCoords.push_back(tmpCoords);
@@ -1081,17 +1086,17 @@ bool RigidBody::getTransformationMatrix(int frame, bool filtered, double* trans)
 		//inverse translation = translation rotated with inverse rotation/transposed rotation
 		//R-1 * -t = R^tr * -t
 
-		cv::Vec3d trans;
+		cv::Vec3d translation;
 		if (!filtered){
-			trans = translationvectors[frame];
+			translation = translationvectors[frame];
 		}
 		else
 		{
-			trans = translationvectors_filtered[frame];
+			translation = translationvectors_filtered[frame];
 		}
-		trans[12] = trans[0] * -trans[0] + trans[4] * -trans[1] + trans[8] * -trans[2];
-		trans[13] = trans[1] * -trans[0] + trans[5] * -trans[1] + trans[9] * -trans[2];
-		trans[14] = trans[2] * -trans[0] + trans[6] * -trans[1] + trans[10] * -trans[2];
+		trans[12] = trans[0] * -translation[0] + trans[4] * -translation[1] + trans[8] * -translation[2];
+		trans[13] = trans[1] * -translation[0] + trans[5] * -translation[1] + trans[9] * -translation[2];
+		trans[14] = trans[2] * -translation[0] + trans[6] * -translation[1] + trans[10] * -translation[2];
 		trans[15] = 1.0;
 		return true;
 	}

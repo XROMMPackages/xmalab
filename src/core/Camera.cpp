@@ -204,7 +204,8 @@ void Camera::loadCameraMatrix( QString filename){
 	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
     std::istringstream in;
-	for (std::string line; littleHelper::safeGetline(fin, line);)
+	std::string line;
+	while (!littleHelper::safeGetline(fin, line).eof())
     {
         in.clear();
         in.str(line);

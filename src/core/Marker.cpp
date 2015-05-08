@@ -265,7 +265,7 @@ void Marker::load(QString points_filename, QString status_filename, QString mark
 	std::string line;
 	//read first line 
 	int linecount = 0;
-	for (; littleHelper::safeGetline(fin, line);)
+	while (!littleHelper::safeGetline(fin, line).eof())
 	{
 		in.clear();
 		in.str(line);
@@ -287,7 +287,7 @@ void Marker::load(QString points_filename, QString status_filename, QString mark
 
 	fin.open(status_filename.toAscii().data());
 	linecount = 0;
-	for (; littleHelper::safeGetline(fin, line);)
+	while (!littleHelper::safeGetline(fin, line).eof())
 	{
 		in.clear();
 		in.str(line);
@@ -307,7 +307,7 @@ void Marker::load(QString points_filename, QString status_filename, QString mark
 
 	fin.open(markersize_filename.toAscii().data());
 	linecount = 0;
-	for (; littleHelper::safeGetline(fin, line);)
+	while (!littleHelper::safeGetline(fin, line).eof())
 	{
 		in.clear();
 		in.str(line);

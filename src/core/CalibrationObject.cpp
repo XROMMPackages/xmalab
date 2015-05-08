@@ -47,7 +47,7 @@ int CalibrationObject::loadCoords(QString pointsfilename , QString references)
 	std::string line;
 	//read first line 
 	littleHelper::safeGetline(fin, line);
-	for (; littleHelper::safeGetline(fin, line);)
+	while (!littleHelper::safeGetline(fin, line).eof())
     {
         in.clear();
         in.str(line);
@@ -76,7 +76,8 @@ int CalibrationObject::loadCoords(QString pointsfilename , QString references)
 	char str[100];
 	int id;
 
-	for (; littleHelper::safeGetline(fin, line);){
+	while (!littleHelper::safeGetline(fin, line).eof())
+	{
 		if(sscanf (line.c_str(),"%i %20[0-9a-zA-Z ]s",&id, &str[0]) == 2){
 			referenceIDs.push_back(id-1);
 			referenceNames.push_back(str);

@@ -30,8 +30,9 @@ namespace littleHelper{
 				return is;
 			case EOF:
 				// Also handle the case when the last line has no line ending
-				if (t.empty())
+				if (t.empty()){
 					is.setstate(std::ios::eofbit);
+				}
 				return is;
 			default:
 				t += (char)c;
