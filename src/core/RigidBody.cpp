@@ -185,6 +185,23 @@ void RigidBody::clear(){
 	errorSd3D.clear();
 }
 
+
+void RigidBody::addFrame()
+{
+	rotationvectors.push_back(cv::Vec3d());
+	translationvectors.push_back(cv::Vec3d());
+	rotationvectors_filtered.push_back(cv::Vec3d());
+	translationvectors_filtered.push_back(cv::Vec3d());
+
+	poseComputed.push_back(0);
+	poseFiltered.push_back(0);
+
+	errorMean2D.push_back(0);
+	errorSd2D.push_back(0);
+	errorMean3D.push_back(0);
+	errorSd3D.push_back(0);
+}
+
 void RigidBody::clearAllDummyPoints()
 {
 	fprintf(stderr, "Clear\n");
@@ -435,6 +452,8 @@ void RigidBody::computeCoordinateSystem(int Frame){
 }
 
 void RigidBody::computePose(int Frame){
+	while ( Frame >= poseComputed.size() ) addFrame();
+	
 	poseComputed[Frame] = 0;
 
 	if (initialised){

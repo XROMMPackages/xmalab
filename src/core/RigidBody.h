@@ -88,6 +88,7 @@ namespace xma{
 	private:
 		void init(int size);
 		void clear();
+		void addFrame();
 
 		void filterData(std::vector<int> idx);
 

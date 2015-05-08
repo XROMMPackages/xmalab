@@ -428,7 +428,7 @@ CineVideo::~CineVideo(){
 void CineVideo::setActiveFrame(int _activeFrame)
 {
 	std::ifstream is(filenames.at(0).toAscii().data(), std::ifstream::binary);
-	if (_activeFrame < ImageCount){
+	if (_activeFrame < ImageCount && _activeFrame < image_addresses.size()){
 		is.seekg(image_addresses[_activeFrame]);
 		DWORD annotationSize;
 		is.read((char*)&annotationSize, sizeof(DWORD));
