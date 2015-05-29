@@ -136,7 +136,7 @@
              </size>
             </property>
             <property name="text">
-             <string>Load dataset</string>
+             <string>Load .xma file</string>
             </property>
            </widget>
           </item>
