@@ -313,10 +313,14 @@ void WizardCalibrationCubeFrame::setDialog(){
 		frame->pushButtonResetCamera->hide();
 		frame->pushButtonResetFrame->hide();
 		frame->pushButton->hide();
+		frame->checkBoxManual->hide();
+		frame->frameManual->hide();
 		return;
 	}
 
+	
 	if(State::getInstance()->getActiveCamera() >= 0 && State::getInstance()->getActiveFrameCalibration() >= 0){
+		frame->checkBoxManual->show();
 		if(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() <= 0){
 			resetReferences();
 			frame->label->setText("Select the references");
