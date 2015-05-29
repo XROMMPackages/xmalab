@@ -412,24 +412,24 @@ void WizardDigitizationFrame::setDialog()
 						frame->groupBox_Point->setEnabled(visible);
 					}
 
-					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() > 0){
-						frame->groupBox_RB->show();
-						if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx() >= 0)
-						{
-							bool visible = false;
+					//if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() > 0){
+					//	frame->groupBox_RB->show();
+					//	if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx() >= 0)
+					//	{
+					//		bool visible = false;
 
-							if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRB()->getPoseComputed()[State::getInstance()->getActiveFrameTrial()])
-							{
-								visible = true;
-							}
+					//		if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRB()->getPoseComputed()[State::getInstance()->getActiveFrameTrial()])
+					//		{
+					//			visible = true;
+					//		}
 
-							frame->groupBox_RB->setEnabled(visible);
-						}
-					}
-					else
-					{
+					//		frame->groupBox_RB->setEnabled(visible);
+					//	}
+					//}
+					//else
+					//{
 						frame->groupBox_RB->hide();
-					}
+					//}
 				}
 			}else
 			{
