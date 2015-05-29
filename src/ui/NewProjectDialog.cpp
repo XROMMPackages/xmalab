@@ -67,6 +67,14 @@ void NewProjectDialog::addGridImage(int id_camera, QString filename)
 	cameras[id_camera]->addUndistortionImage(filename);
 }
 
+void NewProjectDialog::setCalibrationCubeCSV(QString filename){
+	diag->lineEditFrameSpecifications->setText(filename);
+}
+
+void NewProjectDialog::setCalibrationCubeREF(QString filename){
+	diag->lineEditReferencePoints->setText(filename);
+}
+
 int NewProjectDialog::createProject(){
 	for(std::vector <CameraBox*>::const_iterator it = getCameras().begin(); it != getCameras().end(); ++it){
 			Camera * cam = new Camera((*it)->getCameraName(), Project::getInstance()->getCameras().size());

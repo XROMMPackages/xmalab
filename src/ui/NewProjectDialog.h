@@ -23,6 +23,8 @@ namespace xma{
 
 		void addCalibrationImage(int id_camera, QString filename);
 		void addGridImage(int id_camera, QString filename);
+		void setCalibrationCubeCSV(QString filename);
+		void setCalibrationCubeREF(QString filename);
 
 		//bool isCubeCalibrationObject();
 		//QString getFrameSpecificationsFileName();

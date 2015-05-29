@@ -292,6 +292,22 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog * dialo
 			dialog->addGridImage(camera_vec[i], filename_vec[i]);
 		}
 	}
+
+	//check for calibration csv and ref
+	QDir directory(tmpDir_path + OS_SEP + infoDir.completeBaseName());
+	QStringList filtersCSV;
+	filtersCSV << "*.csv";
+	QStringList csvFiles = directory.entryList(filtersCSV);
+	if (csvFiles.size() == 1){
+		dialog->setCalibrationCubeCSV(tmpDir_path + OS_SEP + infoDir.completeBaseName() + OS_SEP + csvFiles.at(0));
+	}
+
+	QStringList filterREF;
+	filterREF << "*.ref";
+	QStringList refFiles = directory.entryList(filterREF);
+	if (refFiles.size() == 1){
+		dialog->setCalibrationCubeREF(tmpDir_path + OS_SEP + infoDir.completeBaseName() + OS_SEP + refFiles.at(0));
+	}
 }
 
 void ProjectFileIO::removeTmpDir()
