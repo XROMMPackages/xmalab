@@ -196,8 +196,24 @@
        </property>
       </widget>
      </item>
-     <item row="11" column="0" colspan="2">
+     <item row="12" column="0" colspan="2">
       <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>&lt;a href=&quot;https://groups.google.com/a/brown.edu/forum/?hl=en#!forum/xmalab&quot;&gt;Open XMALab google group&lt;/a&gt; </string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::TextBrowserInteraction</set>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="0" colspan="2">
+      <widget class="QLabel" name="label_9">
        <property name="text">
         <string>&lt;a href=&quot;https://wiki.brown.edu/confluence/display/ctx/Recent+Changes+and+DOWNLOADS&quot;&gt;Check XROMM Download page for newer version&lt;/a&gt; </string>
        </property>
