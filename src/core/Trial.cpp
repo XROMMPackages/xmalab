@@ -1191,13 +1191,13 @@ int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinver
 				frame++;
 			}
 		}
-
-		for (int i = 0; i < newMarkers.size(); i++)
-		{
-			newMarkers[i]->update();
-		}
-		fin.close();
-
-		return newMarkers.size();
 	}
+
+	for (int i = 0; i < newMarkers.size(); i++)
+	{
+		newMarkers[i]->update();
+	}
+	fin.close();
+
+	return newMarkers.size();
 }
