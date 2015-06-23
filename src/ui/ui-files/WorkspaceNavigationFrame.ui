@@ -193,7 +193,7 @@
      </property>
      <property name="icon">
       <iconset resource="../calibrationtool_resources.qrc">
-       <normaloff>:/images/resource-files/icons/settings.gif</normaloff>:/images/resource-files/icons/settings.gif</iconset>
+       <normaloff>:/images/resource-files/icons/settings.png</normaloff>:/images/resource-files/icons/settings.png</iconset>
      </property>
      <property name="popupMode">
       <enum>QToolButton::DelayedPopup</enum>

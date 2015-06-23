@@ -56,7 +56,7 @@ void  MarkerTreeWidgetButton::setButtonIcon()
 	}
 	else if (m_type == 2)
 	{
-		icon.addFile(QString::fromUtf8(":/images/resource-files/icons/settings.gif"), QSize(), QIcon::Normal, QIcon::Off);
+		icon.addFile(QString::fromUtf8(":/images/resource-files/icons/settings.png"), QSize(), QIcon::Normal, QIcon::Off);
 	}
 	settingsButton->setIcon(icon);
 }

@@ -1,6 +1,6 @@
 <RCC>
   <qresource prefix="images">
-    <file>resource-files/icons/settings.gif</file>
+    <file>resource-files/icons/settings.png</file>
     <file>resource-files/icons/shape_3d.png</file>
     <file>resource-files/icons/shape_3d_notSet.png</file>
     <file>resource-files/icons/playbackward_blue.png</file>
