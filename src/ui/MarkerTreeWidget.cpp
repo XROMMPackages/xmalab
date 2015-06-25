@@ -173,6 +173,7 @@ void MarkerTreeWidget::action_CreateRigidBody_triggered(){
 		}
 	}
 	PointsDockWidget::getInstance()->reloadListFromObject();
+	PlotWindow::getInstance()->updateMarkers(true);
 }
 
 void MarkerTreeWidget::action_AddToRigidBody_triggered(){

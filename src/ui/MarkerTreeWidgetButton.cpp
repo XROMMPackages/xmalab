@@ -67,7 +67,7 @@ void MarkerTreeWidgetButton::settingsButtonClicked()
 		RigidBodyDialog * dialog = new RigidBodyDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[m_idx], MainWindow::getInstance());
 
 		dialog->exec();
-
+		MainWindow::getInstance()->redrawGL();
 		setButtonIcon();
 	}
 	else if (m_type == 2)

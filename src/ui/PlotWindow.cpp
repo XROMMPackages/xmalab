@@ -652,12 +652,13 @@ void PlotWindow::plot3D(int idx1)
 
 void PlotWindow::plotRigidBody(int idx)
 {
+	std::cerr << "Plot1" << std::endl;
 	if (this->isVisible()){
 		dock->plotWidget->clearGraphs();
-
+		std::cerr << "Plot2" << std::endl;
 		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0 &&
 			idx >= 0 && idx < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size()){
-
+			std::cerr << "Plot3" << std::endl;
 			double cutoff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getOverrideCutoffFrequency() ? Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->getCutoffFrequency() :
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getCutoffFrequency();
 
