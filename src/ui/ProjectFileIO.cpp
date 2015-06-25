@@ -199,6 +199,211 @@ int ProjectFileIO::loadProject(QString filename){
 	return 0;
 }
 
+QStringList ProjectFileIO::readTrials(QString filename)
+{
+	QStringList names;
+
+	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+
+	unzipFromFileToFolder(filename, tmpDir_path);
+
+	if (QFile::exists(tmpDir_path + OS_SEP + "project.xml")){
+		if (filename.isNull() == false)
+		{
+			QFileInfo info(filename);
+			QString basedir = info.absolutePath();
+			QString xml_filename = tmpDir_path + OS_SEP + "project.xml";
+			if (!xml_filename.isNull())
+			{
+				QFile file(xml_filename);
+				if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+				{
+					QXmlStreamReader xml(&file);
+					//Reading from the file
+
+					while (!xml.atEnd() && !xml.hasError()) {
+						/* Read next element.*/
+						QXmlStreamReader::TokenType token = xml.readNext();
+						/* If token is just StartDocument, we'll go to next.*/
+						if (token == QXmlStreamReader::StartDocument) {
+							continue;
+						}
+						if (token == QXmlStreamReader::StartElement) {
+							if (xml.name() == "Trial")
+							{
+								QXmlStreamAttributes attr = xml.attributes();
+								names << attr.value("Name").toString();
+							}
+						}
+					}
+					if (xml.hasError()) {
+						ErrorDialog::getInstance()->showErrorDialog(QString("QXSRExample::parseXML %1").arg(xml.errorString()));
+					}
+					file.close();
+				}
+			}
+		}
+	}
+
+	removeDir(tmpDir_path);
+	return names;
+}
+
+Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
+{
+
+	Trial* trial;
+	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+
+	unzipFromFileToFolder(filename, tmpDir_path);
+
+	if (QFile::exists(tmpDir_path + OS_SEP + "project.xml")){
+		if (filename.isNull() == false)
+		{
+			QFileInfo info(tmpDir_path + OS_SEP + "project.xml");
+			QString basedir = info.absolutePath();
+			QString xml_filename = tmpDir_path + OS_SEP + "project.xml";
+			if (!xml_filename.isNull())
+			{
+				QFile file(xml_filename);
+				if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+				{
+					QXmlStreamReader xml(&file);
+					//Reading from the file
+
+					while (!xml.atEnd() && !xml.hasError()) {
+						/* Read next element.*/
+						QXmlStreamReader::TokenType token = xml.readNext();
+						/* If token is just StartDocument, we'll go to next.*/
+						if (token == QXmlStreamReader::StartDocument) {
+							continue;
+						}
+						if (token == QXmlStreamReader::StartElement) {
+							if (xml.name() == "Trial")
+							{
+								QXmlStreamAttributes attr = xml.attributes();
+								if (attr.value("Name").toString() == trialname)
+								{
+									QString trialname = attr.value("Name").toString();
+									QString trialfolder = basedir + OS_SEP + trialname + OS_SEP;
+									trial = new Trial(trialname, littleHelper::adjustPathToOS(trialfolder));
+
+									int startFrame = attr.value("startFrame").toString().toInt();
+									trial->setStartFrame(startFrame);
+									int endFrame = attr.value("endFrame").toString().toInt();
+									trial->setEndFrame(endFrame);
+									int referenceCalibration = attr.value("referenceCalibration").toString().toInt();
+									trial->setReferenceCalibrationImage(referenceCalibration);
+
+									QString recordingSpeed = attr.value("recordingSpeed").toString();
+									if (!recordingSpeed.isEmpty())trial->setRecordingSpeed(recordingSpeed.toDouble());
+
+									QString cutOffFrequency = attr.value("cutOffFrequency").toString();
+									if (!cutOffFrequency.isEmpty())trial->setCutoffFrequency(cutOffFrequency.toDouble());
+
+									QString interpolateMissingFrames = attr.value("interpolateMissingFrames").toString();
+									if (!interpolateMissingFrames.isEmpty())trial->setInterpolateMissingFrames(interpolateMissingFrames.toInt());
+									trial->loadMarkers(trialfolder + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
+
+									trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
+
+									while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "Trial")) {
+										if (xml.tokenType() == QXmlStreamReader::StartElement) {
+											if (xml.name() == "Marker"){
+												QXmlStreamAttributes attr = xml.attributes();
+												QString filename_points2D = basedir + OS_SEP + attr.value("FilenamePoints2D").toString();
+												QString filename_status2D = basedir + OS_SEP + attr.value("FilenameStatus2D").toString();
+												QString filename_size = basedir + OS_SEP + attr.value("FilenameSize").toString();
+
+												int id = attr.value("ID").toString().toInt();
+												trial->getMarkers()[id]->load(littleHelper::adjustPathToOS(filename_points2D), littleHelper::adjustPathToOS(filename_status2D), littleHelper::adjustPathToOS(filename_size));
+
+												QString TrackingPenalty = attr.value("TrackingPenalty").toString();
+												if (!TrackingPenalty.isEmpty())trial->getMarkers()[id]->setMaxPenalty(TrackingPenalty.toInt());
+
+												QString SizeOverride = attr.value("SizeOverride").toString();
+												if (!SizeOverride.isEmpty())trial->getMarkers()[id]->setSizeOverride(SizeOverride.toInt());
+
+												QString ThresholdOffset = attr.value("ThresholdOffset").toString();
+												if (!ThresholdOffset.isEmpty())trial->getMarkers()[id]->setThresholdOffset(ThresholdOffset.toInt());
+											}
+
+											if (xml.name() == "RigidBody"){
+												QXmlStreamAttributes attr = xml.attributes();
+
+												QString filename_referenceNames_attr = attr.value("ReferenceNames").toString();
+												QString filename_referencePoints3D_attr = attr.value("ReferencePoints3D").toString();
+
+												int id = attr.value("ID").toString().toInt();
+
+												if (!filename_referenceNames_attr.isEmpty() && !filename_referencePoints3D_attr.isEmpty()){
+
+													QString filename_referenceNames = basedir + OS_SEP + filename_referenceNames_attr;
+													QString filename_referencePoints3D = basedir + OS_SEP + filename_referencePoints3D_attr;
+													trial->getRigidBodies()[id]->load(littleHelper::adjustPathToOS(filename_referenceNames), littleHelper::adjustPathToOS(filename_referencePoints3D));
+												}
+
+												QString visible = attr.value("Visible").toString();
+												if (!visible.isEmpty())
+												{
+													trial->getRigidBodies()[id]->setVisible(visible.toInt());
+												}
+												QString color = attr.value("Color").toString();
+												if (!color.isEmpty())
+												{
+													trial->getRigidBodies()[id]->setColor(QColor(color));
+												}
+
+												QString overrideCutOffFrequency = attr.value("OverrideCutOffFrequency").toString();
+												if (!overrideCutOffFrequency.isEmpty())
+												{
+													trial->getRigidBodies()[id]->setOverrideCutoffFrequency(overrideCutOffFrequency.toInt());
+												}
+
+												QString cutOffFrequency = attr.value("CutOffFrequency").toString();
+												if (!cutOffFrequency.isEmpty())
+												{
+													trial->getRigidBodies()[id]->setCutoffFrequency(cutOffFrequency.toDouble());
+												}
+
+
+												while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "RigidBody")) {
+													if (xml.tokenType() == QXmlStreamReader::StartElement) {
+														if (xml.name() == "DummyMarker")
+														{
+															QXmlStreamAttributes attr = xml.attributes();
+
+															QString dummyName = attr.value("Name").toString();
+															QString dummyPointReferences = basedir + OS_SEP + attr.value("PointReferences").toString();
+															QString dummyPointCoordinates = basedir + OS_SEP + attr.value("PointCoordinates").toString();
+
+															trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), littleHelper::adjustPathToOS(dummyPointCoordinates));
+														}
+													}
+													xml.readNext();
+												}
+											}		
+										}
+										xml.readNext();
+									}
+								}
+							}
+						}
+					}
+					if (xml.hasError()) {
+						ErrorDialog::getInstance()->showErrorDialog(QString("QXSRExample::parseXML %1").arg(xml.errorString()));
+					}
+					file.close();
+				}
+			}
+		}
+	}
+
+	removeDir(tmpDir_path);
+
+	return trial;
+}
+
 void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog * dialog)
 {
 	Project::getInstance()->projectFilename = filename;
@@ -206,7 +411,6 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog * dialo
 
 	QFileInfo infoDir(filename);
 	QString xml_filename = tmpDir_path + OS_SEP + infoDir.completeBaseName() + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml";
-
 
 	std::vector<int> camera_vec;
 	std::vector<int> type_vec;
@@ -960,3 +1164,4 @@ bool ProjectFileIO::unzipFromFileToFolder(const QString & filePath, const QStrin
 	return true;
 
 }
+

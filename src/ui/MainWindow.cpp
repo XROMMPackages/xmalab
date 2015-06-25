@@ -51,6 +51,7 @@
 #else
 #define OS_SEP "/"
 #endif
+#include <QtGui/QInputDialog>
 
 //#define BETA 1
 
@@ -161,7 +162,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->actionDetailed_View->setEnabled(false);
 	ui->actionPlot->setEnabled(false);
 	ui->action3D_world_view->setEnabled(false);
-
+	ui->actionImportTrial->setEnabled(false);
 	Shortcuts::getInstance()->bindApplicationShortcuts();
 #ifndef BETA
 	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
@@ -541,6 +542,7 @@ void MainWindow::UndistortionAfterloadProjectFinished(){
 	}
 	if(allCamerasUndistorted) State::getInstance()->changeUndistortion(UNDISTORTED);
 
+	bool allCamerasCalibrated = true;
 	for(std::vector <Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it){
 		bool calibrated = false;
 		for(std::vector <CalibrationImage*>::const_iterator it2 = (*it)->getCalibrationImages().begin(); it2 != (*it)->getCalibrationImages().end(); ++it2){
@@ -550,8 +552,13 @@ void MainWindow::UndistortionAfterloadProjectFinished(){
 			(*it)->setCalibrated(true);
 			(*it)->setRecalibrationRequired(1);
 		}
+		else
+		{
+			allCamerasCalibrated = false;
+		}
 	}
-
+	if (allCamerasCalibrated) ui->actionImportTrial->setEnabled(true);
+	
 	ConsoleDockWidget::getInstance()->afterLoad();
 
 	WizardDockWidget::getInstance()->update();
@@ -731,6 +738,15 @@ UI - SLOTS
 
 //custom slots for state
 void MainWindow::workspaceChanged(work_state workspace){
+	if (project->isCalibrated())
+	{
+		ui->actionImportTrial->setEnabled(true);
+	}
+	else
+	{
+		ui->actionImportTrial->setEnabled(false);
+	}
+
 	if (workspace == UNDISTORTION)
 	{
 		SequenceNavigationFrame::getInstance()->setVisible(false);
@@ -1152,6 +1168,37 @@ void MainWindow::on_actionImport2D_Points_triggered(bool checked)
 		PlotWindow::getInstance()->updateMarkers(true);
 	}
 	delete diag;
+}
+
+void MainWindow::on_actionImportTrial_triggered(bool checked)
+{
+	QString fileName = QFileDialog::getOpenFileName(this,
+		tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xma  *.zip)"));
+
+	if (fileName.isNull() == false)
+	{
+		Settings::getInstance()->setLastUsedDirectory(fileName);
+		QStringList trialnames = ProjectFileIO::getInstance()->readTrials(fileName);
+
+		bool ok;
+		QString item = QInputDialog::getItem(this, tr("Choose trial to import"),
+			tr("Trial:"), trialnames, 0, false, &ok);
+
+		if (ok && !item.isEmpty())
+		{
+			Trial * trial = ProjectFileIO::getInstance()->loadTrials(fileName, item);
+			Project::getInstance()->addTrial(trial);
+			WorkspaceNavigationFrame::getInstance()->addTrial(item);
+			checkTrialImagePaths();
+			trial->bindTextures();
+			trial->update();		
+
+			if (State::getInstance()->getWorkspace() == DIGITIZATION)
+			{
+				State::getInstance()->changeWorkspace(DIGITIZATION, true);
+			}
+		}
+	}
 }
 
 void MainWindow::on_actionSettings_triggered(bool checked){

@@ -8,6 +8,7 @@ class QStringList;
 
 namespace xma{
 	class NewProjectDialog;
+	class Trial;
 
 	class ProjectFileIO{
 
@@ -17,6 +18,9 @@ namespace xma{
 
 		int saveProject(QString filename);
 		int loadProject(QString filename);
+
+		QStringList readTrials(QString filename);
+		Trial *loadTrials(QString filename, QString trialname);
 
 		void loadXMALabProject(QString filename, NewProjectDialog * dialog);
 		void removeTmpDir();

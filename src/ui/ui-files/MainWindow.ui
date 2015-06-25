@@ -324,6 +324,7 @@
       <string>Import</string>
      </property>
      <addaction name="actionImport2D_Points"/>
+     <addaction name="actionImportTrial"/>
     </widget>
     <addaction name="actionNew_Project"/>
     <addaction name="actionLoad_Project"/>
@@ -796,6 +797,11 @@
   <action name="actionMayaCams">
    <property name="text">
     <string>MayaCams</string>
+   </property>
+  </action>
+  <action name="actionImportTrial">
+   <property name="text">
+    <string>Trial from xma-file</string>
    </property>
   </action>
  </widget>

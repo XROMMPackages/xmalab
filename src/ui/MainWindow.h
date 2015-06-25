@@ -97,7 +97,8 @@ namespace xma{
 		void on_actionUndistort_sequence_triggered(bool checked);
 
 		void on_actionImport2D_Points_triggered(bool checked);
-
+		void on_actionImportTrial_triggered(bool checked);
+		
 		void on_actionSettings_triggered(bool checked);
 		void on_actionAbout_triggered(bool checked);
 		void on_action3D_world_view_triggered(bool checked);
