@@ -667,7 +667,7 @@ void WizardCalibrationCubeFrame::on_pushButtonResetCamera_clicked(){
 }
 
 void WizardCalibrationCubeFrame::on_pushButtonResetFrame_clicked(){
-	if(ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to reset Frame " +  QString::number(State::getInstance()->getActiveFrameCalibration()) +  " for " + Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getName())){
+	if(ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to reset Frame " +  QString::number(State::getInstance()->getActiveFrameCalibration() + 1) +  " for " + Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getName())){
 		int countCalibrated = 0;
 		for(std::vector<CalibrationImage*>::const_iterator it = Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages().begin(); it != Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages().end(); ++it){
 			if((*it)->isCalibrated())countCalibrated++;
