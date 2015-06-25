@@ -17,10 +17,12 @@
 #include "core/Trial.h"
 #include "core/Marker.h"
 #include "core/RigidBody.h"
+#include "core/Settings.h"
 
 #include <QMouseEvent>
 #include <QInputDialog>
 #include <QToolButton>
+
 
 using namespace xma;
 
@@ -37,6 +39,7 @@ PointsDockWidget::PointsDockWidget(QWidget *parent) :
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 
 	Shortcuts::getInstance()->installEventFilterToChildren(this);
+	dock->checkBoxDrawMarkerIds->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawMarkerIds"));
 }
 	
 PointsDockWidget::~PointsDockWidget(){
@@ -253,6 +256,12 @@ void PointsDockWidget::on_pushButtonImportExport_clicked()
 	diag->exec();
 	delete diag;
 	reloadListFromObject();
+}
+
+void PointsDockWidget::on_checkBoxDrawMarkerIds_clicked()
+{
+	Settings::getInstance()->set("TrialDrawMarkerIds", dock->checkBoxDrawMarkerIds->isChecked());
+	MainWindow::getInstance()->redrawGL();
 }
 
 void PointsDockWidget::activeTrialChanged(int activeTrial)

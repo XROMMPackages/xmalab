@@ -40,6 +40,7 @@ namespace xma{
 			void on_pushButtonSetNumberMarkers_clicked();
 			void on_pushButtonSetNumberRigidBodies_clicked();
 			void on_pushButtonImportExport_clicked();
+			void on_checkBoxDrawMarkerIds_clicked();
 			void activeTrialChanged(int activeCamera);
 			void selectNextPoint();
 			void selectPrevPoint();

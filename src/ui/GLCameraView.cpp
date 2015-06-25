@@ -282,40 +282,60 @@ void GLCameraView::renderTextCentered(QString string){
 	renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, - zoomRatio * fm.height() * 0.5 - y_offset, 0.0, string);
 }
 
-void GLCameraView::renderPointText(){
+void GLCameraView::renderPointText(bool calibration){
 	std::vector<double> x;
 	std::vector<double> y;
 	std::vector<QString> text;
-	std::vector<bool> inlier;
-
-	camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getDrawTextData(
-		(!camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() && WizardDockWidget::getInstance()->manualCalibrationRunning()) ? IDCALIBTEXT  : State::getInstance()->getCalibrationVisText(), State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE, x, y, text, inlier);
-	setFont(QFont(this->font().family(), 15.0 ));
-	QFontMetrics fm(this->font());
-	if(State::getInstance()->getCalibrationVisText() < 3){
-		for(int i = 0 ; i < x.size(); i++){
-			if(inlier[i]) {
-				qglColor(QColor(0, 255, 0));
-			}else{
+	if (calibration){
+		std::vector<bool> inlier;
+		camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getDrawTextData(
+			(!camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() && WizardDockWidget::getInstance()->manualCalibrationRunning()) ? IDCALIBTEXT : State::getInstance()->getCalibrationVisText(), State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE, x, y, text, inlier);
+		setFont(QFont(this->font().family(), 15.0));
+		QFontMetrics fm(this->font());
+		if (State::getInstance()->getCalibrationVisText() < 3){
+			for (int i = 0; i < x.size(); i++){
+				if (inlier[i]) {
+					qglColor(QColor(0, 255, 0));
+				}
+				else{
+					qglColor(QColor(255, 0, 0));
+				}
+				renderText(x[i] + 3, y[i], 0.0, text[i]);
+			}
+		}
+		else{
+			double max = 0;
+			for (int i = 0; i < text.size(); i++){
+				if (text[i].toDouble() > max) max = text[i].toDouble();
+			}
+			for (int i = 0; i < x.size(); i++){
+				double val = text[i].toDouble();
+				qglColor(QColor(255.0 * val / max, 255.0 * (1.0 - val / max), 0));
+				renderText(x[i] + 3, y[i], 0.0, text[i]);
+			}
+		}
+		inlier.clear();
+	}
+	else
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getDrawTextData(this->camera->getID(), State::getInstance()->getActiveFrameTrial(), x, y, text);
+		setFont(QFont(this->font().family(), 15.0));
+		QFontMetrics fm(this->font());
+		int active = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
+		for (int i = 0; i < x.size(); i++){
+			if (active == i)
+			{
 				qglColor(QColor(255, 0, 0));
 			}
-			renderText(x[i] + 3, y[i], 0.0, text[i]);
-		}
-	}else{
-		double max = 0;
-		for(int i = 0 ; i < text.size(); i++){
-			if(text[i].toDouble() > max) max = text[i].toDouble();
-		}
-		for(int i = 0 ; i < x.size(); i++){
-			double val = text[i].toDouble();
-			qglColor(QColor(255.0 * val / max, 255.0 * (1.0 - val / max), 0));
+			else{
+				qglColor(QColor(0, 255, 0));
+			}
 			renderText(x[i] + 3, y[i], 0.0, text[i]);
 		}
 	}
 
 	x.clear();
 	y.clear();
-	inlier.clear();
 	text.clear();
 }
 
@@ -487,7 +507,7 @@ void GLCameraView::paintGL()
 		camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->draw(State::getInstance()->getCalibrationVisPoints());
 		if(State::getInstance()->getCalibrationVisText() > 0 || 
 			(!camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() && WizardDockWidget::getInstance()->manualCalibrationRunning())){
-			renderPointText();
+			renderPointText(true);
 		}
 	}
 	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
@@ -498,6 +518,11 @@ void GLCameraView::paintGL()
 			if (!detailedView)
 			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodies(this->camera);
+
+				if (Settings::getInstance()->getBoolSetting("TrialDrawMarkerIds"))
+				{
+					renderPointText(false);
+				}
 			}
 		}
 	}

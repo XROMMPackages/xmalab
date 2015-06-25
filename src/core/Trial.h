@@ -87,6 +87,8 @@ namespace xma{
 		void recomputeAndFilterRigidBodyTransformations();
 		void resetRigidBodyByMarker(Marker * marker, int frame);
 
+		void getDrawTextData(int cam, int frame, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text);
+
 	private:
 		QString name;
 		void setNbImages();

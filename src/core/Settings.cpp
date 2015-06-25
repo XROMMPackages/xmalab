@@ -104,6 +104,8 @@ Settings::Settings(){
 	addBoolSetting("ExportTransUnfiltered", false);
 	addBoolSetting("ExportTransFiltered", true);
 
+	addBoolSetting("TrialDrawMarkerIds",false);
+
 }
 
 Settings::~Settings(){

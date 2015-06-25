@@ -54,7 +54,7 @@ namespace xma{
 		void setZoomRatio(double newZoomRation, bool autozoom = false);
 
 		void renderTextCentered(QString string);
-		void renderPointText();
+		void renderPointText(bool calibration);
 		void drawTexture();
 		void drawQuad();
 

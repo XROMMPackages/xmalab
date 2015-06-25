@@ -1201,3 +1201,16 @@ int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinver
 
 	return newMarkers.size();
 }
+
+void Trial::getDrawTextData(int cam, int frame, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text){
+	x.clear();
+	y.clear();
+	text.clear();
+
+	for (int i = 0; i < markers.size(); i++){
+		x.push_back(markers[i]->getPoints2D()[cam][frame].x);
+		y.push_back(markers[i]->getPoints2D()[cam][frame].y);
+		text.push_back(QString::number(i + 1));
+
+	}
+}
