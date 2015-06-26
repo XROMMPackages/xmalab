@@ -14,6 +14,13 @@ else()
         set(CMAKE_BUILD_RELEASE FALSE)
 endif()
 
+if(MSVC OR MSVC_IDE) 
+  message( "VC11: use Microsoft Visual Studio 2013 " 
+      "with Microsoft Visual C++ Compiler Nov 2012 CTP (v120p_xp)" ) 
+    set(CMAKE_GENERATOR_TOOLSET   "v120_xp" CACHE STRING "Platform Toolset" FORCE) 
+    set(CMAKE_VS_PLATFORM_TOOLSET  "v120_xp" CACHE STRING "Platform Toolset" FORCE) 
+endif()
+
 if(APPLE AND CMAKE_INSTALL_PREFIX MATCHES "/usr/local")
         set(CMAKE_INSTALL_PREFIX "/Applications")
 endif()
