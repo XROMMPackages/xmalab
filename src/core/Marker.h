@@ -29,6 +29,13 @@ namespace xma{
 		const std::vector <markerStatus>  &getStatus3D();
 		std::vector< cv::Point3d> &getPoints3D();
 
+		void setReference3DPoint(double x, double y, double z);
+		void loadReference3DPoint(QString filename);
+		void saveReference3DPoint(QString filename);
+
+		cv::Point3d getReference3DPoint();
+		bool Reference3DPointSet();
+
 		void setPoint(int camera, int activeFrame, double x, double y, markerStatus status);
 		std::vector < cv::Point2d > getEpipolarLine(int cameraOrigin, int CameraDestination, int frame);
 		void reconstruct3DPoint(int frame);
@@ -80,6 +87,8 @@ namespace xma{
 		int sizeOverride;
 		int maxPenalty;
 
+		bool point3D_ref_set;
+		cv::Point3d point3D_ref;
 		std::vector <cv::Point3d> points3D;
 		std::vector <markerStatus> status3D;
 		std::vector <double> error3D;

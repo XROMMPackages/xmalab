@@ -495,6 +495,43 @@ void Trial::setEndFrame(int value)
 	endFrame = value;
 }
 
+void Trial::loadMarkersFromCSV(QString filename)
+{
+	QString tmp_names;
+	QString tmp_coords;
+
+	std::ifstream fin;
+	fin.open(filename.toAscii().data());
+	std::istringstream in;
+	std::string line;
+	littleHelper::safeGetline(fin, line);
+	tmp_names = QString::fromStdString(line);
+	littleHelper::safeGetline(fin, line);
+	tmp_coords = QString::fromStdString(line);
+	fin.close();
+
+	QStringList names_list = tmp_names.split(",");
+	QStringList coords_list = tmp_coords.split(",");
+
+	std::vector <cv::Point3d> points3D_tmp;
+	std::vector <QString> referenceNames_tmp;
+
+	for (int i = 0; i < names_list.size() / 3; i++)
+	{
+		referenceNames_tmp.push_back(names_list.at(3 * i));
+		referenceNames_tmp[i].replace("_x", "");
+		points3D_tmp.push_back(cv::Point3d(coords_list.at(3 * i).toDouble(), coords_list.at(3 * i + 1).toDouble(), coords_list.at(3 * i + 2).toDouble()));
+	}
+
+	for (int i = 0; i < points3D_tmp.size(); i++)
+	{
+		addMarker();
+		markers[markers.size() - 1]->setDescription(referenceNames_tmp[i]);
+		markers[markers.size() - 1]->setReference3DPoint(points3D_tmp[i].x, points3D_tmp[i].y, points3D_tmp[i].z);
+	}
+}
+
+
 void Trial::loadMarkers(QString filename){
 	std::ifstream fin;
 	fin.open(filename.toAscii().data());

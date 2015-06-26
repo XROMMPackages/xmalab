@@ -61,6 +61,15 @@ void ImportExportPointsDialog::switchGroups()
 	{
 		diag->groupBoxImport->hide();
 	}
+	if (diag->radioButtonImportCSV->isChecked())
+	{
+		diag->groupBoxImportCSV->show();
+	}
+	else
+	{
+		diag->groupBoxImportCSV->hide();
+	}
+
 	if (diag->radioButtonExport->isChecked()) {
 		diag->groupBoxExport->show();
 	}
@@ -68,6 +77,7 @@ void ImportExportPointsDialog::switchGroups()
 	{
 		diag->groupBoxExport->hide();
 	}
+
 	if (diag->radioButtonTrial->isChecked()) {
 		diag->groupBoxTrial->show();
 	}
@@ -112,6 +122,17 @@ void ImportExportPointsDialog::on_toolButtonRigidBodies_clicked(){
 	}
 }
 
+void ImportExportPointsDialog::on_toolButtonMarkersCSV_clicked()
+{
+	QString fileName = QFileDialog::getOpenFileName(this,
+		tr("Open marker csv file"), Settings::getInstance()->getLastUsedDirectory(), ("CSV files (*.csv)"));
+	if (fileName.isNull() == false)
+	{
+		Settings::getInstance()->setLastUsedDirectory(fileName);
+		diag->lineEditMarkersCSV->setText(fileName);
+	}
+}
+
 void ImportExportPointsDialog::on_pushButtonCancel_clicked()
 {
 	this->close();
@@ -122,6 +143,10 @@ void ImportExportPointsDialog::on_pushButtonOK_clicked()
 	if (diag->radioButtonImport->isChecked()) {
 		importData();
 	}
+	if (diag->radioButtonImportCSV->isChecked())
+	{
+		importCSV();
+	}
 	if (diag->radioButtonExport->isChecked()) {
 		exportData();
 	}
@@ -129,6 +154,16 @@ void ImportExportPointsDialog::on_pushButtonOK_clicked()
 		copyFromTrial();
 	}
 	this->close();
+}
+
+bool ImportExportPointsDialog::importCSV()
+{
+	if (!diag->lineEditMarkersCSV->text().isEmpty())
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->loadMarkersFromCSV(diag->lineEditMarkersCSV->text());
+		return true;
+	}
+	return false;
 }
 
 bool ImportExportPointsDialog::importData()

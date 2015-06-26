@@ -84,6 +84,8 @@ RigidBodyDialog::RigidBodyDialog(RigidBody * body, QWidget *parent) :
 		diag->doubleSpinBoxCutoff->setValue(m_body->getTrial()->getCutoffFrequency());
 	}
 
+	if (!m_body->allReferenceMarkerReferencesSet())diag->pushButton_Reset->show();
+
 	reloadDummyPoints();
 }
 
@@ -91,8 +93,11 @@ RigidBodyDialog::RigidBodyDialog(RigidBody * body, QWidget *parent) :
 void  RigidBodyDialog::updateIcon()
 {
 	QIcon icon;
-	if (m_body->isReferencesSet()){
+	if (m_body->isReferencesSet() == 2){
 		icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d.png"), QSize(), QIcon::Normal, QIcon::Off);
+	}
+	else if (m_body->isReferencesSet() == 1){
+		icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_setMarker.png"), QSize(), QIcon::Normal, QIcon::Off);
 	}
 	else
 	{
@@ -207,7 +212,7 @@ void RigidBodyDialog::on_pushButton_setFromFile_clicked()
 			{
 				return;
 			}
-			m_body->setReferencesSet(false);
+			m_body->setReferencesSet(0);
 		}
 
 		setRigidBodyIdxByDialog();
@@ -337,4 +342,11 @@ void RigidBodyDialog::on_pushButton_DeleteDummy_clicked()
 	reloadDummyPoints();
 
 	m_body->recomputeTransformations();
+}
+
+void RigidBodyDialog::on_pushButton_Reset_clicked()
+{
+	m_body->resetReferences();
+	updateIcon();
+	updateLabels();
 }

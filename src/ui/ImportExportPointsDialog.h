@@ -21,6 +21,7 @@ namespace xma{
 
 	private:
 		void switchGroups();
+		bool importCSV();
 		bool importData();
 		bool exportData();
 		bool copyFromTrial();
@@ -32,6 +33,7 @@ namespace xma{
 
 		void on_toolButtonMarkers_clicked();
 		void on_toolButtonRigidBodies_clicked();
+		void on_toolButtonMarkersCSV_clicked();
 
 		void on_pushButtonCancel_clicked();
 		void on_pushButtonOK_clicked();

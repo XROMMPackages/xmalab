@@ -141,9 +141,14 @@ int ProjectFileIO::saveProject(QString filename){
 					Project::getInstance()->getTrials()[i]->getMarkers()[k]->save(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv",
 						path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status2d.csv",
 						path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
+
+					if (Project::getInstance()->getTrials()[i]->getMarkers()[k]->Reference3DPointSet())
+					{
+						Project::getInstance()->getTrials()[i]->getMarkers()[k]->saveReference3DPoint(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "reference3Dpoint.csv");
+					}
 				}
 				for (int k = 0; k < Project::getInstance()->getTrials()[i]->getRigidBodies().size(); k++){
-					if (Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->isReferencesSet()){
+					if (Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->isReferencesSet() == 2){
 						Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->save(
 							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferenceNames.csv",
 							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d.csv");
@@ -318,6 +323,9 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 												int id = attr.value("ID").toString().toInt();
 												trial->getMarkers()[id]->load(littleHelper::adjustPathToOS(filename_points2D), littleHelper::adjustPathToOS(filename_status2D), littleHelper::adjustPathToOS(filename_size));
 
+												QString Reference3DPoint = basedir + OS_SEP + attr.value("Reference3DPoint").toString();
+												if (!Reference3DPoint.isEmpty())trial->getMarkers()[id]->loadReference3DPoint(littleHelper::adjustPathToOS(Reference3DPoint));
+
 												QString TrackingPenalty = attr.value("TrackingPenalty").toString();
 												if (!TrackingPenalty.isEmpty())trial->getMarkers()[id]->setMaxPenalty(TrackingPenalty.toInt());
 
@@ -341,6 +349,10 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 													QString filename_referenceNames = basedir + OS_SEP + filename_referenceNames_attr;
 													QString filename_referencePoints3D = basedir + OS_SEP + filename_referencePoints3D_attr;
 													trial->getRigidBodies()[id]->load(littleHelper::adjustPathToOS(filename_referenceNames), littleHelper::adjustPathToOS(filename_referencePoints3D));
+												}
+												else
+												{
+													trial->getRigidBodies()[id]->resetReferences();
 												}
 
 												QString visible = attr.value("Visible").toString();
@@ -632,7 +644,7 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 				xmlWriter.writeAttribute("recordingSpeed", QString::number(Project::getInstance()->getTrials()[i]->getRecordingSpeed()));
 				xmlWriter.writeAttribute("cutOffFrequency", QString::number(Project::getInstance()->getTrials()[i]->getCutoffFrequency()));
 				xmlWriter.writeAttribute("interpolateMissingFrames", QString::number(Project::getInstance()->getTrials()[i]->getInterpolateMissingFrames()));
-			
+				
 				for (int k = 0; k < Project::getInstance()->getTrials()[i]->getMarkers().size(); k++){
 					xmlWriter.writeStartElement("Marker");
 					xmlWriter.writeAttribute("Description", Project::getInstance()->getTrials()[i]->getMarkers()[k]->getDescription());
@@ -640,6 +652,11 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 					xmlWriter.writeAttribute("TrackingPenalty", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getMaxPenalty()));
 					xmlWriter.writeAttribute("SizeOverride", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getSizeOverride()));
 					xmlWriter.writeAttribute("ThresholdOffset", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getThresholdOffset()));
+					
+					if (Project::getInstance()->getTrials()[i]->getMarkers()[k]->Reference3DPointSet())
+					{
+						xmlWriter.writeAttribute("Reference3DPoint", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "reference3Dpoint.csv");
+					}
 
 					xmlWriter.writeAttribute("FilenamePoints2D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv");
 					xmlWriter.writeAttribute("FilenameStatus2D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status2d.csv");
@@ -651,7 +668,7 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 					xmlWriter.writeStartElement("RigidBody");
 					xmlWriter.writeAttribute("Description", Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getDescription());
 					xmlWriter.writeAttribute("ID", QString::number(k));
-					if (Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->isReferencesSet()){
+					if (Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->isReferencesSet() == 2){
 						xmlWriter.writeAttribute("ReferenceNames", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferenceNames.csv");
 						xmlWriter.writeAttribute("ReferencePoints3D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d.csv");
 					}
@@ -882,6 +899,9 @@ bool ProjectFileIO::readProjectFile(QString filename){
 										int id = attr.value("ID").toString().toInt();
 										trial->getMarkers()[id]->load(littleHelper::adjustPathToOS(filename_points2D), littleHelper::adjustPathToOS(filename_status2D), littleHelper::adjustPathToOS(filename_size));
 
+										QString Reference3DPoint = basedir + OS_SEP + attr.value("Reference3DPoint").toString();
+										if (!Reference3DPoint.isEmpty())trial->getMarkers()[id]->loadReference3DPoint(littleHelper::adjustPathToOS(Reference3DPoint));
+
 										QString TrackingPenalty = attr.value("TrackingPenalty").toString();
 										if (!TrackingPenalty.isEmpty())trial->getMarkers()[id]->setMaxPenalty(TrackingPenalty.toInt());
 
@@ -905,6 +925,10 @@ bool ProjectFileIO::readProjectFile(QString filename){
 											QString filename_referenceNames = basedir + OS_SEP + filename_referenceNames_attr;
 											QString filename_referencePoints3D = basedir + OS_SEP + filename_referencePoints3D_attr;
 											trial->getRigidBodies()[id]->load(littleHelper::adjustPathToOS(filename_referenceNames), littleHelper::adjustPathToOS(filename_referencePoints3D));
+										}
+										else
+										{
+											trial->getRigidBodies()[id]->resetReferences();
 										}
 
 										QString visible = attr.value("Visible").toString();

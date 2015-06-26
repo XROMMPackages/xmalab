@@ -20,6 +20,7 @@ Marker::Marker(int nbCameras, int size, Trial* _trial){
 	thresholdOffset = 8;
 	sizeOverride = -1;
 	maxPenalty = 125;
+	point3D_ref_set = false;
 }
 
 Marker::~Marker(){
@@ -59,6 +60,50 @@ std::vector<std::vector<double> >& Marker::getError2D()
 std::vector<cv::Point3d>& Marker::getPoints3D()
 {
 	return points3D;
+}
+
+void Marker::setReference3DPoint(double x, double y, double z)
+{
+	point3D_ref.x = x;
+	point3D_ref.y = y;
+	point3D_ref.z = z;
+	point3D_ref_set = true;
+}
+
+void Marker::loadReference3DPoint(QString filename)
+{
+	std::ifstream fin(filename.toAscii().data());
+	std::istringstream in;
+	std::string line;
+	littleHelper::safeGetline(fin, line);
+	in.str(line);
+	std::vector<double> tmp;
+	for (double value; in >> value; littleHelper::comma(in)) {
+		tmp.push_back(value);
+	}
+	fin.close();
+
+	if (tmp.size() == 3){
+		setReference3DPoint(tmp[0], tmp[1], tmp[2]);
+	}
+	tmp.clear();
+}
+
+void Marker::saveReference3DPoint(QString filename)
+{
+	std::ofstream outfile(filename.toAscii().data());
+	outfile << point3D_ref.x << " , " << point3D_ref.y << " , " << point3D_ref.z << std::endl;
+	outfile.close();
+}
+
+cv::Point3d Marker::getReference3DPoint()
+{
+	return point3D_ref;
+}
+
+bool Marker::Reference3DPointSet()
+{
+	return point3D_ref_set;
 }
 
 const std::vector<markerStatus>& Marker::getStatus3D()

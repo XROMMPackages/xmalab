@@ -59,7 +59,7 @@ void RigidBody::copyData(RigidBody *rb)
 
 	if (rb->isReferencesSet())
 	{
-		setReferencesSet(true);
+		setReferencesSet(rb->isReferencesSet());
 
 		for (int i = 0; i < rb->referenceNames.size(); i++)
 		{
@@ -157,9 +157,41 @@ void RigidBody::resetReferences()
 		points3D[i].y = 0;
 		points3D[i].z = 0;
 	}
-	setReferencesSet(false);
+	setReferencesSet(0);
 	initialised = false;
+	setReferenceMarkerReferences();
 }
+
+bool RigidBody::allReferenceMarkerReferencesSet()
+{
+	bool allset = true;
+	for (int i = 0; i < pointsIdx.size(); i++)
+	{
+		if (!trial->getMarkers()[pointsIdx[i]]->Reference3DPointSet())
+		{
+			allset = false;
+		}
+	}
+	return allset;
+}
+
+void RigidBody::setReferenceMarkerReferences()
+{
+	if (allReferenceMarkerReferencesSet())
+	{
+		for (int i = 0; i < pointsIdx.size(); i++)
+		{
+			points3D[i].x = trial->getMarkers()[pointsIdx[i]]->getReference3DPoint().x;
+			points3D[i].y = trial->getMarkers()[pointsIdx[i]]->getReference3DPoint().y;
+			points3D[i].z = trial->getMarkers()[pointsIdx[i]]->getReference3DPoint().z;
+			referenceNames[i] = trial->getMarkers()[pointsIdx[i]]->getDescription() + " - FromMarker";
+		}
+		initialised = true;
+		setReferencesSet(1);
+		recomputeTransformations();
+	}
+}
+
 
 void RigidBody::setExpanded(bool _expanded)
 {
@@ -204,7 +236,6 @@ void RigidBody::addFrame()
 
 void RigidBody::clearAllDummyPoints()
 {
-	fprintf(stderr, "Clear\n");
 	dummyNames.clear();
 	dummypoints.clear();
 	dummypointsCoords.clear();
@@ -369,6 +400,7 @@ void RigidBody::computeCoordinateSystemAverage(){
 }
 
 void RigidBody::computeCoordinateSystem(int Frame){
+	
 	if (!isReferencesSet()){
 		points3D.clear();
 
@@ -453,7 +485,7 @@ void RigidBody::computeCoordinateSystem(int Frame){
 
 void RigidBody::computePose(int Frame){
 	while ( Frame >= poseComputed.size() ) addFrame();
-	
+
 	poseComputed[Frame] = 0;
 
 	if (initialised){
@@ -666,6 +698,7 @@ double RigidBody::fitAndComputeError(std::vector<cv::Point3d> src, std::vector<c
 		errorMean /= dst.size();
 	}
 	initialised = true;
+
 	return errorMean;
 }
 
@@ -714,10 +747,8 @@ void RigidBody::load(QString filename_referenceNames, QString filename_points3D)
 	}
 	fin.close();
 
-	setReferencesSet(true);
+	setReferencesSet(2);
 	initialised = true;
-
-	
 }
 
 void RigidBody::recomputeTransformations()
@@ -1266,6 +1297,7 @@ int RigidBody::setReferenceFromFile(QString filename)
 	tmp_names = QString::fromStdString(line);
 	littleHelper::safeGetline(fin, line);
 	tmp_coords = QString::fromStdString(line);
+	fin.close();
 
 	QStringList names_list = tmp_names.split(",");
 	QStringList coords_list = tmp_coords.split(",");
@@ -1326,19 +1358,19 @@ int RigidBody::setReferenceFromFile(QString filename)
 	}
 
 	
-	setReferencesSet(true);
+	setReferencesSet(2);
 
 	recomputeTransformations();
 
 	return 1;
 }
 
-bool RigidBody::isReferencesSet()
+int RigidBody::isReferencesSet()
 {
 	return referencesSet;
 }
 
-void RigidBody::setReferencesSet(bool value)
+void RigidBody::setReferencesSet(int value)
 {
 	referencesSet = value;
 	updateCenter();

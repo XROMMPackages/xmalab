@@ -55,11 +55,10 @@ namespace xma{
 		void saveTransformations(QString filename, bool inverse, bool filtered);
 		bool getTransformationMatrix(int frame, bool filtered, double *trans);
 
-
-
-		bool isReferencesSet();
-		void setReferencesSet(bool value);
+		int isReferencesSet();
+		void setReferencesSet(int value);
 		void resetReferences();
+		void setReferenceMarkerReferences();
 		void updateCenter();
 
 		bool getOverrideCutoffFrequency();
@@ -84,6 +83,7 @@ namespace xma{
 		void saveDummy(int count, QString filenamePointRef, QString filenamePointCoords);
 		void clearAllDummyPoints();
 		const std::vector <QString> &getDummyNames();
+		bool allReferenceMarkerReferencesSet();
 
 	private:
 		void init(int size);
@@ -98,7 +98,7 @@ namespace xma{
 		QString description;
 		bool expanded;
 		bool initialised;
-		bool referencesSet;
+		int referencesSet;
 
 		bool overrideCutoffFrequency;
 		double cutoffFrequency;

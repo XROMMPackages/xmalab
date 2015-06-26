@@ -68,6 +68,7 @@ namespace xma{
 		int getEndFrame();
 		void setEndFrame(int value);
 
+		void loadMarkersFromCSV(QString filename);
 		void loadMarkers(QString filename);
 		void loadRigidBodies(QString filename);
 

@@ -58,6 +58,8 @@ namespace xma{
 
 		void on_pushButton_AddDummy_clicked();
 		void on_pushButton_DeleteDummy_clicked();
+		void on_pushButton_Reset_clicked();
+
 
 	};
 }
