@@ -10,6 +10,7 @@
 #include "core/HelperFunctions.h"
 
 #include <fstream>
+#include "Settings.h"
 
 using namespace xma;
 
@@ -645,11 +646,37 @@ std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int Camera
 	}
 	else
 	{
-		for (double p = 0.0; p <= ((double) Project::getInstance()->getCameras()[CameraDestination]->getWidth()); p+= 50.0)
+		//compute start and end
+
+		double height = ((double)Project::getInstance()->getCameras()[CameraDestination]->getWidth());
+		cv::Point2d pt_prev(-10000, -10000);
+		double dist = Settings::getInstance()->getIntSetting("EpipolarLinePrecision");
+		dist *= dist;
+
+		for (double p = 0.0; p <= ((double) Project::getInstance()->getCameras()[CameraDestination]->getWidth()); p+= 0.1)
 		{
 			cv::Point2d pt(p, line_pt.x * p + line_pt.y);
-			cv::Point2d pt_trans = Project::getInstance()->getCameras()[CameraDestination]->getUndistortionObject()->transformPoint(pt, false);
-			epiline.push_back(pt_trans);
+			if (pt.y > 0 && pt.y < height && ((pt_prev.x - pt.x)*(pt_prev.x - pt.x) + (pt_prev.y - pt.y)*(pt_prev.y - pt.y)) > dist) {
+				cv::Point2d pt_trans = Project::getInstance()->getCameras()[CameraDestination]->getUndistortionObject()->transformPoint(pt, false);
+				if (pt_trans.x != pt.x && pt_trans.y != pt.y){
+					epiline.push_back(pt_trans);
+					pt_prev.x = pt.x;
+					pt_prev.y = pt.y;
+				}
+			}
+		}
+
+		//set Last Point
+		for (double p = ((double)Project::getInstance()->getCameras()[CameraDestination]->getWidth()) ; p >= 0.0; p -= 0.1)
+		{
+			cv::Point2d pt(p, line_pt.x * p + line_pt.y);
+			if (pt.y > 0 && pt.y < height) {
+				cv::Point2d pt_trans = Project::getInstance()->getCameras()[CameraDestination]->getUndistortionObject()->transformPoint(pt, false);
+				if (pt_trans.x != pt.x && pt_trans.y != pt.y){
+					epiline.push_back(pt_trans);
+					break;
+				}
+			}
 		}
 	}
 

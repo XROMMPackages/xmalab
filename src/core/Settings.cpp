@@ -106,6 +106,7 @@ Settings::Settings(){
 
 	addBoolSetting("TrialDrawMarkerIds",false);
 
+	addIntSetting("EpipolarLinePrecision", 5);
 }
 
 Settings::~Settings(){
