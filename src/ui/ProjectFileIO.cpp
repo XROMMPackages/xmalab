@@ -329,6 +329,9 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 												QString TrackingPenalty = attr.value("TrackingPenalty").toString();
 												if (!TrackingPenalty.isEmpty())trial->getMarkers()[id]->setMaxPenalty(TrackingPenalty.toInt());
 
+												QString DetectionMethod = attr.value("DetectionMethod").toString();
+												if (!DetectionMethod.isEmpty())trial->getMarkers()[id]->setMethod(DetectionMethod.toInt());
+
 												QString SizeOverride = attr.value("SizeOverride").toString();
 												if (!SizeOverride.isEmpty())trial->getMarkers()[id]->setSizeOverride(SizeOverride.toInt());
 
@@ -650,6 +653,7 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 					xmlWriter.writeAttribute("Description", Project::getInstance()->getTrials()[i]->getMarkers()[k]->getDescription());
 					xmlWriter.writeAttribute("ID", QString::number(k));
 					xmlWriter.writeAttribute("TrackingPenalty", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getMaxPenalty()));
+					xmlWriter.writeAttribute("DetectionMethod", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getMethod()));
 					xmlWriter.writeAttribute("SizeOverride", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getSizeOverride()));
 					xmlWriter.writeAttribute("ThresholdOffset", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getThresholdOffset()));
 					
@@ -904,6 +908,9 @@ bool ProjectFileIO::readProjectFile(QString filename){
 
 										QString TrackingPenalty = attr.value("TrackingPenalty").toString();
 										if (!TrackingPenalty.isEmpty())trial->getMarkers()[id]->setMaxPenalty(TrackingPenalty.toInt());
+
+										QString DetectionMethod = attr.value("DetectionMethod").toString();
+										if (!DetectionMethod.isEmpty())trial->getMarkers()[id]->setMethod(DetectionMethod.toInt());
 
 										QString SizeOverride = attr.value("SizeOverride").toString();
 										if (!SizeOverride.isEmpty())trial->getMarkers()[id]->setSizeOverride(SizeOverride.toInt());

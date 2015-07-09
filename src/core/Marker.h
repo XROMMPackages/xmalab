@@ -62,6 +62,9 @@ namespace xma{
 		int getMaxPenalty();
 		void setMaxPenalty(int value);
 
+		int getMethod();
+		void setMethod(int value);
+
 	private:
 		void init(int nbCameras, int size);
 		void addFrame();
@@ -86,6 +89,7 @@ namespace xma{
 		int thresholdOffset;
 		int sizeOverride;
 		int maxPenalty;
+		int method;
 
 		bool point3D_ref_set;
 		cv::Point3d point3D_ref;

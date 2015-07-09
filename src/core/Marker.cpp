@@ -22,6 +22,7 @@ Marker::Marker(int nbCameras, int size, Trial* _trial){
 	sizeOverride = -1;
 	maxPenalty = 125;
 	point3D_ref_set = false;
+	method = 0;
 }
 
 Marker::~Marker(){
@@ -504,6 +505,16 @@ int Marker::getMaxPenalty()
 void Marker::setMaxPenalty(int value)
 {
 	maxPenalty = value;
+}
+
+int Marker::getMethod()
+{
+	return method;
+}
+
+void Marker::setMethod(int value)
+{
+	method = value;
 }
 
 void Marker::reprojectPoint(int frame)

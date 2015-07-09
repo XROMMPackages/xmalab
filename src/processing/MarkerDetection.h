@@ -35,7 +35,7 @@ namespace xma{
 		int m_frame;
 		int m_trial;
 		int m_marker;
-
+		int m_method;
 		double x, y;
 		double size;
 		double m_input_size;
