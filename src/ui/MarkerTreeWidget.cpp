@@ -121,6 +121,7 @@ void MarkerTreeWidget::action_ChangeDescription_triggered(){
 }
 void MarkerTreeWidget::action_DeletePoints_triggered(){
 	QList<QTreeWidgetItem * > items = this->selectedItems();
+	std::vector<int> pointsToDelete;
 	if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete the selected Points?")) return;
 	for (int i = 0; i < items.size(); i++){
 		if (items.at(i)->type() == MARKER)
@@ -132,9 +133,15 @@ void MarkerTreeWidget::action_DeletePoints_triggered(){
 				int idx_parent = text_parent.toInt() - 1;
 				Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[idx_parent]->removePointIdx(items.at(i)->text(0).toInt() - 1);
 			}
-			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->removeMarker(items.at(i)->text(0).toInt() - 1);
+			pointsToDelete.push_back(items.at(i)->text(0).toInt() - 1);
 		}
 	}
+	std::sort(pointsToDelete.begin(), pointsToDelete.end());
+	for (int i = pointsToDelete.size() - 1; i >= 0; i--)
+	{
+		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->removeMarker(pointsToDelete[i]);
+	}
+	pointsToDelete.clear();
 	PointsDockWidget::getInstance()->reloadListFromObject();
 	PlotWindow::getInstance()->updateMarkers(true);
 	MainWindow::getInstance()->redrawGL();
