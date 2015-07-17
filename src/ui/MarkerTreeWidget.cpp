@@ -48,11 +48,14 @@ MarkerTreeWidget::MarkerTreeWidget(QWidget * parent):QTreeWidget(parent)
 	action_AddToRigidBody = new QAction(tr("&Add selected to Rigid Body"), this);
 	connect(action_AddToRigidBody, SIGNAL(triggered()), this, SLOT(action_AddToRigidBody_triggered()));
 
-	action_DeletePoints = new QAction(tr("&Delete selected Points"), this);
+	action_DeletePoints = new QAction(tr("&Delete selected points"), this);
 	connect(action_DeletePoints, SIGNAL(triggered()), this, SLOT(action_DeletePoints_triggered()));
 	
-	action_ResetPoints = new QAction(tr("&Delete Data from Selected Points"), this);
+	action_ResetPoints = new QAction(tr("&Delete Data from selected points"), this);
 	connect(action_ResetPoints, SIGNAL(triggered()), this, SLOT(action_ResetPoints_triggered()));
+
+	action_ChangeDetectionMethod = new QAction(tr("&Change Detectionmethod of selected Points"), this);
+	connect(action_ChangeDetectionMethod, SIGNAL(triggered()), this, SLOT(action_ChangeDetectionMethod_triggered()));
 
 	headerItem()->setText(2, "");
 	//headerItem()->setText(3, "");
@@ -85,6 +88,7 @@ void MarkerTreeWidget::showContextMenu(QTreeWidgetItem* item_contextMenu, const 
             menu.addAction(action_AddToRigidBody);
 			menu.addAction(action_ResetPoints);
 			menu.addAction(action_DeletePoints);
+			menu.addAction(action_ChangeDetectionMethod);
 			break;
  
         case RIGID_BODY:
@@ -134,6 +138,28 @@ void MarkerTreeWidget::action_DeletePoints_triggered(){
 	PointsDockWidget::getInstance()->reloadListFromObject();
 	PlotWindow::getInstance()->updateMarkers(true);
 	MainWindow::getInstance()->redrawGL();
+}
+
+void MarkerTreeWidget::action_ChangeDetectionMethod_triggered()
+{
+	bool ok;
+	QStringList methodnames;
+	methodnames << "default Xray marker" << "Blobdetection" << "white marker";;
+
+	QString methodName = QInputDialog::getItem(this, tr("Choose method"),
+		tr("Method:"), methodnames, 0, false, &ok);
+
+	if (ok && !methodName.isEmpty())
+	{
+		int method = methodnames.indexOf(methodName);
+		QList<QTreeWidgetItem * > items = this->selectedItems();
+		for (int i = 0; i < items.size(); i++){
+			if (items.at(i)->type() == MARKER)
+			{
+				Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(i)->text(0).toInt() - 1]->setMethod(method);
+			}
+		}
+	}
 }
 
 void MarkerTreeWidget::action_ResetPoints_triggered(){
