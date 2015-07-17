@@ -7,6 +7,8 @@
 #include <opencv/cv.h>
 
 namespace xma{
+	class Image;
+
 	class MarkerDetection : public QObject{
 
 		Q_OBJECT;
@@ -19,6 +21,8 @@ namespace xma{
 		static bool isRunning(){
 			return (nbInstances > 0);
 		}
+
+		static cv::Point2d detectionPoint(Image* image, int method, cv::Point2d center, int searchArea, int masksize, double threshold = 8, double *size = NULL);
 
 	signals:
 		void detectMarker_finished();
@@ -36,13 +40,11 @@ namespace xma{
 		int m_trial;
 		int m_marker;
 		int m_method;
-		double x, y;
-		double size;
+		double m_x, m_y;
+		double m_size;
 		double m_input_size;
-		uchar thresholOffset;
+		uchar m_thresholdOffset;
 
-		int off_x;
-		int off_y;
 		int m_searchArea;
 		bool m_refinementAfterTracking;
 	};

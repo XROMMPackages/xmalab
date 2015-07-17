@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>313</width>
-    <height>204</height>
+    <height>211</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -84,20 +84,6 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1" colspan="2">
-       <widget class="QComboBox" name="comboBox_Method">
-        <item>
-         <property name="text">
-          <string>default Xray marker</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Blobdetection</string>
-         </property>
-        </item>
-       </widget>
-      </item>
       <item row="1" column="0" colspan="2">
        <widget class="QLabel" name="label">
         <property name="text">
@@ -110,6 +96,25 @@
         <property name="text">
          <string>Threshold offset in percent</string>
         </property>
+       </widget>
+      </item>
+      <item row="0" column="1" colspan="2">
+       <widget class="QComboBox" name="comboBox_Method">
+        <item>
+         <property name="text">
+          <string>default Xray marker</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Blobdetection</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>white marker</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
