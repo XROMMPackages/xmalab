@@ -80,7 +80,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>DetectionMethod</string>
+         <string>Detectionmethod</string>
         </property>
        </widget>
       </item>
