@@ -32,6 +32,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 
 	diag->spinBoxEpiPrecision->setValue(Settings::getInstance()->getIntSetting("EpipolarLinePrecision"));
 	diag->comboBox_TriangulationMethod->setCurrentIndex(Settings::getInstance()->getIntSetting("TriangulationMethod"));
+	diag->comboBox_DetectionMethodForCalibration->setCurrentIndex(Settings::getInstance()->getIntSetting("DetectionMethodForCalibration"));
+
 	initPhase = false;
 }
 
@@ -104,3 +106,16 @@ void SettingsDialog::on_comboBox_TriangulationMethod_currentIndexChanged(int val
 	}
 }
 
+
+
+void SettingsDialog::on_comboBox_DetectionMethodForCalibration_currentIndexChanged(int value)
+{
+	Settings::getInstance()->set("DetectionMethodForCalibration", diag->comboBox_DetectionMethodForCalibration->currentIndex());
+	if (!initPhase)
+	{
+		for (int i = 0; i < Project::getInstance()->getTrials().size(); i++)
+		{
+			Project::getInstance()->getTrials()[i]->update();
+		}
+	}
+}

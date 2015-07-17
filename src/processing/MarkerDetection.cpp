@@ -170,6 +170,43 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		hierarchy.clear();
 		contours.clear();
 	}
+	else if (method == 3)
+	{
+		
+		IplImage* imgGrey = new IplImage(subimage);
+		int w = imgGrey->width;
+		int h = imgGrey->height;
+		IplImage * eig_image = cvCreateImage(cvSize(w, h), IPL_DEPTH_32F, 1);
+		IplImage * temp_image = cvCreateImage(cvSize(w, h), IPL_DEPTH_32F, 1);
+
+		CvPoint2D32f corners[50] = { 0 }; 
+		int corner_count = 50;
+		double quality_level = 0.0001;
+		double min_distance = 3; 
+		int eig_block_size = 7; 
+		int use_harris = true; 
+		cvGoodFeaturesToTrack(imgGrey,eig_image,temp_image,corners,&corner_count,quality_level,min_distance,NULL,eig_block_size,use_harris);
+		
+		int half_win_size = 7;
+		int iteration = 100;
+		double epislon = 0.001;
+		cvFindCornerSubPix(imgGrey, corners, corner_count, cvSize(half_win_size, half_win_size), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, iteration, epislon));
+		
+		double dist_min = searchArea*searchArea;
+		double dist;
+		for(int i = 0; i <corner_count; i ++) {
+			dist = cv::sqrt((corners[i].x - (searchArea + 1)) * (corners[i].x - (searchArea + 1)) + (corners[i].y - (searchArea + 1))*(corners[i].y - (searchArea + 1)));
+			if (dist < dist_min)
+			{
+				point_out.x = off_x + corners[i].x;
+				point_out.y = off_y + corners[i].y;
+				tmp_size = half_win_size*2+1;
+				dist_min = dist;
+			}
+		}
+		cvReleaseImage(&eig_image);
+		cvReleaseImage(&temp_image);
+	}
 	else if (method == 1)
 	{
 		cv::SimpleBlobDetector::Params paramsBlob;
@@ -213,6 +250,7 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 				point_out.x = off_x + keypoints[i].pt.x;
 				point_out.y = off_y + keypoints[i].pt.y;
 				tmp_size = keypoints[i].size;
+				dist_min = dist;
 			}
 		}
 		keypoints.clear();

@@ -34,6 +34,7 @@ Settings::Settings(){
 	
 	//Calibration
 	addBoolSetting("AutoCalibAfterReference", true);
+	addIntSetting("DetectionMethodForCalibration", 0);
 
 	//Digitizing
 	addBoolSetting("CenterDetailView", false);

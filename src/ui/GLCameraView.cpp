@@ -27,6 +27,9 @@
 #include "core/Project.h"
 #include "core/Marker.h"
 #include "core/RigidBody.h"
+#include "core/Settings.h"
+#include "processing/MarkerDetection.h"
+
 
 #include <QMouseEvent>
 
@@ -43,7 +46,6 @@
 	#include <GL/gl.h>
 	#include <GL/glu.h>
 #endif
-#include <core/Settings.h>
 
 
 using namespace xma;
@@ -154,6 +156,17 @@ void GLCameraView::mousePressEvent(QMouseEvent *e)
 			}
 		 }
 		 else if (State::getInstance()->getWorkspace() == CALIBRATION){
+
+			 if(e->modifiers().testFlag(Qt::AltModifier)){
+				int method = Settings::getInstance()->getIntSetting("DetectionMethodForCalibration");
+				if (method > 0)
+				{
+					cv::Point out = MarkerDetection::detectionPoint(camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getImage(), method - 1, cv::Point2d(x, y), 40, 5);
+					x = out.x;
+					y = out.y;
+				}
+			 }
+
 			 if (WizardDockWidget::getInstance()->manualCalibrationRunning()){
 				 WizardDockWidget::getInstance()->addCalibrationReference(x, y);
 				 updateGL();
