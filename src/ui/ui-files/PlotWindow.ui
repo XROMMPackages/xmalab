@@ -306,7 +306,7 @@
          </item>
          <item>
           <property name="text">
-           <string>Backprojection Error</string>
+           <string>Reprojection Error</string>
           </property>
          </item>
          <item>

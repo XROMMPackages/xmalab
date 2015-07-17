@@ -33,7 +33,7 @@ namespace xma{
 		void plot2D(int idx1);
 		void plot3D(int idx1);
 		void plotDistance(int idx1, int idx2);
-		void plotBackProjectionError(int idx1);
+		void plotReprojectionError(int idx1);
 		void plotRigidBody(int idx);
 		void installEventFilterToChildren(QObject* widget);
 

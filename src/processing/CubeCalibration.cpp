@@ -780,7 +780,7 @@ double CubeCalibration::computeProjection(cv::vector<cv::Point2d> pt2d, cv::vect
 		_projection.at<double>(2,2) = f.at<double>(10,0);
 		_projection.at<double>(2,3) = f.at<double>(11,0);
 
-		//compute and return backprojection error
+		//compute and return reprojection error
 		cv::Mat pt4d;
 		pt4d.create(4, 1, CV_64F);
 		cv::Mat pt3di;
@@ -796,7 +796,7 @@ double CubeCalibration::computeProjection(cv::vector<cv::Point2d> pt2d, cv::vect
 			//add error
 			d += euclideanDist(pt2di,pt2d[i]);
 		}
-		//return backprojection error per point
+		//return reprojection error per point
 		return d / pt2d.size();
 	}catch(std::exception e){
 		fprintf(stderr, "Frame::computeProjection : cv::SVD::solveZ Failed with Exception - %s\n",e.what());

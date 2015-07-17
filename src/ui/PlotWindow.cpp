@@ -334,7 +334,7 @@ void PlotWindow::draw(){
 		}
 		else if (dock->comboBoxPlotType->currentIndex() == 3)
 		{
-			plotBackProjectionError(dock->comboBoxMarker1->currentIndex());
+			plotReprojectionError(dock->comboBoxMarker1->currentIndex());
 		}
 		else if (dock->comboBoxPlotType->currentIndex() == 4){
 			plotRigidBody(dock->comboBoxRigidBody->currentIndex());
@@ -403,7 +403,7 @@ void PlotWindow::activePointChanged(int idx)
 			updating = true;
 			dock->comboBoxMarker1->setCurrentIndex(idx);
 			updating = false;
-			plotBackProjectionError(dock->comboBoxMarker1->currentIndex());
+			plotReprojectionError(dock->comboBoxMarker1->currentIndex());
 		}
 	}
 }
@@ -1024,7 +1024,7 @@ void PlotWindow::plotDistance(int idx1, int idx2){
 	}
 }
 
-void PlotWindow::plotBackProjectionError(int idx1)
+void PlotWindow::plotReprojectionError(int idx1)
 {
 	if (this->isVisible()){
 		double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
@@ -1157,7 +1157,7 @@ void PlotWindow::on_comboBoxCamera_currentIndexChanged(int idx)
 		}
 		else if (dock->comboBoxPlotType->currentIndex() == 3)
 		{
-			plotBackProjectionError(dock->comboBoxMarker1->currentIndex());
+			plotReprojectionError(dock->comboBoxMarker1->currentIndex());
 		}
 	}
 }
@@ -1262,7 +1262,7 @@ void PlotWindow::on_comboBoxMarker1_currentIndexChanged(int idx){
 		else if (dock->comboBoxPlotType->currentIndex() == 3)
 		{
 			PointsDockWidget::getInstance()->selectPoint(idx + 1);
-			plotBackProjectionError(dock->comboBoxMarker1->currentIndex());
+			plotReprojectionError(dock->comboBoxMarker1->currentIndex());
 		}
 	}
 }
