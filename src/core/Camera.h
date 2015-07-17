@@ -50,6 +50,9 @@ namespace xma{
 
 		void setCameraMatrix(cv::Mat & _cameramatrix);
 		cv::Mat getCameraMatrix();
+		void setDistortionCoefficiants(cv::Mat & _distortion_coeff);
+		cv::Mat getDistortionCoefficiants();
+		bool hasModelDistortion();
 		cv::Mat getProjectionMatrix(int referenceFrame);
 
 		void setRecalibrationRequired(int value){ requiresRecalibration = value; }
@@ -85,6 +88,8 @@ namespace xma{
 		bool updateInfoRequired;
 
 		cv::Mat cameramatrix;
+		cv::Mat distortion_coeffs;
+		bool model_distortion;
 
 		void paramsToMayaCam(double * out, cv::Mat _camera, cv::Mat _rotation, cv::Mat _translation);
 	};

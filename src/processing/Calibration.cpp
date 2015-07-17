@@ -214,6 +214,10 @@ void Calibration::computeCameraPosesAndCam_thread(){
 		
 		Project::getInstance()->getCameras()[m_camera]->setCameraMatrix(intrinsic_matrix);
 
+		/*if (1){
+			Project::getInstance()->getCameras()[m_camera]->setDistortionCoefficiants(distortion_coeffs);
+		}*/
+
 		cv::Mat rotationvector;
 		cv::Mat translationvector;
 		rotationvector.create(3,1,CV_64F);

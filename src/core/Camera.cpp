@@ -39,6 +39,8 @@ Camera::Camera(QString cameraName, int _id){
 
 	calibrated = false;
 	cameramatrix.create(3, 3, CV_64F);
+	distortion_coeffs.create(8, 1, CV_64F);
+	model_distortion = false;
 	requiresRecalibration = 0;
 	updateInfoRequired = false;
 }
@@ -168,6 +170,24 @@ void Camera::setCameraMatrix(cv::Mat & _cameramatrix){
 
 cv::Mat Camera::getCameraMatrix(){
 	return cameramatrix.clone();
+}
+
+void Camera::setDistortionCoefficiants(cv::Mat& _distortion_coeff)
+{
+	distortion_coeffs = _distortion_coeff.clone();
+	//cv::initUndistortRectifyMap(cameramatrix, distortion_coeffs, cv::Mat(), cameramatrix, cv::Size(width, height), CV_32FC1, undistortionMapX, undistortionMapY);
+	model_distortion = true;
+	undistort();
+}
+
+cv::Mat Camera::getDistortionCoefficiants()
+{
+	return distortion_coeffs;
+}
+
+bool Camera::hasModelDistortion()
+{
+	return model_distortion;
 }
 
 cv::Mat Camera::getProjectionMatrix(int referenceFrame)
