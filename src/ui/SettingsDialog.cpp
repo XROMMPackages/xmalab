@@ -6,6 +6,8 @@
 #include "ui_SettingsDialog.h"
 
 #include "core/Settings.h"
+#include "core/Project.h"
+#include "core/Trial.h"
 
 using namespace xma;
 
@@ -14,6 +16,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 								diag(new Ui::SettingsDialog){
 
 	diag->setupUi(this);
+	initPhase = true;
+	
 	diag->scrollArea_Calibration->hide();
 	diag->scrollArea_Digitizing->hide();
 
@@ -27,6 +31,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 	diag->checkBox_ShowEpiLineDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("ShowEpiLineDetailView"));
 
 	diag->spinBoxEpiPrecision->setValue(Settings::getInstance()->getIntSetting("EpipolarLinePrecision"));
+	diag->comboBox_TriangulationMethod->setCurrentIndex(Settings::getInstance()->getIntSetting("TriangulationMethod"));
+	initPhase = false;
 }
 
 SettingsDialog::~SettingsDialog(){
@@ -85,3 +91,16 @@ void SettingsDialog::on_spinBoxEpiPrecision_valueChanged(int value)
 {
 	Settings::getInstance()->set("EpipolarLinePrecision", diag->spinBoxEpiPrecision->value());
 }
+
+void SettingsDialog::on_comboBox_TriangulationMethod_currentIndexChanged(int value)
+{
+	Settings::getInstance()->set("TriangulationMethod", diag->comboBox_TriangulationMethod->currentIndex());
+	if (!initPhase)
+	{
+		for (int i = 0; i < Project::getInstance()->getTrials().size(); i++)
+		{
+			Project::getInstance()->getTrials()[i]->update();
+		}
+	}
+}
+

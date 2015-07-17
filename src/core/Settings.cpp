@@ -40,6 +40,7 @@ Settings::Settings(){
 	addBoolSetting("AdvancedCrosshairDetailView", false);
 	addBoolSetting("Show3dPointDetailView", false);
 	addBoolSetting("ShowEpiLineDetailView", true);
+	addIntSetting("TriangulationMethod", 1);
 
 	//BlobDetector
 	addFloatSetting("BlobDetectorThresholdStep", 10.0);

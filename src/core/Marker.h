@@ -38,7 +38,12 @@ namespace xma{
 
 		void setPoint(int camera, int activeFrame, double x, double y, markerStatus status);
 		std::vector < cv::Point2d > getEpipolarLine(int cameraOrigin, int CameraDestination, int frame);
-		void reconstruct3DPoint(int frame);
+		void reconstruct3DPoint(int frame); 
+		void reconstruct3DPointZisserman(int frame);
+		void reconstruct3DPointZissermanIncremental(int frame);
+		void reconstruct3DPointZissermanMatlab(int frame);
+		void reconstruct3DPointZissermanIncrementalMatlab(int frame);
+		void reconstruct3DPointRayIntersection(int frame);
 		bool getMarkerPrediction(int camera, int frame, double &x, double &y, bool forward);
 
 		double getSize();

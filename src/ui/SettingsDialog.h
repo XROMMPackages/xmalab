@@ -19,6 +19,7 @@ namespace xma{
 	protected:
 
 	private:
+		bool initPhase;
 
 		public slots :
 		void on_pushButton_General_clicked();
@@ -33,6 +34,7 @@ namespace xma{
 		void on_checkBox_ShowEpiLineDetailWindow_stateChanged(int state);
 
 		void on_spinBoxEpiPrecision_valueChanged(int value);
+		void on_comboBox_TriangulationMethod_currentIndexChanged(int value);
 
 		void on_checkBox_ConfirmQuitXMALab_stateChanged(int state);
 	};

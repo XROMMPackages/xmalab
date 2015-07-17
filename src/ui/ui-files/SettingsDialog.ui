@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>629</width>
+    <width>669</width>
     <height>786</height>
    </rect>
   </property>
@@ -88,7 +88,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>508</width>
+           <width>548</width>
            <height>104</height>
           </rect>
          </property>
@@ -146,7 +146,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>508</width>
+           <width>548</width>
            <height>287</height>
           </rect>
          </property>
@@ -191,12 +191,12 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>508</width>
+           <width>548</width>
            <height>310</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
-          <item row="6" column="0" colspan="2">
+          <item row="7" column="0" colspan="3">
            <spacer name="verticalSpacer_4">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -209,46 +209,34 @@
             </property>
            </spacer>
           </item>
-          <item row="4" column="0">
-           <widget class="QCheckBox" name="checkBox_Show3DPointDetailWindow">
+          <item row="5" column="2">
+           <widget class="QSpinBox" name="spinBoxEpiPrecision">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
-             <string>Show the 3d reconstructed point in the detail window</string>
+            <property name="maximum">
+             <number>999</number>
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox_UseCenteredDetailWindow">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label">
             <property name="text">
-             <string>Always center detail window</string>
+             <string>Triangulation method</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_ShowAdvancedCrosshairDetailWindow">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
+          <item row="5" column="0" colspan="2">
+           <widget class="QLabel" name="labelEpiPrecision">
             <property name="text">
-             <string>Show an advanced crosshair in the detail window</string>
+             <string>Precision for the drawing of an epipolar line</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
+          <item row="3" column="0" colspan="3">
            <widget class="QCheckBox" name="checkBox_ShowEpiLineDetailWindow">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -261,24 +249,72 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="labelEpiPrecision">
-            <property name="text">
-             <string>Precision for the drawing of an epipolar line</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QSpinBox" name="spinBoxEpiPrecision">
+          <item row="4" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_Show3DPointDetailWindow">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="maximum">
-             <number>999</number>
+            <property name="text">
+             <string>Show the 3d reconstructed point in the detail window</string>
             </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_ShowAdvancedCrosshairDetailWindow">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Show an advanced crosshair in the detail window</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_UseCenteredDetailWindow">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Always center detail window</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1" colspan="2">
+           <widget class="QComboBox" name="comboBox_TriangulationMethod">
+            <item>
+             <property name="text">
+              <string>minimal least square reprojection (A*x = 0) </string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>iterative minimal least square reprojection (A*x = 0) </string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>minimal least square reprojection (A*x = B) </string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>iterative minimal least square reprojection (A*x = B) </string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>minimal least square distance to projected view rays</string>
+             </property>
+            </item>
            </widget>
           </item>
          </layout>

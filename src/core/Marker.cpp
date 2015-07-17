@@ -5,6 +5,7 @@
 #include "core/Marker.h"
 #include "core/Project.h"
 #include "core/Camera.h"
+#include "core/CalibrationImage.h"'
 #include "core/Trial.h"
 #include "core/UndistortionObject.h"
 #include "core/HelperFunctions.h"
@@ -173,6 +174,28 @@ bool Marker::getMarkerPrediction(int camera, int frame, double &x, double &y, bo
 
 void Marker::reconstruct3DPoint(int frame)
 {
+	switch (Settings::getInstance()->getIntSetting("TriangulationMethod")){
+	default:
+	case 0:
+		reconstruct3DPointZisserman(frame);
+		break;
+	case 1:
+		reconstruct3DPointZissermanIncremental(frame);
+		break;
+	case 2:
+		reconstruct3DPointZissermanMatlab(frame);
+		break;
+	case 3:
+		reconstruct3DPointZissermanIncrementalMatlab(frame);
+		break;
+	case 4:
+		reconstruct3DPointRayIntersection(frame);
+		break;
+	}
+}
+
+void Marker::reconstruct3DPointZisserman(int frame)
+{
 	int count = 0;
 	for (int i = 0; i < status2D.size(); i++)
 	{
@@ -185,13 +208,13 @@ void Marker::reconstruct3DPoint(int frame)
 		f.create(4, 1, CV_64F);
 
 		cv::Mat A;
-		A.create(3 * count, 4, CV_64F);
+		A.create(2 * count, 4, CV_64F);
 
 		count = 0;
 		for (int i = 0; i < status2D.size(); i++)
 		{
 			if (status2D[i][frame] > 0){
-				
+
 				status = status2D[i][frame] < status ? status2D[i][frame] : status;
 
 				double x, y;
@@ -208,11 +231,11 @@ void Marker::reconstruct3DPoint(int frame)
 				x = pt_trans.x;
 				y = pt_trans.y;
 				cv::Mat projMatrs = Project::getInstance()->getCameras()[i]->getProjectionMatrix(trial->getReferenceCalibrationImage());
+
 				for (int k = 0; k < 4; k++)
 				{
-					A.at<double>(count * 3 + 0, k) = x * projMatrs.at<double>(2, k) - projMatrs.at<double>(0, k);
-					A.at<double>(count * 3 + 1, k) = y * projMatrs.at<double>(2, k) - projMatrs.at<double>(1, k);
-					A.at<double>(count * 3 + 2, k) = x * projMatrs.at<double>(1, k) - y * projMatrs.at<double>(0, k);
+					A.at<double>(count * 2 + 0, k) = x * projMatrs.at<double>(2, k) - projMatrs.at<double>(0, k);
+					A.at<double>(count * 2 + 1, k) = y * projMatrs.at<double>(2, k) - projMatrs.at<double>(1, k);
 				}
 				count++;
 			}
@@ -226,13 +249,357 @@ void Marker::reconstruct3DPoint(int frame)
 			points3D[frame].z = f.at<double>(2, 0) / w;
 			status3D[frame] = status;
 
-			//fprintf(stderr, "Point %lf %lf %lf\n", points3D[frame].x, points3D[frame].y, points3D[frame].z);
-
 			reprojectPoint(frame);
 		}
 	}
 
-	trial->resetRigidBodyByMarker(this,frame);
+	trial->resetRigidBodyByMarker(this, frame);
+}
+
+
+void Marker::reconstruct3DPointZissermanIncremental(int frame)
+{
+	int count = 0;
+	for (int i = 0; i < status2D.size(); i++)
+	{
+		if (status2D[i][frame] > 0) count++;
+	}
+
+	if (count >= 2){
+		markerStatus status = MANUAL_REFINED;
+		cv::Mat f;
+		f.create(3, 1, CV_64F);
+
+		cv::Mat A;
+		A.create(2 * count, 4, CV_64F);
+
+		cv::Mat w;
+		w.create(count, 1, CV_64F);
+		w = cv::Mat::ones(count, 1, CV_64F);
+
+		double w_old = 1;
+		bool stop;
+		double eps = 0.0000001;
+
+		for (int j = 0; j < 10; j++){
+			count = 0;
+			stop = true;
+			for (int i = 0; i < status2D.size(); i++)
+			{
+				if (status2D[i][frame] > 0){
+
+					status = status2D[i][frame] < status ? status2D[i][frame] : status;
+
+					double x, y;
+					cv::Point2d pt_trans;
+					if (Project::getInstance()->getCameras()[i]->hasUndistortion())
+					{
+						pt_trans = Project::getInstance()->getCameras()[i]->getUndistortionObject()->transformPoint(points2D[i][frame], true);
+					}
+					else
+					{
+						pt_trans = points2D[i][frame];
+					}
+
+					x = pt_trans.x;
+					y = pt_trans.y;
+					cv::Mat projMatrs = Project::getInstance()->getCameras()[i]->getProjectionMatrix(trial->getReferenceCalibrationImage());
+					
+					if (j != 0) {
+						w_old = w.at<double>(count, 0);
+						w.at<double>(count, 0) = f.at<double>(0, 0) * projMatrs.at<double>(2, 0) + f.at<double>(1, 0) * projMatrs.at<double>(2, 1) + f.at<double>(2, 0) * projMatrs.at<double>(2, 2) + f.at<double>(3, 0) *projMatrs.at<double>(2, 3);
+						stop = (fabs(w.at<double>(count, 0) - w_old) < eps) ? stop : false;
+						//std::cerr << fabs(w.at<double>(count, 0) - w_old) << " " << w.at<double>(count, 0) << " " << w_old << std::endl;
+					}
+					else
+					{
+						stop = false;
+					}
+
+					for (int k = 0; k < 4; k++)
+					{
+						A.at<double>(count * 2 + 0, k) = (x * projMatrs.at<double>(2, k) - projMatrs.at<double>(0, k)) / w.at<double>(count, 0);
+						A.at<double>(count * 2 + 1, k) = (y * projMatrs.at<double>(2, k) - projMatrs.at<double>(1, k)) / w.at<double>(count, 0);
+					}
+					count++;
+				}
+			}
+
+			if (stop){ break; }
+
+			cv::SVD::solveZ(A, f);
+			//std::cerr << j << " " << f << std::endl;
+		}
+
+		if (f.at<double>(3, 0) != 0.0){
+			points3D[frame].x = f.at<double>(0, 0) / f.at<double>(3, 0);
+			points3D[frame].y = f.at<double>(1, 0) / f.at<double>(3, 0);
+			points3D[frame].z = f.at<double>(2, 0) / f.at<double>(3, 0);
+			status3D[frame] = status;
+
+			reprojectPoint(frame);
+		}
+
+		reprojectPoint(frame);
+	}
+
+	trial->resetRigidBodyByMarker(this, frame);
+}
+
+
+void Marker::reconstruct3DPointZissermanMatlab(int frame)
+{
+	int count = 0;
+	for (int i = 0; i < status2D.size(); i++)
+	{
+		if (status2D[i][frame] > 0) count++;
+	}
+
+	if (count >= 2){
+		markerStatus status = MANUAL_REFINED;
+		cv::Mat f;
+		f.create(3, 1, CV_64F);
+
+		cv::Mat A;
+		A.create(2 * count, 3, CV_64F);
+		cv::Mat B;
+		B.create(2 * count, 1, CV_64F);
+
+		count = 0;
+		for (int i = 0; i < status2D.size(); i++)
+		{
+			if (status2D[i][frame] > 0){
+
+				status = status2D[i][frame] < status ? status2D[i][frame] : status;
+
+				double x, y;
+				cv::Point2d pt_trans;
+				if (Project::getInstance()->getCameras()[i]->hasUndistortion())
+				{
+					pt_trans = Project::getInstance()->getCameras()[i]->getUndistortionObject()->transformPoint(points2D[i][frame], true);
+				}
+				else
+				{
+					pt_trans = points2D[i][frame];
+				}
+
+				x = pt_trans.x;
+				y = pt_trans.y;
+				cv::Mat projMatrs = Project::getInstance()->getCameras()[i]->getProjectionMatrix(trial->getReferenceCalibrationImage());
+
+				projMatrs /= projMatrs.at<double>(2, 3);
+
+				for (int k = 0; k < 3; k++)
+				{
+					A.at<double>(count * 2, k) = x * projMatrs.at<double>(2, k) - projMatrs.at<double>(0, k);
+					A.at<double>(count * 2 + 1, k) = y * projMatrs.at<double>(2, k) - projMatrs.at<double>(1, k);
+				}
+				B.at<double>(count * 2, 0) = projMatrs.at<double>(0, 3) - x;
+				B.at<double>(count * 2 + 1, 0) = projMatrs.at<double>(1, 3) - y;
+
+				count++;
+			}
+		}
+
+		cv::solve(A, B, f, cv::DECOMP_SVD);
+
+		points3D[frame].x = f.at<double>(0, 0);
+		points3D[frame].y = f.at<double>(1, 0);
+		points3D[frame].z = f.at<double>(2, 0);
+		status3D[frame] = status;
+
+		reprojectPoint(frame);
+	}
+
+	trial->resetRigidBodyByMarker(this, frame);
+}
+
+void Marker::reconstruct3DPointZissermanIncrementalMatlab(int frame)
+{
+	int count = 0;
+	for (int i = 0; i < status2D.size(); i++)
+	{
+		if (status2D[i][frame] > 0) count++;
+	}
+
+	if (count >= 2){
+		markerStatus status = MANUAL_REFINED;
+		cv::Mat f;
+		f.create(3, 1, CV_64F);
+
+		cv::Mat A;
+		A.create(2 * count, 3, CV_64F);
+		cv::Mat B;
+		B.create(2 * count, 1, CV_64F);
+		cv::Mat w;
+		w.create(count, 1, CV_64F);
+		w = cv::Mat::ones(count, 1, CV_64F);
+		double w_old = 1;
+		bool stop;
+		double eps = 0.0000001;
+		for (int j = 0; j < 10; j++){
+			count = 0;
+			stop = true;
+			for (int i = 0; i < status2D.size(); i++)
+			{
+				if (status2D[i][frame] > 0){
+
+					status = status2D[i][frame] < status ? status2D[i][frame] : status;
+
+					double x, y;
+					cv::Point2d pt_trans;
+					if (Project::getInstance()->getCameras()[i]->hasUndistortion())
+					{
+						pt_trans = Project::getInstance()->getCameras()[i]->getUndistortionObject()->transformPoint(points2D[i][frame], true);
+					}
+					else
+					{
+						pt_trans = points2D[i][frame];
+					}
+
+					x = pt_trans.x;
+					y = pt_trans.y;
+					cv::Mat projMatrs = Project::getInstance()->getCameras()[i]->getProjectionMatrix(trial->getReferenceCalibrationImage());
+					projMatrs /= projMatrs.at<double>(2, 3);
+
+					if (j != 0) {
+						w_old = w.at<double>(count, 0);
+						w.at<double>(count, 0) = f.at<double>(0, 0) * projMatrs.at<double>(2, 0) + f.at<double>(1, 0) * projMatrs.at<double>(2, 1) + f.at<double>(2, 0) * projMatrs.at<double>(2, 2) + projMatrs.at<double>(2, 3);
+						stop = (fabs(w.at<double>(count, 0) - w_old) < eps) ? stop : false;
+						//std::cerr << fabs(w.at<double>(count, 0) - w_old) << " " << w.at<double>(count, 0) << " " << w_old << std::endl;
+					}
+					else
+					{
+						stop = false;
+					}
+
+					for (int k = 0; k < 3; k++)
+					{
+						A.at<double>(count * 2, k) = (x * projMatrs.at<double>(2, k) - projMatrs.at<double>(0, k)) / w.at<double>(count, 0);
+						A.at<double>(count * 2 + 1, k) = (y * projMatrs.at<double>(2, k) - projMatrs.at<double>(1, k)) / w.at<double>(count, 0);
+					}
+					B.at<double>(count * 2, 0) = (projMatrs.at<double>(0, 3) - x) / w.at<double>(count, 0);
+					B.at<double>(count * 2 + 1, 0) = (projMatrs.at<double>(1, 3) - y) / w.at<double>(count, 0);
+					
+					count++;
+				}
+			}
+
+			if (stop){ break; }
+
+			cv::solve(A, B, f, cv::DECOMP_SVD);
+			//std::cerr << j << " " << f << std::endl;
+		}
+
+		points3D[frame].x = f.at<double>(0, 0);
+		points3D[frame].y = f.at<double>(1, 0);
+		points3D[frame].z = f.at<double>(2, 0);
+		status3D[frame] = status;
+
+		reprojectPoint(frame);
+	}
+
+	trial->resetRigidBodyByMarker(this, frame);
+}
+
+void Marker::reconstruct3DPointRayIntersection(int frame)
+{
+	int count = 0;
+	for (int i = 0; i < status2D.size(); i++)
+	{
+		if (status2D[i][frame] > 0) count++;
+	}
+
+	if (count >= 2){
+		markerStatus status = MANUAL_REFINED;
+		cv::Mat f;
+		f.create(3, 1, CV_64F);
+
+		cv::Mat A;
+		A.create(3, 3, CV_64F);
+		A= cv::Mat::zeros(3, 3, CV_64F);
+
+		cv::Mat B;
+		B.create(3, 1, CV_64F);
+		B = cv::Mat::zeros(3, 1, CV_64F);
+
+		cv::Mat P_inv;
+		P_inv.create(4, 4, CV_64F);
+
+		cv::Mat tmp1 = (cv::Mat_<double>(1, 4) << 0, 0, 0, 1);
+		cv::Mat tmp2 = (cv::Mat_<double>(4, 1) << 0, 0, 0, 1);
+		cv::Mat tmp3;
+		cv::Mat origin;
+		origin.create(1, 4, CV_64F);
+		cv::Mat dir;
+		dir.create(1, 4, CV_64F);
+
+		count = 0;
+		for (int i = 0; i < status2D.size(); i++)
+		{
+			if (status2D[i][frame] > 0){
+
+				status = status2D[i][frame] < status ? status2D[i][frame] : status;
+
+				double x, y;
+				cv::Point2d pt_trans;
+				if (Project::getInstance()->getCameras()[i]->hasUndistortion())
+				{
+					pt_trans = Project::getInstance()->getCameras()[i]->getUndistortionObject()->transformPoint(points2D[i][frame], true);
+				}
+				else
+				{
+					pt_trans = points2D[i][frame];
+				}
+
+				x = pt_trans.x;
+				y = pt_trans.y;
+				
+				cv::vconcat(Project::getInstance()->getCameras()[i]->getProjectionMatrix(trial->getReferenceCalibrationImage()), tmp1, P_inv);
+				cv::invert(P_inv, P_inv);
+			    tmp3 = (cv::Mat_<double>(4, 1) << x, y, 1, 1);
+
+				origin = P_inv * tmp2;
+				dir = P_inv * tmp3 - origin;
+				dir = dir / cv::norm(dir);
+
+				double t11 = 1 - dir.at<double>(0, 0) * dir.at<double>(0, 0);
+				double t22 = 1 - dir.at<double>(0, 1) * dir.at<double>(0, 1);
+				double t33 = 1 - dir.at<double>(0, 2) * dir.at<double>(0, 2);
+				double t12 = - dir.at<double>(0, 0) * dir.at<double>(0, 1);
+				double t13 = - dir.at<double>(0, 0) * dir.at<double>(0, 2);
+				double t23 = - dir.at<double>(0, 1) * dir.at<double>(0, 2);
+
+				A.at<double>(0, 0) += t11;
+				A.at<double>(0, 1) += t12;
+				A.at<double>(0, 2) += t13;
+
+				A.at<double>(1, 0) += t12;
+				A.at<double>(1, 1) += t22;
+				A.at<double>(1, 2) += t23;
+
+				A.at<double>(2, 0) += t13;
+				A.at<double>(2, 1) += t23;
+				A.at<double>(2, 2) += t33;
+
+				B.at<double>(0, 0) += t11 * origin.at<double>(0, 0) + t12 * origin.at<double>(0, 1) + t13 * origin.at<double>(0, 2);
+				B.at<double>(0, 1) += t12 * origin.at<double>(0, 0) + t22 * origin.at<double>(0, 1) + t23 * origin.at<double>(0, 2);
+				B.at<double>(0, 2) += t13 * origin.at<double>(0, 0) + t23 * origin.at<double>(0, 1) + t33 * origin.at<double>(0, 2);
+
+				count++;
+			}
+		}
+		cv::solve(A, B, f, cv::DECOMP_SVD);
+
+		points3D[frame].x = f.at<double>(0, 0);
+		points3D[frame].y = f.at<double>(1, 0);
+		points3D[frame].z = f.at<double>(2, 0);
+		status3D[frame] = status;
+
+		reprojectPoint(frame);
+	}
+
+	trial->resetRigidBodyByMarker(this, frame);
 }
 
 double Marker::getSize()
