@@ -1051,14 +1051,19 @@ void PlotWindow::plotReprojectionError(int idx1)
 			
 			if (dock->comboBoxCamera->currentIndex() == 0)
 			{
+				int count;
+				bool set;
+				double error_val;
 				for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
 				{
-					bool set = false;
-					double error_val = 0;
+					set = false;
+					error_val = 0;
+					count = 0;
 					for (int cam = 0; cam < Project::getInstance()->getCameras().size(); cam++){
 						if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus2D()[cam][i] > UNDEFINED &&
 							Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED)
 						{
+							count++;
 							error_val += Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getError2D()[cam][i];
 							set = true;
 						}
@@ -1066,7 +1071,7 @@ void PlotWindow::plotReprojectionError(int idx1)
 
 					if (set)
 					{
-						error.push_back(error_val);
+						error.push_back(error_val/count);
 						pos.push_back(i * posMultiplier + posOffset);
 						if (error[pos.size() - 1] > max_val) max_val = error[pos.size() - 1];
 						if (error[pos.size() - 1] < min_val) min_val = error[pos.size() - 1];
