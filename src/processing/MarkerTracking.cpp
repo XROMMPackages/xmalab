@@ -27,7 +27,7 @@ m_camera(camera), m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to)
 	size = (int) (Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getSize() + 0.5);
 	size = (size < 5) ? 5 : size;
 
-	Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[m_camera]->getImage()->getSubImage(templ, size + 3, x_from + 0.5, y_from + 0.5);
+	Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[m_camera]->getImage()->getSubImage(templ, size + 3, x_from , y_from);
 	maxPenalty = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMaxPenalty();
 #ifdef WRITEIMAGES
 	fprintf(stderr, "Start Track Marker : Camera %d Pos %lf %lf Size %d\n", camera, x_from, y_from,size);
