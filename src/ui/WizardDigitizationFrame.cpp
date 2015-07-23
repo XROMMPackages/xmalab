@@ -294,12 +294,12 @@ void WizardDigitizationFrame::trackAllFinished()
 
 void WizardDigitizationFrame::checkIfValid()
 {
-
 	bool valid = true;
 	if (trackType == 1)
 	{
 		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
-			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED){
+			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED &&
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getMethod() != 6){
 				valid = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->isValid(i, State::getInstance()->getActiveFrameTrial()) && valid;
 			}
 		}
@@ -309,14 +309,15 @@ void WizardDigitizationFrame::checkIfValid()
 	{
 		for (int j = 0; j < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(); j++){
 			for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
-				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED){
+				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED &&
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getMethod() != 6){
 					valid = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->isValid(i, State::getInstance()->getActiveFrameTrial()) && valid;
 				}
 			}
 		}
 	}
 
-	if (!valid)
+	if (!valid && trackType == 1)
 	{
 		uncheckTrackButtons();
 	}
