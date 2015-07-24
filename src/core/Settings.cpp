@@ -42,6 +42,7 @@ Settings::Settings(){
 	addBoolSetting("Show3dPointDetailView", false);
 	addBoolSetting("ShowEpiLineDetailView", true);
 	addIntSetting("TriangulationMethod", 1);
+	addFloatSetting("MaximumReprojectionError", 5.0);
 
 	//BlobDetector
 	addFloatSetting("BlobDetectorThresholdStep", 10.0);

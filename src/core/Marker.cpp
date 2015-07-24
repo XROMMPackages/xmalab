@@ -827,6 +827,11 @@ bool Marker::isValid(int camera, int frame)
 		reset(camera, frame);
 		return false;
 	}
+	if (error2D[camera][frame] > Settings::getInstance()->getFloatSetting("MaximumReprojectionError"))
+	{
+		for (int c = 0; c < Project::getInstance()->getCameras().size(); c ++)	reset(c, frame);
+		return false;
+	}
 	return true;
 }
 

@@ -37,6 +37,7 @@ namespace xma{
 		void on_comboBox_TriangulationMethod_currentIndexChanged(int value);
 		void on_comboBox_DetectionMethodForCalibration_currentIndexChanged(int value);
 		void on_checkBox_ConfirmQuitXMALab_stateChanged(int state);
+		void on_doubleSpinBox_MaxError_valueChanged(double value);
 	};
 }
 #endif  // SETTINGSDIALOG_H

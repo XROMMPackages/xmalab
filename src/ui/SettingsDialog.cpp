@@ -33,7 +33,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 	diag->spinBoxEpiPrecision->setValue(Settings::getInstance()->getIntSetting("EpipolarLinePrecision"));
 	diag->comboBox_TriangulationMethod->setCurrentIndex(Settings::getInstance()->getIntSetting("TriangulationMethod"));
 	diag->comboBox_DetectionMethodForCalibration->setCurrentIndex(Settings::getInstance()->getIntSetting("DetectionMethodForCalibration"));
-
+	diag->doubleSpinBox_MaxError->setValue(Settings::getInstance()->getFloatSetting("MaximumReprojectionError"));
 	initPhase = false;
 }
 
@@ -77,6 +77,11 @@ void SettingsDialog::on_checkBox_ShowAdvancedCrosshairDetailWindow_stateChanged(
 void SettingsDialog::on_checkBox_ConfirmQuitXMALab_stateChanged(int state)
 {
 	Settings::getInstance()->set("ConfirmQuitXMALab", diag->checkBox_ConfirmQuitXMALab->isChecked());
+}
+
+void SettingsDialog::on_doubleSpinBox_MaxError_valueChanged(double value)
+{
+	Settings::getInstance()->set("MaximumReprojectionError", diag->spinBoxEpiPrecision->value());
 }
 
 void SettingsDialog::on_checkBox_Show3DPointDetailWindow_stateChanged(int state)
