@@ -805,7 +805,7 @@ bool Marker::isValid(int camera, int frame)
 		return false;
 	}
 
-	if (markerSize[camera][frame] >50)
+	if (markerSize[camera][frame] > 50)
 	{
 		reset(camera, frame);
 		return false;

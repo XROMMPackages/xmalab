@@ -21,6 +21,16 @@ using namespace xma;
 
 int MarkerDetection::nbInstances = 0;
 
+#ifndef sign
+#define sign(a) ((a>=0)?1:(-1))
+#endif
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+#ifndef M_PI
+#define M_PI (3.14159265358979323846)
+#endif
+
 MarkerDetection::MarkerDetection(int camera, int trial, int frame, int marker, double searcharea, bool refinementAfterTracking) :QObject(){
 	nbInstances++;
 	m_camera = camera;
@@ -76,9 +86,9 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 #ifdef WRITEIMAGES
 	cv::imwrite("Det_original.png", subimage);
 #endif
-	if (method == 0 || method == 2){
+	if (method == 0 || method == 2 || method == 4 || method == 5){
 
-		if (method == 2) subimage = cv::Scalar::all(255) - subimage;
+		if (method == 2 || method == 5) subimage = cv::Scalar::all(255) - subimage;
 
 		//Convert To float
 		cv::Mat img_float;
@@ -255,7 +265,7 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		}
 		keypoints.clear();
 	}
-
+	
 	subimage.release();
 
 if (size != NULL)
@@ -267,8 +277,11 @@ if (size != NULL)
 }
 
 void MarkerDetection::detectMarker_thread(){
+	if (m_method == 6) return;
 
-	cv::Point pt = detectionPoint(Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[m_camera]->getImage(), m_method, cv::Point2d(m_x, m_y), m_searchArea, m_input_size, m_thresholdOffset,&m_size);
+	cv::Point2d pt = detectionPoint(Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[m_camera]->getImage(), m_method, cv::Point2d(m_x, m_y), m_searchArea, m_input_size, m_thresholdOffset,&m_size);
+	
+	if (m_method == 4 || m_method == 5) refinePointPolynomialFit(pt, m_size, (m_method == 4), m_camera,m_trial);
 
 	m_x = pt.x;
 	m_y = pt.y;
@@ -285,4 +298,228 @@ void MarkerDetection::detectMarker_threadFinished(){
 		emit detectMarker_finished();
 	}
 	delete this;
+}
+
+void MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_out, bool darkMarker, int camera, int trial)
+{
+	double limmult = 1.6; //multiplies size of box around particle for fitting -- not a sensitive parameter - should be slightly over one... say 1.6
+	double maskmult = 1; //multiplies fall - off of weighting exponential in fine fit  -- should be about 1.0
+	double improverthresh = 0.5; //repeat centre refinement cycle if x or y correction is greater than improverthresh
+	bool subpixpeak = true;
+
+	double skewness;
+	double J;
+	double eccentricity;
+	double rotation;
+
+	double radius = radius_out;
+	double x = pt.x;
+	double y = pt.y;
+
+	//std::cerr << "radius " << radius << std::endl;
+	//std::cerr << "Pt " << x << " " << y << std::endl;
+
+	//repeat subpixel correction until satisfactory
+	int	doextracycles = 3;
+	bool stillgood = true;
+	int refinementcount = 0;
+	double maxrefinements = limmult*radius / improverthresh; //if it takes more than maxrefinements to find centre correction, then move on
+
+	while (stillgood && (doextracycles > 0)){
+		refinementcount = refinementcount + 1;
+		double w = (int)(limmult*radius + 0.5);
+
+		//preprocess image
+		int off_x = (int)(x - w + 0.5);
+		int off_y = (int)(y - w + 0.5);
+
+		//preprocess image
+		cv::Mat subimage;
+		Project::getInstance()->getTrials()[trial]->getVideoStreams()[camera]->getImage()->getSubImage(subimage, w, off_x, off_y);
+		if (subimage.cols*subimage.rows < 15) {
+			//std::cerr << "Too small" << std::endl;
+			return;
+		}
+
+		cv::Mat A;
+		A.create(subimage.cols*subimage.rows, 15, CV_64F);
+		cv::Mat  B;
+		B.create(subimage.cols*subimage.rows, 1, CV_64F);
+		cv::Mat p;
+		p.create(15, 1, CV_64F);
+
+		int count = 0;
+		double tmpx, tmpy, tmpw;
+		for (int j = 0; j < subimage.cols; j++)
+		{
+			for (int i = 0; i < subimage.rows; i++)
+			{
+				tmpx = off_x - x + j;
+				tmpy = off_y - y + i;
+				tmpw = exp(-(tmpx*tmpx + tmpy*tmpy) / (radius*radius * maskmult));
+				if (darkMarker)
+				{
+					B.at<double>(count, 0) = tmpw* (255 - subimage.at<uchar>(i, j));
+				}
+				else
+				{
+					B.at<double>(count, 0) = tmpw* (subimage.at<uchar>(i, j));
+				}
+				A.at<double>(count, 0) = tmpw;
+				int ocol = 1;
+				for (int order = 1; order <= 4; order++)
+				{
+					for (int ocol2 = ocol; ocol2 < ocol + order; ocol2++)
+					{
+						//std::cerr  << ocol2 << ": Add X to " << ocol2 - order << std::endl;
+						A.at<double>(count, ocol2) = tmpx * A.at<double>(count, ocol2 - order);
+					}
+					ocol = ocol + order;
+					//std::cerr << ocol << ": Add Y to " << ocol - order - 1 << std::endl;
+					A.at<double>(count, ocol) = tmpy * A.at<double>(count, ocol - order - 1);
+					ocol++;
+				}
+				count++;
+			}
+		}
+
+		cv::solve(A, B, p, cv::DECOMP_QR);
+
+		cv::Mat quadric;
+		quadric.create(subimage.size(), CV_64F);
+
+		double val[6];
+		double val2;
+		for (int j = 0; j < subimage.cols; j++)
+		{
+			for (int i = 0; i < subimage.rows; i++)
+			{
+				tmpx = off_x - x + j;
+				tmpy = off_y - y + i;
+
+				val[0] = 1;
+				int ocol = 1;
+				for (int order = 1; order <= 2; order++)
+				{
+					for (int ocol2 = ocol; ocol2 < ocol + order; ocol2++)
+					{
+						val[ocol2] = tmpx * val[ocol2 - order];
+					}
+					ocol = ocol + order;
+					val[ocol] = tmpy * val[ocol - order - 1];
+					ocol++;
+				}
+
+				val2 = 0;
+				for (int o = 0; o < 6; o++)
+				{
+					val2 += val[o] * p.at<double>(o, 0);
+				}
+				quadric.at<double>(i, j) = val2;
+			}
+		}
+
+		double a = p.at<double>(3, 0);
+		double b = p.at<double>(4, 0) / 2.0;
+		double c = p.at<double>(5, 0);
+		double d = p.at<double>(1, 0) / 2.0;
+		double f = p.at<double>(2, 0) / 2.0;
+		double g = p.at<double>(0, 0);
+
+		J = a*c - b*b;
+		double xc = (b*f - c*d) / J;
+		double yc = (b*d - a*f) / J;
+
+		x = x + sign(xc)*min(abs(xc), improverthresh);
+		y = y + sign(yc)*min(abs(yc), improverthresh);
+
+		rotation = 0.5*(M_PI / 2.0 - atan((c - a) / 2 / b) + (a - c < 0)) * M_PI / 2.0;
+		double ct = cos(rotation);
+		double st = sin(rotation);
+		double P1 = p.at<double>(10, 0)*pow(ct, 4) - p.at<double>(11, 0)*pow(ct, 3) * st + p.at<double>(12, 0)*ct*ct * st*st - p.at<double>(13, 0)*ct*pow(st, 3) + p.at<double>(14, 0)*pow(st, 4);
+		double P2 = p.at<double>(10, 0)*pow(st, 4) + p.at<double>(11, 0)*pow(st, 3) * ct + p.at<double>(12, 0)*st*st * ct*ct + p.at<double>(13, 0)*st*pow(ct, 3) + p.at<double>(14, 0)*pow(ct, 4);
+		double Q1 = p.at<double>(3, 0)*ct*ct - p.at<double>(4, 0)*ct*st + p.at<double>(5, 0)*st*st;
+		double Q2 = p.at<double>(3, 0)*st*st + p.at<double>(4, 0)*st*ct + p.at<double>(5, 0)*ct*ct;
+		radius = abs(sqrt(sqrt(Q1*Q2 / P1 / P2 / 36))); //geometric mean
+
+		stillgood = (refinementcount <= maxrefinements) && (J>0); //if not still good, stop at once...
+		bool improverswitch = (abs(xc) > improverthresh) || (abs(yc) > improverthresh);  //check if xc, yc above thresh or extra cycles required
+		doextracycles -= (!improverswitch) ? 1 : 0; //if still good and improverswitch turns off, do extra cycles
+
+		if (!stillgood || doextracycles == 0)
+		{
+			double semiaxes1 = sqrt(2 * (a*f*f + c*d*d + g*b*b - 2 * b*d*f - a*c*g) / -J / ((a - c)*sqrt(1 + 4 * b*b / ((a - c)*(a - c))) - c - a));
+			double semiaxes2 = sqrt(2 * (a*f*f + c*d*d + g*b*b - 2 * b*d*f - a*c*g) / -J / ((c - a)*sqrt(1 + 4 * b*b / ((a - c)*(a - c))) - c - a));
+			if (semiaxes1 > semiaxes2)
+			{
+				double tmpaxis = semiaxes1;
+				semiaxes1 = semiaxes2;
+				semiaxes2 = tmpaxis;
+			}
+			eccentricity = sqrt(1 - (semiaxes1*semiaxes1) / (semiaxes2*semiaxes2));
+
+			skewness = (abs(p.at<double>(6, 0)) + abs(p.at<double>(7, 0)) + abs(p.at<double>(8, 0)) + abs(p.at<double>(9, 0)))*radius / J;
+
+			if (!subpixpeak){
+				//calculate sub - pixel corrections based on centroid of image within particle
+				double xedge = 2 * radius / sqrt(pow(cos(rotation), 2) + pow(sin(rotation), 2) / (1 - eccentricity*eccentricity)) / (1 + sqrt(1 - eccentricity*eccentricity));
+				cv::Mat inparticle;
+				inparticle.create(quadric.size(), CV_8UC1);
+				for (int j = 0; j < quadric.cols; j++)
+				{
+					for (int i = 0; i < quadric.rows; i++)
+					{
+						inparticle.at<char>(i, j) = (quadric.at<double>(i, j) > a*xedge*xedge + 2 * d*xedge + g) ? 1 : 0;
+					}
+				}
+				cv::Mat weight;
+				weight.create(quadric.size(), CV_64F);
+				double sumweight = 0;
+				double sumx = 0;
+				double sumy = 0;
+				double tmpWeight;
+				for (int j = 0; j < quadric.cols; j++)
+				{
+					for (int i = 0; i < quadric.rows; i++)
+					{
+						tmpx = off_x - x + j;
+						tmpy = off_y - y + i;
+						tmpw = exp(-(tmpx*tmpx + tmpy*tmpy) / (radius*radius * maskmult));
+						tmpWeight = tmpw * inparticle.at<char>(i, j) * subimage.at<char>(i, j);
+						weight.at<double>(i, j) = tmpWeight;
+						sumweight += tmpWeight;
+						sumx += tmpx * tmpWeight;
+						sumy += tmpy * tmpWeight;
+					}
+				}
+				if (sumweight != 0.0){
+					xc = sumx / sumweight;
+					yc = sumx / sumweight;
+				}
+
+				x = x + xc;
+				y = y + yc;
+
+				weight.release();
+				inparticle.release();
+			}
+		}
+
+		p.release();
+		B.release();
+		subimage.release();
+		A.release();
+	}
+
+	if (!isnan(radius) && !isnan(x) && !isnan(y)){
+		pt.y = y;
+		pt.x = x;
+		radius_out = radius;
+	}
+	//std::cerr << "J " << J << std::endl;
+	//std::cerr << "skewness " << skewness << std::endl;
+	//std::cerr << "eccentricity " << eccentricity << std::endl;
+	//std::cerr << "rotation " << rotation << std::endl;
+	//std::cerr << "radius " << radius << std::endl;
+	//std::cerr << "Pt " << x << " " << y << std::endl;
 }

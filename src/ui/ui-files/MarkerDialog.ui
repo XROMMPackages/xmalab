@@ -115,6 +115,26 @@
           <string>white marker</string>
          </property>
         </item>
+        <item>
+         <property name="text">
+          <string>corner detection</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>default + polyomial fitting</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>white + polynomial fitting</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>no detection</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
@@ -179,7 +199,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../../../Undistortion/src/ui/ui-files/resources.qrc"/>
+  <include location="../calibrationtool_resources.qrc"/>
   <include location="../calibrationtool_resources.qrc"/>
  </resources>
  <connections/>

@@ -23,6 +23,7 @@ namespace xma{
 		QAction * action_ResetPoints;
 		QAction * action_DeletePoints;
 		QAction * action_ChangeDetectionMethod;
+		QAction * action_RefinePointsPolynomialFit;
 
 		QTreeWidgetItem* item_contextMenu;
 
@@ -36,6 +37,7 @@ namespace xma{
 		void action_ResetPoints_triggered();
 		void action_DeletePoints_triggered();
 		void action_ChangeDetectionMethod_triggered();
+		void action_RefinePointsPolynomialFit_triggered();
 
 		public slots:
 		void onItemCollapsed(QTreeWidgetItem * item);
