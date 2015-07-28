@@ -81,7 +81,7 @@ void SettingsDialog::on_checkBox_ConfirmQuitXMALab_stateChanged(int state)
 
 void SettingsDialog::on_doubleSpinBox_MaxError_valueChanged(double value)
 {
-	Settings::getInstance()->set("MaximumReprojectionError", diag->spinBoxEpiPrecision->value());
+	Settings::getInstance()->set("MaximumReprojectionError", (float) diag->doubleSpinBox_MaxError->value());
 }
 
 void SettingsDialog::on_checkBox_Show3DPointDetailWindow_stateChanged(int state)
