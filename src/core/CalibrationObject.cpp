@@ -117,12 +117,21 @@ void CalibrationObject::setCheckerboard(int _nbHorizontalSquares, int _nbVertica
 	nbHorizontalSquares = _nbHorizontalSquares;
 	nbVerticalSquares = _nbVerticalSquares;
     squareSize = _squareSize;
-
 	planar = true;
-	frameSpecifications.clear();
+
 	referenceIDs.clear();
 	referenceNames.clear();
+	frameSpecifications.clear();
 
+	//for (int y = nbVerticalSquares - 1; y >=0 ; y--)
+	for (int y = 0; y < nbVerticalSquares; y++)
+	{
+		for (int x = 0; x < _nbHorizontalSquares; x++){
+			frameSpecifications.push_back(cv::Point3d(x* squareSize, y  * squareSize, 0));
+			//std::cerr << x* squareSize << " " << y  * squareSize << std::endl;
+		}
+	}
+	
 
 
 	initialised = true;

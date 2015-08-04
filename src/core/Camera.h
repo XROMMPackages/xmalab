@@ -44,15 +44,21 @@ namespace xma{
 		void loadTextures();
 
 		void undistort();
+		cv::Point2d undistortPoint(cv::Point2d pt, bool undistort);
+		cv::Point2d applyModelDistortion(cv::Point2d pt, bool undistort);
 
 		void setCalibrated(bool value);
 		bool isCalibrated(){ return calibrated; }
 
 		void setCameraMatrix(cv::Mat & _cameramatrix);
 		cv::Mat getCameraMatrix();
+
 		void setDistortionCoefficiants(cv::Mat & _distortion_coeff);
+		void resetDistortion();
+
 		cv::Mat getDistortionCoefficiants();
 		bool hasModelDistortion();
+		
 		cv::Mat getProjectionMatrix(int referenceFrame);
 
 		void setRecalibrationRequired(int value){ requiresRecalibration = value; }
@@ -60,10 +66,17 @@ namespace xma{
 
 		void setUpdateInfoRequired(bool value){ updateInfoRequired = value; }
 		int isUpdateInfoRequired(){ return updateInfoRequired; }
+		
+		bool isOptimized(){ return optimized; }
+		void setOptimized(bool value) { optimized = value; }
 
 		QString getFilenameCameraMatrix();
 		void saveCameraMatrix(QString filename);
 		void loadCameraMatrix(QString filename);
+
+		QString getFilenameUndistortionParam();
+		void saveUndistortionParam(QString filename);
+		void loadUndistortionParam(QString filename);
 
 		void getMayaCam(double * out, int frame);
 		void getDLT(double * out, int frame);
@@ -86,6 +99,7 @@ namespace xma{
 		bool calibrated;
 		int requiresRecalibration;
 		bool updateInfoRequired;
+		bool optimized;
 
 		cv::Mat cameramatrix;
 		cv::Mat distortion_coeffs;

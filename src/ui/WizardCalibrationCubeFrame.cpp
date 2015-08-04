@@ -8,6 +8,7 @@
 #include "ui/ErrorDialog.h"
 #include "ui/ConfirmationDialog.h"
 #include "ui/WorkspaceNavigationFrame.h"
+#include "ui/OptimizationDialog.h"
 
 #include "core/Project.h"
 #include "core/Camera.h"
@@ -19,6 +20,7 @@
 #include "processing/BlobDetection.h"
 #include "processing/CubeCalibration.h"
 #include "processing/Calibration.h"
+#include "processing/MultiCameraCalibration.h"
 
 #include <QInputDialog>
 
@@ -320,6 +322,8 @@ void WizardCalibrationCubeFrame::setDialog(){
 
 	
 	if(State::getInstance()->getActiveCamera() >= 0 && State::getInstance()->getActiveFrameCalibration() >= 0){
+		frame->checkBoxOptimized->setChecked(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->isOptimized());
+
 		frame->checkBoxManual->show();
 		if(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() <= 0){
 			resetReferences();
@@ -616,6 +620,18 @@ void WizardCalibrationCubeFrame::checkBoxManualReference_clicked()
 			i, manualReferencesCheckBox[i]->isChecked());
 	}
 	MainWindow::getInstance()->redrawGL();
+}
+
+void WizardCalibrationCubeFrame::on_pushButtonOptimize_clicked()
+{
+	OptimizationDialog * optdiag = new OptimizationDialog(this);
+	optdiag->exec();
+
+	if (optdiag->result()){
+		MultiCameraCalibration* multi = new MultiCameraCalibration(optdiag->getMethod(), optdiag->getIterations(), optdiag->getInitial());
+		multi->optimizeCameraSetup();
+	}
+	delete optdiag;
 }
 
 void WizardCalibrationCubeFrame::on_checkBoxManual_clicked()

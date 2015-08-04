@@ -29,7 +29,6 @@ namespace xma{
 		int m_camera;
 
 		void computeCameraPosesAndCam_thread();
-		void reproject();
 		void setInitialByReferences();
 
 		QFutureWatcher<void>* m_FutureWatcher;

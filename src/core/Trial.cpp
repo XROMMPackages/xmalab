@@ -996,18 +996,10 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 							y = getMarkers()[i]->getPoints2D()[j][f].y;
 						}
 						else
-						{
-							if (Project::getInstance()->getCameras()[j]->hasUndistortion())
-							{
-								cv::Point2d pt = Project::getInstance()->getCameras()[j]->getUndistortionObject()->transformPoint(getMarkers()[i]->getPoints2D()[j][f], true);
-								x = pt.x;
-								y = pt.y;
-							}
-							else
-							{
-								x = getMarkers()[i]->getPoints2D()[j][f].x;
-								y = getMarkers()[i]->getPoints2D()[j][f].y;
-							}
+						{			
+							cv::Point2d pt = Project::getInstance()->getCameras()[j]->undistortPoint(getMarkers()[i]->getPoints2D()[j][f], true);
+							x = pt.x;
+							y = pt.y;
 						}
 
 						if (yinvert)
@@ -1099,23 +1091,14 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 						}
 						else
 						{
-							if (Project::getInstance()->getCameras()[j]->hasUndistortion())
-							{
-								cv::Point2d pt = Project::getInstance()->getCameras()[j]->getUndistortionObject()->transformPoint(getMarkers()[i]->getPoints2D()[j][f], true);
-								x = pt.x;
-								y = pt.y;
-							}
-							else
-							{
-								x = getMarkers()[i]->getPoints2D()[j][f].x;
-								y = getMarkers()[i]->getPoints2D()[j][f].y;
-							}
+							cv::Point2d pt = Project::getInstance()->getCameras()[j]->undistortPoint(getMarkers()[i]->getPoints2D()[j][f], true);
+							x = pt.x;
+							y = pt.y;
 						}
 
 						if (yinvert)
 						{
 							y = Project::getInstance()->getCameras()[j]->getHeight() - y - 1;
-
 						}
 
 						if (offset1)

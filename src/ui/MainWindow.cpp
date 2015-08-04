@@ -39,6 +39,7 @@
 
 #include "processing/BlobDetection.h"
 #include "processing/LocalUndistortion.h"
+#include "processing/MultiCameraCalibration.h"
 
 #include <QSplitter>
 #include <QFileDialog>
@@ -550,14 +551,23 @@ void MainWindow::UndistortionAfterloadProjectFinished(){
 		}
 		if(calibrated){
 			(*it)->setCalibrated(true);
-			(*it)->setRecalibrationRequired(1);
+			if (!(*it)->isOptimized()){
+				(*it)->setRecalibrationRequired(1);
+			}
+			else
+			{
+				MultiCameraCalibration::reproject((*it)->getID());
+				Project::getInstance()->getCameras()[(*it)->getID()]->setUpdateInfoRequired(true);
+			}
 		}
 		else
 		{
 			allCamerasCalibrated = false;
 		}
 	}
-	if (allCamerasCalibrated) ui->actionImportTrial->setEnabled(true);
+	if (allCamerasCalibrated){
+		ui->actionImportTrial->setEnabled(true);
+	}
 	
 	ConsoleDockWidget::getInstance()->afterLoad();
 
@@ -1062,7 +1072,6 @@ void MainWindow::on_actionExport2D_Points_triggered(bool checked)
 void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 {
 	PointImportExportDialog * diag = new PointImportExportDialog(EXPORTTRANS, this);
-
 
 	diag->exec();
 	if (diag->result())

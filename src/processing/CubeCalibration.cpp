@@ -32,10 +32,8 @@ CubeCalibration::CubeCalibration(int camera, int image, cv::Point2d references [
 		selectedPointsID[i] = referencesID[i];
 	}	
 
-	if(Project::getInstance()->getCameras()[m_camera]->hasUndistortion() && Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->isComputed()){
-		for(int i = 0; i < 4; i++){
-			selectedPoints[i] = Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->transformPoint(selectedPoints[i], true);
-		}
+	for(int i = 0; i < 4; i++){
+		selectedPoints[i] = Project::getInstance()->getCameras()[m_camera]->undistortPoint(selectedPoints[i], true);
 	}
 
 	coords3DSize = CalibrationObject::getInstance()->getFrameSpecifications().size();
@@ -50,10 +48,8 @@ CubeCalibration::CubeCalibration(int camera, int image, cv::Point2d references [
 		alldetectedPoints[i] = Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[m_image]->getDetectedPointsAll()[i];
 	}
 	
-	if(Project::getInstance()->getCameras()[m_camera]->hasUndistortion() && Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->isComputed()){
-		for(int i = 0; i < alldetectedPointsSize; i++){
-			alldetectedPoints[i] = Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->transformPoint(alldetectedPoints[i], true);
-		}
+	for(int i = 0; i < alldetectedPointsSize; i++){
+		alldetectedPoints[i] = Project::getInstance()->getCameras()[m_camera]->undistortPoint(alldetectedPoints[i], true);
 	}
 	
 	rotationvector.create(3,1,CV_64F);

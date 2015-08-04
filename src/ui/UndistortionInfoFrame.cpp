@@ -21,7 +21,7 @@ UndistortionInfoFrame::~UndistortionInfoFrame(){
 }
 
 void UndistortionInfoFrame::update(Camera * camera){
-	if(camera->hasUndistortion() && camera->getUndistortionObject()->isComputed()){
+	if (camera->hasUndistortion() && camera->getUndistortionObject() && camera->getUndistortionObject()->isComputed()){
 		if(camera->getUndistortionObject()->isUpdateInfoRequired()){
 			QString inlier;
 			QString error;

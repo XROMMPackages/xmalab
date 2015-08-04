@@ -39,10 +39,11 @@ Camera::Camera(QString cameraName, int _id){
 
 	calibrated = false;
 	cameramatrix.create(3, 3, CV_64F);
-	distortion_coeffs.create(8, 1, CV_64F);
+	distortion_coeffs = cv::Mat::zeros(8, 1, CV_64F);
 	model_distortion = false;
 	requiresRecalibration = 0;
 	updateInfoRequired = false;
+	optimized = false;
 }
 
 Camera::~Camera(){
@@ -104,6 +105,7 @@ bool Camera::setResolutions(){
 void Camera::save(QString folder){
 	if(isCalibrated()){
 		saveCameraMatrix(folder +  "data" +  OS_SEP  + getFilenameCameraMatrix());
+		if (hasModelDistortion())saveUndistortionParam(folder + "data" + OS_SEP + getFilenameUndistortionParam());
 	}
 
 	if(undistortionObject){
@@ -180,6 +182,12 @@ void Camera::setDistortionCoefficiants(cv::Mat& _distortion_coeff)
 	undistort();
 }
 
+void Camera::resetDistortion()
+{
+	distortion_coeffs = cv::Mat::zeros(8, 1, CV_64F);
+	model_distortion = false;
+}
+
 cv::Mat Camera::getDistortionCoefficiants()
 {
 	return distortion_coeffs;
@@ -211,6 +219,8 @@ cv::Mat Camera::getProjectionMatrix(int referenceFrame)
 QString Camera::getFilenameCameraMatrix(){
 	return this->getName() + "_CameraMatrix.csv";
 }
+
+
 void Camera::saveCameraMatrix( QString filename){
 	std::ofstream outfile (filename.toAscii().data());
 	for(unsigned  int i = 0; i < 3; ++i ){
@@ -249,6 +259,50 @@ void Camera::loadCameraMatrix( QString filename){
 		values[y].clear();
 	}
 	values.clear();
+}
+
+QString Camera::getFilenameUndistortionParam(){
+	return this->getName() + "_UndistortionParameter.csv";
+}
+
+void Camera::saveUndistortionParam(QString filename){
+	std::ofstream outfile(filename.toAscii().data());
+	for (unsigned int i = 0; i < 8; ++i){
+		outfile << distortion_coeffs.at<double>(i, 0) << std::endl;
+	}
+
+	outfile.close();
+}
+
+void Camera::loadUndistortionParam(QString filename){
+	std::vector<std::vector<double> > values;
+	std::ifstream fin(filename.toAscii().data());
+	std::istringstream in;
+	std::string line;
+	while (!littleHelper::safeGetline(fin, line).eof())
+	{
+		in.clear();
+		in.str(line);
+		std::vector<double> tmp;
+		for (double value; in >> value; littleHelper::comma(in)) {
+			tmp.push_back(value);
+		}
+		if (tmp.size()>0) values.push_back(tmp);
+	}
+	fin.close();
+
+	for (unsigned int y = 0; y < 8; y++)
+	{
+		distortion_coeffs.at<double>(y, 0) = values[y][0];
+	}
+
+	for (unsigned int y = 0; y < values.size(); y++)
+	{
+		values[y].clear();
+	}
+	values.clear();
+
+	model_distortion = true;
 }
 
 void Camera::getMayaCam(double * out, int frame)
@@ -351,3 +405,51 @@ void Camera::getDLT(double * out, int frame){
 		out[i + 8]  =  out[i + 8]				  / out[11];
 	}
 }
+
+cv::Point2d Camera::undistortPoint(cv::Point2d pt, bool undistort)
+{
+	cv::Point2d pt_out = pt;
+	if (undistortionObject && undistortionObject->isComputed()){
+		pt_out = undistortionObject->transformPoint(pt_out, undistort);
+	}
+	if (hasModelDistortion())
+	{
+		pt_out = applyModelDistortion(pt_out, undistort);
+	}
+	return pt_out;
+}
+
+cv::Point2d Camera::applyModelDistortion(cv::Point2d pt, bool undistort){
+	cv::Point2d pt_out;
+
+	if (undistort)
+	{
+		cv::Mat pt_inMat;
+		pt_inMat.create(1, 1, CV_64FC2);
+		cv::Mat pt_outMat;
+		pt_outMat.create(1, 1, CV_64FC2);
+		pt_inMat.at<cv::Vec2d>(0, 0)[0] = pt.x;
+		pt_inMat.at<cv::Vec2d>(0, 0)[1] = pt.y;
+		//std::cerr << pt_inMat << std::endl;
+		cv::undistortPoints(pt_inMat, pt_outMat, cameramatrix, distortion_coeffs);
+		//std::cerr << pt_outMat << std::endl;
+		pt_out.x = cameramatrix.at<double>(0, 0)*pt_outMat.at<cv::Vec2d>(0, 0)[0] + cameramatrix.at<double>(0, 2);
+		pt_out.y = cameramatrix.at<double>(1, 1)*pt_outMat.at<cv::Vec2d>(0, 0)[1] + cameramatrix.at<double>(1, 2);
+	}
+	else
+	{	
+		pt_out.x = (pt.x - cameramatrix.at<double>(0, 2)) / cameramatrix.at<double>(0, 0);
+		pt_out.y = (pt.y - cameramatrix.at<double>(1, 2)) / cameramatrix.at<double>(1, 1);
+
+		double x2 = pt_out.x*pt_out.x;
+		double y2 = pt_out.y*pt_out.y;
+		double r2 = x2 + y2;
+		double xy2 = 2 * pt_out.x*pt_out.y;
+
+		double kr = (1 + ((distortion_coeffs.at<double>(4, 0) *r2 + distortion_coeffs.at<double>(1, 0))*r2 + distortion_coeffs.at<double>(0, 0))*r2);
+		pt_out.x = cameramatrix.at<double>(0, 0)*(pt_out.x*kr + distortion_coeffs.at<double>(2, 0) *xy2 + distortion_coeffs.at<double>(3, 0) *(r2 + 2 * x2)) + cameramatrix.at<double>(0, 2);
+		pt_out.y = cameramatrix.at<double>(1, 1)*(pt_out.y*kr + distortion_coeffs.at<double>(2, 0) *(r2 + 2 * y2) + distortion_coeffs.at<double>(3, 0) *xy2) + cameramatrix.at<double>(1, 2);
+	}
+	return pt_out;
+}
+

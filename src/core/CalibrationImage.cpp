@@ -106,13 +106,7 @@ void CalibrationImage::setPointsUndistorted(cv::vector <cv::Point2d> & _detected
 
 	detectedPoints.clear();
 	for (std::vector <cv::Point2d>::const_iterator it = detectedPointsUndistorted.begin(); it != detectedPointsUndistorted.end(); ++it){
-		if (camera->hasUndistortion()){
-			detectedPoints.push_back(camera->getUndistortionObject()->transformPoint((*it), false));
-		}
-		else
-		{
-			detectedPoints.push_back((*it));
-		}
+		detectedPoints.push_back(camera->undistortPoint((*it), false));
 	}
 
 	projectedPointsUndistorted.clear();
@@ -122,13 +116,7 @@ void CalibrationImage::setPointsUndistorted(cv::vector <cv::Point2d> & _detected
 
 	projectedPoints.clear();
 	for(std::vector <cv::Point2d>::const_iterator it = projectedPointsUndistorted.begin(); it != projectedPointsUndistorted.end(); ++it){
-		if (camera->hasUndistortion()){
-			projectedPoints.push_back(camera->getUndistortionObject()->transformPoint((*it), false));
-		}
-		else
-		{
-			projectedPoints.push_back((*it));
-		}
+		projectedPoints.push_back(camera->undistortPoint((*it), false));
 	}
 
 	Inlier.clear();
@@ -151,24 +139,12 @@ void CalibrationImage::setPointsUndistorted(cv::vector <cv::Point2d> & _detected
 void CalibrationImage::undistortPoints(){
 	detectedPointsUndistorted.clear();
 	for(std::vector <cv::Point2d>::const_iterator it = detectedPoints.begin(); it != detectedPoints.end(); ++it){
-		if (camera->hasUndistortion()){
-			detectedPointsUndistorted.push_back(camera->getUndistortionObject()->transformPoint((*it), true));
-		}
-		else
-		{
-			detectedPointsUndistorted.push_back(*it);
-		}
+		detectedPointsUndistorted.push_back(camera->undistortPoint((*it), true));
 	}
 
 	projectedPointsUndistorted.clear();
 	for(std::vector <cv::Point2d>::const_iterator it = projectedPoints.begin(); it != projectedPoints.end(); ++it){
-		if (camera->hasUndistortion()){
-			projectedPointsUndistorted.push_back(camera->getUndistortionObject()->transformPoint((*it), true));
-		}
-		else
-		{
-			projectedPointsUndistorted.push_back(*it);
-		}
+		projectedPointsUndistorted.push_back(camera->undistortPoint((*it), true));
 	}
 	computeError();
 }
@@ -183,13 +159,7 @@ void CalibrationImage::setPointsProjectedUndistorted(cv::vector <cv::Point2d> & 
 
 	projectedPoints.clear();
 	for(std::vector <cv::Point2d>::const_iterator it = projectedPointsUndistorted.begin(); it != projectedPointsUndistorted.end(); ++it){
-		if (camera->hasUndistortion()){
-			projectedPoints.push_back(camera->getUndistortionObject()->transformPoint((*it), false));
-		}
-		else
-		{
-			projectedPoints.push_back((*it));
-		}
+		projectedPoints.push_back(camera->undistortPoint((*it), false));
 	}
 
 	computeError();
@@ -406,25 +376,13 @@ void CalibrationImage::setPoint(int idx, double x, double y, bool distorted)
 	{
 		detectedPoints[idx].x = x;
 		detectedPoints[idx].y = y;
-		if (camera->hasUndistortion()){
-			detectedPointsUndistorted[idx] = camera->getUndistortionObject()->transformPoint(detectedPoints[idx], true);
-		}
-		else
-		{
-			detectedPointsUndistorted[idx] = detectedPoints[idx];
-		}
+		detectedPointsUndistorted[idx] = camera->undistortPoint(detectedPoints[idx], true);
 	}
 	else
 	{
 		detectedPointsUndistorted[idx].x = x;
 		detectedPointsUndistorted[idx].y = y;
-		if (camera->hasUndistortion()){
-			detectedPoints[idx] = camera->getUndistortionObject()->transformPoint(detectedPointsUndistorted[idx], false);
-		}
-		else
-		{
-			detectedPoints[idx] = detectedPointsUndistorted[idx];
-		}
+		detectedPoints[idx] = camera->undistortPoint(detectedPointsUndistorted[idx], false);
 	}
 }
 
@@ -454,23 +412,11 @@ void CalibrationImage::setPointManual(double x, double y, bool isDistortedView){
 		camera->setRecalibrationRequired(1);
 		if(isDistortedView){
 			detectedPoints[idx] = pt;
-			if (camera->hasUndistortion()){
-				detectedPointsUndistorted[idx] = camera->getUndistortionObject()->transformPoint(detectedPoints[idx], true);
-			}
-			else
-			{
-				detectedPointsUndistorted[idx] = detectedPoints[idx], true;
-			}
+			detectedPointsUndistorted[idx] = camera->undistortPoint(detectedPoints[idx], true);
 		}
 		else{
 			detectedPointsUndistorted[idx] = pt;
-			if (camera->hasUndistortion()){
-				detectedPoints[idx] = camera->getUndistortionObject()->transformPoint(detectedPointsUndistorted[idx], false);
-			}
-			else
-			{
-				detectedPoints[idx] = detectedPointsUndistorted[idx];
-			}
+			detectedPoints[idx] = camera->undistortPoint(detectedPointsUndistorted[idx], false);
 		}
 
 		cv::Point2d diff;

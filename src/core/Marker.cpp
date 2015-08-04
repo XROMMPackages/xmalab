@@ -218,18 +218,10 @@ void Marker::reconstruct3DPointZisserman(int frame)
 				status = status2D[i][frame] < status ? status2D[i][frame] : status;
 
 				double x, y;
-				cv::Point2d pt_trans;
-				if (Project::getInstance()->getCameras()[i]->hasUndistortion())
-				{
-					pt_trans = Project::getInstance()->getCameras()[i]->getUndistortionObject()->transformPoint(points2D[i][frame], true);
-				}
-				else
-				{
-					pt_trans = points2D[i][frame];
-				}
-
+				cv::Point2d pt_trans = Project::getInstance()->getCameras()[i]->undistortPoint(points2D[i][frame], true);
 				x = pt_trans.x;
 				y = pt_trans.y;
+
 				cv::Mat projMatrs = Project::getInstance()->getCameras()[i]->getProjectionMatrix(trial->getReferenceCalibrationImage());
 
 				for (int k = 0; k < 4; k++)
@@ -292,15 +284,9 @@ void Marker::reconstruct3DPointZissermanIncremental(int frame)
 
 					double x, y;
 					cv::Point2d pt_trans;
-					if (Project::getInstance()->getCameras()[i]->hasUndistortion())
-					{
-						pt_trans = Project::getInstance()->getCameras()[i]->getUndistortionObject()->transformPoint(points2D[i][frame], true);
-					}
-					else
-					{
-						pt_trans = points2D[i][frame];
-					}
-
+					
+					pt_trans = Project::getInstance()->getCameras()[i]->undistortPoint(points2D[i][frame], true);
+					
 					x = pt_trans.x;
 					y = pt_trans.y;
 					cv::Mat projMatrs = Project::getInstance()->getCameras()[i]->getProjectionMatrix(trial->getReferenceCalibrationImage());
@@ -374,15 +360,8 @@ void Marker::reconstruct3DPointZissermanMatlab(int frame)
 
 				double x, y;
 				cv::Point2d pt_trans;
-				if (Project::getInstance()->getCameras()[i]->hasUndistortion())
-				{
-					pt_trans = Project::getInstance()->getCameras()[i]->getUndistortionObject()->transformPoint(points2D[i][frame], true);
-				}
-				else
-				{
-					pt_trans = points2D[i][frame];
-				}
-
+				pt_trans = Project::getInstance()->getCameras()[i]->undistortPoint(points2D[i][frame], true);
+				
 				x = pt_trans.x;
 				y = pt_trans.y;
 				cv::Mat projMatrs = Project::getInstance()->getCameras()[i]->getProjectionMatrix(trial->getReferenceCalibrationImage());
@@ -448,14 +427,8 @@ void Marker::reconstruct3DPointZissermanIncrementalMatlab(int frame)
 
 					double x, y;
 					cv::Point2d pt_trans;
-					if (Project::getInstance()->getCameras()[i]->hasUndistortion())
-					{
-						pt_trans = Project::getInstance()->getCameras()[i]->getUndistortionObject()->transformPoint(points2D[i][frame], true);
-					}
-					else
-					{
-						pt_trans = points2D[i][frame];
-					}
+
+					pt_trans = Project::getInstance()->getCameras()[i]->undistortPoint(points2D[i][frame], true);
 
 					x = pt_trans.x;
 					y = pt_trans.y;
@@ -543,14 +516,7 @@ void Marker::reconstruct3DPointRayIntersection(int frame)
 
 				double x, y;
 				cv::Point2d pt_trans;
-				if (Project::getInstance()->getCameras()[i]->hasUndistortion())
-				{
-					pt_trans = Project::getInstance()->getCameras()[i]->getUndistortionObject()->transformPoint(points2D[i][frame], true);
-				}
-				else
-				{
-					pt_trans = points2D[i][frame];
-				}
+				pt_trans = Project::getInstance()->getCameras()[i]->undistortPoint(points2D[i][frame], true);
 
 				x = pt_trans.x;
 				y = pt_trans.y;
@@ -907,14 +873,7 @@ void Marker::reprojectPoint(int frame)
 			pt_trans.x = pt_out.at<double>(0, 0) / z;
 			pt_trans.y = pt_out.at<double>(1, 0) / z;
 
-			if (Project::getInstance()->getCameras()[i]->hasUndistortion())
-			{
-				points2D_projected[i][frame] = Project::getInstance()->getCameras()[i]->getUndistortionObject()->transformPoint(pt_trans, false);
-			}
-			else
-			{
-				points2D_projected[i][frame] = pt_trans;
-			}
+			points2D_projected[i][frame] = Project::getInstance()->getCameras()[i]->undistortPoint(pt_trans, false);		
 		}
 	}
 
@@ -985,14 +944,8 @@ std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int Camera
 
 	cv::Point2d pt_origin(points2D[cameraOrigin][frame].x, points2D[cameraOrigin][frame].y);
 	cv::Point2d pt_origin_trans;
-	if (Project::getInstance()->getCameras()[cameraOrigin]->hasUndistortion())
-	{
-		pt_origin_trans = Project::getInstance()->getCameras()[cameraOrigin]->getUndistortionObject()->transformPoint(pt_origin, true);
-	}
-	else
-	{
-		pt_origin_trans = pt_origin;
-	}
+
+	pt_origin_trans = Project::getInstance()->getCameras()[cameraOrigin]->undistortPoint(pt_origin, true);
 
 	cv::Mat in;
 	in.create(4, 1, CV_64F);
@@ -1040,7 +993,7 @@ std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int Camera
 		{
 			cv::Point2d pt(p, line_pt.x * p + line_pt.y);
 			if (pt.y > 0 && pt.y < height && ((pt_prev.x - pt.x)*(pt_prev.x - pt.x) + (pt_prev.y - pt.y)*(pt_prev.y - pt.y)) > dist) {
-				cv::Point2d pt_trans = Project::getInstance()->getCameras()[CameraDestination]->getUndistortionObject()->transformPoint(pt, false);
+				cv::Point2d pt_trans = Project::getInstance()->getCameras()[CameraDestination]->undistortPoint(pt, false);
 				if (pt_trans.x != pt.x && pt_trans.y != pt.y){
 					epiline.push_back(pt_trans);
 					pt_prev.x = pt.x;
@@ -1054,7 +1007,7 @@ std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int Camera
 		{
 			cv::Point2d pt(p, line_pt.x * p + line_pt.y);
 			if (pt.y > 0 && pt.y < height) {
-				cv::Point2d pt_trans = Project::getInstance()->getCameras()[CameraDestination]->getUndistortionObject()->transformPoint(pt, false);
+				cv::Point2d pt_trans = Project::getInstance()->getCameras()[CameraDestination]->undistortPoint(pt, false);
 				if (pt_trans.x != pt.x && pt_trans.y != pt.y){
 					epiline.push_back(pt_trans);
 					break;

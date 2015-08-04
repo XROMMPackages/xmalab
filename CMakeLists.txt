@@ -36,6 +36,7 @@ cmake_minimum_required(VERSION 2.8.8)
 FIND_PACKAGE( OpenCV REQUIRED )
 FIND_PACKAGE( OpenGL )
 FIND_PACKAGE( GLEW REQUIRED )
+FIND_PACKAGE( Levmar REQUIRED)
 
 #Shared Libs off
 #set(OpenCV_SHARED OFF)
@@ -91,7 +92,7 @@ ADD_DEFINITIONS(${QT_DEFINITIONS})
 ADD_DEFINITIONS(-DPROJECT_VERSION=\"${PROJECT_VERSION}\" -DPROJECT_BUILD_TIME=\"${PROJECT_BUILD_TIME}\")
 
 SET(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${QUAZIP_INCLUDE_DIRS} ${GLEW_INCLUDE_DIR} ${OPENCV_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${QUAZIP_INCLUDE_DIRS} ${GLEW_INCLUDE_DIR} ${OPENCV_INCLUDE_DIRS} ${LEVMAR_INCLUDE_DIR})
 
 #SET GENERIC HEADER AND SOURCE FILES
 SET(XMALab_HEADERS 
@@ -140,6 +141,7 @@ SET(Processing_HEADERS
 	src/processing/MarkerDetection.h
 	src/processing/MarkerTracking.h
 	src/processing/ButterworthLowPassFilter.h
+	src/processing/MultiCameraCalibration.h
 )
 
 SET(Processing_SOURCES
@@ -150,6 +152,7 @@ SET(Processing_SOURCES
 	src/processing/MarkerDetection.cpp
 	src/processing/MarkerTracking.cpp
 	src/processing/ButterworthLowPassFilter.cpp
+	src/processing/MultiCameraCalibration.cpp
 )
 
 SOURCE_GROUP(_PROCESSING FILES ${Processing_HEADERS} ${Processing_SOURCES})
@@ -205,6 +208,7 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/MarkerDialog.h
 	src/ui/TrialDialog.h
 	src/ui/PointImportExportDialog.h
+	src/ui/OptimizationDialog.h
 	)
 
 SET(XMALab_FORMS_SOURCES
@@ -248,6 +252,7 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/MarkerDialog.cpp
 		src/ui/TrialDialog.cpp
 		src/ui/PointImportExportDialog.cpp
+		src/ui/OptimizationDialog.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
@@ -284,6 +289,7 @@ SET(XMALab_FORMS
 		src/ui/ui-files/TrialDialog.ui
 		src/ui/ui-files/PlotWindow.ui
 		src/ui/ui-files/PointImportExportDialog.ui
+		src/ui/ui-files/OptimizationDialog.ui
 	)
 
 SOURCE_GROUP(UI_Files FILES ${XMALab_FORMS})
@@ -363,4 +369,4 @@ ADD_EXECUTABLE(${PROJECT_NAME} ${GUI_TYPE}
 IF (APPLE)
   add_dependencies(${PROJECT_NAME} osx_bundle_dirs )
 ENDIF (APPLE)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OpenCV_LIBS} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${QT_LIBRARIES} ${QUAZIP_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OpenCV_LIBS} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${QT_LIBRARIES} ${QUAZIP_LIBRARIES} ${LEVMAR_LIBRARy})

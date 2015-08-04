@@ -554,11 +554,16 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 				xmlWriter.writeAttribute("Name", (*it)->getName());
 				xmlWriter.writeAttribute("isLightCamera", QString::number((*it)->isLightCamera()));
 				xmlWriter.writeAttribute("isCalibrated", QString::number((*it)->isCalibrated()));
+				xmlWriter.writeAttribute("isOptimized", QString::number((*it)->isOptimized()));
 				if((*it)->isCalibrated()){
 					xmlWriter.writeAttribute("CameraMatrix", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it)->getFilenameCameraMatrix());
+					if ((*it)->hasModelDistortion())
+					{
+						xmlWriter.writeAttribute("UndistortionParameter", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it)->getFilenameUndistortionParam());
+					}
 				}
 
-				if((*it)->hasUndistortion()){
+				if ((*it)->hasUndistortion() && (*it)->getUndistortionObject()){
 					xmlWriter.writeStartElement("UndistortionGrid");
 					xmlWriter.writeAttribute("Filename",  (*it)->getName() + OS_SEP + (*it)->getUndistortionObject()->getFilename());
 					xmlWriter.writeAttribute("isComputed", QString::number((*it)->getUndistortionObject()->isComputed()));
@@ -737,12 +742,25 @@ bool ProjectFileIO::readProjectFile(QString filename){
 							cam->setIsLightCamera(attr.value("isLightCamera").toString().toInt());
 							cam->setCalibrated(attr.value("isCalibrated").toString().toInt());
 							
+							QString optimized = attr.value("isOptimized").toString();
+							if (!optimized.isEmpty())cam->setOptimized(optimized.toInt());
+
+
 							if(cam->isCalibrated()){
 								QXmlStreamAttributes attr = xml.attributes() ;
 								text = attr.value("CameraMatrix").toString();
 								text.replace("\\",OS_SEP);
 								text.replace("/",OS_SEP);
 								cam->loadCameraMatrix( basedir + OS_SEP + text);
+
+								QString undistparam = attr.value("UndistortionParameter").toString();
+								if (!undistparam.isEmpty()){
+									undistparam.replace("\\", OS_SEP);
+									undistparam.replace("/", OS_SEP);
+									cam->loadUndistortionParam(basedir + OS_SEP + undistparam);
+								}
+
+
 							}
 
 							xml.readNext();

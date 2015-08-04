@@ -1252,15 +1252,7 @@ std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, boo
 	std::vector <cv::Point2d> points2D_frame;
 	for (unsigned int i = 0; i < points3D_frame.size(); i++){
 		cv::Point2d pt = cv::Point2d(CV_MAT_ELEM(*image_points, double, i, 0), CV_MAT_ELEM(*image_points, double, i, 1));
-		if (cam->hasUndistortion())
-		{
-			cv::Point2d pt_trans;
-			pt_trans = cam->getUndistortionObject()->transformPoint(pt, false);
-			points2D_frame.push_back(pt_trans);
-		}
-		else{
-			points2D_frame.push_back(pt);
-		}
+		points2D_frame.push_back(cam->undistortPoint(pt, false));
 	}
 	points3D_frame.clear();
 
