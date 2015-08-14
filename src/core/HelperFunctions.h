@@ -2,7 +2,7 @@
 #define HELPERFUNCTIONS_H
 
 #include <fstream>
-#include <QSTring>
+#include <QString>
 
 #ifdef WIN32
 	#define OS_SEP "\\"
