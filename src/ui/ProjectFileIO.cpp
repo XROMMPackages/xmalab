@@ -903,8 +903,8 @@ bool ProjectFileIO::readProjectFile(QString filename){
 										int id = attr.value("ID").toString().toInt();
 										trial->getMarkers()[id]->load(littleHelper::adjustPathToOS(filename_points2D), littleHelper::adjustPathToOS(filename_status2D), littleHelper::adjustPathToOS(filename_size));
 
-										QString Reference3DPoint = basedir + OS_SEP + attr.value("Reference3DPoint").toString();
-										if (!Reference3DPoint.isEmpty())trial->getMarkers()[id]->loadReference3DPoint(littleHelper::adjustPathToOS(Reference3DPoint));
+										QString Reference3DPoint = attr.value("Reference3DPoint").toString();
+										if (!Reference3DPoint.isEmpty())trial->getMarkers()[id]->loadReference3DPoint(littleHelper::adjustPathToOS(basedir + OS_SEP + Reference3DPoint));
 
 										QString TrackingPenalty = attr.value("TrackingPenalty").toString();
 										if (!TrackingPenalty.isEmpty())trial->getMarkers()[id]->setMaxPenalty(TrackingPenalty.toInt());
