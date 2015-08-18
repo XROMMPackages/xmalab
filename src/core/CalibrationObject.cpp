@@ -6,6 +6,7 @@
 #include "core/HelperFunctions.h"
 
 #include <QFileInfo>
+#include <QStringList>
 
 using namespace xma;
 
@@ -15,6 +16,11 @@ CalibrationObject::CalibrationObject()
 {
 	planar = false;
 	initialised = false;
+	whiteBlobs = false;
+	scale.x = 1.0;
+	scale.y = 1.0;
+	scale.z = 1.0;
+
 }
 
 CalibrationObject::~CalibrationObject()
@@ -47,6 +53,34 @@ int CalibrationObject::loadCoords(QString pointsfilename , QString references)
 	std::string line;
 	//read first line 
 	littleHelper::safeGetline(fin, line);
+	QString header = QString::fromStdString(line);
+	//Check blobcolor
+	if (header.contains("white"))
+	{
+		header.replace("white", "");
+		whiteBlobs = true;
+	}
+	//checkScale
+	QStringList headerlist = header.split(",");
+	if (headerlist.size() > 3)
+	{
+		if (headerlist.at(0).startsWith("s") &&
+			headerlist.at(1).startsWith("s") &&
+			headerlist.at(2).startsWith("s")){
+			QString tmp = headerlist.at(0);
+			tmp.replace("s", "");
+			scale.x = tmp.toDouble();
+
+			tmp = headerlist.at(1);
+			tmp.replace("s", "");
+			scale.y = tmp.toDouble();
+
+			tmp = headerlist.at(2);
+			tmp.replace("s", "");
+			scale.z = tmp.toDouble();
+		}
+	}
+
 	while (!littleHelper::safeGetline(fin, line).eof())
     {
         in.clear();
@@ -55,7 +89,7 @@ int CalibrationObject::loadCoords(QString pointsfilename , QString references)
         for (double value; in >> value; littleHelper::comma(in)) {
             tmp.push_back(value);
         }
-		if(tmp.size()>0) frameSpecifications.push_back(cv::Point3d(tmp[0],tmp[1],tmp[2]));
+		if (tmp.size()>0) frameSpecifications.push_back(cv::Point3d(tmp[0] * scale.x, tmp[1] * scale.y, tmp[2] * scale.z));
 		line.clear();
     }
 	fin.close();
@@ -66,7 +100,7 @@ int CalibrationObject::loadCoords(QString pointsfilename , QString references)
 		for (double value; in >> value; littleHelper::comma(in)) {
             tmp.push_back(value);
         }
-		if(tmp.size()>0) frameSpecifications.push_back(cv::Point3d(tmp[0],tmp[1],tmp[2]));
+		if (tmp.size()>0) frameSpecifications.push_back(cv::Point3d(tmp[0] * scale.x, tmp[1] * scale.y, tmp[2] * scale.z));
 		line.clear();
 	}
 
@@ -99,8 +133,14 @@ void CalibrationObject::saveCoords(QString folder)
 	QString references = folder + referencesFilenameInfo.fileName();
 
 	std::ofstream outfile (cubefilename.toAscii().data());
-	outfile << "x y z" << std::endl;
-	for(unsigned int i = 0; i < frameSpecifications.size() ; i++){
+	if (whiteBlobs)
+	{
+		outfile << "white" << std::endl;
+	}
+	else{
+		outfile << "x y z" << std::endl;
+	}
+	for (unsigned int i = 0; i < frameSpecifications.size(); i++){
 		outfile <<  frameSpecifications[i].x << " , " << frameSpecifications[i].y << " , " << frameSpecifications[i].z << std::endl;
 	}
 	outfile.close();

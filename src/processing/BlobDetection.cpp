@@ -11,6 +11,7 @@
 #include "core/Camera.h"
 #include "core/Image.h"
 #include "core/CalibrationImage.h"
+#include "core/CalibrationObject.h"
 #include "core/UndistortionObject.h"
 #include "core/Settings.h"
 
@@ -58,7 +59,7 @@ void BlobDetection::detectBlobs_thread(){
 	paramsBlob.minDistBetweenBlobs = Settings::getInstance()->getFloatSetting("BlobDetectorMinDistBetweenBlobs");
 
 	paramsBlob.filterByColor = Settings::getInstance()->getBoolSetting("BlobDetectorFilterByColor");
-	if (m_image < 0){
+	if (m_image < 0 || CalibrationObject::getInstance()->hasWhiteBlobs()){
 		paramsBlob.blobColor = Settings::getInstance()->getIntSetting("BlobDetectorBlobColor");
 	}
 	else{

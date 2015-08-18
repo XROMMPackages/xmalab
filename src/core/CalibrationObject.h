@@ -21,6 +21,7 @@ namespace xma{
 
 		bool isInitialised(){ return initialised; }
 		bool isPlanar(){ return planar; }
+		bool hasWhiteBlobs(){ return whiteBlobs; }
 		cv::vector<cv::Point3d>& getFrameSpecifications(){ return frameSpecifications; }
 		cv::vector<int>& getReferenceIDs(){ return referenceIDs; }
 		cv::vector<QString>& getReferenceNames(){ return referenceNames; }
@@ -35,6 +36,9 @@ namespace xma{
 
 		bool planar;
 		bool initialised;
+		bool whiteBlobs;
+
+		cv::Point3d scale;
 
 		cv::vector<cv::Point3d> frameSpecifications;
 		cv::vector<int> referenceIDs;

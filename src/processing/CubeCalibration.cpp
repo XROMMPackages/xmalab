@@ -272,10 +272,7 @@ bool CubeCalibration::calibrateOpenCV(bool singleFocal , bool useImageCenter){
 		}
 	}
 
-	if(corr3D.size() > 8 &&
-		cameramatrix.at<double>(0,2) > 0 && cameramatrix.at<double>(0,2) <  Project::getInstance()->getCameras()[m_camera]->getWidth() &&
-		cameramatrix.at<double>(1,2) > 0 && cameramatrix
-		.at<double>(1,2) <  Project::getInstance()->getCameras()[m_camera]->getHeight()){
+	if(corr3D.size() > 8){
 
 		// Allocate matrices according to how many chessboards found
 		CvMat* object_points = cvCreateMat( corr3D.size(), 3, CV_64FC1 );
@@ -292,6 +289,12 @@ bool CubeCalibration::calibrateOpenCV(bool singleFocal , bool useImageCenter){
 		}
 		CV_MAT_ELEM( *point_counts, int, 0, 0 ) = corr3D.size();
 	
+		if (cameramatrix.at<double>(0, 2) < 0) cameramatrix.at<double>(0, 2) = 1;
+		if (cameramatrix.at<double>(0, 2) > Project::getInstance()->getCameras()[m_camera]->getWidth()) cameramatrix.at<double>(0, 2) = Project::getInstance()->getCameras()[m_camera]->getWidth() - 1;
+		if (cameramatrix.at<double>(1, 2) < 0) cameramatrix.at<double>(1, 2) = 0;
+		if (cameramatrix.at<double>(1, 2) > Project::getInstance()->getCameras()[m_camera]->getHeight()) cameramatrix.at<double>(1, 2) = Project::getInstance()->getCameras()[m_camera]->getHeight() - 1;
+
+
 		// initialize camera and distortion initial guess
 		CvMat* intrinsic_matrix		= cvCreateMat( 3, 3, CV_64FC1 );
 		CvMat* distortion_coeffs	= cvCreateMat( 5, 1, CV_64FC1 );
@@ -427,7 +430,7 @@ void CubeCalibration::setupCorrespondancesRansac(unsigned int loop_max, double t
 	cv::Mat tmp_projection;
 	tmp_projection.create(3, 4, CV_64F);
 	maxinlier = 0;
-	fprintf(stderr,"Start Ransac\n", maxinlier);
+	//fprintf(stderr,"Start Ransac\n", maxinlier);
 	for(unsigned int loop = 0; loop < loop_max; loop ++){
 		//Vector for points
 		cv::vector<cv::Point2d> pt2d;
@@ -475,6 +478,7 @@ int CubeCalibration::selectCorrespondances(double threshold){
 
 void  CubeCalibration::refineResults(bool withCameraRefinement){
 	maxinlier = setCorrespondances(2.0,true);	
+
 	if( maxinlier > 5){
 		int inlier_tmp = 0;
 		
@@ -983,7 +987,7 @@ void CubeCalibration::setupCorrespondancesRansacPose(unsigned int loop_max, doub
 
 	cv::vector<cv::Point2d> pt2d_best;
 	cv::vector<cv::Point3d> pt3d_best;
-	fprintf(stderr,"Start Ransac\n", maxinlier);
+	//fprintf(stderr,"Start Ransac\n", maxinlier);
 	for(unsigned int loop = 0; loop < loop_max; loop ++){
 		//Vector for points
 		cv::vector<cv::Point2d> pt2d;
@@ -1008,7 +1012,7 @@ void CubeCalibration::setupCorrespondancesRansacPose(unsigned int loop_max, doub
 						pt3d_best.push_back(coords3D[i]);
 					}
 				}
-				fprintf(stderr,"Inlier %d\n", maxinlier);
+				//fprintf(stderr,"Inlier %d\n", maxinlier);
 			}
 		}
 	}
