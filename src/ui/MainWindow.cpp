@@ -544,6 +544,7 @@ void MainWindow::UndistortionAfterloadProjectFinished(){
 	if(allCamerasUndistorted) State::getInstance()->changeUndistortion(UNDISTORTED);
 
 	bool allCamerasCalibrated = true;
+	bool optimized = false;
 	for(std::vector <Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it){
 		bool calibrated = false;
 		for(std::vector <CalibrationImage*>::const_iterator it2 = (*it)->getCalibrationImages().begin(); it2 != (*it)->getCalibrationImages().end(); ++it2){
@@ -558,6 +559,7 @@ void MainWindow::UndistortionAfterloadProjectFinished(){
 			{
 				MultiCameraCalibration::reproject((*it)->getID());
 				Project::getInstance()->getCameras()[(*it)->getID()]->setUpdateInfoRequired(true);
+				optimized = true;
 			}
 		}
 		else
@@ -569,6 +571,13 @@ void MainWindow::UndistortionAfterloadProjectFinished(){
 		ui->actionImportTrial->setEnabled(true);
 	}
 	
+	if (optimized)
+	{
+		for (std::vector <Trial*>::const_iterator it = Project::getInstance()->getTrials().begin(); it != Project::getInstance()->getTrials().end(); ++it){
+			(*it)->update();
+		}
+	}
+
 	ConsoleDockWidget::getInstance()->afterLoad();
 
 	WizardDockWidget::getInstance()->update();
