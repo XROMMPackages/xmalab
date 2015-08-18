@@ -553,8 +553,10 @@ void MultiCameraCalibration::optimizeCameraSetup_threadFinished(){
 		for (unsigned int c = 0; c < nbCameras; c++){
 			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0){
 				cv::Mat t_cam = getTransformationMatrix(cameraRotationVector[c], cameraTranslationVector[c]);
-				Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->setMatrices(getRotationVector(t_cam * t_chess),
-					getTranslation(t_cam * t_chess));
+                cv::Mat r_tmp = getRotationVector(t_cam * t_chess);
+                cv::Mat t_tmp = getTranslation(t_cam * t_chess);
+                
+				Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->setMatrices(r_tmp,t_tmp);
 			}
 		}
 	}
