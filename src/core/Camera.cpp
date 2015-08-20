@@ -66,6 +66,7 @@ void Camera::reset(){
 		(*it)->reset();
 		(*it)->init(CalibrationObject::getInstance()->getFrameSpecifications().size());
 	}
+	resetDistortion();
 }
 
 void Camera::deleteFrame(int id){
@@ -93,11 +94,18 @@ bool Camera::setResolutions(){
 	width = calibrationImages[0]->getWidth();
 	height = calibrationImages[0]->getHeight();
 
+	if (hasModelDistortion())
+	{
+		cv::initUndistortRectifyMap(cameramatrix, distortion_coeffs, cv::Mat(), cameramatrix, cv::Size(width, height), CV_32FC1, undistortionMapX, undistortionMapY);
+	}
+
 	for(std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it){
 		if(width != (*it)->getWidth() || height != (*it)->getHeight()) return false;
 	}
 
 	if(undistortionObject && (width != undistortionObject->getWidth() || height != undistortionObject->getHeight())) return false;
+
+
 
 	return true;
 }
@@ -145,17 +153,33 @@ void Camera::loadTextures(){
 void Camera::undistort(){
 	if(undistortionObject && undistortionObject->isComputed()){
 		undistortionObject->undistort(undistortionObject->getImage(),undistortionObject->getUndistortedImage());
+
 		for(std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it){
 			undistortionObject->undistort((*it)->getImage(),(*it)->getUndistortedImage());
-			(*it)->undistortPoints();
+			if (hasModelDistortion())
+			{
+				cv::Mat imageMat;
+				(*it)->getUndistortedImage()->getImage(imageMat);
+				cv::remap(imageMat, imageMat, undistortionMapX, undistortionMapY, cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+				(*it)->getUndistortedImage()->setImage(imageMat);
+				imageMat.release();
+			}
 			if(isCalibrated())setRecalibrationRequired(1);
 		}
 	}
-	else if (!undistortionObject)
+	else if (hasModelDistortion())
 	{
 		for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it){
-			(*it)->undistortPoints();
+			cv::Mat imageMat;
+			(*it)->getImage()->getImage(imageMat);
+			cv::remap(imageMat, imageMat, undistortionMapX, undistortionMapY, cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+			(*it)->getUndistortedImage()->setImage(imageMat);
+			imageMat.release();
 		}
+	}
+	
+	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it){
+		(*it)->undistortPoints();
 	}
 }
 
@@ -177,7 +201,7 @@ cv::Mat Camera::getCameraMatrix(){
 void Camera::setDistortionCoefficiants(cv::Mat& _distortion_coeff)
 {
 	distortion_coeffs = _distortion_coeff.clone();
-	//cv::initUndistortRectifyMap(cameramatrix, distortion_coeffs, cv::Mat(), cameramatrix, cv::Size(width, height), CV_32FC1, undistortionMapX, undistortionMapY);
+    cv::initUndistortRectifyMap(cameramatrix, distortion_coeffs, cv::Mat(), cameramatrix, cv::Size(width, height), CV_32FC1, undistortionMapX, undistortionMapY);
 	model_distortion = true;
 	undistort();
 }

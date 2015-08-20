@@ -256,27 +256,31 @@ void CalibrationImage::getDrawTextData(int type, bool distorted, std::vector<dou
 	y.clear();
 	text.clear();
 	inlier.clear();
+	if (Inlier.size() == projectedPoints.size() &&
+		Inlier.size() == projectedPointsUndistorted.size()){
+		for (int i = 0; i < Inlier.size(); i++){
+			if (Inlier[i] == 1){
+				inlier.push_back(true);
+			}
+			else{
+				inlier.push_back(false);
+				if (Inlier[i] < 0) text.push_back("");
+			}
 
-	for(int i = 0 ; i < Inlier.size(); i++){		
-		if(Inlier[i] == 1){
-			inlier.push_back(true);
-		}else{
-			inlier.push_back(false);
-			if(Inlier[i] < 0) text.push_back("");
+			if (distorted){
+				x.push_back(projectedPoints[i].x);
+				y.push_back(projectedPoints[i].y);
+				if (type >= 2 && Inlier[i] >= 0) text.push_back(QString::number(error[i], 'f', 2));
+			}
+			else{
+				x.push_back(projectedPointsUndistorted[i].x);
+				y.push_back(projectedPointsUndistorted[i].y);
+				if (type >= 2 && Inlier[i] >= 0) text.push_back(QString::number(errorUndistorted[i], 'f', 2));
+			}
+
+			if (type == 1 && Inlier[i] >= 0) text.push_back(QString::number(i + 1));
+
 		}
-
-		if(distorted){
-			x.push_back(projectedPoints[i].x);
-			y.push_back(projectedPoints[i].y);
-			if(type >= 2 && Inlier[i] >=0) text.push_back(QString::number(error[i],'f',2));
-		}else{
-			x.push_back(projectedPointsUndistorted[i].x);
-			y.push_back(projectedPointsUndistorted[i].y);
-			if(type >= 2 && Inlier[i] >=0) text.push_back(QString::number(errorUndistorted[i],'f',2));
-		}
-
-		if(type == 1 && Inlier[i] >=0) text.push_back(QString::number(i+1));
-		
 	}
 }
 		
@@ -621,4 +625,52 @@ void CalibrationImage::loadTranslationVector( QString filename){
 		values[y].clear();
 	}
 	values.clear();
+}
+
+void CalibrationImage::sortGridByReference(double x, double y)
+{
+	Inlier.clear();
+	detectedPoints.clear();
+	detectedPointsUndistorted.clear();
+	projectedPoints.clear();
+	projectedPointsUndistorted.clear();
+
+	int idx = 0;
+	double dist = 10000000;
+	for (int i = 0; i < detectedPoints_ALL.size(); i += detectedPoints_ALL.size() - 1)
+	{
+		double tmp = (x - detectedPoints_ALL[i].x) * (x - detectedPoints_ALL[i].x) + (y - detectedPoints_ALL[i].y) * (y - detectedPoints_ALL[i].y);
+		if (tmp < dist)
+		{
+			dist = tmp;
+			idx = i;
+		}
+	}
+
+	if (idx == 0)
+	{
+		//correct do nothing
+		for (int i = 0; i < detectedPoints_ALL.size(); i++)
+		{
+			detectedPoints.push_back(cv::Point2d(detectedPoints_ALL[i].x, detectedPoints_ALL[i].y));
+			detectedPointsUndistorted.push_back(cv::Point2d(detectedPoints_ALL[i].x, detectedPoints_ALL[i].y));
+			projectedPoints.push_back(cv::Point2d(detectedPoints_ALL[i].x, detectedPoints_ALL[i].y));
+			projectedPointsUndistorted.push_back(cv::Point2d(detectedPoints_ALL[i].x, detectedPoints_ALL[i].y));
+
+			Inlier.push_back(1);
+		}
+	}
+	else if (idx = detectedPoints_ALL.size() - 1)
+	{
+		//invert
+		for (int i = detectedPoints_ALL.size() - 1; i >= 0; i--)
+		{
+			detectedPoints.push_back(cv::Point2d(detectedPoints_ALL[i].x, detectedPoints_ALL[i].y));
+			detectedPointsUndistorted.push_back(cv::Point2d(detectedPoints_ALL[i].x, detectedPoints_ALL[i].y));
+			projectedPoints.push_back(cv::Point2d(detectedPoints_ALL[i].x, detectedPoints_ALL[i].y));
+			projectedPointsUndistorted.push_back(cv::Point2d(detectedPoints_ALL[i].x, detectedPoints_ALL[i].y));
+
+			Inlier.push_back(1);
+		}
+	}
 }

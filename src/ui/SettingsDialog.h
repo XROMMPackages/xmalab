@@ -28,6 +28,7 @@ namespace xma{
 
 		void on_checkBox_AutoConfirmPendingChanges_stateChanged(int state);
 		void on_checkBox_AutoCalibAfterReference_stateChanged(int state);
+		void on_checkBox_Advanced_stateChanged(int state);
 		void on_checkBox_UseCenteredDetailWindow_stateChanged(int state);
 		void on_checkBox_ShowAdvancedCrosshairDetailWindow_stateChanged(int state);
 		void on_checkBox_Show3DPointDetailWindow_stateChanged(int state);

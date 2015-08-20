@@ -22,18 +22,30 @@ using namespace xma;
 
 int Calibration::nbInstances = 0;
 
-Calibration::Calibration(int camera):QObject(){
+Calibration::Calibration(int camera, bool planar):QObject(){
 	nbInstances++;
 	m_camera = camera;
+	m_planar = planar;
 	intrinsic_matrix.create( 3, 3, CV_64F );
 	distortion_coeffs.create( 8, 1, CV_64F );
 
-	for( int i = 0; i < 8; ++i ){
-		distortion_coeffs.at<double>(i, 0) = Project::getInstance()->getCameras()[m_camera]->getDistortionCoefficiants().at<double>(i, 0);
+	if (Project::getInstance()->getCameras()[m_camera]->hasModelDistortion())
+	{
+		for (int i = 0; i < 8; ++i){
+			distortion_coeffs.at<double>(i, 0) = Project::getInstance()->getCameras()[m_camera]->getDistortionCoefficiants().at<double>(i, 0);
+		}
 	}
+	else{
+		for (int i = 0; i < 8; ++i){
+			distortion_coeffs.at<double>(i, 0) = 0;
+		}
+	}
+
 	
 	for(unsigned int f = 0 ; f < Project::getInstance()->getNbImagesCalibration(); f ++){
-		if(Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->isCalibrated() > 0){
+		if ((!m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->isCalibrated() > 0)
+			|| (m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->getDetectedPointsUndistorted().size() > 0)){
+
 			std::vector<cv::Point3f>pt3D_tmp;
 			std::vector<cv::Point2f>pt2D_tmp;
 
@@ -211,13 +223,26 @@ void Calibration::computeCameraPosesAndCam_thread(){
 		if (intrinsic_matrix.at<double>(1, 2) > Project::getInstance()->getCameras()[m_camera]->getHeight()) intrinsic_matrix.at<double>(1, 2) = Project::getInstance()->getCameras()[m_camera]->getHeight() - 1;
 
 		
-		int flags =  CV_CALIB_USE_INTRINSIC_GUESS+CV_CALIB_FIX_K1 + CV_CALIB_FIX_K2 +CV_CALIB_FIX_K3 + CV_CALIB_ZERO_TANGENT_DIST;
+		int flags =  0;
+		
+		if (!m_planar){
+			flags = CV_CALIB_USE_INTRINSIC_GUESS;
+		}
+
+		if (!Project::getInstance()->getCameras()[m_camera]->hasModelDistortion())
+		{
+			flags = flags + (CV_CALIB_FIX_K1 + CV_CALIB_FIX_K2 + CV_CALIB_FIX_K3 + CV_CALIB_ZERO_TANGENT_DIST);
+		}
+		
+		cv::vector<cv::Mat> rvecs;
+		cv::vector<cv::Mat> tvecs;
+
 		double calib_error = cv::calibrateCamera(object_points, image_points, cv::Size(Project::getInstance()->getCameras()[m_camera]->getWidth(),Project::getInstance()->getCameras()[m_camera]->getHeight()), intrinsic_matrix, distortion_coeffs, rvecs, tvecs, flags);
 		
 		Project::getInstance()->getCameras()[m_camera]->setCameraMatrix(intrinsic_matrix);
 		Project::getInstance()->getCameras()[m_camera]->setOptimized(false);
 
-		if (0){
+		if (Project::getInstance()->getCameras()[m_camera]->hasModelDistortion()){
 			Project::getInstance()->getCameras()[m_camera]->setDistortionCoefficiants(distortion_coeffs);
 		}
 		else
@@ -231,7 +256,8 @@ void Calibration::computeCameraPosesAndCam_thread(){
 		translationvector.create(3,1,CV_64F);
 		int count = 0;
 		for(unsigned int f = 0 ; f < Project::getInstance()->getNbImagesCalibration(); f ++){
-			if(Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->isCalibrated() > 0){
+			if ((!m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->isCalibrated() > 0)
+				|| (m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->getDetectedPointsUndistorted().size() > 0)){
 				for(int i = 0 ; i < 3 ; i++)
 					rotationvector.at<double>(i,0) = rvecs[count].at<double>(i,0);
 

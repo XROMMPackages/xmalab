@@ -19,6 +19,7 @@
 
 #include "processing/BlobDetection.h"
 #include "processing/CubeCalibration.h"
+#include "processing/CheckerboardDetection.h"
 #include "processing/Calibration.h"
 #include "processing/MultiCameraCalibration.h"
 
@@ -47,6 +48,7 @@ WizardCalibrationCubeFrame::WizardCalibrationCubeFrame(QWidget *parent) :
 	frame->pushButtonDeleteFrame->setMinimumHeight(26);
 	frame->pushButtonResetCamera->setMinimumHeight(26);
 	frame->pushButtonResetFrame->setMinimumHeight(26);
+	frame->pushButtonOptimize->setMinimumHeight(26);
 #endif
 
 	setDialog();
@@ -72,8 +74,9 @@ void WizardCalibrationCubeFrame::loadCalibrationSettings(){
 		frame->toolButtonReference4->setText( QString::number(selectedReferencePointsIdx[3] + 1) + "  " + CalibrationObject::getInstance()->getReferenceNames()[3]);
 		setupManualPoints();
 	}else{
-		
-	
+		State::getInstance()->changeCalibrationVisText(IDCALIBTEXT);
+		State::getInstance()->changeCalibrationVisPoints(DETCUBEDISTORTEDCALIBPOINTS);
+		setupManualPoints();
 	}
 }
 
@@ -272,34 +275,42 @@ void WizardCalibrationCubeFrame::addCalibrationReference(double x, double y){
 	else{
 		if (State::getInstance()->getUndistortion() == UNDISTORTED)
 		{
-			if (frame->radioButtonReference1->isChecked()){
+			if (planarCalibrationObject)
+			{
 				selectedReferencePoints[0].x = x;
 				selectedReferencePoints[0].y = y;
-				frame->checkBoxReference1->setChecked(true);
-				frame->labelReference1->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
-				frame->radioButtonReference2->setChecked(true);
-			}
-			else if (frame->radioButtonReference2->isChecked()){
-				selectedReferencePoints[1].x = x;
-				selectedReferencePoints[1].y = y;
-				frame->checkBoxReference2->setChecked(true);
-				frame->labelReference2->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
-				frame->radioButtonReference3->setChecked(true);
-			}
-			else if (frame->radioButtonReference3->isChecked()){
-				selectedReferencePoints[2].x = x;
-				selectedReferencePoints[2].y = y;
-				frame->checkBoxReference3->setChecked(true);
-				frame->labelReference3->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
-				frame->radioButtonReference4->setChecked(true);
-			}
-			else if (frame->radioButtonReference4->isChecked()){
-				selectedReferencePoints[3].x = x;
-				selectedReferencePoints[3].y = y;
-				frame->checkBoxReference4->setChecked(true);
-				frame->labelReference4->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
-				//run calibration
 				if (Settings::getInstance()->getBoolSetting("AutoCalibAfterReference")) on_pushButton_clicked();
+			}
+			else{
+				if (frame->radioButtonReference1->isChecked()){
+					selectedReferencePoints[0].x = x;
+					selectedReferencePoints[0].y = y;
+					frame->checkBoxReference1->setChecked(true);
+					frame->labelReference1->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
+					frame->radioButtonReference2->setChecked(true);
+				}
+				else if (frame->radioButtonReference2->isChecked()){
+					selectedReferencePoints[1].x = x;
+					selectedReferencePoints[1].y = y;
+					frame->checkBoxReference2->setChecked(true);
+					frame->labelReference2->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
+					frame->radioButtonReference3->setChecked(true);
+				}
+				else if (frame->radioButtonReference3->isChecked()){
+					selectedReferencePoints[2].x = x;
+					selectedReferencePoints[2].y = y;
+					frame->checkBoxReference3->setChecked(true);
+					frame->labelReference3->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
+					frame->radioButtonReference4->setChecked(true);
+				}
+				else if (frame->radioButtonReference4->isChecked()){
+					selectedReferencePoints[3].x = x;
+					selectedReferencePoints[3].y = y;
+					frame->checkBoxReference4->setChecked(true);
+					frame->labelReference4->setText(QString::number(x, 'f', 2) + " / " + QString::number(y, 'f', 2));
+					//run calibration
+					if (Settings::getInstance()->getBoolSetting("AutoCalibAfterReference")) on_pushButton_clicked();
+				}
 			}
 		}
 	}
@@ -317,18 +328,36 @@ void WizardCalibrationCubeFrame::setDialog(){
 		frame->pushButton->hide();
 		frame->checkBoxManual->hide();
 		frame->frameManual->hide();
+
+
 		return;
 	}
 
 	
 	if(State::getInstance()->getActiveCamera() >= 0 && State::getInstance()->getActiveFrameCalibration() >= 0){
+		if (Settings::getInstance()->getBoolSetting("ShowAdvancedCalibration")){
+			frame->groupBoxOptimization->show();
+		}
+		else
+		{
+			frame->groupBoxOptimization->hide();
+		}
+
 		frame->checkBoxOptimized->setChecked(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->isOptimized());
+		frame->checkBoxDistortion->setChecked(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->hasModelDistortion());
 
 		frame->checkBoxManual->show();
 		if(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() <= 0){
 			resetReferences();
-			frame->label->setText("Select the references");
-			frame->frameReferences->show();
+			if (!planarCalibrationObject){
+				frame->label->setText("Select the references");
+				frame->frameReferences->show();
+			}
+			else
+			{
+				frame->label->setText("Click in the interior upper left corner of the chessboard");
+				frame->frameReferences->hide();
+			}
 			if (frame->checkBoxManual->isChecked())
 			{
 				frame->frameReferences->hide();
@@ -389,17 +418,34 @@ void WizardCalibrationCubeFrame::on_pushButton_clicked(){
 	}
 	else{
 		if (!Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() > 0){
-			int count = 0;
-			for (int i = 0; i < 4; i++){
-				if (selectedReferencePoints[i].x >= 0 && selectedReferencePoints[i].y >= 0)count++;
+			if (!planarCalibrationObject){
+				int count = 0;
+				for (int i = 0; i < 4; i++){
+					if (selectedReferencePoints[i].x >= 0 && selectedReferencePoints[i].y >= 0)count++;
+				}
+				if (count < 3){
+					ErrorDialog::getInstance()->showErrorDialog("You need to at least select 3 reference points");
+				}
+				else{
+					BlobDetection * blobdetection = new BlobDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveFrameCalibration());
+					connect(blobdetection, SIGNAL(detectBlobs_finished()), this, SLOT(runCalibration()));
+					blobdetection->detectBlobs();
+				}
 			}
-			if (count < 3){
-				ErrorDialog::getInstance()->showErrorDialog("You need to at least select 3 reference points");
-			}
-			else{
-				BlobDetection * blobdetection = new BlobDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveFrameCalibration());
-				connect(blobdetection, SIGNAL(detectBlobs_finished()), this, SLOT(runCalibration()));
-				blobdetection->detectBlobs();
+			else
+			{
+				int count = 0;
+				for (int i = 0; i < 4; i++){
+					if (selectedReferencePoints[i].x >= 0 && selectedReferencePoints[i].y >= 0)count++;
+				}
+				if (count < 1){
+					ErrorDialog::getInstance()->showErrorDialog("You need to select the interior upper left corner of the chessboard");
+				}
+				else{
+					CheckerboardDetection * checkerdetection = new CheckerboardDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveFrameCalibration());
+					connect(checkerdetection, SIGNAL(detectCorner_finished()), this, SLOT(runCalibration()));
+					checkerdetection->detectCorner();
+				}
 			}
 		}
 		else{
@@ -410,12 +456,33 @@ void WizardCalibrationCubeFrame::on_pushButton_clicked(){
 
 void WizardCalibrationCubeFrame::runCalibrationCameraAllFrames(){
 	std::vector<Calibration *> calibs;
-	for(unsigned int j = 0; j < Project::getInstance()->getCameras().size() ; j ++){
-		if(Project::getInstance()->getCameras()[j]->isRecalibrationRequired()){
-			Calibration * calibration = new Calibration(j);
-			
-			connect(calibration, SIGNAL(computeCameraPosesAndCam_finished()), this, SLOT(runCalibrationCameraAllFramesFinished()));
-			calibs.push_back(calibration);
+	if (!planarCalibrationObject){
+		for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++){
+			if (Project::getInstance()->getCameras()[j]->isRecalibrationRequired()){
+				Calibration * calibration = new Calibration(j);
+
+				connect(calibration, SIGNAL(computeCameraPosesAndCam_finished()), this, SLOT(runCalibrationCameraAllFramesFinished()));
+				calibs.push_back(calibration);
+			}
+		}
+	}
+	else
+	{
+		for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++){
+			if (Project::getInstance()->getCameras()[j]->isRecalibrationRequired()){
+				int count = 0;
+				for (unsigned int m = 0; m < Project::getInstance()->getNbImagesCalibration(); m++)
+				{
+					if (Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[m]->getDetectedPointsAll().size() > 0) count++;
+				}
+				if (count >= 2)
+				{
+					Calibration * calibration = new Calibration(j, true);
+					connect(calibration, SIGNAL(computeCameraPosesAndCam_finished()), this, SLOT(runCalibrationCameraAllFramesFinished()));
+					calibs.push_back(calibration);
+				}
+
+			}
 		}
 	}
 	for (int i = 0; i < calibs.size(); i++)
@@ -436,17 +503,40 @@ void WizardCalibrationCubeFrame::runCalibrationCameraAllFramesFinished(){
 
 void WizardCalibrationCubeFrame::runCalibration(){
 	if(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getDetectedPointsAll().size() < 6 ){
-		ErrorDialog::getInstance()->showErrorDialog("Not enough points found to run calibration"); 
+		if (!planarCalibrationObject){
+			ErrorDialog::getInstance()->showErrorDialog("Not enough points found to run calibration");
+		}
+		else
+		{
+			ErrorDialog::getInstance()->showErrorDialog("Could not detect chessboard");
+		}
 		return;
 	}
-
-	CubeCalibration * calibration = new CubeCalibration(State::getInstance()->getActiveCamera(),State::getInstance()->getActiveFrameCalibration(), selectedReferencePoints,selectedReferencePointsIdx);
-	if(!Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->isCalibrated()){
-		connect(calibration, SIGNAL(computePoseAndCam_finished()), this, SLOT(runCalibrationFinished()));
-		calibration->computePoseAndCam();	
-	}else{
-		connect(calibration, SIGNAL(computePose_finished()), this, SLOT(runCalibrationFinished()));
-		calibration->computePose();	
+	if (!planarCalibrationObject){
+		CubeCalibration * calibration = new CubeCalibration(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveFrameCalibration(), selectedReferencePoints, selectedReferencePointsIdx);
+		if (!Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->isCalibrated()){
+			connect(calibration, SIGNAL(computePoseAndCam_finished()), this, SLOT(runCalibrationFinished()));
+			calibration->computePoseAndCam();
+		}
+		else{
+			connect(calibration, SIGNAL(computePose_finished()), this, SLOT(runCalibrationFinished()));
+			calibration->computePose();
+		}
+	}
+	else
+	{
+		Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->sortGridByReference(selectedReferencePoints[0].x, selectedReferencePoints[0].y);
+		int count = 0;
+		for (unsigned int m = 0; m < Project::getInstance()->getNbImagesCalibration(); m++)
+		{
+			if (Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[m]->getDetectedPointsAll().size() > 0) count++;
+		}
+		if (count >= 2)
+		{
+			Calibration * calibration = new Calibration(State::getInstance()->getActiveCamera(), true);
+			connect(calibration, SIGNAL(computeCameraPosesAndCam_finished()), this, SLOT(runCalibrationCameraAllFramesFinished()));
+			calibration->computeCameraPosesAndCam();
+		}
 	}
 }
 
@@ -539,12 +629,14 @@ void WizardCalibrationCubeFrame::calibrateOtherFrames(){
 						}
 
 						if(save && CamJToCamKTransformationSet[k][j]){
-							temporaryCamIdx.push_back(k);
-							temporaryFrameIdx.push_back(m);
-							temporaryTransformationMatrix.push_back( fj->getTransformationMatrix()* CamJToCamKTransformation[k][j]);
-							BlobDetection * blobdetection = new BlobDetection(k,m);
-							connect(blobdetection, SIGNAL(detectBlobs_finished()), this, SLOT(setTransformationMatrix()));
-							blobdetection->detectBlobs();	
+							if (!planarCalibrationObject){
+								temporaryCamIdx.push_back(k);
+								temporaryFrameIdx.push_back(m);
+								temporaryTransformationMatrix.push_back(fj->getTransformationMatrix()* CamJToCamKTransformation[k][j]);
+								BlobDetection * blobdetection = new BlobDetection(k, m);
+								connect(blobdetection, SIGNAL(detectBlobs_finished()), this, SLOT(setTransformationMatrix()));
+								blobdetection->detectBlobs();
+							}
 						}
 					}
 				}	
@@ -632,6 +724,23 @@ void WizardCalibrationCubeFrame::on_pushButtonOptimize_clicked()
 		multi->optimizeCameraSetup();
 	}
 	delete optdiag;
+}
+
+void WizardCalibrationCubeFrame::on_checkBoxDistortion_clicked()
+{
+	if (frame->checkBoxDistortion->isChecked())
+	{
+		cv::Mat dist = Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getDistortionCoefficiants().clone();
+		Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->setDistortionCoefficiants(dist);		
+	}
+	else
+	{
+		Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->resetDistortion();
+	}
+
+	Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->setRecalibrationRequired(1);
+	Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->setUpdateInfoRequired(true);
+	MainWindow::getInstance()->redrawGL();
 }
 
 void WizardCalibrationCubeFrame::on_checkBoxManual_clicked()

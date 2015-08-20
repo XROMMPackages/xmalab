@@ -26,15 +26,17 @@ void CalibrationInfoFrame::update(Camera * camera){
 		if(camera->isUpdateInfoRequired()){
 			QString CameraCenter;
 			QString FocalLength;
+			QString Distortion;
 			QString FramesCalibrated;
 			QString ErrorAllDist;		
 			QString ErrorAllUndist;
 
 
 
-			getCameraInfo(camera, CameraCenter, FocalLength, FramesCalibrated, ErrorAllDist, ErrorAllUndist);
+			getCameraInfo(camera, CameraCenter, FocalLength, Distortion, FramesCalibrated, ErrorAllDist, ErrorAllUndist);
 			frame->label_CameraCenter->setText(CameraCenter);
 			frame->label_FocalLength->setText(FocalLength);
+			frame->label_Distortion->setText(Distortion);
 			frame->label_FramesCalibrated->setText(FramesCalibrated);
 			frame->label_ErrorAllDist->setText(ErrorAllDist);
 			frame->label_ErrorAllUndist->setText(ErrorAllUndist);
@@ -47,18 +49,25 @@ void CalibrationInfoFrame::update(Camera * camera){
 	else{
 		frame->label_CameraCenter->setText("");
 		frame->label_FocalLength->setText("");
+		frame->label_Distortion->setText("");
 		frame->label_FramesCalibrated->setText("");
 		frame->label_ErrorAllDist->setText("");
 		frame->label_ErrorAllUndist->setText("");
 	}
 }
 
-void CalibrationInfoFrame::getCameraInfo(Camera * camera, QString & CameraCenter, QString & FocalLength, QString & FramesCalibrated, QString & ErrorAllDist, QString & ErrorAllUndist){
+void CalibrationInfoFrame::getCameraInfo(Camera * camera, QString & CameraCenter, QString & FocalLength, QString & Distortion, QString & FramesCalibrated, QString & ErrorAllDist, QString & ErrorAllUndist){
 	FocalLength = QString::number(camera->getCameraMatrix().at<double>(0,0) ,'f', 2) + QString(" , ") + 
 									QString::number(camera->getCameraMatrix().at<double>(1,1), 'f', 2);
 
 	CameraCenter = QString::number(camera->getCameraMatrix().at<double>(0,2), 'f', 2) + QString(" , ") + 
 									QString::number(camera->getCameraMatrix().at<double>(1,2) ,'f', 2);
+
+	Distortion = QString::number(camera->getDistortionCoefficiants().at<double>(0,0), 'f', 5) + QString(" , ") +
+		QString::number(camera->getDistortionCoefficiants().at<double>(1, 0), 'f', 5) + QString(" , ") +
+		QString::number(camera->getDistortionCoefficiants().at<double>(2, 0), 'f', 5) + QString(" , ") +
+		QString::number(camera->getDistortionCoefficiants().at<double>(3, 0), 'f', 5) + QString(" , ") +
+		QString::number(camera->getDistortionCoefficiants().at<double>(4, 0), 'f', 5);
 
 	int countFrames = 0;
 	int countInlier = 0;
@@ -68,7 +77,7 @@ void CalibrationInfoFrame::getCameraInfo(Camera * camera, QString & CameraCenter
 	for(int f = 0; f < camera->getCalibrationImages().size(); f++){
 		if(camera->getCalibrationImages()[f]->isCalibrated()){
 			countFrames++;
-			for (int pt = 0 ; pt < camera->getCalibrationImages()[f]->getInliers().size(); pt ++){
+			for (int pt = 0 ; pt < camera->getCalibrationImages()[f]->getErrorDist().size(); pt ++){
 				if(camera->getCalibrationImages()[f]->getInliers()[pt] > 0){
 					countInlier ++;
 
@@ -88,7 +97,7 @@ void CalibrationInfoFrame::getCameraInfo(Camera * camera, QString & CameraCenter
 	double sdUndist = 0;
 	for(int f = 0; f < camera->getCalibrationImages().size(); f++){
 		if(camera->getCalibrationImages()[f]->isCalibrated()){
-			for (int pt = 0 ; pt < camera->getCalibrationImages()[f]->getInliers().size(); pt ++){
+			for (int pt = 0; pt < camera->getCalibrationImages()[f]->getErrorDist().size(); pt++){
 				if(camera->getCalibrationImages()[f]->getInliers()[pt] > 0){
 					countInlier ++;
 
@@ -148,7 +157,7 @@ void CalibrationInfoFrame::getInfoFrame(Camera * camera, int frame, QString & Er
 	double meanUndist = 0;
 
 	if(camera->getCalibrationImages()[frame]->isCalibrated()){
-		for (int pt = 0 ; pt < camera->getCalibrationImages()[frame]->getInliers().size(); pt ++){
+		for (int pt = 0; pt < camera->getCalibrationImages()[frame]->getErrorDist().size(); pt++){
 			if(camera->getCalibrationImages()[frame]->getInliers()[pt] > 0){
 				countInlier ++;
 
@@ -166,7 +175,7 @@ void CalibrationInfoFrame::getInfoFrame(Camera * camera, int frame, QString & Er
 	double sdDist = 0;
 	double sdUndist = 0;
 	if(camera->getCalibrationImages()[frame]->isCalibrated()){
-		for (int pt = 0 ; pt < camera->getCalibrationImages()[frame]->getInliers().size(); pt ++){
+		for (int pt = 0; pt < camera->getCalibrationImages()[frame]->getErrorDist().size(); pt++){
 			if(camera->getCalibrationImages()[frame]->getInliers()[pt] > 0){
 				countInlier ++;
 

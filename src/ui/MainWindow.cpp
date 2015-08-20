@@ -208,6 +208,7 @@ void MainWindow::closeEvent(QCloseEvent * event){
 	{
 		Settings::getInstance()->setUIGeometry("XMALab", saveGeometry());
 		Settings::getInstance()->setUIState("XMALab", saveState(UI_VERSION));
+		closeProject();
 		QMainWindow::closeEvent(event);
 		QApplication::quit();
 	}
@@ -251,7 +252,7 @@ void MainWindow::setupProjectUI(){
 		State::getInstance()->changeUndistortion(UNDISTORTED);
 		State::getInstance()->changeWorkspace(CALIBRATION, true);
 	}
-	
+	QApplication::processEvents();
 	relayoutCameras();
 	DetailViewDockWidget::getInstance()->setup();
 	redrawGL();

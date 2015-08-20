@@ -44,6 +44,8 @@ TrialDialog::TrialDialog(Trial * trial, QWidget *parent) :
 		diag->comboBoxReferenceCalibration->setCurrentIndex(0);
 	}
 	
+	int ref = diag->comboBoxReferenceCalibration->currentText().toInt() - 1;
+	m_trial->setReferenceCalibrationImage(ref);
 
 	diag->doubleSpinBoxRecSpeedFPS->setValue(m_trial->getRecordingSpeed());
 	diag->doubleSpinBoxCutoffFrq->setValue(m_trial->getCutoffFrequency());

@@ -105,6 +105,9 @@ namespace xma{
 		cv::Mat distortion_coeffs;
 		bool model_distortion;
 
+		cv::Mat undistortionMapX;
+		cv::Mat undistortionMapY;
+
 		void paramsToMayaCam(double * out, cv::Mat _camera, cv::Mat _rotation, cv::Mat _translation);
 	};
 }

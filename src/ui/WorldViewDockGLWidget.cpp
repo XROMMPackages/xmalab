@@ -157,28 +157,29 @@ void WorldViewDockGLWidget::paintGL()
 	glEnd(); 
 
 //////////DRAW
-	if(State::getInstance()->getWorkspace() == CALIBRATION){
-		drawCalibrationCube();
-		drawCameras();
-	}
-	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
-	{
-		if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 &&
-			State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size()){
-
-			Trial * trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
-			if (trial->getStartFrame() - 1 <= State::getInstance()->getActiveFrameTrial()
-				&& trial->getEndFrame() - 1 >= State::getInstance()->getActiveFrameTrial()){
-				int frame = State::getInstance()->getActiveFrameTrial();
-
-				drawCameras();
-				drawMarkers(trial, frame);
-				drawRigidBodies(trial, frame);
-			}
+	if (this->isVisible()){
+		if (State::getInstance()->getWorkspace() == CALIBRATION){
+			drawCalibrationCube();
+			drawCameras();
 		}
+		else if (State::getInstance()->getWorkspace() == DIGITIZATION)
+		{
+			if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 &&
+				State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size()){
 
+				Trial * trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
+				if (trial->getStartFrame() - 1 <= State::getInstance()->getActiveFrameTrial()
+					&& trial->getEndFrame() - 1 >= State::getInstance()->getActiveFrameTrial()){
+					int frame = State::getInstance()->getActiveFrameTrial();
+
+					drawCameras();
+					drawMarkers(trial, frame);
+					drawRigidBodies(trial, frame);
+				}
+			}
+
+		}
 	}
-
 	glFlush ();
 }
 

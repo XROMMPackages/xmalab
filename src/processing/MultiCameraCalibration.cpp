@@ -20,7 +20,7 @@
 
 using namespace xma;
 
-#define DEBUG
+//#define DEBUG
 
 
 int MultiCameraCalibration::nbInstances = 0;
@@ -412,7 +412,7 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 #endif
 
 	//set error vector;
-	std::cerr << nbPoints << std::endl;
+	//std::cerr << nbPoints << std::endl;
 	x = new double[nbPoints];
 #ifdef DEBUG
 	ros(p, x, nbParams, nbPoints, this);
@@ -605,6 +605,8 @@ void MultiCameraCalibration::optimizeCameraSetup_thread(){
 
 void MultiCameraCalibration::reproject(int c){
 
+	bool m_planar = CalibrationObject::getInstance()->isPlanar();
+
 	CvMat* object_points2 = cvCreateMat(CalibrationObject::getInstance()->getFrameSpecifications().size(), 3, CV_64FC1);
 	CvMat* image_points2 = cvCreateMat(CalibrationObject::getInstance()->getFrameSpecifications().size(), 2, CV_64FC1);
 
@@ -634,7 +636,8 @@ void MultiCameraCalibration::reproject(int c){
 	CvMat* t_matrices = cvCreateMat(1, 1, CV_64FC3);
 	cv::vector<cv::Point2d> projectedPoints;
 	for (unsigned int f = 0; f < Project::getInstance()->getNbImagesCalibration(); f++){
-		if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0){
+		if ((!m_planar && Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0)
+			|| (m_planar && Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getDetectedPointsUndistorted().size() > 0)){
 			projectedPoints.clear();
 			for (unsigned int i = 0; i < 3; i++){
 				CV_MAT_ELEM(*r_matrices, cv::Vec3d, 0, 0)[i] = Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getRotationVector().at<double>(i, 0);

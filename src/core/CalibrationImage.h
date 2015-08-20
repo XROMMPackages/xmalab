@@ -78,6 +78,7 @@ namespace xma{
 		void loadTranslationVector(QString filename);
 
 		void reset();
+		void sortGridByReference(double x, double y);
 
 	private:
 		void savePoints(std::vector <cv::Point2d> &points, QString filename);

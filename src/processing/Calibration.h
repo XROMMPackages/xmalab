@@ -12,7 +12,7 @@ namespace xma{
 		Q_OBJECT;
 
 	public:
-		Calibration(int camera);
+		Calibration(int camera, bool planar = false);
 		virtual ~Calibration();
 
 		void computeCameraPosesAndCam();
@@ -27,17 +27,16 @@ namespace xma{
 
 	private:
 		int m_camera;
-
+		bool m_planar;
 		void computeCameraPosesAndCam_thread();
 		void setInitialByReferences();
 
 		QFutureWatcher<void>* m_FutureWatcher;
 		static int nbInstances;
 
-		cv::vector<cv::Mat> rvecs;
-		cv::vector<cv::Mat> tvecs;
 		cv::Mat distortion_coeffs;
 		cv::Mat intrinsic_matrix;
+
 		std::vector<std::vector<cv::Point3f> > object_points;
 		std::vector<std::vector<cv::Point2f> > image_points;
 

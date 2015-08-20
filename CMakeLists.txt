@@ -141,6 +141,7 @@ SET(Processing_HEADERS
 	src/processing/MarkerDetection.h
 	src/processing/MarkerTracking.h
 	src/processing/ButterworthLowPassFilter.h
+	src/processing/CheckerboardDetection.h
 	src/processing/MultiCameraCalibration.h
 )
 
@@ -152,6 +153,7 @@ SET(Processing_SOURCES
 	src/processing/MarkerDetection.cpp
 	src/processing/MarkerTracking.cpp
 	src/processing/ButterworthLowPassFilter.cpp
+	src/processing/CheckerboardDetection.cpp
 	src/processing/MultiCameraCalibration.cpp
 )
 

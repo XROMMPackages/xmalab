@@ -26,8 +26,6 @@ NewProjectDialog::NewProjectDialog(QWidget *parent) :
 	diag->frameCheckerboard->hide();
 	diag->frameCube->show();
 
-	diag->radioButtonCheckerboard->hide();
-
 	nbCams = 2;
 	diag->labelNbCameras->setText(QString::number(nbCams));
 

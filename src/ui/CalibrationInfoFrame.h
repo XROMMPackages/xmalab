@@ -23,7 +23,7 @@ namespace xma{
 
 	private:
 		Ui::CalibrationInfoFrame *frame;
-		void getCameraInfo(Camera * camera, QString & CameraCenter, QString & FocalLength, QString & FramesCalibrated, QString & ErrorAllDist, QString & ErrorAllUndist);
+		void getCameraInfo(Camera * camera, QString & CameraCenter, QString & FocalLength, QString & Distortion, QString & FramesCalibrated, QString & ErrorAllDist, QString & ErrorAllUndist);
 		void getInfoFrame(Camera * camera, int frame, QString & ErrorCurrentDist, QString &  ErrorCurrentUndist, QString &  RotationVector, QString & TranslationVector);
 		QString getInfoInlier(Camera * camera, int frame);
 	};

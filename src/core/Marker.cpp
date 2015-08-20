@@ -972,7 +972,7 @@ std::vector < cv::Point2d > Marker::getEpipolarLine(int cameraOrigin, int Camera
 	double y0 = p2.y - p2.x * m;
 	cv::Point2d line_pt(m, y0);
 
-	if (!Project::getInstance()->getCameras()[cameraOrigin]->hasUndistortion())
+	if (!Project::getInstance()->getCameras()[CameraDestination]->hasUndistortion())
 	{
 		cv::Point2d start(0, line_pt.y);
 		double p = Project::getInstance()->getCameras()[CameraDestination]->getWidth();

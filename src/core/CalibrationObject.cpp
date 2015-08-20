@@ -168,7 +168,6 @@ void CalibrationObject::setCheckerboard(int _nbHorizontalSquares, int _nbVertica
 	{
 		for (int x = 0; x < _nbHorizontalSquares; x++){
 			frameSpecifications.push_back(cv::Point3d(x* squareSize, y  * squareSize, 0));
-			//std::cerr << x* squareSize << " " << y  * squareSize << std::endl;
 		}
 	}
 	

@@ -88,8 +88,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>673</width>
-           <height>134</height>
+           <width>729</width>
+           <height>338</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
@@ -146,8 +146,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>673</width>
-           <height>342</height>
+           <width>729</width>
+           <height>338</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
@@ -157,6 +157,32 @@
              <string>Use Detection Method when Alt key is held:</string>
             </property>
            </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="checkBox_AutoCalibAfterReference">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Automatically run calibration after selection of last reference point</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>487</width>
+              <height>246</height>
+             </size>
+            </property>
+           </spacer>
           </item>
           <item row="1" column="1">
            <widget class="QComboBox" name="comboBox_DetectionMethodForCalibration">
@@ -187,29 +213,10 @@
             </item>
            </widget>
           </item>
-          <item row="2" column="0" colspan="2">
-           <spacer name="verticalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>487</width>
-              <height>246</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="0" column="0" colspan="2">
-           <widget class="QCheckBox" name="checkBox_AutoCalibAfterReference">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="checkBox_Advanced">
             <property name="text">
-             <string>Automatically run calibration after selection of last reference point</string>
+             <string>show advanced options</string>
             </property>
            </widget>
           </item>
@@ -227,8 +234,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>673</width>
-           <height>502</height>
+           <width>729</width>
+           <height>338</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">

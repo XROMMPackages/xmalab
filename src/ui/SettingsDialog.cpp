@@ -24,6 +24,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 	diag->checkBox_AutoConfirmPendingChanges->setChecked(Settings::getInstance()->getBoolSetting("AutoConfirmPendingChanges"));
 	diag->checkBox_ConfirmQuitXMALab->setChecked(Settings::getInstance()->getBoolSetting("ConfirmQuitXMALab"));
 	diag->checkBox_AutoCalibAfterReference->setChecked(Settings::getInstance()->getBoolSetting("AutoCalibAfterReference"));
+	diag->checkBox_Advanced->setChecked(Settings::getInstance()->getBoolSetting("ShowAdvancedCalibration"));
 
 	diag->checkBox_UseCenteredDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("CenterDetailView"));
 	diag->checkBox_ShowAdvancedCrosshairDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView"));
@@ -65,6 +66,12 @@ void SettingsDialog::on_checkBox_AutoConfirmPendingChanges_stateChanged(int stat
 void SettingsDialog::on_checkBox_AutoCalibAfterReference_stateChanged(int state){
 	Settings::getInstance()->set("AutoCalibAfterReference", diag->checkBox_AutoCalibAfterReference->isChecked());
 }
+
+void SettingsDialog::on_checkBox_Advanced_stateChanged(int state)
+{
+	Settings::getInstance()->set("ShowAdvancedCalibration", diag->checkBox_Advanced->isChecked());
+}
+
 void SettingsDialog::on_checkBox_UseCenteredDetailWindow_stateChanged(int state){
 	Settings::getInstance()->set("CenterDetailView", diag->checkBox_UseCenteredDetailWindow->isChecked());
 }
