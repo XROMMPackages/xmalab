@@ -349,15 +349,8 @@ void WizardCalibrationCubeFrame::setDialog(){
 		frame->checkBoxManual->show();
 		if(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() <= 0){
 			resetReferences();
-			if (!planarCalibrationObject){
-				frame->label->setText("Select the references");
-				frame->frameReferences->show();
-			}
-			else
-			{
-				frame->label->setText("Click in the interior upper left corner of the chessboard");
-				frame->frameReferences->hide();
-			}
+
+
 			if (frame->checkBoxManual->isChecked())
 			{
 				frame->frameReferences->hide();
@@ -366,7 +359,15 @@ void WizardCalibrationCubeFrame::setDialog(){
 			}
 			else
 			{
-				frame->frameReferences->show();
+				if (!planarCalibrationObject){
+					frame->label->setText("Select the references");
+					frame->frameReferences->show();
+				}
+				else
+				{
+					frame->label->setText("Click in the interior upper left corner of the chessboard");
+					frame->frameReferences->hide();
+				}
 				frame->frameManual->hide();
 			}
 			frame->frameModifyCalibration->hide();
