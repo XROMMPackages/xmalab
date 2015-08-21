@@ -971,16 +971,16 @@ void PlotWindow::plotDistance(int idx1, int idx2){
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++, count++)
 			{
 				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getStatus3D()[i] > UNDEFINED){
-					sd += fabs(y[count] - mean);
+					sd += pow(y[count] - mean,2);
 				}
 			}
 
-			if (countVisible > 0)sd = sd / countVisible;
+			if (countVisible > 1)sd = sqrt(sd / (countVisible - 1));
 
 			// create graph and assign data to it:
 			dock->plotWidget->graph(0)->setData(x, y);
 			dock->plotWidget->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
-			dock->plotWidget->graph(0)->setPen(QPen(QColor(Qt::blue)));
+			dock->plotWidget->graph(0)->setPen(QPen(QColor(Qt::blue))); 
 
 			dock->plotWidget->addGraph();
 			QVector<double>x2,y2;
@@ -1116,11 +1116,11 @@ void PlotWindow::plotReprojectionError(int idx1)
 			for (int i = 0; i < error.size(); i++)
 			{
 				if (error[i] >= 0){
-					sd += fabs(error[i] - mean);
+					sd += pow(error[i] - mean,2);
 				}
 			}
 
-			if (countVisible > 0)sd = sd / countVisible;
+			if (countVisible > 1)sd = sqrt(sd / (countVisible - 1));
 
 			dock->plotWidget->graph(0)->setData(pos, error);
 			dock->plotWidget->graph(0)->setLineStyle(QCPGraph::lsStepCenter);

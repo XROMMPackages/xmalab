@@ -57,11 +57,11 @@ void UndistortionInfoFrame::getInfo(Camera * camera,QString & inlier_string, QSt
 	for (unsigned int i = 0 ; i <  camera->getUndistortionObject()->getInlier().size() ; i++){
 		if(camera->getUndistortionObject()->getInlier()[i]){
 			count ++;
-			sd += (camera->getUndistortionObject()->getError()[i] - mean) * (camera->getUndistortionObject()->getError()[i] - mean);
+			sd += pow(camera->getUndistortionObject()->getError()[i] - mean,2);
 		}
 	}
 
-	if(count > 0) sd = sd / count;
+	if(count > 0) sd = sqrt(sd / (count - 1));
 
 	inlier_string = QString::number(count) + " of " + QString::number(camera->getUndistortionObject()->getInlier().size() );  
 	error_string =  QString::number(mean,'f',2) + " +/- " + QString::number(sd,'f',2);

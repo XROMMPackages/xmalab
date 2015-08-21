@@ -98,18 +98,20 @@ void CalibrationInfoFrame::getCameraInfo(Camera * camera, QString & CameraCenter
 	for(int f = 0; f < camera->getCalibrationImages().size(); f++){
 		if(camera->getCalibrationImages()[f]->isCalibrated()){
 			for (int pt = 0; pt < camera->getCalibrationImages()[f]->getErrorDist().size(); pt++){
-				if(camera->getCalibrationImages()[f]->getInliers()[pt] > 0){
-					countInlier ++;
+				if (camera->getCalibrationImages()[f]->getInliers()[pt] > 0){
+					countInlier++;
 
-					sdDist += (meanDist - camera->getCalibrationImages()[f]->getErrorDist()[pt]) * (meanDist - camera->getCalibrationImages()[f]->getErrorDist()[pt]);
-					sdUndist += (meanUndist - camera->getCalibrationImages()[f]->getErrorUndist()[pt]) * (meanUndist - camera->getCalibrationImages()[f]->getErrorUndist()[pt]);
+					sdDist += pow(meanDist - camera->getCalibrationImages()[f]->getErrorDist()[pt], 2);
+					sdUndist += pow(meanUndist - camera->getCalibrationImages()[f]->getErrorUndist()[pt], 2);
 				}
 			}
 		}
 	}
 
-	if(countInlier > 0) sdDist = sdDist / countInlier;
-	if(countInlier > 0) sdUndist = sdUndist / countInlier;
+	if (countInlier > 1){
+		sdDist = sqrt(sdDist / (countInlier - 1));
+		sdUndist = sqrt(sdUndist / (countInlier - 1));
+	}
 
 	FramesCalibrated = QString::number(countFrames) + " of " + QString::number(camera->getCalibrationImages().size() );  
 	ErrorAllUndist =  QString::number(meanUndist,'f',2) + " +/- " + QString::number(sdUndist,'f',2);
@@ -179,15 +181,15 @@ void CalibrationInfoFrame::getInfoFrame(Camera * camera, int frame, QString & Er
 			if(camera->getCalibrationImages()[frame]->getInliers()[pt] > 0){
 				countInlier ++;
 
-				sdDist += (meanDist - camera->getCalibrationImages()[frame]->getErrorDist()[pt]) * (meanDist - camera->getCalibrationImages()[frame]->getErrorDist()[pt]);
-				sdUndist += (meanUndist - camera->getCalibrationImages()[frame]->getErrorUndist()[pt]) * (meanUndist - camera->getCalibrationImages()[frame]->getErrorUndist()[pt]);
+				sdDist += pow(meanDist - camera->getCalibrationImages()[frame]->getErrorDist()[pt],2);
+				sdUndist += pow(meanUndist - camera->getCalibrationImages()[frame]->getErrorUndist()[pt],2);
 			}
 		}
 	}
 	
 
-	if(countInlier > 0) sdDist = sdDist / countInlier;
-	if(countInlier > 0) sdUndist = sdUndist / countInlier;
+	if(countInlier > 1) sdDist = sqrt(sdDist / (countInlier - 1));
+	if(countInlier > 1) sdUndist = sqrt(sdUndist / (countInlier - 1));
 
 	ErrorCurrentUndist =  QString::number(meanUndist,'f',2) + " +/- " + QString::number(sdUndist,'f',2);
 	ErrorCurrentDist =  QString::number(meanDist,'f',2) + " +/- " + QString::number(sdDist,'f',2);

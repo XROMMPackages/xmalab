@@ -210,6 +210,7 @@ void Camera::resetDistortion()
 {
 	distortion_coeffs = cv::Mat::zeros(8, 1, CV_64F);
 	model_distortion = false;
+	undistort();
 }
 
 cv::Mat Camera::getDistortionCoefficiants()
