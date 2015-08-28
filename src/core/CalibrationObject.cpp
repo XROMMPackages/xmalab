@@ -15,6 +15,7 @@ CalibrationObject* CalibrationObject::instance = NULL;
 CalibrationObject::CalibrationObject()
 {
 	planar = false;
+	checkerboard = false;
 	initialised = false;
 	whiteBlobs = false;
 	scale.x = 1.0;
@@ -119,6 +120,22 @@ int CalibrationObject::loadCoords(QString pointsfilename , QString references)
 	}
 	fin.close();
 	
+	//check Planar
+	bool xplanar = true;
+	bool yplanar = true;
+	bool zplanar = true;
+
+	for (int i = 0; i < frameSpecifications.size(); i++)
+	{
+		if (frameSpecifications[i].x != 0) xplanar = false;
+		if (frameSpecifications[i].y != 0) yplanar = false;
+		if (frameSpecifications[i].z != 0) zplanar = false;
+	}
+
+	planar = planar || xplanar || zplanar || yplanar;
+
+	if (planar) std::cerr << "Planar" << std::endl;
+
 	initialised = true;
 	return frameSpecifications.size();
 }
@@ -158,6 +175,7 @@ void CalibrationObject::setCheckerboard(int _nbHorizontalSquares, int _nbVertica
 	nbVerticalSquares = _nbVerticalSquares;
     squareSize = _squareSize;
 	planar = true;
+	checkerboard = true;
 
 	referenceIDs.clear();
 	referenceNames.clear();

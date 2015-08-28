@@ -368,7 +368,7 @@ void WorldViewDockGLWidget::drawCalibrationCube(){
 		gluQuadricTexture(sphere_quadric, GL_TRUE);      // Create Texture Coords ( NEW )
 	}
 
-	if(CalibrationObject::getInstance()->isInitialised() && !CalibrationObject::getInstance()->isPlanar()){
+	if (CalibrationObject::getInstance()->isInitialised() && !CalibrationObject::getInstance()->isCheckerboard()){
 		for (unsigned int i=0; i<CalibrationObject::getInstance()->getFrameSpecifications().size(); i++){
 			glPushMatrix();
 			if( i == CalibrationObject::getInstance()->getReferenceIDs()[0]) {glColor3f(1.0,0.0,0.0);}

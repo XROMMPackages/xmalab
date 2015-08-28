@@ -113,7 +113,7 @@ int ProjectFileIO::saveProject(QString filename){
 
 	//Save Calibration Object
 	if(success){
-		if(!CalibrationObject::getInstance()->isPlanar()){
+		if(!CalibrationObject::getInstance()->isCheckerboard()){
 			QString path = tmpDir_path + OS_SEP + "CalibrationObject" + OS_SEP;
 			if(!QDir().mkpath (path)){
 					ErrorDialog::getInstance()->showErrorDialog("Can not create tmp folder " + path);
@@ -628,8 +628,8 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 	
 			//CalibrationObject
 			xmlWriter.writeStartElement("CalibrationObject");
-			xmlWriter.writeAttribute("isPLanar", QString::number(CalibrationObject::getInstance()->isPlanar()));
-			if(CalibrationObject::getInstance()->isPlanar()){
+			xmlWriter.writeAttribute("isPLanar", QString::number(CalibrationObject::getInstance()->isCheckerboard()));
+			if (CalibrationObject::getInstance()->isCheckerboard()){
 				xmlWriter.writeAttribute("HorizontalSquares", QString::number(CalibrationObject::getInstance()->getNbHorizontalSquares()));
 				xmlWriter.writeAttribute("VerticalSquares", QString::number(CalibrationObject::getInstance()->getNbVerticalSquares()));
 				xmlWriter.writeAttribute("SquareSize", QString::number(CalibrationObject::getInstance()->getSquareSize()));

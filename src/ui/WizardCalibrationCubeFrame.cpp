@@ -63,7 +63,7 @@ WizardCalibrationCubeFrame::WizardCalibrationCubeFrame(QWidget *parent) :
 }
 
 void WizardCalibrationCubeFrame::loadCalibrationSettings(){
-	planarCalibrationObject = CalibrationObject::getInstance()->isPlanar();	
+	planarCalibrationObject = CalibrationObject::getInstance()->isCheckerboard();
 	if(!planarCalibrationObject){
 		for (int i = 0; i < 4; i++){
 			selectedReferencePointsIdx[i] = CalibrationObject::getInstance()->getReferenceIDs()[i];
@@ -153,7 +153,7 @@ bool WizardCalibrationCubeFrame::checkForPendingChanges(){
 			QEventLoop loop;
 			for(unsigned int j = 0; j < Project::getInstance()->getCameras().size() ; j ++){
 				if(Project::getInstance()->getCameras()[j]->isRecalibrationRequired()){
-					Calibration * calibration = new Calibration(j);
+					Calibration * calibration = new Calibration(j,CalibrationObject::getInstance()->isPlanar());
 					connect(calibration, SIGNAL(computeCameraPosesAndCam_finished()), &loop, SLOT(quit()));
 					calibration->computeCameraPosesAndCam();	
 				}
@@ -460,7 +460,7 @@ void WizardCalibrationCubeFrame::runCalibrationCameraAllFrames(){
 	if (!planarCalibrationObject){
 		for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++){
 			if (Project::getInstance()->getCameras()[j]->isRecalibrationRequired()){
-				Calibration * calibration = new Calibration(j);
+				Calibration * calibration = new Calibration(j, CalibrationObject::getInstance()->isPlanar());
 
 				connect(calibration, SIGNAL(computeCameraPosesAndCam_finished()), this, SLOT(runCalibrationCameraAllFramesFinished()));
 				calibs.push_back(calibration);

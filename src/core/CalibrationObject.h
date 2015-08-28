@@ -21,6 +21,7 @@ namespace xma{
 
 		bool isInitialised(){ return initialised; }
 		bool isPlanar(){ return planar; }
+		bool isCheckerboard(){ return checkerboard; }
 		bool hasWhiteBlobs(){ return whiteBlobs; }
 		cv::vector<cv::Point3d>& getFrameSpecifications(){ return frameSpecifications; }
 		cv::vector<int>& getReferenceIDs(){ return referenceIDs; }
@@ -35,6 +36,7 @@ namespace xma{
 		static CalibrationObject* instance;
 
 		bool planar;
+		bool checkerboard;
 		bool initialised;
 		bool whiteBlobs;
 
