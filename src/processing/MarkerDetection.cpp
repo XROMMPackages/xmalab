@@ -430,8 +430,8 @@ void MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_o
 		double xc = (b*f - c*d) / J;
 		double yc = (b*d - a*f) / J;
 
-		x = x + sign(xc)*min(abs(xc), improverthresh);
-		y = y + sign(yc)*min(abs(yc), improverthresh);
+		x = x + sign(xc)*min(fabs(xc), improverthresh);
+		y = y + sign(yc)*min(fabs(yc), improverthresh);
 
 		rotation = 0.5*(M_PI / 2.0 - atan((c - a) / 2 / b) + (a - c < 0)) * M_PI / 2.0;
 		double ct = cos(rotation);
@@ -440,10 +440,10 @@ void MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_o
 		double P2 = p.at<double>(10, 0)*pow(st, 4) + p.at<double>(11, 0)*pow(st, 3) * ct + p.at<double>(12, 0)*st*st * ct*ct + p.at<double>(13, 0)*st*pow(ct, 3) + p.at<double>(14, 0)*pow(ct, 4);
 		double Q1 = p.at<double>(3, 0)*ct*ct - p.at<double>(4, 0)*ct*st + p.at<double>(5, 0)*st*st;
 		double Q2 = p.at<double>(3, 0)*st*st + p.at<double>(4, 0)*st*ct + p.at<double>(5, 0)*ct*ct;
-		radius = abs(sqrt(sqrt(Q1*Q2 / P1 / P2 / 36))); //geometric mean
+		radius = fabs(sqrt(sqrt(Q1*Q2 / P1 / P2 / 36))); //geometric mean
 
 		stillgood = (refinementcount <= maxrefinements) && (J>0); //if not still good, stop at once...
-		bool improverswitch = (abs(xc) > improverthresh) || (abs(yc) > improverthresh);  //check if xc, yc above thresh or extra cycles required
+		bool improverswitch = (fabs(xc) > improverthresh) || (fabs(yc) > improverthresh);  //check if xc, yc above thresh or extra cycles required
 		doextracycles -= (!improverswitch) ? 1 : 0; //if still good and improverswitch turns off, do extra cycles
 
 		if (!stillgood || doextracycles == 0)
@@ -458,7 +458,7 @@ void MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_o
 			}
 			eccentricity = sqrt(1 - (semiaxes1*semiaxes1) / (semiaxes2*semiaxes2));
 
-			skewness = (abs(p.at<double>(6, 0)) + abs(p.at<double>(7, 0)) + abs(p.at<double>(8, 0)) + abs(p.at<double>(9, 0)))*radius / J;
+			skewness = (fabs(p.at<double>(6, 0)) + fabs(p.at<double>(7, 0)) + fabs(p.at<double>(8, 0)) + fabs(p.at<double>(9, 0)))*radius / J;
 
 			if (!subpixpeak){
 				//calculate sub - pixel corrections based on centroid of image within particle
