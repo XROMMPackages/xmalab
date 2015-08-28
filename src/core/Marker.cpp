@@ -174,6 +174,7 @@ bool Marker::getMarkerPrediction(int camera, int frame, double &x, double &y, bo
 
 void Marker::reconstruct3DPoint(int frame)
 {
+	status3D[frame] = UNDEFINED;
 	switch (Settings::getInstance()->getIntSetting("TriangulationMethod")){
 	default:
 	case 0:
