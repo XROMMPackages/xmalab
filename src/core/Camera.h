@@ -44,7 +44,7 @@ namespace xma{
 		void loadTextures();
 
 		void undistort();
-		cv::Point2d undistortPoint(cv::Point2d pt, bool undistort);
+		cv::Point2d undistortPoint(cv::Point2d pt, bool undistort, bool withModel = true);
 		cv::Point2d applyModelDistortion(cv::Point2d pt, bool undistort);
 
 		void setCalibrated(bool value);

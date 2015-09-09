@@ -208,9 +208,11 @@ void Camera::setDistortionCoefficiants(cv::Mat& _distortion_coeff)
 
 void Camera::resetDistortion()
 {
-	distortion_coeffs = cv::Mat::zeros(8, 1, CV_64F);
-	model_distortion = false;
-	undistort();
+	if (model_distortion){
+		distortion_coeffs = cv::Mat::zeros(8, 1, CV_64F);
+		model_distortion = false;
+		undistort();
+	}
 }
 
 cv::Mat Camera::getDistortionCoefficiants()
@@ -431,13 +433,13 @@ void Camera::getDLT(double * out, int frame){
 	}
 }
 
-cv::Point2d Camera::undistortPoint(cv::Point2d pt, bool undistort)
+cv::Point2d Camera::undistortPoint(cv::Point2d pt, bool undistort, bool withModel)
 {
 	cv::Point2d pt_out = pt;
 	if (undistortionObject && undistortionObject->isComputed()){
 		pt_out = undistortionObject->transformPoint(pt_out, undistort);
 	}
-	if (hasModelDistortion())
+	if (hasModelDistortion() && withModel)
 	{
 		pt_out = applyModelDistortion(pt_out, undistort);
 	}

@@ -44,7 +44,7 @@ Calibration::Calibration(int camera, bool planar):QObject(){
 	
 	for(unsigned int f = 0 ; f < Project::getInstance()->getNbImagesCalibration(); f ++){
 		if ((!m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->isCalibrated() > 0)
-			|| (m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->getDetectedPointsUndistorted().size() > 0)){
+			|| (m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->getDetectedPoints().size() > 0)){
 
 			std::vector<cv::Point3f>pt3D_tmp;
 			std::vector<cv::Point2f>pt2D_tmp;
@@ -53,8 +53,9 @@ Calibration::Calibration(int camera, bool planar):QObject(){
 				if(Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->getInliers()[k] > 0){
 					pt3D_tmp.push_back(cv::Point3f(CalibrationObject::getInstance()->getFrameSpecifications()[k].x,CalibrationObject::getInstance()->getFrameSpecifications()[k].y,
 						CalibrationObject::getInstance()->getFrameSpecifications()[k].z));
-					pt2D_tmp.push_back(cv::Point2f(Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->getDetectedPointsUndistorted()[k].x,
-						Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->getDetectedPointsUndistorted()[k].y));
+					
+					cv::Point2d tmp = Project::getInstance()->getCameras()[m_camera]->undistortPoint(Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->getDetectedPoints()[k], true, false);
+					pt2D_tmp.push_back(cv::Point2f(tmp.x,tmp.y));
 				}
 			}
 
@@ -257,7 +258,7 @@ void Calibration::computeCameraPosesAndCam_thread(){
 		int count = 0;
 		for(unsigned int f = 0 ; f < Project::getInstance()->getNbImagesCalibration(); f ++){
 			if ((!m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->isCalibrated() > 0)
-				|| (m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->getDetectedPointsUndistorted().size() > 0)){
+				|| (m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->getDetectedPoints().size() > 0)){
 				for(int i = 0 ; i < 3 ; i++)
 					rotationvector.at<double>(i,0) = rvecs[count].at<double>(i,0);
 

@@ -637,7 +637,7 @@ void MultiCameraCalibration::reproject(int c){
 	cv::vector<cv::Point2d> projectedPoints;
 	for (unsigned int f = 0; f < Project::getInstance()->getNbImagesCalibration(); f++){
 		if ((!m_planar && Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0)
-			|| (m_planar && Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getDetectedPointsUndistorted().size() > 0)){
+			|| (m_planar && Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getDetectedPoints().size() > 0)){
 			projectedPoints.clear();
 			for (unsigned int i = 0; i < 3; i++){
 				CV_MAT_ELEM(*r_matrices, cv::Vec3d, 0, 0)[i] = Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getRotationVector().at<double>(i, 0);
