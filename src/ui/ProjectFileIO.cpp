@@ -419,6 +419,128 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 	return trial;
 }
 
+void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial)
+{
+	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+
+	unzipFromFileToFolder(filename, tmpDir_path);
+
+	if (QFile::exists(tmpDir_path + OS_SEP + "project.xml")){
+		if (filename.isNull() == false)
+		{
+			QFileInfo info(tmpDir_path + OS_SEP + "project.xml");
+			QString basedir = info.absolutePath();
+			QString xml_filename = tmpDir_path + OS_SEP + "project.xml";
+			if (!xml_filename.isNull())
+			{
+				QFile file(xml_filename);
+				if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+				{
+					QXmlStreamReader xml(&file);
+					//Reading from the file
+
+					while (!xml.atEnd() && !xml.hasError()) {
+						/* Read next element.*/
+						QXmlStreamReader::TokenType token = xml.readNext();
+						/* If token is just StartDocument, we'll go to next.*/
+						if (token == QXmlStreamReader::StartDocument) {
+							continue;
+						}
+						if (token == QXmlStreamReader::StartElement) {
+							if (xml.name() == "Trial")
+							{
+								QXmlStreamAttributes attr = xml.attributes();
+								if (attr.value("Name").toString() == trialname)
+								{
+									QString trialname = attr.value("Name").toString();
+									QString trialfolder = basedir + OS_SEP + trialname + OS_SEP;
+									
+									trial->loadMarkers(trialfolder + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
+									trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
+
+									while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "Trial")) {
+										if (xml.tokenType() == QXmlStreamReader::StartElement) {
+											if (xml.name() == "Marker"){
+												QXmlStreamAttributes attr = xml.attributes();					
+												int id = attr.value("ID").toString().toInt();
+												
+												QString Reference3DPoint = basedir + OS_SEP + attr.value("Reference3DPoint").toString();
+												if (!Reference3DPoint.isEmpty())trial->getMarkers()[id]->loadReference3DPoint(littleHelper::adjustPathToOS(Reference3DPoint));
+
+												QString TrackingPenalty = attr.value("TrackingPenalty").toString();
+												if (!TrackingPenalty.isEmpty())trial->getMarkers()[id]->setMaxPenalty(TrackingPenalty.toInt());
+
+												QString DetectionMethod = attr.value("DetectionMethod").toString();
+												if (!DetectionMethod.isEmpty())trial->getMarkers()[id]->setMethod(DetectionMethod.toInt());
+
+												QString SizeOverride = attr.value("SizeOverride").toString();
+												if (!SizeOverride.isEmpty())trial->getMarkers()[id]->setSizeOverride(SizeOverride.toInt());
+
+												QString ThresholdOffset = attr.value("ThresholdOffset").toString();
+												if (!ThresholdOffset.isEmpty())trial->getMarkers()[id]->setThresholdOffset(ThresholdOffset.toInt());
+											}
+
+											if (xml.name() == "RigidBody"){
+												QXmlStreamAttributes attr = xml.attributes();
+
+												QString filename_referenceNames_attr = attr.value("ReferenceNames").toString();
+												QString filename_referencePoints3D_attr = attr.value("ReferencePoints3D").toString();
+
+												int id = attr.value("ID").toString().toInt();
+
+												if (!filename_referenceNames_attr.isEmpty() && !filename_referencePoints3D_attr.isEmpty()){
+
+													QString filename_referenceNames = basedir + OS_SEP + filename_referenceNames_attr;
+													QString filename_referencePoints3D = basedir + OS_SEP + filename_referencePoints3D_attr;
+													trial->getRigidBodies()[id]->load(littleHelper::adjustPathToOS(filename_referenceNames), littleHelper::adjustPathToOS(filename_referencePoints3D));
+												}
+												else
+												{
+													trial->getRigidBodies()[id]->resetReferences();
+												}
+
+												QString visible = attr.value("Visible").toString();
+												if (!visible.isEmpty())
+												{
+													trial->getRigidBodies()[id]->setVisible(visible.toInt());
+												}
+												QString color = attr.value("Color").toString();
+												if (!color.isEmpty())
+												{
+													trial->getRigidBodies()[id]->setColor(QColor(color));
+												}
+
+												QString overrideCutOffFrequency = attr.value("OverrideCutOffFrequency").toString();
+												if (!overrideCutOffFrequency.isEmpty())
+												{
+													trial->getRigidBodies()[id]->setOverrideCutoffFrequency(overrideCutOffFrequency.toInt());
+												}
+
+												QString cutOffFrequency = attr.value("CutOffFrequency").toString();
+												if (!cutOffFrequency.isEmpty())
+												{
+													trial->getRigidBodies()[id]->setCutoffFrequency(cutOffFrequency.toDouble());
+												}
+											}
+										}
+										xml.readNext();
+									}
+								}
+							}
+						}
+					}
+					if (xml.hasError()) {
+						ErrorDialog::getInstance()->showErrorDialog(QString("QXSRExample::parseXML %1").arg(xml.errorString()));
+					}
+					file.close();
+				}
+			}
+		}
+	}
+
+	removeDir(tmpDir_path);
+}
+
 void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog * dialog)
 {
 	Project::getInstance()->projectFilename = filename;

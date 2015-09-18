@@ -22,17 +22,15 @@ namespace xma{
 	private:
 		void switchGroups();
 		bool importCSV();
-		bool importData();
-		bool exportData();
+		bool importXMA();
 		bool copyFromTrial();
 
 	public slots:
-		void on_radioButtonExport_clicked(bool checked);
-		void on_radioButtonImport_clicked(bool checked);
+		void on_radioButtonImportCSV_clicked(bool checked);
+		void on_radioButtonImportXMA_clicked(bool checked);
 		void on_radioButtonTrial_clicked(bool checked);
 
-		void on_toolButtonMarkers_clicked();
-		void on_toolButtonRigidBodies_clicked();
+		void on_toolButtonMarkersXMA_clicked();
 		void on_toolButtonMarkersCSV_clicked();
 
 		void on_pushButtonCancel_clicked();

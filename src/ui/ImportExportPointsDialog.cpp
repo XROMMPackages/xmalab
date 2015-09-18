@@ -7,6 +7,7 @@
 #include "ui/ConfirmationDialog.h"
 #include "ui/State.h"
 #include "ui/PlotWindow.h"
+#include "ui/ProjectFileIO.h"
 
 #include "core/Settings.h"
 #include "core/Project.h"
@@ -17,6 +18,7 @@
 #include <QFileDialog>
 
 #include <fstream>
+#include <QtGui/QInputDialog>
 
 using namespace xma;
 
@@ -54,12 +56,12 @@ ImportExportPointsDialog::~ImportExportPointsDialog(){
 
 void ImportExportPointsDialog::switchGroups()
 {
-	if (diag->radioButtonImport->isChecked()) {
-		diag->groupBoxImport->show();
+	if (diag->radioButtonImportXMA->isChecked()) {
+		diag->groupBoxImportXMA->show();
 	}
 	else
 	{
-		diag->groupBoxImport->hide();
+		diag->groupBoxImportXMA->hide();
 	}
 	if (diag->radioButtonImportCSV->isChecked())
 	{
@@ -68,14 +70,6 @@ void ImportExportPointsDialog::switchGroups()
 	else
 	{
 		diag->groupBoxImportCSV->hide();
-	}
-
-	if (diag->radioButtonExport->isChecked()) {
-		diag->groupBoxExport->show();
-	}
-	else
-	{
-		diag->groupBoxExport->hide();
 	}
 
 	if (diag->radioButtonTrial->isChecked()) {
@@ -87,12 +81,12 @@ void ImportExportPointsDialog::switchGroups()
 	}
 }
 
-void ImportExportPointsDialog::on_radioButtonExport_clicked(bool checked)
+void ImportExportPointsDialog::on_radioButtonImportCSV_clicked(bool checked)
 {
 	switchGroups();
 }
 
-void ImportExportPointsDialog::on_radioButtonImport_clicked(bool checked)
+void ImportExportPointsDialog::on_radioButtonImportXMA_clicked(bool checked)
 {
 	switchGroups();
 }
@@ -100,26 +94,6 @@ void ImportExportPointsDialog::on_radioButtonImport_clicked(bool checked)
 void ImportExportPointsDialog::on_radioButtonTrial_clicked(bool checked)
 {
 	switchGroups();
-}
-
-void ImportExportPointsDialog::on_toolButtonMarkers_clicked(){
-	QString fileName = QFileDialog::getOpenFileName(this,
-		tr("Open marker description"), Settings::getInstance()->getLastUsedDirectory(), ("Txt files (*.txt)"));
-	if (fileName.isNull() == false)
-	{
-		Settings::getInstance()->setLastUsedDirectory(fileName);
-		diag->lineEditMarkers->setText(fileName);
-	}
-}
-
-void ImportExportPointsDialog::on_toolButtonRigidBodies_clicked(){
-	QString fileName = QFileDialog::getOpenFileName(this,
-		tr("Open rigid body description"), Settings::getInstance()->getLastUsedDirectory(), ("Txt files (*.txt)"));
-	if (fileName.isNull() == false)
-	{
-		Settings::getInstance()->setLastUsedDirectory(fileName);
-		diag->lineEditRigidBodies->setText(fileName);
-	}
 }
 
 void ImportExportPointsDialog::on_toolButtonMarkersCSV_clicked()
@@ -133,6 +107,18 @@ void ImportExportPointsDialog::on_toolButtonMarkersCSV_clicked()
 	}
 }
 
+void ImportExportPointsDialog::on_toolButtonMarkersXMA_clicked()
+{
+	QString fileName = QFileDialog::getOpenFileName(this,
+		tr("Open marker csv file"), Settings::getInstance()->getLastUsedDirectory(), ("Dataset (*.xma  *.zip)"));
+	if (fileName.isNull() == false)
+	{
+		Settings::getInstance()->setLastUsedDirectory(fileName);
+		diag->lineEditMarkersXMA->setText(fileName);
+	}
+}
+
+
 void ImportExportPointsDialog::on_pushButtonCancel_clicked()
 {
 	this->close();
@@ -140,15 +126,12 @@ void ImportExportPointsDialog::on_pushButtonCancel_clicked()
 
 void ImportExportPointsDialog::on_pushButtonOK_clicked()
 {
-	if (diag->radioButtonImport->isChecked()) {
-		importData();
+	if (diag->radioButtonImportXMA->isChecked()) {
+		importXMA();
 	}
 	if (diag->radioButtonImportCSV->isChecked())
 	{
 		importCSV();
-	}
-	if (diag->radioButtonExport->isChecked()) {
-		exportData();
 	}
 	if (diag->radioButtonTrial->isChecked()) {
 		copyFromTrial();
@@ -166,98 +149,78 @@ bool ImportExportPointsDialog::importCSV()
 	return false;
 }
 
-bool ImportExportPointsDialog::importData()
+bool ImportExportPointsDialog::importXMA()
 {
-	if (!diag->lineEditMarkers->text().isEmpty() || !diag->lineEditRigidBodies->text().isEmpty())
-	{
-		if (!diag->lineEditMarkers->text().isEmpty())
-		{
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->loadMarkers(diag->lineEditMarkers->text());
-		}
-		if (!diag->lineEditRigidBodies->text().isEmpty())
-		{
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->loadRigidBodies(diag->lineEditRigidBodies->text());
-		}
-		PlotWindow::getInstance()->updateMarkers(false);
-		return true;
+	bool ok = true;
+	if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() > 0 || Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() > 0){
+		ok = ConfirmationDialog::getInstance()->showConfirmationDialog("All markers and Rigid bodies will be deleted before import. Are you sure you want to proceed?");
 	}
-	else
-	{
-		ErrorDialog::getInstance()->showErrorDialog("You need to select a file for markers and/or rigid bodies.");
-		return false;
+	if (ok){
+
+		if (!diag->lineEditMarkersXMA->text().isEmpty())
+		{
+			QStringList trialnames = ProjectFileIO::getInstance()->readTrials(diag->lineEditMarkersXMA->text());
+
+			bool ok;
+			QString item = QInputDialog::getItem(this, tr("Choose trial to import"),
+				tr("Trial:"), trialnames, 0, false, &ok);
+
+			if (ok && !item.isEmpty())
+			{
+				ProjectFileIO::getInstance()->loadMarker(diag->lineEditMarkersXMA->text(), item, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
+				
+				PlotWindow::getInstance()->updateMarkers(false);
+			}
+			return true;
+		}
 	}
+	return false;
 }
 
-bool ImportExportPointsDialog::exportData()
-{
-	if (diag->checkBoxMarkers->isChecked() || diag->checkBoxRigidBodies->isChecked()){
-		if (diag->checkBoxMarkers->isChecked())
-		{
-			QString fileNameMarkers = QFileDialog::getSaveFileName(this,
-				tr("Save marker description as"), Settings::getInstance()->getLastUsedDirectory() , tr("Txt files (*.txt)"));
-			if (fileNameMarkers.isNull() == false)
-			{
-				Settings::getInstance()->setLastUsedDirectory(fileNameMarkers);
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveMarkers(fileNameMarkers);
-			}
-		}
-		if (diag->checkBoxRigidBodies->isChecked())
-		{
-			QString fileNameRigidBodies = QFileDialog::getSaveFileName(this,
-				tr("Save rigid body description as"), Settings::getInstance()->getLastUsedDirectory(), tr("Txt files (*.txt)"));
-			if (fileNameRigidBodies.isNull() == false)
-			{
-				Settings::getInstance()->setLastUsedDirectory(fileNameRigidBodies);
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodies(fileNameRigidBodies);
-			}
-		}
-		
-		return true;
-	}
-	else
-	{
-		ErrorDialog::getInstance()->showErrorDialog("You need to at least check one checkbox to export the data.");
-		return false;
-	}
-}
 
 bool ImportExportPointsDialog::copyFromTrial()
 {
-	for (int idx = 0; idx < Project::getInstance()->getTrials().size(); idx++)
-	{
-		if (diag->comboBoxTrial->currentText() == Project::getInstance()->getTrials()[idx]->getName())
+	bool ok = true;
+	if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() > 0 || Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() > 0){
+		ok = ConfirmationDialog::getInstance()->showConfirmationDialog("All markers and Rigid bodies will be deleted before import. Are you sure you want to proceed?");
+	}
+	if (ok){
+		for (int idx = 0; idx < Project::getInstance()->getTrials().size(); idx++)
 		{
-			for (int i = 0; i < Project::getInstance()->getTrials()[idx]->getMarkers().size(); i++)
+			if (diag->comboBoxTrial->currentText() == Project::getInstance()->getTrials()[idx]->getName())
 			{
-				if (i >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
-					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addMarker();
+				for (int i = 0; i < Project::getInstance()->getTrials()[idx]->getMarkers().size(); i++)
+				{
+					if (i >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
+						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addMarker();
 
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setDescription(
-					Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getDescription());
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setDescription(
+						Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getDescription());
 
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setMaxPenalty(
-					Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getMaxPenalty());
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setMaxPenalty(
+						Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getMaxPenalty());
 
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setMethod(
-					Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getMethod());
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setMethod(
+						Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getMethod());
 
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setSizeOverride(
-					Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getSizeOverride());
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setSizeOverride(
+						Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getSizeOverride());
 
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setThresholdOffset(
-					Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getThresholdOffset());
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setThresholdOffset(
+						Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getThresholdOffset());
+				}
+
+				for (int i = 0; i < Project::getInstance()->getTrials()[idx]->getRigidBodies().size(); i++)
+				{
+					if (i >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size())
+						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addRigidBody();
+
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->copyData(
+						Project::getInstance()->getTrials()[idx]->getRigidBodies()[i]);
+				}
+				PlotWindow::getInstance()->updateMarkers(false);
+				return true;
 			}
-
-			for (int i = 0; i < Project::getInstance()->getTrials()[idx]->getRigidBodies().size(); i++)
-			{
-				if (i >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size())
-					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addRigidBody();
-
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->copyData(
-					Project::getInstance()->getTrials()[idx]->getRigidBodies()[i]);
-			}
-			PlotWindow::getInstance()->updateMarkers(false);
-			return true;
 		}
 	}
 	return false;

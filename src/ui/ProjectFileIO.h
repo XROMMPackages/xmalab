@@ -21,6 +21,7 @@ namespace xma{
 
 		QStringList readTrials(QString filename);
 		Trial *loadTrials(QString filename, QString trialname);
+		void loadMarker(QString filename, QString trialname, Trial * trial);
 
 		void loadXMALabProject(QString filename, NewProjectDialog * dialog);
 		void removeTmpDir();
