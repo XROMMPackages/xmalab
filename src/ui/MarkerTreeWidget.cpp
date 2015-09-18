@@ -198,8 +198,6 @@ void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 
 		bool ok2 = fromTo->exec();
 		if (ok2){
-
-
 			int frame = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveFrame();
 			int start = fromTo->getFrom() - 1;
 			int end = fromTo->getTo()-1;
@@ -261,15 +259,25 @@ void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 
 void MarkerTreeWidget::action_ResetPoints_triggered(){
 	QList<QTreeWidgetItem * > items = this->selectedItems();
-	if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to reset the data for the selected Points?")) return;
-	for (int i = 0; i < items.size(); i++){
-		if (items.at(i)->type() == MARKER)
-		{
-			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[(items.at(i)->text(0).toInt() - 1)]->resetMultipleFrames(-1, 
-				Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1 , Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1);
+
+	FromToDialog * fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
+		, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
+		, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
+		, false, this);
+
+	bool ok = fromTo->exec();
+	if (ok){
+		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to reset the data for the selected Points?")) return;
+		for (int i = 0; i < items.size(); i++){
+			if (items.at(i)->type() == MARKER)
+			{
+				Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[(items.at(i)->text(0).toInt() - 1)]->resetMultipleFrames(-1,
+					fromTo->getFrom() - 1, fromTo->getTo()- 1);
+			}
 		}
+		MainWindow::getInstance()->redrawGL();
 	}
-	MainWindow::getInstance()->redrawGL();
+	delete fromTo;
 }
 
 
