@@ -9,6 +9,7 @@
 #include "ui/PlotWindow.h"
 #include "ui/ConfirmationDialog.h"
 #include "ui/ProgressDialog.h"
+#include "ui/FromToDialog.h"
 
 #include "core/Project.h"
 #include "core/Trial.h"
@@ -187,78 +188,75 @@ void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 	QString methodName = QInputDialog::getItem(this, tr("Which points do you want to refine?"),
 		tr("Points :"), methodnames, 0, false, &ok);
 	
+
 	if (ok && !methodName.isEmpty())
 	{
+		FromToDialog * fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
+			, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
+			, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
+			, false, this);
 
-		int frame = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveFrame();
-		int start = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1;
-		int end = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1;
+		bool ok2 = fromTo->exec();
+		if (ok2){
 
-		int method = methodnames.indexOf(methodName);
-		markerStatus max_marker_status;
 
-		if (method == 0)
-		{
-			max_marker_status = SET;
-		}
-		else if(method == 1)
-		{
-			max_marker_status = TRACKED;
-		}
-		else
-		{
-			max_marker_status = MANUAL_REFINED;
-		}
+			int frame = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveFrame();
+			int start = fromTo->getFrom() - 1;
+			int end = fromTo->getTo()-1;
 
-		QList<QTreeWidgetItem * > items = this->selectedItems();
-		
-		ProgressDialog::getInstance()->showProgressbar(start, frame, "Refining center");
-		for (int i = start; i <= end; i++){
-			ProgressDialog::getInstance()->setProgress(i);
-			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveFrame(i);
-			xma::State::getInstance()->changeActiveFrameTrial(i);
+			int method = methodnames.indexOf(methodName);
+			markerStatus max_marker_status;
 
-			for (int c = 0; c < Project::getInstance()->getCameras().size(); c++){
-				for (int it = 0; it < items.size(); it++){
-					if (items.at(it)->type() == MARKER)
-					{
-						if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getStatus2D()[c][i] > 0 &&
-							Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getStatus2D()[c][i] <= max_marker_status){
-							
-							cv::Point2d pt(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getPoints2D()[c][i]);
-							double size = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getSize();
-							int marker_method = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getMethod();
+			if (method == 0)
+			{
+				max_marker_status = SET;
+			}
+			else if (method == 1)
+			{
+				max_marker_status = TRACKED;
+			}
+			else
+			{
+				max_marker_status = MANUAL_REFINED;
+			}
 
-							MarkerDetection::refinePointPolynomialFit(pt, size, (marker_method != 5 && marker_method != 2 ), c, xma::State::getInstance()->getActiveTrial());
+			QList<QTreeWidgetItem * > items = this->selectedItems();
 
-							Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->setPoint(c, i, pt.x, pt.y, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getStatus2D()[c][i]);
+			ProgressDialog::getInstance()->showProgressbar(start, end, "Refining center");
+			for (int i = start; i <= end; i++){
+				ProgressDialog::getInstance()->setProgress(i);
+				Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveFrame(i);
+				xma::State::getInstance()->changeActiveFrameTrial(i);
+
+				for (int c = 0; c < Project::getInstance()->getCameras().size(); c++){
+					for (int it = 0; it < items.size(); it++){
+						if (items.at(it)->type() == MARKER)
+						{
+							if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getStatus2D()[c][i] > 0 &&
+								Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getStatus2D()[c][i] <= max_marker_status){
+
+								cv::Point2d pt(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getPoints2D()[c][i]);
+								double size = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getSize();
+								int marker_method = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getMethod();
+
+								MarkerDetection::refinePointPolynomialFit(pt, size, (marker_method != 5 && marker_method != 2), c, xma::State::getInstance()->getActiveTrial());
+
+								Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->setPoint(c, i, pt.x, pt.y, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getStatus2D()[c][i]);
+							}
 						}
 					}
 				}
-			}
 
-			
-			MainWindow::getInstance()->redrawGL();
-			QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+
+				MainWindow::getInstance()->redrawGL();
+				QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+			}
+			ProgressDialog::getInstance()->closeProgressbar();
+			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveFrame(frame);
+			xma::State::getInstance()->changeActiveFrameTrial(frame);
 		}
-		ProgressDialog::getInstance()->closeProgressbar();
-		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveFrame(frame);
-		xma::State::getInstance()->changeActiveFrameTrial(frame);
+		delete fromTo;
 	}
-
-	/*
-
-	if (ok && !methodName.isEmpty())
-	{
-		int method = methodnames.indexOf(methodName);
-		QList<QTreeWidgetItem * > items = this->selectedItems();
-		for (int i = 0; i < items.size(); i++){
-			if (items.at(i)->type() == MARKER)
-			{
-				Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(i)->text(0).toInt() - 1]->setMethod(method);
-			}
-		}
-	}*/
 }
 
 void MarkerTreeWidget::action_ResetPoints_triggered(){
