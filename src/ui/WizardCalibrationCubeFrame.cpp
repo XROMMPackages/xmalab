@@ -63,8 +63,7 @@ WizardCalibrationCubeFrame::WizardCalibrationCubeFrame(QWidget *parent) :
 }
 
 void WizardCalibrationCubeFrame::loadCalibrationSettings(){
-	planarCalibrationObject = CalibrationObject::getInstance()->isCheckerboard();
-	if(!planarCalibrationObject){
+	if (!CalibrationObject::getInstance()->isCheckerboard()){
 		for (int i = 0; i < 4; i++){
 			selectedReferencePointsIdx[i] = CalibrationObject::getInstance()->getReferenceIDs()[i];
 		}
@@ -275,7 +274,7 @@ void WizardCalibrationCubeFrame::addCalibrationReference(double x, double y){
 	else{
 		if (State::getInstance()->getUndistortion() == UNDISTORTED)
 		{
-			if (planarCalibrationObject)
+			if (CalibrationObject::getInstance()->isCheckerboard())
 			{
 				selectedReferencePoints[0].x = x;
 				selectedReferencePoints[0].y = y;
@@ -359,7 +358,7 @@ void WizardCalibrationCubeFrame::setDialog(){
 			}
 			else
 			{
-				if (!planarCalibrationObject){
+				if (!CalibrationObject::getInstance()->isCheckerboard()){
 					frame->label->setText("Select the references");
 					frame->frameReferences->show();
 				}
@@ -419,7 +418,7 @@ void WizardCalibrationCubeFrame::on_pushButton_clicked(){
 	}
 	else{
 		if (!Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() > 0){
-			if (!planarCalibrationObject){
+			if (!CalibrationObject::getInstance()->isCheckerboard()){
 				int count = 0;
 				for (int i = 0; i < 4; i++){
 					if (selectedReferencePoints[i].x >= 0 && selectedReferencePoints[i].y >= 0)count++;
@@ -457,7 +456,7 @@ void WizardCalibrationCubeFrame::on_pushButton_clicked(){
 
 void WizardCalibrationCubeFrame::runCalibrationCameraAllFrames(){
 	std::vector<Calibration *> calibs;
-	if (!planarCalibrationObject){
+	if (!CalibrationObject::getInstance()->isCheckerboard()){
 		for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++){
 			if (Project::getInstance()->getCameras()[j]->isRecalibrationRequired()){
 				Calibration * calibration = new Calibration(j, CalibrationObject::getInstance()->isPlanar());
@@ -504,7 +503,7 @@ void WizardCalibrationCubeFrame::runCalibrationCameraAllFramesFinished(){
 
 void WizardCalibrationCubeFrame::runCalibration(){
 	if(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getDetectedPointsAll().size() < 6 ){
-		if (!planarCalibrationObject){
+		if (!CalibrationObject::getInstance()->isCheckerboard()){
 			ErrorDialog::getInstance()->showErrorDialog("Not enough points found to run calibration");
 		}
 		else
@@ -513,7 +512,7 @@ void WizardCalibrationCubeFrame::runCalibration(){
 		}
 		return;
 	}
-	if (!planarCalibrationObject){
+	if (!CalibrationObject::getInstance()->isCheckerboard()){
 		CubeCalibration * calibration = new CubeCalibration(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveFrameCalibration(), selectedReferencePoints, selectedReferencePointsIdx);
 		if (!Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->isCalibrated()){
 			connect(calibration, SIGNAL(computePoseAndCam_finished()), this, SLOT(runCalibrationFinished()));
@@ -630,7 +629,7 @@ void WizardCalibrationCubeFrame::calibrateOtherFrames(){
 						}
 
 						if(save && CamJToCamKTransformationSet[k][j]){
-							if (!planarCalibrationObject){
+							if (!CalibrationObject::getInstance()->isCheckerboard()){
 								temporaryCamIdx.push_back(k);
 								temporaryFrameIdx.push_back(m);
 								temporaryTransformationMatrix.push_back(fj->getTransformationMatrix()* CamJToCamKTransformation[k][j]);

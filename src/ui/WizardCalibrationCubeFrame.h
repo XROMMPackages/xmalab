@@ -34,7 +34,6 @@ namespace xma{
 
 	private:
 		Ui::WizardCalibrationCubeFrame *frame;
-		bool planarCalibrationObject;
 		void setDialog();
 		void reloadManualPoints();
 		void setupManualPoints();
