@@ -183,6 +183,16 @@ void Project::exportMayaCam(QString foldername){
 	}
 }
 
+void Project::exportMayaCamVersion2(QString foldername){
+	for (std::vector <Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it){
+		for (int frame = 0; frame < (*it)->getCalibrationImages().size(); frame++){
+			if ((*it)->getCalibrationImages()[frame]->isCalibrated()){
+				(*it)->saveMayaCamVersion2(frame, foldername + OS_SEP + (*it)->getCalibrationImages()[frame]->getFilenameBase() + "_MayaCam.txt");
+			}
+		}
+	}
+}
+
 void Project::exportLUT(QString foldername){
 	for(std::vector <Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it){
 		if((*it)->hasUndistortion() && (*it)->getUndistortionObject()->isComputed()){

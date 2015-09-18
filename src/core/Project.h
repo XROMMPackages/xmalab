@@ -32,6 +32,7 @@ namespace xma{
 		void loadTextures();
 		void exportDLT(QString foldername);
 		void exportMayaCam(QString foldername);
+		void exportMayaCamVersion2(QString foldername);
 		void exportLUT(QString foldername);
 		void recountFrames();
 

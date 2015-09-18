@@ -334,6 +334,39 @@ void Camera::loadUndistortionParam(QString filename){
 	model_distortion = true;
 }
 
+void Camera::saveMayaCamVersion2(int ImageId, QString filename)
+{
+	std::ofstream outfile(filename.toAscii().data());
+	outfile.precision(12);
+	outfile << "image size" << std::endl;
+	outfile << getWidth() << "," << getHeight() << std::endl;
+	outfile << std::endl;
+
+	outfile << "camera matrix" << std::endl;
+	for (unsigned int i = 0; i < 3; ++i){
+		outfile << cameramatrix.at<double>(i, 0) << "," << cameramatrix.at<double>(i, 1) << "," << cameramatrix.at<double>(i, 2) << std::endl;
+	}
+	outfile << std::endl;
+
+	outfile << "rotation" << std::endl;
+	cv::Mat rotationmatrix;
+	rotationmatrix.create(3, 3, CV_64F);
+	cv::Rodrigues(getCalibrationImages()[ImageId]->getRotationVector(), rotationmatrix);
+	for (unsigned int i = 0; i < 3; ++i){
+		outfile << rotationmatrix.at<double>(i, 0) << "," << rotationmatrix.at<double>(i, 1) << "," << rotationmatrix.at<double>(i, 2) << std::endl;
+	}
+	rotationmatrix.release();
+	outfile << std::endl;
+
+	outfile << "translation" << std::endl;
+	cv::Mat translationVector = getCalibrationImages()[ImageId]->getTranslationVector();
+	for (unsigned int i = 0; i < 3; ++i){
+		outfile << translationVector.at<double>(i, 0) << std::endl;
+	}
+	translationVector.release();
+	outfile.close();
+}
+
 void Camera::getMayaCam(double * out, int frame)
 {
 	cv::Mat transTmp;

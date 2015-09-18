@@ -78,6 +78,7 @@ namespace xma{
 		void saveUndistortionParam(QString filename);
 		void loadUndistortionParam(QString filename);
 
+		void saveMayaCamVersion2(int ImageId, QString filename);
 		void getMayaCam(double * out, int frame);
 		void getDLT(double * out, int frame);
 
