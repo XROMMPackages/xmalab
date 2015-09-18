@@ -31,6 +31,7 @@ namespace xma{
 		void on_radioButtonMouseClickCenter_clicked(bool checked);
 		void on_radioButtonMouseClickOutlier_clicked(bool checked);
 		void on_radioButtonMouseClickNone_clicked(bool checked);
+		void on_pushButtonRemoveOutlierAutomatically_clicked();
 		void computeUndistortion();
 		void recomputeUndistortion();
 		void undistortionFinished();

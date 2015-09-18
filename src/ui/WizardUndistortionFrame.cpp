@@ -15,6 +15,7 @@
 
 #include "processing/BlobDetection.h"
 #include "processing/LocalUndistortion.h"
+#include <QInputDialog>
 
 using namespace xma;
 
@@ -46,7 +47,7 @@ void WizardUndistortionFrame::undistortionChanged(undistortion_state undistortio
 		frame->label->setText("Modify Undistortion");
 		frame->radioButtonMouseClickOutlier->show();
 		frame->groupBoxVisualization->show();
-		frame->pushButtonRemoveOutlierAutomatically->hide();
+		frame->pushButtonRemoveOutlierAutomatically->show();
 		frame->comboBoxImage->setCurrentIndex(1);
 		frame->comboBoxPoints->setCurrentIndex(3);
 		frame->radioButtonMouseClickNone->setChecked(true);
@@ -148,6 +149,25 @@ void WizardUndistortionFrame::on_radioButtonMouseClickOutlier_clicked(bool check
 }
 void WizardUndistortionFrame::on_radioButtonMouseClickNone_clicked(bool checked){
 	State::getInstance()->changeUndistortionMouseMode(UNDISTNOMOUSEMODE);
+	MainWindow::getInstance()->redrawGL();
+}
+
+void WizardUndistortionFrame::on_pushButtonRemoveOutlierAutomatically_clicked()
+{
+	bool ok;
+	int thres_border = QInputDialog::getInt(this, tr("Threshold: Distance to border"),
+		tr("Threshold (Border)"),10,0,100, 1, &ok);
+	if (ok){
+		int thres_circle = QInputDialog::getInt(this, tr("Threshold: Distance to fitted circle"),
+			tr("Threshold (Circle)"), 25, 0, 100, 1, &ok);
+		if (ok){
+			for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
+				if (Project::getInstance()->getCameras()[i]->hasUndistortion()){
+					Project::getInstance()->getCameras()[i]->getUndistortionObject()->removeOutlier(thres_circle, thres_border);
+				}
+			}
+		}
+	}
 	MainWindow::getInstance()->redrawGL();
 }
 

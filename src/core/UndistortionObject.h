@@ -31,6 +31,7 @@ namespace xma{
 		bool undistort(QString filenameIn, QString filenameOut);
 		void setDetectedPoints(cv::vector <cv::Point2d> &points);
 		void getDetectedPoints(cv::vector <cv::Point2d> &points);
+		void removeOutlier(double threshold_circle, double threshold_border);
 
 		void setGridPoints(cv::vector <cv::Point2d> &points_distorted, cv::vector <cv::Point2d> &points_references, cv::vector<bool> &points_inlier);
 		void getGridPoints(cv::vector <cv::Point2d> &points_distorted, cv::vector <cv::Point2d> &points_references, cv::vector<bool> &points_inlier);
@@ -122,7 +123,7 @@ namespace xma{
 		void savePoints(std::vector <cv::Point2d> &points, QString filename);
 		void loadPoints(cv::vector <cv::Point2d> &points, QString filename);
 		void drawPoints(std::vector <cv::Point2d> &points);
-		int findClosestPoint(std::vector <cv::Point2d> &points, double x, double y);
+		int findClosestPoint(std::vector <cv::Point2d> &points, double x, double y, double macDistSquare = 100);
 		void computeError();
 
 		cv::Point2d transformLWM(cv::Point2d &ptIn, cv::Mat &controlPts, cv::Mat &A, cv::Mat &B, cv::Mat &radii);

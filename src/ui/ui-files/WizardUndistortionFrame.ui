@@ -224,7 +224,7 @@
       <item row="2" column="0">
        <widget class="QPushButton" name="pushButtonRemoveOutlierAutomatically">
         <property name="text">
-         <string>remove outlier automatically</string>
+         <string>remove outlier at border</string>
         </property>
        </widget>
       </item>

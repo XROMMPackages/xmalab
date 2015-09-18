@@ -100,6 +100,45 @@ void UndistortionObject::getDetectedPoints(cv::vector <cv::Point2d> &points){
 	}
 }
 
+void UndistortionObject::removeOutlier(double threshold_circle, double threshold_border)
+{
+	cv::Point2f center;
+	float radius;
+	cv::vector<cv::Point2f> points_float;
+
+	cv::Mat image_val;
+	image->getImage(image_val);
+	for (int x = 0; x < image->getWidth(); x++)
+	{
+		for (int y = 0; y < image->getHeight(); y++)
+		{
+			if (image_val.at<uchar>(y, x) > 100) points_float.push_back(cv::Point2f(x, y));
+		}
+	}
+
+	cv::minEnclosingCircle(points_float, center, radius);
+
+	//remove circle
+	for (int i = 0; i < points_grid_distorted.size(); i++)
+	{
+		double dist = pow(points_grid_distorted[i].x - center.x, 2) + pow(points_grid_distorted[i].y - center.y, 2);
+
+		points_grid_inlier[i] = !(dist > pow(radius - 1.5 * threshold_circle, 2));
+	}
+
+	//remove border
+	for (int i = 0; i < points_grid_distorted.size(); i++)
+	{
+		if (points_grid_distorted[i].x < threshold_border) points_grid_inlier[i] = false;
+		if (points_grid_distorted[i].y < threshold_border) points_grid_inlier[i] = false;
+		if (image->getWidth() - points_grid_distorted[i].x < threshold_border) points_grid_inlier[i] = false;
+		if (image->getHeight() - points_grid_distorted[i].y < threshold_border) points_grid_inlier[i] = false;
+	}
+	image_val.release();
+
+	setRecalibrationRequired(1);
+}
+
 void UndistortionObject::setGridPoints(cv::vector <cv::Point2d> &points_distorted , cv::vector <cv::Point2d> &points_references, cv::vector<bool> &points_inlier){
 	points_grid_distorted.clear();
 	for(std::vector <cv::Point2d>::const_iterator it = points_distorted.begin(); it != points_distorted.end(); ++it){
@@ -158,10 +197,9 @@ void UndistortionObject::setLWMMatrices(cv::Mat & A, cv::Mat & B, cv::Mat & radi
 		undistortionPoints = points_inverse.clone();
 }
 
-int UndistortionObject::findClosestPoint(std::vector <cv::Point2d> &points, double x, double y){
+int UndistortionObject::findClosestPoint(std::vector <cv::Point2d> &points, double x, double y, double maxDistSquare){
 	int idx = -1;
 	int count = 0;
-	double maxDistSquare = 100;
 	double xx,yy,distSquare;
 	for(std::vector <cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it){
 		xx = ((*it).x - x);
