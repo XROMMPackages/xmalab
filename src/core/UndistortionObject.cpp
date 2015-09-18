@@ -684,7 +684,8 @@ QString UndistortionObject::getFilenameGridPointsInlier(){
 
 void UndistortionObject::savePoints(std::vector <cv::Point2d> &points, QString filename){
 	std::ofstream outfile (filename.toAscii().data());
-	for(std::vector <cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it){
+	outfile.precision(12);
+	for (std::vector <cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it){
 		outfile << (*it).x << ", " << (*it).y << std::endl;
 	}
 	outfile.close();
@@ -701,7 +702,8 @@ void UndistortionObject::saveGridPointsReferences( QString filename){
 }
 void UndistortionObject::saveGridPointsInlier( QString filename){
 	std::ofstream outfile (filename.toAscii().data());
-	for(std::vector <bool>::const_iterator it = points_grid_inlier.begin(); it != points_grid_inlier.end(); ++it){
+	outfile.precision(12);
+	for (std::vector <bool>::const_iterator it = points_grid_inlier.begin(); it != points_grid_inlier.end(); ++it){
 		if((*it)) {
 			outfile << 1 << std::endl;
 		}else{
@@ -714,11 +716,13 @@ void UndistortionObject::saveGridPointsInlier( QString filename){
 void UndistortionObject::exportData(QString csvFileNameLUT,QString csvFileNameInPoints , QString csvFileNameBasePoints){
 	cv::Formatter const * c_formatter(cv::Formatter::get("CSV"));
 	std::ofstream outfile (csvFileNameLUT.toAscii().data());
-	c_formatter->write(outfile,undistortionMapX);
+	outfile.precision(12);
+	c_formatter->write(outfile, undistortionMapX);
 	c_formatter->write(outfile,undistortionMapY);
 	outfile.close();
 
 	std::ofstream outfile2 (csvFileNameInPoints.toStdString().c_str());
+	outfile2.precision(12);
 	int count = 0;
 	for(std::vector <bool>::const_iterator it = points_grid_inlier.begin(); it != points_grid_inlier.end(); ++it){
 		if((*it)) {
@@ -729,6 +733,7 @@ void UndistortionObject::exportData(QString csvFileNameLUT,QString csvFileNameIn
 	outfile2.close();
 
 	std::ofstream outfile3 (csvFileNameBasePoints.toStdString().c_str());
+	outfile3.precision(12);
 	count = 0;
 	for(std::vector <bool>::const_iterator it = points_grid_inlier.begin(); it != points_grid_inlier.end(); ++it){
 		if((*it)) {

@@ -584,6 +584,7 @@ void Trial::loadRigidBodies(QString filename){
 
 void Trial::saveMarkers(QString filename){
 	std::ofstream outfile(filename.toAscii().data());
+	outfile.precision(12);
 	for (unsigned int i = 0; i < this->getMarkers().size(); i++){
 		outfile << this->getMarkers()[i]->getDescription().toAscii().data() << std::endl;
 	}
@@ -592,6 +593,7 @@ void Trial::saveMarkers(QString filename){
 
 void Trial::saveRigidBodies(QString filename){
 	std::ofstream outfile(filename.toAscii().data());
+	outfile.precision(12);
 	for (unsigned int i = 0; i < this->getRigidBodies().size(); i++){
 		outfile << this->getRigidBodies()[i]->getDescription().toAscii().data() << "[";
 		for (unsigned int k = 0; k < this->getRigidBodies()[i]->getPointsIdx().size(); k++){
@@ -644,6 +646,7 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 	if (onefile)
 	{
 		std::ofstream outfile(outputfolder.toAscii().data());
+		outfile.precision(12);
 		if (headerRow)
 		{
 			for (int i = 0; i < getRigidBodies().size(); i++)
@@ -735,6 +738,7 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 			}
 
 			std::ofstream outfile(filename.toAscii().data());
+			outfile.precision(12);
 			if (headerRow)
 			{
 				QString name;
@@ -847,6 +851,7 @@ void Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow)
 	if (onefile)
 	{
 		std::ofstream outfile(outputfolder.toAscii().data());
+		outfile.precision(12);
 		if (headerRow)
 		{
 			for (int i = 0; i < getMarkers().size(); i++)
@@ -939,6 +944,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 	if (onefile)
 	{
 		std::ofstream outfile(outputfolder.toAscii().data());
+		outfile.precision(12);
 		if (headerRow)
 		{
 			if (offsetCols){
@@ -1038,6 +1044,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 		{
 			QString filename = outputfolder + "Marker" + QString().sprintf("%03d", i + 1) + "_" + getMarkers()[i]->getDescription() + "_points2d.csv";
 			std::ofstream outfile(filename.toAscii().data());
+			outfile.precision(12);
 			if (headerRow)
 			{
 				if (offsetCols){

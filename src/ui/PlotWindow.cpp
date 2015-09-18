@@ -178,6 +178,7 @@ bool PlotWindow::eventFilter(QObject *target, QEvent *event)
 				if (fileName.isNull() == false)
 				{
 					std::ofstream outfile(fileName.toAscii().data());
+					outfile.precision(12);
 					for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++, count++)
 					{
 

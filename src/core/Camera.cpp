@@ -250,6 +250,7 @@ QString Camera::getFilenameCameraMatrix(){
 
 void Camera::saveCameraMatrix( QString filename){
 	std::ofstream outfile (filename.toAscii().data());
+	outfile.precision(12);
 	for(unsigned  int i = 0; i < 3; ++i ){
 		outfile << cameramatrix.at<double>(i,0) << ", "  << cameramatrix.at<double>(i,1) << ", "  << cameramatrix.at<double>(i,2) << std::endl;
 	}
@@ -294,6 +295,7 @@ QString Camera::getFilenameUndistortionParam(){
 
 void Camera::saveUndistortionParam(QString filename){
 	std::ofstream outfile(filename.toAscii().data());
+	outfile.precision(12);
 	for (unsigned int i = 0; i < 8; ++i){
 		outfile << distortion_coeffs.at<double>(i, 0) << std::endl;
 	}

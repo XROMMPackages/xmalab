@@ -705,12 +705,13 @@ double RigidBody::fitAndComputeError(std::vector<cv::Point3d> src, std::vector<c
 void RigidBody::save(QString filename_referenceNames, QString filename_points3D)
 {
 	std::ofstream outfile_Names(filename_referenceNames.toAscii().data());
+	outfile_Names.precision(12);
 	for (unsigned int i = 0; i < referenceNames.size(); i++){
 		outfile_Names << referenceNames[i].toAscii().data() << std::endl;
 	}
 	outfile_Names.close();
-
 	std::ofstream outfile_Points(filename_points3D.toAscii().data());
+	outfile_Points.precision(12);
 	for (unsigned int j = 0; j < points3D.size(); j++){
 		outfile_Points << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z << std::endl;
 	}
@@ -952,11 +953,13 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString fi
 void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenamePointCoords)
 {
 	std::ofstream outfileRef(filenamePointRef.toAscii().data());
+	outfileRef.precision(12);
 	outfileRef << "x,y,z" << std::endl;
 	outfileRef << dummypoints[count].x << "," << dummypoints[count].y << "," << dummypoints[count].z << std::endl;
 	outfileRef.close();
 
 	std::ofstream outfileCoords(filenamePointCoords.toAscii().data());
+	outfileCoords.precision(12);
 	outfileCoords << "x,y,z" << std::endl;
 	for (int i = 0; i < dummypointsCoords[count].size(); i++){
 		if (dummypointsCoordsSet[count][i]){
@@ -1025,6 +1028,7 @@ void RigidBody::saveTransformations(QString filename, bool inverse, bool filtere
 {
 	if (!filename.isEmpty()){
 		std::ofstream outfile(filename.toAscii().data());
+		outfile.precision(12);
 		for (unsigned int i = 0; i < trial->getNbImages(); i++){
 			if ((poseComputed[i] && !filtered) || (poseFiltered[i] && filtered)){
 				double m[16];
