@@ -558,6 +558,7 @@ void MainWindow::UndistortionAfterloadProjectFinished(){
 			}
 			else
 			{
+				(*it)->setRecalibrationRequired(0);
 				MultiCameraCalibration::reproject((*it)->getID());
 				Project::getInstance()->getCameras()[(*it)->getID()]->setUpdateInfoRequired(true);
 				optimized = true;
