@@ -27,7 +27,7 @@
 #include "ui/AboutDialog.h"
 #include "ui/Shortcuts.h"
 #include "ui/PointImportExportDialog.h"
-
+#include "ui/FromToDialog.h"
 
 #include "core/Project.h"
 #include "core/Camera.h"
@@ -1121,14 +1121,24 @@ void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 
 void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(bool checked)
 {
-	QString outputPath = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+	FromToDialog * fromTo = new FromToDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame()
+											, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame()
+											, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages()
+											, true, this);
 
-	if (outputPath.isNull() == false)
-	{
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveTrialImages(outputPath + OS_SEP);
-		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+	bool ok = fromTo->exec();
+	if (ok){
+		QString outputPath = QFileDialog::getExistingDirectory(this,
+			tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+
+		if (outputPath.isNull() == false)
+		{
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveTrialImages(outputPath + OS_SEP, fromTo->getFrom(), fromTo->getTo(), fromTo->getFormat());
+			Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+		}
 	}
+
+	delete fromTo;
 }
 
 void MainWindow::on_actionMayaCams_triggered(bool checked)

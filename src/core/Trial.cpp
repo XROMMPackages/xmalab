@@ -801,8 +801,10 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 }
 
 
-void Trial::saveTrialImages(QString outputfolder)
+void Trial::saveTrialImages(QString outputfolder, int from, int to, QString format)
 {
+
+
 	for (int i = 0; i < videos.size(); i++)
 	{
 		QFileInfo info(videos[i]->getFileBasename());
@@ -811,18 +813,18 @@ void Trial::saveTrialImages(QString outputfolder)
 			return;
 		}
 		if (Project::getInstance()->getCameras()[i]->hasUndistortion()){
-			for (int j = 0; j < videos[i]->getNbImages(); j++)
+			for (int j = from - 1; j < to; j++)
 			{
-				QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND_" + QString("%1").arg(j + 1, 4, 10, QChar('0')) + ".tif";
+				QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND_" + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
 				videos[i]->setActiveFrame(j);
 				Project::getInstance()->getCameras()[i]->getUndistortionObject()->undistort(videos[i]->getImage(), outname);
 			}
 		}
 		else
 		{
-			for (int j = 0; j < videos[i]->getNbImages(); j++)
+			for (int j = from - 1; j < to; j++)
 			{
-				QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND_" +QString("%1").arg(j + 1, 4, 10, QChar('0')) + ".tif";
+				QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND_" + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
 				videos[i]->setActiveFrame(j);
 				videos[i]->getImage()->save(outname);
 			}

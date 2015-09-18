@@ -84,7 +84,7 @@ namespace xma{
 		int load2dPoints(QString outputfolder, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols);
 
 		void saveRigidBodyTransformations(QString outputfolder, bool onefile, bool headerRow, bool filtered);
-		void saveTrialImages(QString outputfolder);
+		void saveTrialImages(QString outputfolder, int from, int to, QString format);
 		void recomputeAndFilterRigidBodyTransformations();
 		void resetRigidBodyByMarker(Marker * marker, int frame);
 

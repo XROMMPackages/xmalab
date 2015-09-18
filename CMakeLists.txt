@@ -211,6 +211,7 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/TrialDialog.h
 	src/ui/PointImportExportDialog.h
 	src/ui/OptimizationDialog.h
+	src/ui/FromToDialog.h
 	)
 
 SET(XMALab_FORMS_SOURCES
@@ -255,6 +256,7 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/TrialDialog.cpp
 		src/ui/PointImportExportDialog.cpp
 		src/ui/OptimizationDialog.cpp
+		src/ui/FromToDialog.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
@@ -292,6 +294,7 @@ SET(XMALab_FORMS
 		src/ui/ui-files/PlotWindow.ui
 		src/ui/ui-files/PointImportExportDialog.ui
 		src/ui/ui-files/OptimizationDialog.ui
+		src/ui/ui-files/FromToDialog.ui
 	)
 
 SOURCE_GROUP(UI_Files FILES ${XMALab_FORMS})
@@ -329,6 +332,7 @@ SET(XMALab_FORMS_MOC
 		${CMAKE_CURRENT_BINARY_DIR}/ui_TrialDialog.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_PlotWindow.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_PointImportExportDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_FromToDialog.h
 )
 
 SOURCE_GROUP(UI_Generated FILES ${XMALab_FORMS_MOC})
