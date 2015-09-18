@@ -5,9 +5,7 @@
 #include "core/Marker.h"
 #include "core/Project.h"
 #include "core/Camera.h"
-#include "core/CalibrationImage.h"'
 #include "core/Trial.h"
-#include "core/UndistortionObject.h"
 #include "core/HelperFunctions.h"
 
 #include <fstream>
