@@ -144,6 +144,8 @@ bool ImportExportPointsDialog::importCSV()
 	if (!diag->lineEditMarkersCSV->text().isEmpty())
 	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->loadMarkersFromCSV(diag->lineEditMarkersCSV->text());
+
+		PlotWindow::getInstance()->updateMarkers(false);
 		return true;
 	}
 	return false;
@@ -171,7 +173,7 @@ bool ImportExportPointsDialog::importXMA()
 				
 				PlotWindow::getInstance()->updateMarkers(false);
 			}
-			return true;
+			return true; 
 		}
 	}
 	return false;
