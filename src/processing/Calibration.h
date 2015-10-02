@@ -1,13 +1,15 @@
 #ifndef CALIBRATION_H
 #define CALIBRATION_H
 
+#include "processing/ThreadedProcessing.h"
+
 #include <QFutureWatcher>
 #include <QObject>
 
 #include <opencv/cv.h>
 
 namespace xma{
-	class Calibration : public QObject{
+	class Calibration : public ThreadedProcessing{
 
 		Q_OBJECT;
 
@@ -15,20 +17,14 @@ namespace xma{
 		Calibration(int camera, bool planar = false);
 		virtual ~Calibration();
 
-		void computeCameraPosesAndCam();
-		static bool isRunning(){
-			return (nbInstances > 0);
-		}
-	signals:
-		void computeCameraPosesAndCam_finished();
-
-		private slots:
-		void computeCameraPosesAndCam_threadFinished();
+	protected:
+		void process() override;
+		void process_finished() override;
 
 	private:
 		int m_camera;
 		bool m_planar;
-		void computeCameraPosesAndCam_thread();
+
 		void setInitialByReferences();
 
 		QFutureWatcher<void>* m_FutureWatcher;

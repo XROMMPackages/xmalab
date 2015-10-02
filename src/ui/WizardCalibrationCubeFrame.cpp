@@ -153,8 +153,8 @@ bool WizardCalibrationCubeFrame::checkForPendingChanges(){
 			for(unsigned int j = 0; j < Project::getInstance()->getCameras().size() ; j ++){
 				if(Project::getInstance()->getCameras()[j]->isRecalibrationRequired()){
 					Calibration * calibration = new Calibration(j,CalibrationObject::getInstance()->isPlanar());
-					connect(calibration, SIGNAL(computeCameraPosesAndCam_finished()), &loop, SLOT(quit()));
-					calibration->computeCameraPosesAndCam();	
+					connect(calibration, SIGNAL(signal_finished()), &loop, SLOT(quit()));
+					calibration->start();	
 				}
 			}
 			if(Calibration::isRunning())loop.exec();
@@ -428,8 +428,8 @@ void WizardCalibrationCubeFrame::on_pushButton_clicked(){
 				}
 				else{
 					BlobDetection * blobdetection = new BlobDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveFrameCalibration());
-					connect(blobdetection, SIGNAL(detectBlobs_finished()), this, SLOT(runCalibration()));
-					blobdetection->detectBlobs();
+					connect(blobdetection, SIGNAL(signal_finished()), this, SLOT(runCalibration()));
+					blobdetection->start();
 				}
 			}
 			else
@@ -461,7 +461,7 @@ void WizardCalibrationCubeFrame::runCalibrationCameraAllFrames(){
 			if (Project::getInstance()->getCameras()[j]->isRecalibrationRequired()){
 				Calibration * calibration = new Calibration(j, CalibrationObject::getInstance()->isPlanar());
 
-				connect(calibration, SIGNAL(computeCameraPosesAndCam_finished()), this, SLOT(runCalibrationCameraAllFramesFinished()));
+				connect(calibration, SIGNAL(signal_finished()), this, SLOT(runCalibrationCameraAllFramesFinished()));
 				calibs.push_back(calibration);
 			}
 		}
@@ -478,7 +478,7 @@ void WizardCalibrationCubeFrame::runCalibrationCameraAllFrames(){
 				if (count >= 2)
 				{
 					Calibration * calibration = new Calibration(j, true);
-					connect(calibration, SIGNAL(computeCameraPosesAndCam_finished()), this, SLOT(runCalibrationCameraAllFramesFinished()));
+					connect(calibration, SIGNAL(signal_finished()), this, SLOT(runCalibrationCameraAllFramesFinished()));
 					calibs.push_back(calibration);
 				}
 
@@ -487,17 +487,20 @@ void WizardCalibrationCubeFrame::runCalibrationCameraAllFrames(){
 	}
 	for (int i = 0; i < calibs.size(); i++)
 	{
-		calibs[i]->computeCameraPosesAndCam();
+		calibs[i]->start();
 	}
 }
 
 void WizardCalibrationCubeFrame::runCalibrationCameraAllFramesFinished(){
 	setDialog();
-
+	
 	for (int i = 0; i < Project::getInstance()->getTrials().size(); i++)
 	{
-		Project::getInstance()->getTrials()[i]->update();
+		if (!State::getInstance()->isLoading()){
+			Project::getInstance()->getTrials()[i]->setRequiresRecomputation(true);
+		}	
 	}
+	
 	MainWindow::getInstance()->redrawGL();
 }
 
@@ -534,8 +537,8 @@ void WizardCalibrationCubeFrame::runCalibration(){
 		if (count >= 2)
 		{
 			Calibration * calibration = new Calibration(State::getInstance()->getActiveCamera(), true);
-			connect(calibration, SIGNAL(computeCameraPosesAndCam_finished()), this, SLOT(runCalibrationCameraAllFramesFinished()));
-			calibration->computeCameraPosesAndCam();
+			connect(calibration, SIGNAL(signal_finished()), this, SLOT(runCalibrationCameraAllFramesFinished()));
+			calibration->start();
 		}
 	}
 }
@@ -634,8 +637,8 @@ void WizardCalibrationCubeFrame::calibrateOtherFrames(){
 								temporaryFrameIdx.push_back(m);
 								temporaryTransformationMatrix.push_back(fj->getTransformationMatrix()* CamJToCamKTransformation[k][j]);
 								BlobDetection * blobdetection = new BlobDetection(k, m);
-								connect(blobdetection, SIGNAL(detectBlobs_finished()), this, SLOT(setTransformationMatrix()));
-								blobdetection->detectBlobs();
+								connect(blobdetection, SIGNAL(signal_finished()), this, SLOT(setTransformationMatrix()));
+								blobdetection->start();
 							}
 						}
 					}

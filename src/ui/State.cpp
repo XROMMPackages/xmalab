@@ -23,6 +23,7 @@ State::State(){
 	calibrationVisPoints = NOCALIBPOINTS;
 	calibrationVisText = NOCALIBTEXT;
 	disableDraw = false;
+	loading = false;
 }
 
 State::~State(){
@@ -130,4 +131,14 @@ void State::changeCalibrationVisText(calibrationVisText_state newCalibrationVisT
 		calibrationVisText = newCalibrationVisText;
 		emit calibrationVisTextChanged(newCalibrationVisText);
 	}
+}
+
+bool State::isLoading()
+{
+	return loading;
+}
+
+void State::setLoading(bool value)
+{
+	loading = value;
 }

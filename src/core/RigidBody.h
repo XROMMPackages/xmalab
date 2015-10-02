@@ -75,6 +75,7 @@ namespace xma{
 		void draw2D(Camera * cam, int frame);
 		void draw3D(int frame);
 		void recomputeTransformations();
+		void makeRotationsContinous();
 		void filterTransformations();
 
 		Trial * getTrial();

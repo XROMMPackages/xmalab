@@ -40,6 +40,8 @@ Trial::Trial(QString trialname, std::vector<QStringList> &imageFilenames){
 	activeMarkerIdx = -1; 
 	activeBodyIdx = -1;
 
+	requiresRecomputation = true;
+
 	for (std::vector< QStringList>::iterator filenameList = imageFilenames.begin(); filenameList != imageFilenames.end(); ++filenameList)
 	{
 		VideoStream * newSequence = NULL;
@@ -83,6 +85,7 @@ Trial::Trial(QString trialname, QString folder){
 
 	activeMarkerIdx = -1;
 	activeBodyIdx = -1;
+	requiresRecomputation = true;
 
 	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
 		QStringList filenameList;
@@ -306,11 +309,7 @@ int Trial::getReferenceCalibrationImage()
 
 void Trial::setReferenceCalibrationImage(int value)
 {
-	if (value != referenceCalibrationImage)
-	{
-		referenceCalibrationImage = value;
-		update();
-	}
+	referenceCalibrationImage = value;
 }
 
 double Trial::getRecordingSpeed()
@@ -495,6 +494,21 @@ void Trial::setEndFrame(int value)
 	endFrame = value;
 }
 
+bool Trial::getRequiresRecomputation()
+{
+	return requiresRecomputation;
+}
+
+void Trial::setRequiresRecomputation(bool value)
+{
+	requiresRecomputation = value;
+
+	for (int i = 0; i < getMarkers().size(); i++)
+	{
+		getMarkers()[i]->setRequiresRecomputation(requiresRecomputation);
+	}
+}
+
 void Trial::loadMarkersFromCSV(QString filename)
 {
 	QString tmp_names;
@@ -607,9 +621,18 @@ void Trial::saveRigidBodies(QString filename){
 
 void Trial::update()
 {
-	for (int i = 0; i < getMarkers().size(); i++)
-	{
-		getMarkers()[i]->update();
+	std::cerr << "Update " << name.toAscii().data() << " " << requiresRecomputation << std::endl;
+	if (requiresRecomputation){
+		for (int i = 0; i < getMarkers().size(); i++)
+		{
+			getMarkers()[i]->update(true);
+		}
+		
+		for (int i = 0; i < getRigidBodies().size(); i++)
+		{
+				getRigidBodies()[i]->recomputeTransformations();
+		}
+		requiresRecomputation = false;
 	}
 }
 

@@ -54,6 +54,9 @@ namespace xma{
 		bool getDisableDraw(){ return disableDraw; }
 		void setDisableDraw(bool value){ disableDraw = value; }
 
+		bool isLoading();
+		void setLoading(bool value);
+
 	signals:
 		void workspaceChanged(work_state workspace);
 		void displayChanged(ui_state display);
@@ -87,6 +90,7 @@ namespace xma{
 		int activeFrameTrial;
 
 		bool disableDraw;
+		bool loading;
 
 		State();
 		static State* instance;

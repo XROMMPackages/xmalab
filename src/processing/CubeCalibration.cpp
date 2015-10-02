@@ -99,8 +99,8 @@ void CubeCalibration::computePoseAndCam_threadFinished(){
 
 	delete m_FutureWatcher;
 	nbInstances--;
-	MainWindow::getInstance()->redrawGL();
 	if(nbInstances == 0){
+		MainWindow::getInstance()->redrawGL();
 		ProgressDialog::getInstance()->closeProgressbar();
 		emit computePoseAndCam_finished();
 	}
@@ -145,7 +145,6 @@ void CubeCalibration::computePose_threadFinished(){
 	
 	delete m_FutureWatcher;
 	nbInstances--;
-	MainWindow::getInstance()->redrawGL();
 	if(nbInstances == 0){
 		ProgressDialog::getInstance()->closeProgressbar();
 		emit computePose_finished();

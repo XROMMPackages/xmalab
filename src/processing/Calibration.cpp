@@ -20,10 +20,7 @@
 
 using namespace xma;
 
-int Calibration::nbInstances = 0;
-
-Calibration::Calibration(int camera, bool planar):QObject(){
-	nbInstances++;
+Calibration::Calibration(int camera, bool planar) :ThreadedProcessing("Calibrate camera internal parameters and pose for all frames"){
 	m_camera = camera;
 	m_planar = planar;
 	intrinsic_matrix.create( 3, 3, CV_64F );
@@ -89,29 +86,9 @@ Calibration::~Calibration(){
 	image_points.clear();
 }
 
-void Calibration::computeCameraPosesAndCam(){
-	m_FutureWatcher = new QFutureWatcher<void>();
-	connect( m_FutureWatcher, SIGNAL( finished() ), this, SLOT( computeCameraPosesAndCam_threadFinished() ) );
-
-	QFuture<void> future = QtConcurrent::run( this, &Calibration::computeCameraPosesAndCam_thread);
-	m_FutureWatcher->setFuture( future );
-	ProgressDialog::getInstance()->showProgressbar(0, 0, "Calibrate camera internal parameters and pose for all frames");
-}
-
-void Calibration::computeCameraPosesAndCam_threadFinished(){
+void Calibration::process_finished(){
 	Project::getInstance()->getCameras()[m_camera]->setRecalibrationRequired(0);
 	Project::getInstance()->getCameras()[m_camera]->setUpdateInfoRequired(true);
-
-	delete m_FutureWatcher;
-	nbInstances--;
-	MainWindow::getInstance()->redrawGL();
-	if(nbInstances == 0){
-		ProgressDialog::getInstance()->closeProgressbar();
-		emit computeCameraPosesAndCam_finished();
-	}
-	delete this;
-
-
 }
 
 void Calibration::setInitialByReferences()
@@ -215,7 +192,7 @@ void Calibration::setInitialByReferences()
 	projection.release();
 }
 
-void Calibration::computeCameraPosesAndCam_thread(){
+void Calibration::process(){
 	try
 	{
 		if (intrinsic_matrix.at<double>(0, 2) < 0) intrinsic_matrix.at<double>(0, 2) = 1;

@@ -134,6 +134,8 @@ SET(XMALab_SOURCES
 SOURCE_GROUP(_CORE FILES ${XMALab_HEADERS} ${XMALab_SOURCES})
 
 SET(Processing_HEADERS 
+	src/processing/ThreadScheduler.h
+	src/processing/ThreadedProcessing.h
 	src/processing/BlobDetection.h
 	src/processing/LocalUndistortion.h
 	src/processing/CubeCalibration.h
@@ -143,9 +145,12 @@ SET(Processing_HEADERS
 	src/processing/ButterworthLowPassFilter.h
 	src/processing/CheckerboardDetection.h
 	src/processing/MultiCameraCalibration.h
+	src/processing/UpdateTrialFrame.h
 )
 
 SET(Processing_SOURCES
+	src/processing/ThreadScheduler.cpp
+	src/processing/ThreadedProcessing.cpp
 	src/processing/BlobDetection.cpp
 	src/processing/LocalUndistortion.cpp
 	src/processing/CubeCalibration.cpp
@@ -155,6 +160,7 @@ SET(Processing_SOURCES
 	src/processing/ButterworthLowPassFilter.cpp
 	src/processing/CheckerboardDetection.cpp
 	src/processing/MultiCameraCalibration.cpp
+	src/processing/UpdateTrialFrame.cpp
 )
 
 SOURCE_GROUP(_PROCESSING FILES ${Processing_HEADERS} ${Processing_SOURCES})

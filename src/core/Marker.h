@@ -38,7 +38,7 @@ namespace xma{
 
 		void setPoint(int camera, int activeFrame, double x, double y, markerStatus status);
 		std::vector < cv::Point2d > getEpipolarLine(int cameraOrigin, int CameraDestination, int frame);
-		void reconstruct3DPoint(int frame); 
+		void reconstruct3DPoint(int frame, bool updateAll = false);
 		void reconstruct3DPointZisserman(int frame);
 		void reconstruct3DPointZissermanIncremental(int frame);
 		void reconstruct3DPointZissermanMatlab(int frame);
@@ -51,9 +51,11 @@ namespace xma{
 		void setSize(int camera, int frame, double size_value);
 		void save(QString points_filename, QString status_filename = "", QString markersize_filename = "", QString pointsWorld_filename = "");
 		void load(QString points_filename, QString status_filename, QString markersize_filename);
+		void save3DPoints(QString points_filename, QString status_filename);
+		void load3DPoints(QString points_filename, QString status_filename);
 		void resetMultipleFrames(int camera, int frameStart, int frameEnd);
 
-		void update();
+		void update(bool updateAll = false);
 
 		bool isValid(int camera, int frame);
 		void reset(int camera, int frame);
@@ -69,6 +71,9 @@ namespace xma{
 
 		int getMethod();
 		void setMethod(int value);
+
+		bool getRequiresRecomputation();
+		void setRequiresRecomputation(bool value);
 
 	private:
 		void init(int nbCameras, int size);
@@ -101,6 +106,8 @@ namespace xma{
 		std::vector <cv::Point3d> points3D;
 		std::vector <markerStatus> status3D;
 		std::vector <double> error3D;
+
+		bool requiresRecomputation;
 	};
 }
 

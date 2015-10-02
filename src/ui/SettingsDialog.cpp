@@ -8,6 +8,8 @@
 #include "core/Settings.h"
 #include "core/Project.h"
 #include "core/Trial.h"
+#include "State.h"
+#include "processing/ThreadScheduler.h"
 
 using namespace xma;
 
@@ -113,7 +115,9 @@ void SettingsDialog::on_comboBox_TriangulationMethod_currentIndexChanged(int val
 	{
 		for (int i = 0; i < Project::getInstance()->getTrials().size(); i++)
 		{
-			Project::getInstance()->getTrials()[i]->update();
+			Project::getInstance()->getTrials()[i]->setRequiresRecomputation(true);
+			if (State::getInstance()->getActiveTrial() == i && State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size())
+				ThreadScheduler::getInstance()->updateTrialData(Project::getInstance()->getTrials()[i]);
 		}
 	}
 }
@@ -127,7 +131,9 @@ void SettingsDialog::on_comboBox_DetectionMethodForCalibration_currentIndexChang
 	{
 		for (int i = 0; i < Project::getInstance()->getTrials().size(); i++)
 		{
-			Project::getInstance()->getTrials()[i]->update();
+			Project::getInstance()->getTrials()[i]->setRequiresRecomputation(true);
+			if (State::getInstance()->getActiveTrial() == i && State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size())
+				ThreadScheduler::getInstance()->updateTrialData(Project::getInstance()->getTrials()[i]);
 		}
 	}
 }

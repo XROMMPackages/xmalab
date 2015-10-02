@@ -66,9 +66,9 @@ void LocalUndistortion::localUndistortion_threadFinished(){
 
 	delete m_FutureWatcher;
 	nbInstances--;
-	MainWindow::getInstance()->redrawGL();
 	if(nbInstances == 0){
 		ProgressDialog::getInstance()->closeProgressbar();
+		MainWindow::getInstance()->redrawGL();
 		emit localUndistortion_finished();
 	}
 	delete this;

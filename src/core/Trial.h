@@ -68,6 +68,9 @@ namespace xma{
 		int getEndFrame();
 		void setEndFrame(int value);
 
+		bool getRequiresRecomputation();
+		void setRequiresRecomputation(bool value);
+
 		void loadMarkersFromCSV(QString filename);
 		void loadMarkers(QString filename);
 		void loadRigidBodies(QString filename);
@@ -100,7 +103,7 @@ namespace xma{
 
 		int nbImages;
 
-		int referenceCalibrationImage;
+		int referenceCalibrationImage; 
 		double recordingSpeed;
 		double cutoffFrequency;
 		int interpolateMissingFrames;
@@ -111,7 +114,8 @@ namespace xma{
 		std::vector <VideoStream*> videos;
 		std::vector <RigidBody * > rigidBodies;
 		std::vector <Marker * > markers;
-		int id;
+
+		bool requiresRecomputation;
 	};
 }
 

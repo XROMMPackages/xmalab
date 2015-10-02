@@ -566,9 +566,9 @@ void MultiCameraCalibration::optimizeCameraSetup_threadFinished(){
 
 	delete m_FutureWatcher;
 	nbInstances--;
-	MainWindow::getInstance()->redrawGL();
 	if(nbInstances == 0){
 		ProgressDialog::getInstance()->closeProgressbar();
+		MainWindow::getInstance()->redrawGL();
 		emit optimizeCameraSetup_finished();
 	}
 	delete this;

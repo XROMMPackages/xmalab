@@ -176,8 +176,8 @@ void WizardUndistortionFrame::on_pushButton_clicked(){
 		for(int i = 0; i < Project::getInstance()->getCameras().size(); i++){
 			if(Project::getInstance()->getCameras()[i]->hasUndistortion()){
 				BlobDetection * blobdetection = new BlobDetection(i,-1);
-				connect(blobdetection, SIGNAL(detectBlobs_finished()), this, SLOT(computeUndistortion()));
-				blobdetection->detectBlobs();
+				connect(blobdetection, SIGNAL(signal_finished()), this, SLOT(computeUndistortion()));
+				blobdetection->start();
 			}
 		}
 	}else if(State::getInstance()->getUndistortion() == UNDISTORTED){

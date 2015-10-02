@@ -13,6 +13,8 @@
 #include "core/Trial.h"
 #include "core/CalibrationImage.h"
 
+#include "processing/ThreadScheduler.h"
+
 using namespace xma;
 
 WorkspaceNavigationFrame* WorkspaceNavigationFrame::instance = NULL;
@@ -89,6 +91,9 @@ void WorkspaceNavigationFrame::workspaceChanged(work_state workspace){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration") );
 	}else if (workspace == DIGITIZATION){
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Marker tracking"));
+		if (!State::getInstance()->isLoading() && State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size()){
+			ThreadScheduler::getInstance()->updateTrialData(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
+		}
 	}
 }
 
@@ -116,6 +121,9 @@ void WorkspaceNavigationFrame::activeTrialChanged(int activeTrial)
 {
 	if (activeTrial >= 0){
 		frame->comboBoxTrial->setCurrentIndex(activeTrial);
+		if (!State::getInstance()->isLoading() && State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size()){
+			ThreadScheduler::getInstance()->updateTrialData(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
+		}
 	}
 }
 

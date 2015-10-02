@@ -60,9 +60,9 @@ void CheckerboardDetection::detectCorner_threadFinished(){
 	tmpPoints.clear();
 	delete m_FutureWatcher;
 	nbInstances--;
-	MainWindow::getInstance()->redrawGL();
 	if(nbInstances == 0){
 		ProgressDialog::getInstance()->closeProgressbar();
+		MainWindow::getInstance()->redrawGL();
 		emit detectCorner_finished();
 	}
 	delete this;

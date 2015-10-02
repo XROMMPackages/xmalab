@@ -293,8 +293,8 @@ void MarkerDetection::detectMarker_threadFinished(){
 
 	delete m_FutureWatcher;
 	nbInstances--;
-	MainWindow::getInstance()->redrawGL();
 	if(nbInstances == 0){
+
 		emit detectMarker_finished();
 	}
 	delete this;

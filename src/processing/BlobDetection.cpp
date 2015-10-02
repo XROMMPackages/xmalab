@@ -19,29 +19,16 @@
 
 using namespace xma;
 
-int BlobDetection::nbInstances = 0;
-
-BlobDetection::BlobDetection(int camera, int image):QObject(){
+BlobDetection::BlobDetection(int camera, int image):ThreadedProcessing("Detect Points") {
 	m_camera = camera;
 	m_image = image;
-	nbInstances++;
 }
 
 BlobDetection::~BlobDetection(){
 
 }
 
-void BlobDetection::detectBlobs(){
-	m_FutureWatcher = new QFutureWatcher<void>();
-	connect( m_FutureWatcher, SIGNAL( finished() ), this, SLOT( detectBlobs_threadFinished() ) );
-
-	QFuture<void> future = QtConcurrent::run( this, &BlobDetection::detectBlobs_thread);
-	m_FutureWatcher->setFuture( future );
-
-	ProgressDialog::getInstance()->showProgressbar(0, 0, "Detect Points");
-}
-
-void BlobDetection::detectBlobs_thread(){
+void BlobDetection::process(){
 	tmpPoints.clear();
 	cv::Mat image;
 	if(m_image < 0){
@@ -93,7 +80,7 @@ void BlobDetection::detectBlobs_thread(){
 	image.release();
 }
 
-void BlobDetection::detectBlobs_threadFinished(){
+void BlobDetection::process_finished(){
 	if(m_image < 0){
 		Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->setDetectedPoints(tmpPoints);
 	}else{
@@ -101,12 +88,4 @@ void BlobDetection::detectBlobs_threadFinished(){
 	}
 
 	tmpPoints.clear();
-	delete m_FutureWatcher;
-	nbInstances--;
-	MainWindow::getInstance()->redrawGL();
-	if(nbInstances == 0){
-		ProgressDialog::getInstance()->closeProgressbar();
-		emit detectBlobs_finished();
-	}
-	delete this;
 }

@@ -141,6 +141,8 @@ int ProjectFileIO::saveProject(QString filename){
 					Project::getInstance()->getTrials()[i]->getMarkers()[k]->save(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv",
 						path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status2d.csv",
 						path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
+					Project::getInstance()->getTrials()[i]->getMarkers()[k]->save3DPoints(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points3d.csv",
+						path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status3d.csv");
 
 					if (Project::getInstance()->getTrials()[i]->getMarkers()[k]->Reference3DPointSet())
 					{
@@ -669,7 +671,7 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 			xmlWriter.setAutoFormatting(true);
 			xmlWriter.writeStartElement("Project");
 			xmlWriter.writeAttribute("Version", "0.1");
-
+			xmlWriter.writeAttribute("ActiveTrial", QString::number(State::getInstance()->getActiveTrial()));
 			//Cameras
 			for(std::vector <Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it){
 				xmlWriter.writeStartElement("Camera");
@@ -783,7 +785,8 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 					xmlWriter.writeAttribute("DetectionMethod", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getMethod()));
 					xmlWriter.writeAttribute("SizeOverride", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getSizeOverride()));
 					xmlWriter.writeAttribute("ThresholdOffset", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getThresholdOffset()));
-					
+					xmlWriter.writeAttribute("RequiresRecomputation", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getRequiresRecomputation()));
+
 					if (Project::getInstance()->getTrials()[i]->getMarkers()[k]->Reference3DPointSet())
 					{
 						xmlWriter.writeAttribute("Reference3DPoint", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "reference3Dpoint.csv");
@@ -792,6 +795,9 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 					xmlWriter.writeAttribute("FilenamePoints2D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv");
 					xmlWriter.writeAttribute("FilenameStatus2D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status2d.csv");
 					xmlWriter.writeAttribute("FilenameSize", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
+					xmlWriter.writeAttribute("FilenamePoints3D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points3d.csv");
+					xmlWriter.writeAttribute("FilenameStatus3D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status3d.csv");
+
 					xmlWriter.writeEndElement();
 				}
 
@@ -830,6 +836,7 @@ bool ProjectFileIO::writeProjectFile(QString filename){
 }
 		
 bool ProjectFileIO::readProjectFile(QString filename){
+	int activeTrial = -1;
 	if ( filename.isNull() == false )
     {
 		QFileInfo info(filename);
@@ -855,6 +862,9 @@ bool ProjectFileIO::readProjectFile(QString filename){
 						{
 							QXmlStreamAttributes attr = xml.attributes() ;
 							std::cout << "Load project file Version " << attr.value("Version").toString().toAscii().data() << std::endl;
+
+							QString activeTrialString = attr.value("ActiveTrial").toString();
+							if (!activeTrialString.isEmpty())activeTrial = activeTrialString.toInt();
 						}
 						if (xml.name() == "Camera")
 						{
@@ -1057,6 +1067,19 @@ bool ProjectFileIO::readProjectFile(QString filename){
 
 										QString ThresholdOffset = attr.value("ThresholdOffset").toString();
 										if (!ThresholdOffset.isEmpty())trial->getMarkers()[id]->setThresholdOffset(ThresholdOffset.toInt());
+
+										QString requiresRecomputation = attr.value("RequiresRecomputation").toString();
+										QString filename_points3D = attr.value("FilenamePoints3D").toString();
+										QString filename_status3D = attr.value("FilenameStatus3D").toString();
+
+										if (!requiresRecomputation.isEmpty() && !filename_points3D.isEmpty() && !filename_status3D.isEmpty())
+										{
+											filename_points3D = basedir + OS_SEP + filename_points3D;
+											filename_status2D = basedir + OS_SEP + filename_status2D;	
+											trial->getMarkers()[id]->setRequiresRecomputation(requiresRecomputation.toInt());
+											trial->getMarkers()[id]->load3DPoints(littleHelper::adjustPathToOS(filename_points3D), littleHelper::adjustPathToOS(filename_status3D));
+										}
+
 									}
 
 									if (xml.name() == "RigidBody"){
@@ -1128,8 +1151,6 @@ bool ProjectFileIO::readProjectFile(QString filename){
 
 							Project::getInstance()->addTrial(trial);
 							WorkspaceNavigationFrame::getInstance()->addTrial(trialname);
-							State::getInstance()->changeActiveTrial(Project::getInstance()->getTrials().size() - 1, true);
-
 						}
 					}
 				}
@@ -1137,9 +1158,19 @@ bool ProjectFileIO::readProjectFile(QString filename){
 					ErrorDialog::getInstance()->showErrorDialog(QString("QXSRExample::parseXML %1").arg(xml.errorString()));
 				}
 				file.close();
+
+				if (activeTrial >= 0 && activeTrial < Project::getInstance()->getTrials().size())
+				{
+					State::getInstance()->changeActiveTrial(activeTrial, true);
+				}
+				else if (Project::getInstance()->getTrials().size() > 0)
+				{
+					State::getInstance()->changeActiveTrial(Project::getInstance()->getTrials().size() - 1, true);
+				}
 			}
 		}
 	}
+
 	return true;
 }
 

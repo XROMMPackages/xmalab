@@ -759,6 +759,11 @@ void RigidBody::recomputeTransformations()
 		computePose(i);
 	}
 
+	makeRotationsContinous();
+}
+
+void RigidBody::makeRotationsContinous()
+{
 	//set rotations numerically steady
 	for (int i = 1; i < trial->getNbImages(); i++)
 	{
@@ -770,7 +775,7 @@ void RigidBody::recomputeTransformations()
 			if (180 / M_PI * acos(diffangle) > 150)
 			{
 				double angle = cv::norm(rotationvectors[i]);
-				rotationvectors[i][0] = - rotationvectors[i][0] / angle * (2 * M_PI - angle);
+				rotationvectors[i][0] = -rotationvectors[i][0] / angle * (2 * M_PI - angle);
 				rotationvectors[i][1] = -rotationvectors[i][1] / angle * (2 * M_PI - angle);
 				rotationvectors[i][2] = -rotationvectors[i][2] / angle * (2 * M_PI - angle);
 			}

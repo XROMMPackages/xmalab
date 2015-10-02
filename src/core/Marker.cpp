@@ -22,6 +22,7 @@ Marker::Marker(int nbCameras, int size, Trial* _trial){
 	maxPenalty = 125;
 	point3D_ref_set = false;
 	method = 0;
+	requiresRecomputation = true;
 }
 
 Marker::~Marker(){
@@ -171,7 +172,7 @@ bool Marker::getMarkerPrediction(int camera, int frame, double &x, double &y, bo
 
 }
 
-void Marker::reconstruct3DPoint(int frame)
+void Marker::reconstruct3DPoint(int frame, bool updateAll)
 {
 	status3D[frame] = UNDEFINED;
 	switch (Settings::getInstance()->getIntSetting("TriangulationMethod")){
@@ -192,6 +193,8 @@ void Marker::reconstruct3DPoint(int frame)
 		reconstruct3DPointRayIntersection(frame);
 		break;
 	}
+
+	if(!updateAll)trial->resetRigidBodyByMarker(this, frame);
 }
 
 void Marker::reconstruct3DPointZisserman(int frame)
@@ -245,7 +248,6 @@ void Marker::reconstruct3DPointZisserman(int frame)
 		}
 	}
 
-	trial->resetRigidBodyByMarker(this, frame);
 }
 
 
@@ -329,7 +331,6 @@ void Marker::reconstruct3DPointZissermanIncremental(int frame)
 		reprojectPoint(frame);
 	}
 
-	trial->resetRigidBodyByMarker(this, frame);
 }
 
 
@@ -389,8 +390,6 @@ void Marker::reconstruct3DPointZissermanMatlab(int frame)
 
 		reprojectPoint(frame);
 	}
-
-	trial->resetRigidBodyByMarker(this, frame);
 }
 
 void Marker::reconstruct3DPointZissermanIncrementalMatlab(int frame)
@@ -471,8 +470,6 @@ void Marker::reconstruct3DPointZissermanIncrementalMatlab(int frame)
 
 		reprojectPoint(frame);
 	}
-
-	trial->resetRigidBodyByMarker(this, frame);
 }
 
 void Marker::reconstruct3DPointRayIntersection(int frame)
@@ -564,8 +561,6 @@ void Marker::reconstruct3DPointRayIntersection(int frame)
 
 		reprojectPoint(frame);
 	}
-
-	trial->resetRigidBodyByMarker(this, frame);
 }
 
 double Marker::getSize()
@@ -712,6 +707,72 @@ void Marker::load(QString points_filename, QString status_filename, QString mark
 	updateMeanSize();
 }
 
+void Marker::save3DPoints(QString points_filename, QString status_filename)
+{
+	if (!points_filename.isEmpty()){
+		std::ofstream outfile_world(points_filename.toAscii().data());
+		outfile_world.precision(12);
+		for (unsigned int j = 0; j < points3D.size(); j++){
+			outfile_world << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z << std::endl;
+		}
+		outfile_world.close();
+	}
+
+	if (!status_filename.isEmpty()){
+		std::ofstream outfile_status(status_filename.toAscii().data());
+		outfile_status.precision(12);
+		for (unsigned int i = 0; i < status3D.size(); i++){
+			outfile_status << status3D[i] << std::endl;
+		}
+		outfile_status.close();
+	}
+}
+
+void Marker::load3DPoints(QString points_filename, QString status_filename)
+{
+	std::ifstream fin;
+	fin.open(points_filename.toAscii().data());
+	std::istringstream in;
+	std::string line;
+	//read first line 
+	int linecount = 0;
+	while (!littleHelper::safeGetline(fin, line).eof())
+	{
+		in.clear();
+		in.str(line);
+		std::vector<double> tmp;
+		for (double value; in >> value; littleHelper::comma(in)) {
+			tmp.push_back(value);
+		}
+		if (tmp.size() > 0) {
+				points3D[linecount].x = tmp[0];
+				points3D[linecount].y = tmp[1];
+				points3D[linecount].z = tmp[2];
+		}
+		line.clear();
+		linecount++;
+	}
+	fin.close();
+
+	fin.open(status_filename.toAscii().data());
+	linecount = 0;
+	while (!littleHelper::safeGetline(fin, line).eof())
+	{
+		in.clear();
+		in.str(line);
+		std::vector<int> tmp;
+		for (double value; in >> value; littleHelper::comma(in)) {
+			tmp.push_back(value);
+		}
+		if (tmp.size() > 0) {
+			status3D[linecount] = markerStatus(tmp[0]);
+		}
+		line.clear();
+		linecount++;
+	}
+	fin.close();
+}
+
 void Marker::resetMultipleFrames(int camera, int frameStart, int frameEnd)
 {
 	//fprintf(stderr, "Delete %d - from %d  to %d\n", camera, frameStart, frameEnd);
@@ -758,11 +819,14 @@ void Marker::resetMultipleFrames(int camera, int frameStart, int frameEnd)
 	updateMeanSize();
 }
 
-void Marker::update()
+void Marker::update(bool updateAll)
 {
-	for (int i = 0; i < points2D[0].size(); i++)
-	{
-		reconstruct3DPoint(i);
+	if (requiresRecomputation){
+		for (int i = 0; i < points2D[0].size(); i++)
+		{
+			reconstruct3DPoint(i, updateAll);
+		}
+		requiresRecomputation = false;
 	}
 }
 
@@ -857,6 +921,16 @@ int Marker::getMethod()
 void Marker::setMethod(int value)
 {
 	method = value;
+}
+
+bool Marker::getRequiresRecomputation()
+{
+	return requiresRecomputation;
+}
+
+void Marker::setRequiresRecomputation(bool value)
+{
+	requiresRecomputation = value;
 }
 
 void Marker::reprojectPoint(int frame)

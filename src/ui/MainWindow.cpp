@@ -464,6 +464,8 @@ void MainWindow::loadProject(){
 									tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(),tr("Dataset (*.xma  *.zip)"));
 	if ( fileName.isNull() == false )
     {
+		State::getInstance()->setLoading(true);
+
 		Settings::getInstance()->setLastUsedDirectory(fileName);
 
 		m_FutureWatcher = new QFutureWatcher<int>();
@@ -517,6 +519,7 @@ void MainWindow::loadProjectFinished(){
 	}
 	else if (m_FutureWatcher->result() == 1)
 	{
+		State::getInstance()->setLoading(false);
 
 		delete m_FutureWatcher;
 		ProgressDialog::getInstance()->closeProgressbar();
@@ -524,6 +527,8 @@ void MainWindow::loadProjectFinished(){
 	}
 	else
 	{
+		State::getInstance()->setLoading(false);
+
 		delete project;
 		project = NULL;
 
@@ -572,17 +577,12 @@ void MainWindow::UndistortionAfterloadProjectFinished(){
 	if (allCamerasCalibrated){
 		ui->actionImportTrial->setEnabled(true);
 	}
-	
-	if (optimized)
-	{
-		for (std::vector <Trial*>::const_iterator it = Project::getInstance()->getTrials().begin(); it != Project::getInstance()->getTrials().end(); ++it){
-			(*it)->update();
-		}
-	}
 
 	ConsoleDockWidget::getInstance()->afterLoad();
 
 	WizardDockWidget::getInstance()->update();
+
+	State::getInstance()->setLoading(false);
 
 	MainWindow::getInstance()->redrawGL();
 }
@@ -1239,8 +1239,7 @@ void MainWindow::on_actionImportTrial_triggered(bool checked)
 			WorkspaceNavigationFrame::getInstance()->addTrial(item);
 			checkTrialImagePaths();
 			trial->bindTextures();
-			trial->update();		
-
+			
 			if (State::getInstance()->getWorkspace() == DIGITIZATION)
 			{
 				State::getInstance()->changeWorkspace(DIGITIZATION, true);

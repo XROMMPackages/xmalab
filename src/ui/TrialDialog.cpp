@@ -12,6 +12,8 @@
 #include "core/Camera.h""
 #include "core/CalibrationImage.h"
 
+#include "processing/ThreadScheduler.h"
+
 using namespace xma;
 
 TrialDialog::TrialDialog(Trial * trial, QWidget *parent) :
@@ -45,8 +47,13 @@ TrialDialog::TrialDialog(Trial * trial, QWidget *parent) :
 	}
 	
 	int ref = diag->comboBoxReferenceCalibration->currentText().toInt() - 1;
-	m_trial->setReferenceCalibrationImage(ref);
-
+	
+	if (ref != m_trial->getReferenceCalibrationImage()){
+		m_trial->setReferenceCalibrationImage(ref);
+		m_trial->setRequiresRecomputation(true);
+		ThreadScheduler::getInstance()->updateTrialData(m_trial);
+	}
+	
 	diag->doubleSpinBoxRecSpeedFPS->setValue(m_trial->getRecordingSpeed());
 	diag->doubleSpinBoxCutoffFrq->setValue(m_trial->getCutoffFrequency());
 	diag->spinBoxInterpolateNFrames->setValue(m_trial->getInterpolateMissingFrames());
@@ -66,7 +73,12 @@ bool TrialDialog::isComplete()
 
 	if (diag->comboBoxReferenceCalibration->count() > 0){
 		int ref = diag->comboBoxReferenceCalibration->currentText().toInt() - 1;
-		m_trial->setReferenceCalibrationImage(ref);
+		if(ref != m_trial->getReferenceCalibrationImage()){
+			m_trial->setReferenceCalibrationImage(ref);
+			m_trial->setRequiresRecomputation(true);
+			ThreadScheduler::getInstance()->updateTrialData(m_trial);
+		}
+
 	}
 	PlotWindow::getInstance()->updateTimeCheckBox();
 
