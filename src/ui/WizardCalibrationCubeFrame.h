@@ -39,7 +39,7 @@ namespace xma{
 		void setupManualPoints();
 
 		void resetReferences();
-		void calibrateOtherFrames();
+		bool calibrateOtherFrames();
 		void checkForCalibrationError();
 
 		cv::Point2d selectedReferencePoints[4];

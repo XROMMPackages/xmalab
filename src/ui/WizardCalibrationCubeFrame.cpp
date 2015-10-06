@@ -455,6 +455,7 @@ void WizardCalibrationCubeFrame::on_pushButton_clicked(){
 }
 
 void WizardCalibrationCubeFrame::runCalibrationCameraAllFrames(){
+
 	std::vector<Calibration *> calibs;
 	if (!CalibrationObject::getInstance()->isCheckerboard()){
 		for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++){
@@ -576,20 +577,20 @@ void WizardCalibrationCubeFrame::runCalibrationFinished(){
 	temporaryCamIdx.clear();
 	temporaryFrameIdx.clear();
 
-	if(!calibrateOtherFramesFailed)
-		calibrateOtherFrames();
+	if (calibrateOtherFramesFailed || !calibrateOtherFrames()){
+		setDialog();
+		MainWindow::getInstance()->redrawGL();
 
-	setDialog();
-	MainWindow::getInstance()->redrawGL();
-
-	runCalibrationCameraAllFrames();
+		runCalibrationCameraAllFrames();
+	}
 }
 
-void WizardCalibrationCubeFrame::calibrateOtherFrames(){ 
+bool WizardCalibrationCubeFrame::calibrateOtherFrames(){ 
 	temporaryTransformationMatrix.clear();
 	temporaryCamIdx.clear();
 	temporaryFrameIdx.clear();
-
+	std::vector <BlobDetection *> detectors;
+	bool isRunning = false;
 	cv::vector<cv::vector<cv::Mat> > CamJToCamKTransformation;
 	cv::vector<cv::vector<bool> > CamJToCamKTransformationSet;
 
@@ -638,7 +639,8 @@ void WizardCalibrationCubeFrame::calibrateOtherFrames(){
 								temporaryTransformationMatrix.push_back(fj->getTransformationMatrix()* CamJToCamKTransformation[k][j]);
 								BlobDetection * blobdetection = new BlobDetection(k, m);
 								connect(blobdetection, SIGNAL(signal_finished()), this, SLOT(setTransformationMatrix()));
-								blobdetection->start();
+								detectors.push_back(blobdetection);			
+								isRunning = true;
 							}
 						}
 					}
@@ -656,6 +658,12 @@ void WizardCalibrationCubeFrame::calibrateOtherFrames(){
 	}
 	CamJToCamKTransformation.clear();
 	CamJToCamKTransformationSet.clear();
+
+	for (int i = 0; i < detectors.size(); i++)
+	{
+		detectors[i]->start();
+	}
+	return isRunning;
 }
 
 
