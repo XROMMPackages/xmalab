@@ -29,6 +29,17 @@ namespace xma{
 		const std::vector <QString> &getReferenceNames();
 		const std::vector <cv::Vec3d> &getRotationVector(bool filtered);
 		const std::vector <cv::Vec3d> &getTranslationVector(bool filtered);
+
+		const std::vector <double> &getErrorMean2D();
+		const std::vector <double> &getErrorSd2D();
+		const std::vector <double> &getErrorMean3D();
+		const std::vector <double> &getErrorSd3D();
+
+		const std::vector <double> &getErrorMean2D_filtered();
+		const std::vector <double> &getErrorSd2D_filtered();
+		const std::vector <double> &getErrorMean3D_filtered();
+		const std::vector <double> &getErrorSd3D_filtered();
+
 		double getRotationEulerAngle(bool filtered, int frame, int part);
 		Marker * getMarker(int idx);
 
@@ -44,7 +55,7 @@ namespace xma{
 		void computeCoordinateSystem(int Frame);
 		void computePose(int Frame);
 
-		std::vector <cv::Point2d> projectToImage(Camera * cam, int Frame, bool with_center, bool dummy = false, bool dummy_frame = false);
+		std::vector <cv::Point2d> projectToImage(Camera * cam, int Frame, bool with_center, bool dummy = false, bool dummy_frame = false, bool filtered = false);
 		void setMissingPoints(int Frame);
 
 		int setReferenceFromFile(QString filename);
@@ -93,6 +104,8 @@ namespace xma{
 
 		void filterData(std::vector<int> idx);
 
+		void updateError(int Frame, bool filtered = false);
+
 		bool visible;
 		QColor color;
 
@@ -108,6 +121,7 @@ namespace xma{
 
 		std::vector <int> pointsIdx;
 		std::vector <cv::Point3d> points3D;
+
 		cv::Point3d center;
 		std::vector <QString> referenceNames;
 
@@ -129,6 +143,11 @@ namespace xma{
 		std::vector <double> errorSd2D;
 		std::vector <double> errorMean3D;
 		std::vector <double> errorSd3D;
+
+		std::vector <double> errorMean2D_filtered;
+		std::vector <double> errorSd2D_filtered;
+		std::vector <double> errorMean3D_filtered;
+		std::vector <double> errorSd3D_filtered;
 	};
 }
 

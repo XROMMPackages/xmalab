@@ -35,6 +35,7 @@ namespace xma{
 		void plotDistance(int idx1, int idx2);
 		void plotReprojectionError(int idx1);
 		void plotRigidBody(int idx);
+		void plotRigidBodyError(int idx);
 		void installEventFilterToChildren(QObject* widget);
 
 	protected:
@@ -66,6 +67,7 @@ namespace xma{
 
 		void on_comboBoxRigidBody_currentIndexChanged(int idx);
 		void on_comboBoxRigidBodyTransPart_currentIndexChanged(int idx);
+		void on_comboBoxRigidBodyError_currentIndexChanged(int idx);
 		void on_comboBoxRigidBodyTransType_currentIndexChanged(int idx);
 		void on_checkBoxTime_clicked();
 

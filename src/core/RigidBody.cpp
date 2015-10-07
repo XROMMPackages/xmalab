@@ -215,6 +215,11 @@ void RigidBody::clear(){
 	errorSd2D.clear();
 	errorMean3D.clear();
 	errorSd3D.clear();
+
+	errorMean2D_filtered.clear();
+	errorSd2D_filtered.clear();
+	errorMean3D_filtered.clear();
+	errorSd3D_filtered.clear();
 }
 
 
@@ -232,6 +237,11 @@ void RigidBody::addFrame()
 	errorSd2D.push_back(0);
 	errorMean3D.push_back(0);
 	errorSd3D.push_back(0);
+
+	errorMean2D_filtered.push_back(0);
+	errorSd2D_filtered.push_back(0);
+	errorMean3D_filtered.push_back(0);
+	errorSd3D_filtered.push_back(0);
 }
 
 void RigidBody::clearAllDummyPoints()
@@ -263,6 +273,11 @@ void RigidBody::init(int size){
 		errorSd2D.push_back(0);
 		errorMean3D.push_back(0);
 		errorSd3D.push_back(0);
+
+		errorMean2D_filtered.push_back(0);
+		errorSd2D_filtered.push_back(0);
+		errorMean3D_filtered.push_back(0);
+		errorSd3D_filtered.push_back(0);
 	}
 }
 
@@ -593,8 +608,112 @@ void RigidBody::computePose(int Frame){
 			translationvectors[Frame] = cv::Vec3d(t);
 
 			poseComputed[Frame] = 1;
+
+			
 		}
 	}
+	updateError(Frame);
+
+}
+
+void RigidBody::updateError(int Frame, bool filtered)
+{
+	double eMean2D = 0;
+	double eMean3D = 0;
+	double eSD2D = 0;
+	double eSD3D = 0;
+
+	int count = 0;
+
+	if ((poseComputed[Frame] && !filtered) || (filtered && poseFiltered[Frame])){
+		count = 0;
+
+		std::vector <double> dist;
+		for (int c = 0; c < Project::getInstance()->getCameras().size(); c++){
+			std::vector <cv::Point2d> image_points = projectToImage(Project::getInstance()->getCameras()[c], Frame, false, false, false, filtered);
+
+			for (int i = 0; i < pointsIdx.size(); i++){
+				if (trial->getMarkers()[pointsIdx[i]]->getStatus2D()[c][Frame] > UNDEFINED){
+					cv::Point2d diff = trial->getMarkers()[pointsIdx[i]]->getPoints2D()[c][Frame] - image_points[i];
+					dist.push_back(cv::sqrt(diff.x*diff.x + diff.y*diff.y));
+					eMean2D += dist[count];
+					count++;
+				}
+			}
+
+			image_points.clear();
+		}
+
+		if (count != 0) eMean2D /= count;
+
+		for (int i = 0; i < dist.size(); i++){
+			eSD2D += pow(dist[i] - eMean2D, 2);
+		}
+		if (count != 0) eSD2D = sqrt(eSD2D / (count - 1));;
+
+		count = 0;
+		cv::Mat rotationMatrix;
+		if (filtered){
+			cv::Rodrigues(rotationvectors_filtered[Frame], rotationMatrix);
+		}
+		else
+		{
+			cv::Rodrigues(rotationvectors[Frame], rotationMatrix);
+		}
+		dist.clear();
+
+		for (int i = 0; i < points3D.size(); i++){
+			cv::Mat xmat = cv::Mat(points3D[i], true);
+			cv::Mat tmp_mat;
+
+			if (filtered){
+				tmp_mat = rotationMatrix.t() * ((xmat)-cv::Mat(translationvectors_filtered[Frame]));
+			}
+			else
+			{
+				tmp_mat = rotationMatrix.t() * ((xmat)-cv::Mat(translationvectors[Frame]));
+			}
+
+			if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[Frame] > 0){
+				
+				cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
+					tmp_mat.at<double>(0, 1),
+					tmp_mat.at<double>(0, 2));
+		
+				cv::Point3d diff = trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame] - pt3d;
+				dist.push_back(cv::sqrt(diff.x*diff.x + diff.y*diff.y + diff.z*diff.z));
+				eMean3D += dist[count];
+				count++;
+			}
+		}
+		if (count != 0) eMean3D /= count;
+		
+		for (int i = 0; i < dist.size(); i++){
+			eSD3D += pow(dist[i] - eMean3D, 2);
+		}
+		if (count != 0) eSD3D = sqrt(eSD3D  / (count - 1));;
+		
+		dist.clear();
+		rotationMatrix.release();
+	}
+
+	if (!filtered){
+		errorMean2D[Frame] = eMean2D;
+		errorSd2D[Frame] = eSD2D;
+		errorMean3D[Frame] = eMean3D;
+		errorSd3D[Frame] = eSD3D;
+	}
+	else
+	{
+		errorMean2D_filtered[Frame] = eMean2D;
+		errorSd2D_filtered[Frame] = eSD2D;
+		errorMean3D_filtered[Frame] = eMean3D;
+		errorSd3D_filtered[Frame] = eSD3D;
+	}
+
+	
+	//std::cerr << Frame << " " << errorMean2D[Frame] << "+/-" << errorSd2D[Frame] << "  " << errorMean3D[Frame] << "+/-" << errorSd3D[Frame] << std::endl;
+
 }
 
 double RigidBody::fitAndComputeError(std::vector<cv::Point3d> src, std::vector<cv::Point3d> dst){
@@ -867,7 +986,6 @@ void RigidBody::filterData(std::vector<int> idx)
 	}
 }
 
-
 void RigidBody::filterTransformations()
 {
 	for (int i = 0; i < trial->getNbImages(); i++)
@@ -906,6 +1024,11 @@ void RigidBody::filterTransformations()
 				idx.clear();
 			}
 		}
+	}
+
+	for (int i = 0; i < trial->getNbImages(); i++)
+	{
+		updateError(i, true);
 	}
 }
 
@@ -1003,6 +1126,45 @@ const std::vector<cv::Vec3d>& RigidBody::getTranslationVector(bool filtered)
 	}
 }
 
+const std::vector<double>& RigidBody::getErrorMean2D()
+{
+	return errorMean2D;
+}
+
+const std::vector<double>& RigidBody::getErrorSd2D()
+{
+	return errorSd2D;
+}
+
+const std::vector<double>& RigidBody::getErrorMean3D()
+{
+	return errorMean3D;
+}
+
+const std::vector<double>& RigidBody::getErrorSd3D()
+{
+	return errorSd3D;
+}
+
+const std::vector<double>& RigidBody::getErrorMean2D_filtered()
+{
+	return errorMean2D_filtered;
+}
+
+const std::vector<double>& RigidBody::getErrorSd2D_filtered()
+{
+	return errorSd2D_filtered;
+}
+
+const std::vector<double>& RigidBody::getErrorMean3D_filtered()
+{
+	return errorMean3D_filtered;
+}
+
+const std::vector<double>& RigidBody::getErrorSd3D_filtered()
+{
+	return errorSd3D_filtered;
+}
 double RigidBody::getRotationEulerAngle(bool filtered, int frame, int part)
 {
 	cv::Mat rotMat;
@@ -1166,16 +1328,27 @@ bool RigidBody::getTransformationMatrix(int frame, bool filtered, double* trans)
 
 }
 
-std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, bool with_center, bool dummy, bool dummy_frame){
+std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, bool with_center, bool dummy, bool dummy_frame, bool filtered){
 	std::vector <cv::Point3d> points3D_frame;
 	cv::Mat rotMatTmp;
-	cv::Rodrigues(rotationvectors[Frame], rotMatTmp);
-
+	if (filtered){
+		cv::Rodrigues(rotationvectors_filtered[Frame], rotMatTmp);
+	}
+	else
+	{
+		cv::Rodrigues(rotationvectors[Frame], rotMatTmp);
+	}
 	if (with_center){
 		cv::Mat xmat = cv::Mat(center, true);
 
-		cv::Mat tmp_mat = rotMatTmp.t() * ((xmat)-cv::Mat(translationvectors[Frame]));
-
+		cv::Mat tmp_mat;
+		if (filtered){
+			tmp_mat = rotMatTmp.t() * ((xmat)-cv::Mat(translationvectors_filtered[Frame]));
+		}
+		else
+		{
+			tmp_mat = rotMatTmp.t() * ((xmat)-cv::Mat(translationvectors[Frame]));
+		}
 		cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
 			tmp_mat.at<double>(1, 0),
 			tmp_mat.at<double>(2, 0));
@@ -1187,8 +1360,14 @@ std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, boo
 		for (unsigned int i = 0; i < points3D.size(); i++){
 		cv::Mat xmat = cv::Mat(points3D[i], true);
 
-		cv::Mat tmp_mat = rotMatTmp.t() * ((xmat)-cv::Mat(translationvectors[Frame]));
-
+		cv::Mat tmp_mat;
+		if (filtered){
+			tmp_mat = rotMatTmp.t() * ((xmat)-cv::Mat(translationvectors_filtered[Frame]));
+		}
+		else
+		{
+			tmp_mat = rotMatTmp.t() * ((xmat)-cv::Mat(translationvectors[Frame]));
+		}
 		cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
 			tmp_mat.at<double>(1, 0),
 			tmp_mat.at<double>(2, 0));
@@ -1202,8 +1381,14 @@ std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, boo
 			for (unsigned int i = 0; i < dummypoints.size(); i++){
 				cv::Mat xmat = cv::Mat(dummypoints[i], true);
 
-				cv::Mat tmp_mat = rotMatTmp.t() * ((xmat)-cv::Mat(translationvectors[Frame]));
-
+				cv::Mat tmp_mat;
+				if (filtered){
+					tmp_mat = rotMatTmp.t() * ((xmat)-cv::Mat(translationvectors_filtered[Frame]));
+				}
+				else
+				{
+					tmp_mat = rotMatTmp.t() * ((xmat)-cv::Mat(translationvectors[Frame]));
+				}
 				cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
 					tmp_mat.at<double>(1, 0),
 					tmp_mat.at<double>(2, 0));
