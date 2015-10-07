@@ -110,6 +110,13 @@ void Project::addTrial(Trial* trial)
 	trials.push_back(trial);
 }
 
+void Project::deleteTrial(Trial* trial)
+{
+	std::vector<Trial *>::iterator position = std::find(trials.begin(), trials.end(), trial);
+	delete *position;
+	trials.erase(position);
+}
+
 void Project::recountFrames(){
 	if(cameras.size() > 0){
 		nbImagesCalibration = cameras[0]->getCalibrationImages().size();

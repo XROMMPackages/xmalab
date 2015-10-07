@@ -6,6 +6,7 @@
 #include "ui_TrialDialog.h"
 #include "ui/State.h"
 #include "ui/PlotWindow.h"
+#include "ui/ConfirmationDialog.h"
 
 #include "core/Trial.h"
 #include "core/Project.h""
@@ -20,6 +21,7 @@ TrialDialog::TrialDialog(Trial * trial, QWidget *parent) :
 												QDialog(parent),
 												diag(new Ui::TrialDialog), m_trial(trial){
 	diag->setupUi(this);
+	deleteTrial = false;
 
 	this->setWindowTitle("Trial : " + m_trial->getName());
 
@@ -65,6 +67,11 @@ TrialDialog::~TrialDialog(){
 	delete diag;
 }
 
+bool TrialDialog::doDeleteTrial()
+{
+	return deleteTrial;
+}
+
 bool TrialDialog::isComplete()
 {
 	m_trial->setRecordingSpeed(diag->doubleSpinBoxRecSpeedFPS->value());
@@ -93,6 +100,14 @@ void TrialDialog::on_pushButton_Cancel_clicked(){
 	this->reject();
 }
 
+void TrialDialog::on_pushButton_DeleteTrial_clicked()
+{
+	if (ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you really want to delete the trial?"))
+	{
+		deleteTrial = true;
+		this->reject();
+	}
+}
 
 //void WorkspaceNavigationFrame::updateCalibrationReference()
 //{

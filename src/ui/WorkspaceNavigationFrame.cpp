@@ -205,8 +205,33 @@ void WorkspaceNavigationFrame::on_toolButtonTrialSettings_clicked()
 		TrialDialog * dialog = new TrialDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
 		dialog->exec();
 
-		if (dialog->result()) 
+		if (dialog->result()) {
 			MainWindow::getInstance()->redrawGL();
+		}
+		else if (dialog->doDeleteTrial()){
+			Trial * trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
+			int oldTrial = State::getInstance()->getActiveTrial();
+			int activeTrial = State::getInstance()->getActiveTrial();
+			Project::getInstance()->deleteTrial(trial);
+			frame->comboBoxTrial->removeItem(oldTrial);
+
+			if (activeTrial >= Project::getInstance()->getTrials().size()) activeTrial -= 1;
+			State::getInstance()->changeActiveTrial(activeTrial, true);
+
+			if (activeTrial == -1)
+			{
+				State::getInstance()->changeWorkspace(DIGITIZATION,true);
+				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
+				if (Project::getInstance()->isCalibrated())
+				{
+					setTrialVisible(true);
+				}
+				else
+				{
+					setTrialVisible(false);
+				}
+			}
+		}
 
 		delete dialog;
 	}

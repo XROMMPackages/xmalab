@@ -22,16 +22,20 @@ namespace xma{
 		Trial * m_trial;
 
 		bool isComplete();
+		bool deleteTrial;
 
 	public:
 		explicit TrialDialog(Trial* marker, QWidget *parent = 0);
 		virtual ~TrialDialog();
+
+		bool doDeleteTrial();
 
 		public slots:
 
 		//Footer buttons
 		void on_pushButton_OK_clicked();
 		void on_pushButton_Cancel_clicked();
+		void on_pushButton_DeleteTrial_clicked();
 	};
 }
 

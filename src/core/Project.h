@@ -35,6 +35,7 @@ namespace xma{
 		void exportMayaCamVersion2(QString foldername);
 		void exportLUT(QString foldername);
 		void recountFrames();
+		void deleteTrial(Trial * trial);
 
 	private:
 		Project();
