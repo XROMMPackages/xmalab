@@ -1,3 +1,7 @@
+
+
+
+
 /*
  * ProgressDialog.cpp
  *
@@ -208,9 +212,17 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 			QMouseEvent* _mouseEvent = static_cast<QMouseEvent*>(event);
 			if (_mouseEvent->buttons() == Qt::RightButton)
 			{
+				QMouseEvent* pEvent = new QMouseEvent(_mouseEvent->type(), dock->plotWidget->mapFromGlobal(mapToGlobal(_mouseEvent->pos())), Qt::NoButton, Qt::LeftButton, Qt::AltModifier);
+				QApplication::instance()->sendEvent(dock->plotWidget, pEvent);
+			
+					return true;
 			}
 			else if (_mouseEvent->buttons() == Qt::LeftButton)
 			{
+				if (_mouseEvent->modifiers().testFlag(Qt::AltModifier))
+				{
+					return false;
+				}
 				if (_mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
 				{
 					double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
@@ -245,14 +257,26 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 						State::getInstance()->changeActiveFrameTrial(frame);
 					}
 				}
+				return true;
 			}
 		}
 		if (event->type() == QEvent::MouseMove)
 		{
 			QMouseEvent* _mouseEvent = static_cast<QMouseEvent*>(event);
-			if (_mouseEvent->buttons() == Qt::LeftButton)
+			if (_mouseEvent->buttons() == Qt::RightButton)
 			{
-				if (_mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
+				QMouseEvent* pEvent = new QMouseEvent(_mouseEvent->type(), dock->plotWidget->mapFromGlobal(mapToGlobal(_mouseEvent->pos())), Qt::NoButton, Qt::LeftButton, Qt::AltModifier);
+				QApplication::instance()->sendEvent(dock->plotWidget, pEvent);
+
+				return true;
+			}
+			else if (_mouseEvent->buttons() == Qt::LeftButton)
+			{
+				if (_mouseEvent->modifiers().testFlag(Qt::AltModifier))
+				{
+					return false;
+				}
+				else if (_mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
 				{
 					double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
 						                       ? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
@@ -269,6 +293,7 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 					{
 						State::getInstance()->changeActiveFrameTrial(frame);
 					}
+					return true;
 				}
 				else
 				{
@@ -284,6 +309,7 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 					{
 						State::getInstance()->changeActiveFrameTrial(frame);
 					}
+					return true;
 				}
 			}
 		}

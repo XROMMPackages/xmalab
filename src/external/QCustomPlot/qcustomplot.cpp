@@ -24,6 +24,7 @@
 ****************************************************************************/
 
 #include "qcustomplot.h"
+#include <iostream>
 
 
 
@@ -12489,7 +12490,8 @@ int QCPAxisRect::calculateAutoMargin(QCP::MarginSide side)
 void QCPAxisRect::mousePressEvent(QMouseEvent *event)
 {
   mDragStart = event->pos(); // need this even when not LeftButton is pressed, to determine in releaseEvent whether it was a full click (no position change between press and release)
-  if (event->buttons() & Qt::RightButton)
+
+  if (event->buttons() & Qt::LeftButton)
   {
     mDragging = true;
     // initialize antialiasing backup in case we start dragging:
