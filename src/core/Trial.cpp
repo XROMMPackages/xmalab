@@ -855,6 +855,91 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 	}
 }
 
+void Trial::saveMarkerToMarkerDistances(QString filename)
+{
+	std::ofstream outfile(filename.toAscii().data());
+	outfile.precision(12);
+	outfile << "Mean";
+	for (int i = 0; i < markers.size(); i++){
+		outfile << " , " << "Marker " << i << " " << markers[i]->getDescription().toAscii().data() ;
+	}
+	outfile << std::endl;
+
+	for (int i = 0;  i< markers.size(); i++){
+		outfile << "Marker " << i << " " << markers[i]->getDescription().toAscii().data() << " , ";
+
+		for (int j = 0; j < markers.size(); j++)
+		{
+			double sd = 0;
+			double mean = 0;
+			std::vector<double> value;
+			for (int frame = 0; frame < nbImages; frame++)
+			{
+				if (markers[i]->getStatus3D()[frame] > UNDEFINED && markers[j]->getStatus3D()[frame] > UNDEFINED)
+				{
+					cv::Point3d diff = markers[i]->getPoints3D()[frame] - markers[j]->getPoints3D()[frame];
+					value.push_back(cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z));
+				}
+			}
+
+			for (int k = 0; k < value.size(); k++)
+			{
+				mean += value[k];
+			}
+			if (value.size() > 0) mean = mean / value.size();
+
+			outfile << mean ;
+			if (j != markers.size() - 1) outfile << " , ";
+		}
+		outfile << std::endl;
+	}
+
+	outfile << std::endl;
+	
+	outfile << std::endl;
+
+	outfile << "SD";
+	for (int i = 0; i < markers.size(); i++){
+		outfile << " , " << "Marker " << i << " " << markers[i]->getDescription().toAscii().data();
+	}
+	outfile << std::endl;
+
+	for (int i = 0; i< markers.size(); i++){
+		outfile << "Marker " << i << " " << markers[i]->getDescription().toAscii().data() << " , ";
+
+		for (int j = 0; j < markers.size(); j++)
+		{
+			double sd = 0;
+			double mean = 0;
+			std::vector<double> value;
+			for (int frame = 0; frame < nbImages; frame++)
+			{
+				if (markers[i]->getStatus3D()[frame] > UNDEFINED && markers[j]->getStatus3D()[frame] > UNDEFINED)
+				{
+					cv::Point3d diff = markers[i]->getPoints3D()[frame] - markers[j]->getPoints3D()[frame];
+					value.push_back(cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z));
+				}
+			}
+
+			for (int k = 0; k < value.size(); k++)
+			{
+				mean += value[k];
+			}
+			if (value.size() > 0) mean = mean / value.size();
+
+			for (int k = 0; k < value.size(); k++)
+			{
+				sd += pow(value[k] - mean, 2);
+			}
+			if (value.size() > 1)sd = sqrt(sd / (value.size() - 1));
+
+			outfile << sd;
+			if (j != markers.size() - 1) outfile << " , ";
+		}
+		outfile << std::endl;
+	}
+}
+
 void Trial::resetRigidBodyByMarker(Marker* marker, int frame)
 {
 	for (int i = 0; i < getRigidBodies().size(); i++)

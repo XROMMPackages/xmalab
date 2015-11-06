@@ -88,6 +88,7 @@ namespace xma{
 
 		void saveRigidBodyTransformations(QString outputfolder, bool onefile, bool headerRow, bool filtered);
 		void saveTrialImages(QString outputfolder, int from, int to, QString format);
+		void saveMarkerToMarkerDistances(QString filename);
 		void recomputeAndFilterRigidBodyTransformations();
 		void resetRigidBodyByMarker(Marker * marker, int frame);
 

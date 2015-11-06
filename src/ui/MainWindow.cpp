@@ -167,6 +167,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->actionExport2D_Points->setEnabled(false);
 	ui->actionExport3D_Points->setEnabled(false);
 	ui->actionRigidBodyTransformations->setEnabled(false);
+	ui->actionMarkertoMarkerDistances->setEnabled(false);
 	ui->actionImport2D_Points->setEnabled(false);
 	ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 	ui->actionDetailed_View->setEnabled(false);
@@ -814,6 +815,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		ui->actionExport2D_Points->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
+		ui->actionMarkertoMarkerDistances->setEnabled(false);
 		ui->actionImport2D_Points->setEnabled(false);
 		ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 		ui->actionDetailed_View->setEnabled(false);
@@ -839,6 +841,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 		ui->actionExport2D_Points->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
+		ui->actionMarkertoMarkerDistances->setEnabled(false);
 		ui->actionImport2D_Points->setEnabled(false);
 		ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 		ui->actionPlot->setChecked(false);
@@ -920,6 +923,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 			ui->actionExport2D_Points->setEnabled(true);
 			ui->actionExport3D_Points->setEnabled(true);
 			ui->actionRigidBodyTransformations->setEnabled(true);
+			ui->actionMarkertoMarkerDistances->setEnabled(true);
 			ui->actionImport2D_Points->setEnabled(true);
 			ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(true);
 		}
@@ -942,6 +946,7 @@ void MainWindow::workspaceChanged(work_state workspace){
 			ui->actionExport2D_Points->setEnabled(false);
 			ui->actionExport3D_Points->setEnabled(false);
 			ui->actionRigidBodyTransformations->setEnabled(false);
+			ui->actionMarkertoMarkerDistances->setEnabled(false);
 			ui->actionImport2D_Points->setEnabled(false);
 			ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 
@@ -1154,6 +1159,18 @@ void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 		}
 
 
+	}
+}
+
+void MainWindow::on_actionMarkertoMarkerDistances_triggered(bool checked)
+{
+	QString fileName = QFileDialog::getSaveFileName(this,
+		tr("Save distances as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+
+
+	if (fileName.isNull() == false)
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveMarkerToMarkerDistances(fileName);
 	}
 }
 

@@ -92,6 +92,7 @@ namespace xma{
 		void on_actionExport3D_Points_triggered(bool checked);
 		void on_actionExport2D_Points_triggered(bool checked);
 		void on_actionRigidBodyTransformations_triggered(bool checked);
+		void on_actionMarkertoMarkerDistances_triggered(bool checked);
 		void on_actionExport_Undistorted_Trial_images_for_Maya_triggered(bool checked);
 		void on_actionMayaCams_triggered(bool checked);
 		void on_actionMayaCams_2_0_triggered(bool checked);
