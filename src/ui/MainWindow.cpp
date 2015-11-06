@@ -45,6 +45,7 @@
 #include <QFileDialog>
 #include <QtCore>
 
+
 #include <iostream>
 
 #ifdef WIN32
@@ -53,6 +54,14 @@
 #define OS_SEP "/"
 #endif
 #include <QtGui/QInputDialog>
+
+#ifdef __APPLE__
+	#include <sys/sysctl.h>
+	#include <string>
+	#include <QMessageBox>
+#endif
+
+
 
 //#define BETA 1
 
@@ -677,6 +686,21 @@ void MainWindow::checkTrialImagePaths()
 			if (!QFile::exists(filename))
 			{
 				if (Project::getInstance()->getTrials()[t]->getVideoStreams()[c]->getFilenames().size()>1){
+
+#ifdef __APPLE__
+					char str[256];
+					size_t size = sizeof(str);
+					int ret = sysctlbyname("kern.osrelease", str, &size, NULL, 0);
+					std::string s = std::string(str);
+					int version = std::stoi(s.substr(0, s.find(".")));
+					if (version >= 15)
+					{
+						QMessageBox msgBox;
+						msgBox.setText(fileinfo.fileName() + " not found. Enter a new directory for " + fileinfo.fileName());
+						msgBox.exec();
+					}
+#endif
+				
 					QString newfolder = QFileDialog::getExistingDirectory(this, fileinfo.fileName() + " not found. Enter a new directory for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
 
 					if (!newfolder.isEmpty())
@@ -688,6 +712,20 @@ void MainWindow::checkTrialImagePaths()
 				}
 				else
 				{
+#ifdef __APPLE__
+					char str[256];
+					size_t size = sizeof(str);
+					int ret = sysctlbyname("kern.osrelease", str, &size, NULL, 0);
+					std::string s = std::string(str);
+					int version = std::stoi(s.substr(0, s.find(".")));
+					if (version >= 15)
+					{
+						QMessageBox msgBox;
+						msgBox.setText(fileinfo.fileName() + " not found. Enter a file for " + fileinfo.fileName());
+						msgBox.exec();
+					}
+#endif
+
 					QString newfolder = QFileDialog::getOpenFileName(this, fileinfo.fileName() + " not found. Enter a file for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
 
 					if (!newfolder.isEmpty())
