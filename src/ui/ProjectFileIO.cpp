@@ -1075,7 +1075,7 @@ bool ProjectFileIO::readProjectFile(QString filename){
 										if (!requiresRecomputation.isEmpty() && !filename_points3D.isEmpty() && !filename_status3D.isEmpty())
 										{
 											filename_points3D = basedir + OS_SEP + filename_points3D;
-											filename_status2D = basedir + OS_SEP + filename_status2D;	
+											filename_status3D = basedir + OS_SEP + filename_status3D;	
 											trial->getMarkers()[id]->setRequiresRecomputation(requiresRecomputation.toInt());
 											trial->getMarkers()[id]->load3DPoints(littleHelper::adjustPathToOS(filename_points3D), littleHelper::adjustPathToOS(filename_status3D));
 										}
