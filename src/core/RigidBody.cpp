@@ -417,14 +417,14 @@ void RigidBody::computeCoordinateSystemAverage(){
 void RigidBody::computeCoordinateSystem(int Frame){
 	
 	if (!isReferencesSet()){
-		points3D.clear();
+		
 
 		int count = 0;
 
 		for (unsigned int i = 0; i < pointsIdx.size(); i++){
 			if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[Frame] <= UNDEFINED) return;
 		}
-
+		points3D.clear();
 		cv::Point3d center = cv::Point3d(0, 0, 0);
 		for (unsigned int i = 0; i < pointsIdx.size(); i++){
 			center += trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame];
