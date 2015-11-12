@@ -675,6 +675,26 @@ void MainWindow::newTrial()
 	}
 }
 
+QString listFiles(QDir directory, QString name)
+{
+	QDir dir(directory);
+	QFileInfoList list = dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+	foreach(QFileInfo finfo, list) {
+		if (finfo.fileName() == name)
+		{
+			return finfo.absolutePath();
+		}
+		else if (finfo.isDir()) {
+			QString path = listFiles(QDir(finfo.absoluteFilePath()), name);
+			if (!path.isEmpty())
+			{
+				return path;
+			}
+		}
+	}
+	return "";
+}
+
 void MainWindow::checkTrialImagePaths()
 {
 	for (int t = 0; t < Project::getInstance()->getTrials().size(); t++)
@@ -686,54 +706,67 @@ void MainWindow::checkTrialImagePaths()
 			QFileInfo fileinfo(filename);
 			if (!QFile::exists(filename))
 			{
-				if (Project::getInstance()->getTrials()[t]->getVideoStreams()[c]->getFilenames().size()>1){
-
-#ifdef __APPLE__
-					char str[256];
-					size_t size = sizeof(str);
-					int ret = sysctlbyname("kern.osrelease", str, &size, NULL, 0);
-					std::string s = std::string(str);
-					int version = std::stoi(s.substr(0, s.find(".")));
-					if (version >= 15)
-					{
-						QMessageBox msgBox;
-						msgBox.setText(fileinfo.fileName() + " not found. Enter a new directory for " + fileinfo.fileName());
-						msgBox.exec();
-					}
-#endif
-				
-					QString newfolder = QFileDialog::getExistingDirectory(this, fileinfo.fileName() + " not found. Enter a new directory for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
-
-					if (!newfolder.isEmpty())
-					{
-						QString oldfolder = filename.replace(fileinfo.fileName(), "");
-						Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder + OS_SEP, oldfolder);
-						Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
-					}
+				//try to find it recursively from projectfile directory
+				QFileInfo projectinfo(Project::getInstance()->getProjectFilename());
+				QDir projectDir = projectinfo.absoluteDir();
+				QString path = listFiles(projectDir, fileinfo.fileName());
+				if (!path.isEmpty())
+				{				
+					QString oldfolder = filename.replace(fileinfo.fileName(), "");
+					Project::getInstance()->getTrials()[t]->changeImagePath(c, path + OS_SEP, oldfolder);
+					Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
+					requiresReload = true;		
 				}
-				else
-				{
+				else{
+					if (Project::getInstance()->getTrials()[t]->getVideoStreams()[c]->getFilenames().size() > 1){
+
 #ifdef __APPLE__
-					char str[256];
-					size_t size = sizeof(str);
-					int ret = sysctlbyname("kern.osrelease", str, &size, NULL, 0);
-					std::string s = std::string(str);
-					int version = std::stoi(s.substr(0, s.find(".")));
-					if (version >= 15)
-					{
-						QMessageBox msgBox;
-						msgBox.setText(fileinfo.fileName() + " not found. Enter a file for " + fileinfo.fileName());
-						msgBox.exec();
-					}
+						char str[256];
+						size_t size = sizeof(str);
+						int ret = sysctlbyname("kern.osrelease", str, &size, NULL, 0);
+						std::string s = std::string(str);
+						int version = std::stoi(s.substr(0, s.find(".")));
+						if (version >= 15)
+						{
+							QMessageBox msgBox;
+							msgBox.setText(fileinfo.fileName() + " not found. Enter a new directory for " + fileinfo.fileName());
+							msgBox.exec();
+						}
 #endif
 
-					QString newfolder = QFileDialog::getOpenFileName(this, fileinfo.fileName() + " not found. Enter a file for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
+						QString newfolder = QFileDialog::getExistingDirectory(this, fileinfo.fileName() + " not found. Enter a new directory for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
 
-					if (!newfolder.isEmpty())
+						if (!newfolder.isEmpty())
+						{
+							QString oldfolder = filename.replace(fileinfo.fileName(), "");
+							Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder + OS_SEP, oldfolder);
+							Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
+						}
+					}
+					else
 					{
-						Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder, filename);
-						Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
-						requiresReload = true;
+#ifdef __APPLE__
+						char str[256];
+						size_t size = sizeof(str);
+						int ret = sysctlbyname("kern.osrelease", str, &size, NULL, 0);
+						std::string s = std::string(str);
+						int version = std::stoi(s.substr(0, s.find(".")));
+						if (version >= 15)
+						{
+							QMessageBox msgBox;
+							msgBox.setText(fileinfo.fileName() + " not found. Enter a file for " + fileinfo.fileName());
+							msgBox.exec();
+						}
+#endif
+
+						QString newfolder = QFileDialog::getOpenFileName(this, fileinfo.fileName() + " not found. Enter a file for " + fileinfo.fileName(), Settings::getInstance()->getLastUsedDirectory());
+
+						if (!newfolder.isEmpty())
+						{
+							Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder, filename);
+							Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
+							requiresReload = true;
+						}
 					}
 				}
 			}
