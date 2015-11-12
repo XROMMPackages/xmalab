@@ -23,12 +23,14 @@ namespace xma{
 
 		bool isComplete();
 		bool deleteTrial;
+		bool updateTrial;
 
 	public:
 		explicit TrialDialog(Trial* marker, QWidget *parent = 0);
 		virtual ~TrialDialog();
 
 		bool doDeleteTrial();
+		bool doUpdateTrial();
 
 		public slots:
 
@@ -36,6 +38,7 @@ namespace xma{
 		void on_pushButton_OK_clicked();
 		void on_pushButton_Cancel_clicked();
 		void on_pushButton_DeleteTrial_clicked();
+		void on_pushButton_Update_clicked();
 	};
 }
 

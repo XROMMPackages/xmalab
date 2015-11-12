@@ -208,6 +208,12 @@ void WorkspaceNavigationFrame::on_toolButtonTrialSettings_clicked()
 		if (dialog->result()) {
 			MainWindow::getInstance()->redrawGL();
 		}
+		else if (dialog->doUpdateTrial())
+		{
+			Trial * trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
+			trial->setRequiresRecomputation(true);
+			ThreadScheduler::getInstance()->updateTrialData(trial);
+		}
 		else if (dialog->doDeleteTrial()){
 			Trial * trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
 			int oldTrial = State::getInstance()->getActiveTrial();

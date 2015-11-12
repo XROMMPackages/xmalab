@@ -22,6 +22,7 @@ TrialDialog::TrialDialog(Trial * trial, QWidget *parent) :
 												diag(new Ui::TrialDialog), m_trial(trial){
 	diag->setupUi(this);
 	deleteTrial = false;
+	updateTrial = false;
 
 	this->setWindowTitle("Trial : " + m_trial->getName());
 
@@ -72,6 +73,11 @@ bool TrialDialog::doDeleteTrial()
 	return deleteTrial;
 }
 
+bool TrialDialog::doUpdateTrial()
+{
+	return updateTrial;
+}
+
 bool TrialDialog::isComplete()
 {
 	m_trial->setRecordingSpeed(diag->doubleSpinBoxRecSpeedFPS->value());
@@ -107,6 +113,12 @@ void TrialDialog::on_pushButton_DeleteTrial_clicked()
 		deleteTrial = true;
 		this->reject();
 	}
+}
+
+void TrialDialog::on_pushButton_Update_clicked()
+{
+	updateTrial = true;
+	this->reject();
 }
 
 //void WorkspaceNavigationFrame::updateCalibrationReference()

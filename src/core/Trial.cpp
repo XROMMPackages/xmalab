@@ -621,7 +621,6 @@ void Trial::saveRigidBodies(QString filename){
 
 void Trial::update()
 {
-	std::cerr << "Update " << name.toAscii().data() << " " << requiresRecomputation << std::endl;
 	if (requiresRecomputation){
 		for (int i = 0; i < getMarkers().size(); i++)
 		{
