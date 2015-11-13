@@ -860,12 +860,12 @@ void Trial::saveMarkerToMarkerDistances(QString filename)
 	outfile.precision(12);
 	outfile << "Mean";
 	for (int i = 0; i < markers.size(); i++){
-		outfile << " , " << "Marker " << i << " " << markers[i]->getDescription().toAscii().data() ;
+		outfile << " , " << "Marker " << (i+1) << " " << markers[i]->getDescription().toAscii().data() ;
 	}
 	outfile << std::endl;
 
 	for (int i = 0;  i< markers.size(); i++){
-		outfile << "Marker " << i << " " << markers[i]->getDescription().toAscii().data() << " , ";
+		outfile << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data() << " , ";
 
 		for (int j = 0; j < markers.size(); j++)
 		{
@@ -899,12 +899,12 @@ void Trial::saveMarkerToMarkerDistances(QString filename)
 
 	outfile << "SD";
 	for (int i = 0; i < markers.size(); i++){
-		outfile << " , " << "Marker " << i << " " << markers[i]->getDescription().toAscii().data();
+		outfile << " , " << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data();
 	}
 	outfile << std::endl;
 
 	for (int i = 0; i< markers.size(); i++){
-		outfile << "Marker " << i << " " << markers[i]->getDescription().toAscii().data() << " , ";
+		outfile << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data() << " , ";
 
 		for (int j = 0; j < markers.size(); j++)
 		{
