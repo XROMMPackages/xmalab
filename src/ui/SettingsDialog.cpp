@@ -27,6 +27,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 	diag->checkBox_ConfirmQuitXMALab->setChecked(Settings::getInstance()->getBoolSetting("ConfirmQuitXMALab"));
 	diag->checkBox_AutoCalibAfterReference->setChecked(Settings::getInstance()->getBoolSetting("AutoCalibAfterReference"));
 	diag->checkBox_Advanced->setChecked(Settings::getInstance()->getBoolSetting("ShowAdvancedCalibration"));
+	diag->checkBox_HideWarningsCalibration->setChecked(Settings::getInstance()->getBoolSetting("HideWarningsDuringCalibration"));
+	diag->spinBox_IdentificationThreshold->setValue(Settings::getInstance()->getIntSetting("IdentificationThresholdCalibration"));
+	diag->spinBox_OutlierThreshold->setValue(Settings::getInstance()->getIntSetting("OutlierThresholdForCalibration"));
 
 	diag->checkBox_UseCenteredDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("CenterDetailView"));
 	diag->checkBox_ShowAdvancedCrosshairDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView"));
@@ -127,13 +130,20 @@ void SettingsDialog::on_comboBox_TriangulationMethod_currentIndexChanged(int val
 void SettingsDialog::on_comboBox_DetectionMethodForCalibration_currentIndexChanged(int value)
 {
 	Settings::getInstance()->set("DetectionMethodForCalibration", diag->comboBox_DetectionMethodForCalibration->currentIndex());
-	if (!initPhase)
-	{
-		for (int i = 0; i < Project::getInstance()->getTrials().size(); i++)
-		{
-			Project::getInstance()->getTrials()[i]->setRequiresRecomputation(true);
-			if (State::getInstance()->getActiveTrial() == i && State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size())
-				ThreadScheduler::getInstance()->updateTrialData(Project::getInstance()->getTrials()[i]);
-		}
-	}
+}
+
+
+void SettingsDialog::on_checkBox_HideWarningsCalibration_stateChanged(int state)
+{
+	Settings::getInstance()->set("HideWarningsDuringCalibration", diag->checkBox_HideWarningsCalibration->isChecked());
+}
+
+void SettingsDialog::on_spinBox_IdentificationThreshold_stateChanged(int value)
+{
+	Settings::getInstance()->set("IdentificationThresholdCalibration", diag->spinBox_IdentificationThreshold->value());
+}		
+
+void SettingsDialog::on_spinBox_OutlierThreshold_valueChanged(int value)
+{
+	Settings::getInstance()->set("OutlierThresholdForCalibration", diag->spinBox_OutlierThreshold->value());
 }

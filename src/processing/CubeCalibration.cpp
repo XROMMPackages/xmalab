@@ -198,7 +198,7 @@ void CubeCalibration::setPose_thread(){
 	
 	//redetect points;
 	reprojectAndComputeError();
-	maxinlier = setCorrespondances(15.0,true);
+	maxinlier = setCorrespondances(Settings::getInstance()->getIntSetting("IdentificationThresholdCalibration"), true);
 	setPoseFromInlier();
 
 	refineResults(false);
@@ -453,7 +453,6 @@ void CubeCalibration::setupCorrespondancesRansac(unsigned int loop_max, double t
 				fprintf(stderr,"Inlier %d\n", maxinlier);
 			}
 		}
-		
 	}
 }
 
@@ -476,7 +475,8 @@ int CubeCalibration::selectCorrespondances(double threshold){
 }
 
 void  CubeCalibration::refineResults(bool withCameraRefinement){
-	maxinlier = setCorrespondances(2.0,true);	
+
+	maxinlier = setCorrespondances( 0.5 * Settings::getInstance()->getIntSetting("IdentificationThresholdCalibration"),true);	
 
 	if( maxinlier > 5){
 		int inlier_tmp = 0;
@@ -488,8 +488,8 @@ void  CubeCalibration::refineResults(bool withCameraRefinement){
 			if (withCameraRefinement) {calibrateFromInliers();}
 			else {setPoseFromInlier();}
 
-			setCorrespondances(10.0,false);
-			maxinlier = selectCorrespondances(2.0);
+			setCorrespondances(Settings::getInstance()->getIntSetting("IdentificationThresholdCalibration"), false);
+			maxinlier = selectCorrespondances(Settings::getInstance()->getIntSetting("OutlierThresholdForCalibration"));
 		}
 
 		if (withCameraRefinement) calibrated = true;
@@ -996,7 +996,7 @@ void CubeCalibration::setupCorrespondancesRansacPose(unsigned int loop_max, doub
 		//Then compute the projection and find the inlier in case the projection fits the points well
 		{
 			computePose(pt2d, pt3d);
-			int inlier = setCorrespondances(10, true);
+			int inlier = setCorrespondances(0.5 * Settings::getInstance()->getIntSetting("IdentificationThresholdCalibration"), true);
 
 			//if the inlier set is better than the previous one, set it
 			if(inlier > maxinlier){
@@ -1019,7 +1019,7 @@ void CubeCalibration::setupCorrespondancesRansacPose(unsigned int loop_max, doub
 	if(maxinlier >= 4){
 		computePose(pt2d_best, pt3d_best);
 		reprojectAndComputeError();
-		maxinlier = setCorrespondances(10, true);
+		maxinlier = setCorrespondances(Settings::getInstance()->getIntSetting("IdentificationThresholdCalibration"), true);
 	}
 }
 

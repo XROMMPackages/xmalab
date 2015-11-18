@@ -36,6 +36,9 @@ Settings::Settings(){
 	addBoolSetting("AutoCalibAfterReference", true);
 	addIntSetting("DetectionMethodForCalibration", 0);
 	addBoolSetting("ShowAdvancedCalibration", false);
+	addBoolSetting("HideWarningsDuringCalibration", false);
+	addIntSetting("IdentificationThresholdCalibration", 10);
+	addIntSetting("OutlierThresholdForCalibration", 5);
 
 	//Digitizing
 	addBoolSetting("CenterDetailView", false);

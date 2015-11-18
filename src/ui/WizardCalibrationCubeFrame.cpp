@@ -558,7 +558,7 @@ void WizardCalibrationCubeFrame::checkForCalibrationError(){
 	}
 	if(hasError){
 		errorMessage += "Please control all your data !";
-		ErrorDialog::getInstance()->showErrorDialog(errorMessage);
+		if(!Settings::getInstance()->getBoolSetting("HideWarningsDuringCalibration"))ErrorDialog::getInstance()->showErrorDialog(errorMessage);
 	}
 }
 
@@ -569,7 +569,7 @@ void WizardCalibrationCubeFrame::runCalibrationFinished(){
 	for (int p = 0 ; p < temporaryCamIdx.size(); p++){
 		if(!Project::getInstance()->getCameras()[temporaryCamIdx[p]]->getCalibrationImages()[temporaryFrameIdx[p]]->isCalibrated()  > 0)
 		{
-			ErrorDialog::getInstance()->showErrorDialog("Could not set Camera " + QString::number(temporaryCamIdx[p]) + " Frame " + QString::number(temporaryFrameIdx[p]) + " from other Frames. Please check your calibration."); 	
+			if (!Settings::getInstance()->getBoolSetting("HideWarningsDuringCalibration"))ErrorDialog::getInstance()->showErrorDialog("Could not set Camera " + QString::number(temporaryCamIdx[p]) + " Frame " + QString::number(temporaryFrameIdx[p]) + " from other Frames. Please check your calibration.");
 			calibrateOtherFramesFailed = true;
 		}	
 	}

@@ -29,6 +29,7 @@ namespace xma{
 		void on_checkBox_AutoConfirmPendingChanges_stateChanged(int state);
 		void on_checkBox_AutoCalibAfterReference_stateChanged(int state);
 		void on_checkBox_Advanced_stateChanged(int state);
+		void on_checkBox_HideWarningsCalibration_stateChanged(int state);
 		void on_checkBox_UseCenteredDetailWindow_stateChanged(int state);
 		void on_checkBox_ShowAdvancedCrosshairDetailWindow_stateChanged(int state);
 		void on_checkBox_Show3DPointDetailWindow_stateChanged(int state);
@@ -39,6 +40,8 @@ namespace xma{
 		void on_comboBox_DetectionMethodForCalibration_currentIndexChanged(int value);
 		void on_checkBox_ConfirmQuitXMALab_stateChanged(int state);
 		void on_doubleSpinBox_MaxError_valueChanged(double value);
+		void on_spinBox_IdentificationThreshold_stateChanged(int state);
+		void on_spinBox_OutlierThreshold_valueChanged(int value);
 	};
 }
 #endif  // SETTINGSDIALOG_H

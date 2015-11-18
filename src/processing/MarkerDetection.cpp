@@ -217,7 +217,7 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		cvReleaseImage(&eig_image);
 		cvReleaseImage(&temp_image);
 	}
-	else if (method == 1)
+	else if (method == 1 || method == 6)
 	{
 		cv::SimpleBlobDetector::Params paramsBlob;
 
@@ -228,8 +228,13 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		paramsBlob.minDistBetweenBlobs = Settings::getInstance()->getFloatSetting("BlobDetectorMinDistBetweenBlobs");
 
 		paramsBlob.filterByColor = Settings::getInstance()->getBoolSetting("BlobDetectorFilterByColor");
-		paramsBlob.blobColor = 255 - Settings::getInstance()->getIntSetting("BlobDetectorBlobColor");
-
+		if (method == 1){
+			paramsBlob.blobColor = 255 - Settings::getInstance()->getIntSetting("BlobDetectorBlobColor");
+		}
+		else if (method == 6)
+		{
+			paramsBlob.blobColor = Settings::getInstance()->getIntSetting("BlobDetectorBlobColor");
+		}
 		paramsBlob.filterByArea = Settings::getInstance()->getBoolSetting("BlobDetectorFilterByArea");
 		paramsBlob.minArea = Settings::getInstance()->getFloatSetting("BlobDetectorMinArea");
 		paramsBlob.maxArea = Settings::getInstance()->getFloatSetting("BlobDetectorMaxArea");

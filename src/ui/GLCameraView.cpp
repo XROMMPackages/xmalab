@@ -161,7 +161,15 @@ void GLCameraView::mousePressEvent(QMouseEvent *e)
 				int method = Settings::getInstance()->getIntSetting("DetectionMethodForCalibration");
 				if (method > 0)
 				{
-					cv::Point out = MarkerDetection::detectionPoint(camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getImage(), method - 1, cv::Point2d(x, y), 40, 5);
+					if (method == 5)
+					{
+						method = 6;// white blobs
+					}
+					else
+					{
+						method = method - 1; // different ordering than normal detection
+					}
+					cv::Point out = MarkerDetection::detectionPoint(camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getImage(), method, cv::Point2d(x, y), 40, 5);
 					x = out.x;
 					y = out.y;
 				}
