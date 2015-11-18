@@ -237,9 +237,15 @@ void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 								double size = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getSize();
 								int marker_method = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getMethod();
 
+								if (size == -1)
+								{
+									size = 5;
+								}
+
 								MarkerDetection::refinePointPolynomialFit(pt, size, (marker_method != 5 && marker_method != 2), c, xma::State::getInstance()->getActiveTrial());
 
 								Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->setPoint(c, i, pt.x, pt.y, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getStatus2D()[c][i]);
+								Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->setSize(c, i, size);
 							}
 						}
 					}
