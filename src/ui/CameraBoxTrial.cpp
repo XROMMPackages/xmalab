@@ -60,7 +60,27 @@ bool CameraBoxTrial::isComplete(){
 	return true;
 }
 
-void CameraBoxTrial::on_toolButton_clicked(){
+void CameraBoxTrial::on_toolButtonImage_clicked(){
+	QString folder = QFileDialog::getExistingDirectory(this, tr("Load Directory "), Settings::getInstance()->getLastUsedDirectory());
+
+	if (!folder.isEmpty())
+	{
+		imageFileNames.clear();
+		QDir pdir(folder);
+		QStringList imageFileNames_rel = pdir.entryList(QStringList() << "*.png" << "*.tif" << "*.bmp" << "*.jpeg" << "*.jpg", QDir::Files | QDir::NoSymLinks);
+		for (int i = 0; i<imageFileNames_rel.size(); ++i)
+		{
+			imageFileNames << QString("%1/%2").arg(pdir.absolutePath()).arg(imageFileNames_rel.at(i));
+		}
+
+		imageFileNames.sort();
+		widget->lineEdit->setText(folder);
+		widget->label->setText("(" + QString::number(imageFileNames.size()) + ")");
+		Settings::getInstance()->setLastUsedDirectory(folder);
+	}
+}
+
+void CameraBoxTrial::on_toolButtonVideo_clicked(){
 	imageFileNames = QFileDialog::getOpenFileNames(this,
 		tr("Open video stream movie file or images"), Settings::getInstance()->getLastUsedDirectory(), tr("Image and Video Files (*.cine *.avi *.png *.jpg *.jpeg *.bmp *.tif)"));
 
@@ -71,6 +91,5 @@ void CameraBoxTrial::on_toolButton_clicked(){
 		widget->lineEdit->setText(commonPrefix(imageFileNames));
 		widget->label->setText("(" + QString::number(imageFileNames.size()) + ")");
 		Settings::getInstance()->setLastUsedDirectory(widget->lineEdit->text());
-    }
+	}
 }
-

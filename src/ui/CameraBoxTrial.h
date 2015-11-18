@@ -30,7 +30,8 @@ namespace xma{
 
 		public slots:
 
-		void on_toolButton_clicked();
+		void on_toolButtonImage_clicked();
+		void on_toolButtonVideo_clicked();
 	};
 }
 #endif /* CAMERABOXTRIAL_H_ */

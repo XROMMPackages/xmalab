@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>678</width>
-    <height>52</height>
+    <width>274</width>
+    <height>84</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,13 +26,6 @@
       <string>Camera</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_7">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Video path</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="1">
        <widget class="QLineEdit" name="lineEdit">
         <property name="enabled">
@@ -46,8 +39,8 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
-       <widget class="QToolButton" name="toolButton">
+      <item row="0" column="3">
+       <widget class="QToolButton" name="toolButtonVideo">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -55,7 +48,49 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>...</string>
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normalon>:/images/resource-files/icons/video.png</normalon>
+         </iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Video path</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QToolButton" name="toolButtonImage">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normalon>:/images/resource-files/icons/Images.png</normalon>
+         </iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
         </property>
        </widget>
       </item>
@@ -64,6 +99,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../calibrationtool_resources.qrc"/>
+ </resources>
  <connections/>
 </ui>
