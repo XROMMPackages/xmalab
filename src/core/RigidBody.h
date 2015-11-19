@@ -91,11 +91,13 @@ namespace xma{
 
 		Trial * getTrial();
 
-		void addDummyPoint(QString name, QString filenamePointRef, QString filenamePointCoords);
+		void addDummyPoint(QString name, QString filenamePointRef,int markerID, QString filenamePointCoords = "");
 		void saveDummy(int count, QString filenamePointRef, QString filenamePointCoords);
 		void clearAllDummyPoints();
 		const std::vector <QString> &getDummyNames();
 		bool allReferenceMarkerReferencesSet();
+
+		bool transformPoint(cv::Point3d in, cv::Point3d &out, int frame);
 
 	private:
 		void init(int size);
@@ -127,9 +129,9 @@ namespace xma{
 
 		std::vector <QString> dummyNames;
 		std::vector <cv::Point3d> dummypoints;
+		std::vector <int> dummyRBIndex;
 		std::vector <std::vector <cv::Point3d> > dummypointsCoords;
 		std::vector <std::vector <bool> > dummypointsCoordsSet;
-
 
 		//for each frame
 		std::vector <int> poseComputed;

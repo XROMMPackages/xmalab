@@ -175,6 +175,27 @@ bool RigidBody::allReferenceMarkerReferencesSet()
 	return allset;
 }
 
+bool RigidBody::transformPoint(cv::Point3d in, cv::Point3d &out, int frame)
+{
+	if (poseComputed[frame])
+	{
+		cv::Mat rotationMatrix;
+		cv::Rodrigues(rotationvectors[frame], rotationMatrix);
+		
+		cv::Mat xmat = cv::Mat(in, true);
+		cv::Mat tmp_mat;
+
+		tmp_mat = rotationMatrix.t() * ((xmat)-cv::Mat(translationvectors[frame]));
+	
+		out.x = tmp_mat.at<double>(0, 0),
+		out.y = tmp_mat.at<double>(0, 1),
+		out.z = tmp_mat.at<double>(0, 2);
+		return true;
+
+	}
+	return false;
+}
+
 void RigidBody::setReferenceMarkerReferences()
 {
 	if (allReferenceMarkerReferencesSet())
@@ -248,6 +269,7 @@ void RigidBody::clearAllDummyPoints()
 {
 	dummyNames.clear();
 	dummypoints.clear();
+	dummyRBIndex.clear();
 	dummypointsCoords.clear();
 	dummypointsCoordsSet.clear();
 }
@@ -498,6 +520,7 @@ void RigidBody::computeCoordinateSystem(int Frame){
 	}
 }
 
+
 void RigidBody::computePose(int Frame){
 	while ( Frame >= poseComputed.size() ) addFrame();
 
@@ -521,7 +544,19 @@ void RigidBody::computePose(int Frame){
 		}
 
 		for (unsigned int i = 0; i < dummypoints.size(); i++){
-			if (dummypointsCoordsSet[i][Frame]){
+			if (dummyRBIndex[i] >= 0)
+			{
+				cv::Point3d dummy_tmp;
+				if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints[i], dummy_tmp, Frame)){
+					src.push_back(cv::Point3f(dummy_tmp.x
+						, dummy_tmp.y
+						, dummy_tmp.z));
+					dst.push_back(cv::Point3f(dummypoints[i].x
+						, dummypoints[i].y
+						, dummypoints[i].z));
+				}
+			}
+			else if (dummypointsCoordsSet[i][Frame]){
 				src.push_back(cv::Point3f(dummypointsCoords[i][Frame].x
 					, dummypointsCoords[i][Frame].y
 					, dummypointsCoords[i][Frame].z));
@@ -1037,7 +1072,7 @@ Trial* RigidBody::getTrial()
 	return trial;
 }
 
-void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString filenamePointCoords)
+void RigidBody::addDummyPoint(QString name, QString filenamePointRef, int markerID, QString filenamePointCoords)
 {
 	dummyNames.push_back(name);
 
@@ -1052,30 +1087,39 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString fi
 	QStringList coords_list = tmp_coords.split(",");
 	dummypoints.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
 
-	fin.open(filenamePointCoords.toAscii().data());
-	littleHelper::safeGetline(fin, line);
-	std::vector<cv::Point3d> tmpCoords;
-	std::vector<bool> tmpDef;
-
-	while (!littleHelper::safeGetline(fin, line).eof())
+	if (coords_list.size() > 3)
 	{
-		tmp_coords = QString::fromStdString(line);
-		coords_list = tmp_coords.split(",");
-		if (coords_list.size() == 3){
-			if (coords_list.at(0) == "NaN" || coords_list.at(1) == "NaN" || coords_list.at(2) == "NaN")
-			{
-				tmpDef.push_back(false);
-				tmpCoords.push_back(cv::Point3d(0, 0, 0));
-			}
-			else{
-				tmpDef.push_back(true);
-				tmpCoords.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
+		markerID = coords_list.at(3).toInt();
+	}
+	
+	dummyRBIndex.push_back(markerID);
+	
+	if (markerID == -1){
+		fin.open(filenamePointCoords.toAscii().data());
+		littleHelper::safeGetline(fin, line);
+		std::vector<cv::Point3d> tmpCoords;
+		std::vector<bool> tmpDef;
+
+		while (!littleHelper::safeGetline(fin, line).eof())
+		{
+			tmp_coords = QString::fromStdString(line);
+			coords_list = tmp_coords.split(",");
+			if (coords_list.size() == 3){
+				if (coords_list.at(0) == "NaN" || coords_list.at(1) == "NaN" || coords_list.at(2) == "NaN")
+				{
+					tmpDef.push_back(false);
+					tmpCoords.push_back(cv::Point3d(0, 0, 0));
+				}
+				else{
+					tmpDef.push_back(true);
+					tmpCoords.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
+				}
 			}
 		}
+		dummypointsCoords.push_back(tmpCoords);
+		dummypointsCoordsSet.push_back(tmpDef);
+		fin.close();
 	}
-	dummypointsCoords.push_back(tmpCoords);
-	dummypointsCoordsSet.push_back(tmpDef);
-	fin.close();
 }
 
 void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenamePointCoords)
@@ -1083,7 +1127,7 @@ void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenameP
 	std::ofstream outfileRef(filenamePointRef.toAscii().data());
 	outfileRef.precision(12);
 	outfileRef << "x,y,z" << std::endl;
-	outfileRef << dummypoints[count].x << "," << dummypoints[count].y << "," << dummypoints[count].z << std::endl;
+	outfileRef << dummypoints[count].x << "," << dummypoints[count].y << "," << dummypoints[count].z << "," << dummyRBIndex[count] << std::endl;
 	outfileRef.close();
 
 	std::ofstream outfileCoords(filenamePointCoords.toAscii().data());
@@ -1392,15 +1436,21 @@ std::vector <cv::Point2d> RigidBody::projectToImage(Camera * cam, int Frame, boo
 				cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
 					tmp_mat.at<double>(1, 0),
 					tmp_mat.at<double>(2, 0));
-
 				points3D_frame.push_back(pt3d);
 			}
 		}
 		else
 		{
-			for (unsigned int i = 0; i < dummypointsCoords.size(); i++){
-				if (dummypointsCoordsSet[i][Frame])
+			for (unsigned int i = 0; i < dummypoints.size(); i++){
+				if (dummyRBIndex[i] >= 0)
+				{
+					cv::Point3d dummy_tmp;
+					if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints[i], dummy_tmp, Frame)){
+						points3D_frame.push_back(dummy_tmp);
+					}
+				}else if(dummypointsCoordsSet[i][Frame]){
 					points3D_frame.push_back(dummypointsCoords[i][Frame]);
+				}
 			}
 		}
 	}

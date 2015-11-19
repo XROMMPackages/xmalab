@@ -301,6 +301,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 		tr("Enter a name for the virtual point:"), QLineEdit::Normal, "Virtual " + QString::number(m_body->getDummyNames().size()+1), &ok);
 	QString filenameCoords;
 	QString filenameRef;
+	int markerID = -1;
 
 	if (ok && !name.isEmpty())
 	{
@@ -313,14 +314,38 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 		{
 			return;
 		}
-		filenameCoords = QFileDialog::getOpenFileName(this, tr("Open tracked virtual data file"), Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
-		if (!filenameCoords.isEmpty())
+
+		if(ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to animate the virtual point by using a Rigid Body? Click cancel if you want to import a csv of tracked data instead."))
 		{
-			Settings::getInstance()->setLastUsedDirectory(filenameCoords);
+			
+			QStringList trialnames;
+			for (int i = 0; i < m_body->getTrial()->getRigidBodies().size(); i++)
+			{
+	
+				trialnames << QString::number(i + 1);
+			}
+			
+			bool ok;
+			QString item = QInputDialog::getItem(this, tr("Choose Rigid Body"),
+				tr("RB:"), trialnames, 0, false, &ok);
+
+			if (ok && !item.isEmpty())
+			{
+				markerID = item.toInt() -1;
+				name = name + " RB" + QString::number(markerID + 1);
+			}
 		}
-		else
-		{
-			return;
+
+		if (markerID == -1){
+			filenameCoords = QFileDialog::getOpenFileName(this, tr("Open tracked virtual data file"), Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
+			if (!filenameCoords.isEmpty())
+			{
+				Settings::getInstance()->setLastUsedDirectory(filenameCoords);
+			}
+			else
+			{
+				return;
+			}
 		}
 	}
 	else
@@ -328,7 +353,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 		return;
 	}
 
-	m_body->addDummyPoint(name, filenameRef, filenameCoords);
+	m_body->addDummyPoint(name, filenameRef, markerID, filenameCoords);
 	
 	reloadDummyPoints();
 

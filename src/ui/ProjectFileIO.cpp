@@ -394,7 +394,7 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 															QString dummyPointReferences = basedir + OS_SEP + attr.value("PointReferences").toString();
 															QString dummyPointCoordinates = basedir + OS_SEP + attr.value("PointCoordinates").toString();
 
-															trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), littleHelper::adjustPathToOS(dummyPointCoordinates));
+															trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), 1, littleHelper::adjustPathToOS(dummyPointCoordinates));
 														}
 													}
 													xml.readNext();
@@ -1135,7 +1135,7 @@ bool ProjectFileIO::readProjectFile(QString filename){
 													QString dummyPointReferences = basedir + OS_SEP + attr.value("PointReferences").toString();
 													QString dummyPointCoordinates = basedir + OS_SEP +  attr.value("PointCoordinates").toString();
 
-													trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), littleHelper::adjustPathToOS(dummyPointCoordinates));
+													trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), -1, littleHelper::adjustPathToOS(dummyPointCoordinates));
 												}
 											}
 											xml.readNext();
