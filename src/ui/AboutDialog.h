@@ -48,6 +48,8 @@ namespace xma
 		virtual ~AboutDialog();
 
 	public slots:
+
+	void on_pushButtonLicense_clicked();
 	};
 }
 
