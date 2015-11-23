@@ -1,5 +1,31 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file TrialDialog.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "ui/TrialDialog.h"
@@ -9,17 +35,18 @@
 #include "ui/ConfirmationDialog.h"
 
 #include "core/Trial.h"
-#include "core/Project.h""
-#include "core/Camera.h""
+#include "core/Project.h"
+#include "core/Camera.h"
 #include "core/CalibrationImage.h"
 
 #include "processing/ThreadScheduler.h"
 
 using namespace xma;
 
-TrialDialog::TrialDialog(Trial * trial, QWidget *parent) :
-												QDialog(parent),
-												diag(new Ui::TrialDialog), m_trial(trial){
+TrialDialog::TrialDialog(Trial* trial, QWidget* parent) :
+	QDialog(parent),
+	diag(new Ui::TrialDialog), m_trial(trial)
+{
 	diag->setupUi(this);
 	deleteTrial = false;
 	updateTrial = false;
@@ -28,10 +55,10 @@ TrialDialog::TrialDialog(Trial * trial, QWidget *parent) :
 
 	diag->comboBoxReferenceCalibration->clear();
 
-	for (int i = 0; i < Project::getInstance()->getCameras()[0]->getCalibrationImages().size(); i++)
+	for (unsigned int i = 0; i < Project::getInstance()->getCameras()[0]->getCalibrationImages().size(); i++)
 	{
 		bool calibrated = true;
-		for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+		for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
 		{
 			calibrated = calibrated && Project::getInstance()->getCameras()[j]->getCalibrationImages()[i]->isCalibrated();
 		}
@@ -44,27 +71,28 @@ TrialDialog::TrialDialog(Trial * trial, QWidget *parent) :
 	{
 		diag->comboBoxReferenceCalibration->setCurrentIndex(referenceIdx);
 	}
-	else if(diag->comboBoxReferenceCalibration->count() > 0)
+	else if (diag->comboBoxReferenceCalibration->count() > 0)
 	{
 		diag->comboBoxReferenceCalibration->setCurrentIndex(0);
 	}
-	
+
 	int ref = diag->comboBoxReferenceCalibration->currentText().toInt() - 1;
-	
-	if (ref != m_trial->getReferenceCalibrationImage()){
+
+	if (ref != m_trial->getReferenceCalibrationImage())
+	{
 		m_trial->setReferenceCalibrationImage(ref);
 		m_trial->setRequiresRecomputation(true);
 		ThreadScheduler::getInstance()->updateTrialData(m_trial);
 	}
-	
+
 	diag->doubleSpinBoxRecSpeedFPS->setValue(m_trial->getRecordingSpeed());
 	diag->doubleSpinBoxCutoffFrq->setValue(m_trial->getCutoffFrequency());
 	diag->spinBoxInterpolateNFrames->setValue(m_trial->getInterpolateMissingFrames());
 }
 
 
-
-TrialDialog::~TrialDialog(){
+TrialDialog::~TrialDialog()
+{
 	delete diag;
 }
 
@@ -84,25 +112,28 @@ bool TrialDialog::isComplete()
 	m_trial->setCutoffFrequency(diag->doubleSpinBoxCutoffFrq->value());
 	m_trial->setInterpolateMissingFrames(diag->spinBoxInterpolateNFrames->value());
 
-	if (diag->comboBoxReferenceCalibration->count() > 0){
+	if (diag->comboBoxReferenceCalibration->count() > 0)
+	{
 		int ref = diag->comboBoxReferenceCalibration->currentText().toInt() - 1;
-		if(ref != m_trial->getReferenceCalibrationImage()){
+		if (ref != m_trial->getReferenceCalibrationImage())
+		{
 			m_trial->setReferenceCalibrationImage(ref);
 			m_trial->setRequiresRecomputation(true);
 			ThreadScheduler::getInstance()->updateTrialData(m_trial);
 		}
-
 	}
 	PlotWindow::getInstance()->updateTimeCheckBox();
 
 	return true;
 }
 
-void TrialDialog::on_pushButton_OK_clicked(){
+void TrialDialog::on_pushButton_OK_clicked()
+{
 	if (isComplete()) this->accept();
 }
 
-void TrialDialog::on_pushButton_Cancel_clicked(){
+void TrialDialog::on_pushButton_Cancel_clicked()
+{
 	this->reject();
 }
 
@@ -178,3 +209,5 @@ void TrialDialog::on_pushButton_Update_clicked()
 //		}
 //	}
 //}
+
+

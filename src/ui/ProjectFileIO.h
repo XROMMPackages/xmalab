@@ -1,3 +1,29 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file ProjectFileIO.h
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifndef PROJECTFILEIO_H
 #define PROJECTFILEIO_H
 
@@ -6,12 +32,13 @@ class QDir;
 class QStringList;
 
 
-namespace xma{
+namespace xma
+{
 	class NewProjectDialog;
 	class Trial;
 
-	class ProjectFileIO{
-
+	class ProjectFileIO
+	{
 	public:
 		static ProjectFileIO* getInstance();
 		virtual ~ProjectFileIO();
@@ -20,10 +47,10 @@ namespace xma{
 		int loadProject(QString filename);
 
 		QStringList readTrials(QString filename);
-		Trial *loadTrials(QString filename, QString trialname);
-		void loadMarker(QString filename, QString trialname, Trial * trial);
+		Trial* loadTrials(QString filename, QString trialname);
+		void loadMarker(QString filename, QString trialname, Trial* trial);
 
-		void loadXMALabProject(QString filename, NewProjectDialog * dialog);
+		void loadXMALabProject(QString filename, NewProjectDialog* dialog);
 		void removeTmpDir();
 
 	private:
@@ -34,14 +61,15 @@ namespace xma{
 		bool writeProjectFile(QString filename);
 		bool readProjectFile(QString filename);
 
-		bool zipFromFolderToFile(const QString & filePath, const QDir & dir, const QString & comment = QString(""));
-		bool unzipFromFileToFolder(const QString & filePath, const QString & extDirPath, const QString & singleFileName = QString(""));
-		void recurseAddDir(QDir d, QStringList & list);
-		void correctFolder(QString filename, QString &newfolder, QString &oldfolder);
+		bool zipFromFolderToFile(const QString& filePath, const QDir& dir, const QString& comment = QString(""));
+		bool unzipFromFileToFolder(const QString& filePath, const QString& extDirPath, const QString& singleFileName = QString(""));
+		void recurseAddDir(QDir d, QStringList& list);
+		void correctFolder(QString filename, QString& newfolder, QString& oldfolder);
 		bool removeDir(QString folder);
 	};
 }
 
-	
 
-#endif  // PROJECTFILEIO_H
+#endif // PROJECTFILEIO_H
+
+

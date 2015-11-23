@@ -1,5 +1,31 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file SequenceNavigationFrame.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "ui/SequenceNavigationFrame.h"
@@ -21,10 +47,10 @@ using namespace xma;
 SequenceNavigationFrame* SequenceNavigationFrame::instance = NULL;
 
 
-SequenceNavigationFrame::SequenceNavigationFrame(QWidget *parent) :
-												QFrame(parent),
-												frame(new Ui::SequenceNavigationFrame){
-
+SequenceNavigationFrame::SequenceNavigationFrame(QWidget* parent) :
+	QFrame(parent),
+	frame(new Ui::SequenceNavigationFrame)
+{
 	frame->setupUi(this);
 	frame->spinBoxFrame->setMinimum(1);
 	frame->horizontalSlider->setValue(0);
@@ -41,7 +67,8 @@ SequenceNavigationFrame::SequenceNavigationFrame(QWidget *parent) :
 	updating = false;
 }
 
-SequenceNavigationFrame::~SequenceNavigationFrame(){
+SequenceNavigationFrame::~SequenceNavigationFrame()
+{
 	delete frame;
 
 	instance = NULL;
@@ -57,7 +84,8 @@ SequenceNavigationFrame* SequenceNavigationFrame::getInstance()
 	return instance;
 }
 
-void SequenceNavigationFrame::setNbImages(int nbImages){
+void SequenceNavigationFrame::setNbImages(int nbImages)
+{
 	maxFrame = nbImages;
 	setStartEndSequence(1, nbImages);
 }
@@ -69,8 +97,10 @@ void SequenceNavigationFrame::setStartEndSequence(int start, int end)
 	endFrame = end;
 	startFrame = start;
 
-	if (State::getInstance()->getWorkspace() == DIGITIZATION) {
-		if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
+		{
 			if (startFrame > Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame())
 			{
 				State::getInstance()->changeActiveFrameTrial(startFrame - 1);
@@ -85,9 +115,9 @@ void SequenceNavigationFrame::setStartEndSequence(int start, int end)
 	frame->toolButtonFrameStart->setText(QString::number(startFrame));
 	frame->toolButtonFrameEnd->setText(QString::number(endFrame));
 	updating = true;
-	frame->horizontalSlider->setMinimum(startFrame-1);
+	frame->horizontalSlider->setMinimum(startFrame - 1);
 	frame->horizontalSlider->setMaximum(endFrame - 1);
-	
+
 	frame->spinBoxFrame->setMinimum(startFrame);
 	frame->spinBoxFrame->setMaximum(endFrame);
 	updating = false;
@@ -98,23 +128,32 @@ void SequenceNavigationFrame::setStartEndSequence(int start, int end)
 	PlotWindow::getInstance()->resetRange();
 }
 
-void SequenceNavigationFrame::activeFrameChanged(int activeFrame){
-	if (activeFrame + 1 != frame->spinBoxFrame->value()){
+void SequenceNavigationFrame::activeFrameChanged(int activeFrame)
+{
+	if (activeFrame + 1 != frame->spinBoxFrame->value())
+	{
 		frame->spinBoxFrame->setValue(activeFrame + 1);
 	}
-	if(activeFrame != frame->horizontalSlider->value()){
+	if (activeFrame != frame->horizontalSlider->value())
+	{
 		frame->horizontalSlider->setValue(activeFrame);
 	}
 
-	if (frame->spinBoxFrame->value() == frame->spinBoxFrame->maximum()){
+	if (frame->spinBoxFrame->value() == frame->spinBoxFrame->maximum())
+	{
 		frame->toolButtonNext->setEnabled(false);
-	}else{
+	}
+	else
+	{
 		frame->toolButtonNext->setEnabled(true);
 	}
 
-	if (frame->spinBoxFrame->value() == frame->spinBoxFrame->minimum()){
+	if (frame->spinBoxFrame->value() == frame->spinBoxFrame->minimum())
+	{
 		frame->toolButtonPrev->setEnabled(false);
-	}else{
+	}
+	else
+	{
 		frame->toolButtonPrev->setEnabled(true);
 	}
 }
@@ -123,18 +162,19 @@ void SequenceNavigationFrame::workspaceChanged(work_state workspace)
 {
 	on_toolButtonStop_clicked();
 
-	if (workspace == CALIBRATION && Project::getInstance()->getNbImagesCalibration() > 1) {
+	if (workspace == CALIBRATION && Project::getInstance()->getNbImagesCalibration() > 1)
+	{
 		setNbImages(Project::getInstance()->getNbImagesCalibration());
 		frame->toolButtonFrameEnd->setDisabled(true);
 		frame->toolButtonFrameStart->setDisabled(true);
 		frame->toolButtonPlay->hide();
 		frame->toolButtonPlayBackward->hide();
 		frame->toolButtonStop->hide();
-
 	}
 	else if (workspace == DIGITIZATION && Project::getInstance()->getTrials().size() > 0)
 	{
-		if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
+		if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
+		{
 			setNbImages(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages());
 			setStartEndSequence(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
 			activeFrameChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
@@ -150,12 +190,14 @@ void SequenceNavigationFrame::workspaceChanged(work_state workspace)
 
 
 void SequenceNavigationFrame::activeTrialChanged(int activeTrial)
-{	
-	if (activeTrial >= 0){
+{
+	if (activeTrial >= 0)
+	{
 		on_toolButtonStop_clicked();
 		if (State::getInstance()->getWorkspace() == DIGITIZATION && Project::getInstance()->getTrials().size() > 0)
 		{
-			if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
+			if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
+			{
 				setNbImages(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages());
 				setStartEndSequence(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
 				activeFrameChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
@@ -169,30 +211,35 @@ void SequenceNavigationFrame::changeFrame(int frame)
 {
 	if (State::getInstance()->getWorkspace() == CALIBRATION)
 	{
-		if (frame >=0 && frame < Project::getInstance()->getNbImagesCalibration())
+		if (frame >= 0 && frame < Project::getInstance()->getNbImagesCalibration())
 			State::getInstance()->changeActiveFrameCalibration(frame);
 	}
 	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		if (Project::getInstance()->getTrials().size() > 0 && frame >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
-			frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
+			frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1)
+		{
 			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setActiveFrame(frame);
 			State::getInstance()->changeActiveFrameTrial(frame);
 		}
 	}
 }
 
-void SequenceNavigationFrame::on_horizontalSlider_valueChanged(int value){
-	if(!updating)changeFrame(value);
+void SequenceNavigationFrame::on_horizontalSlider_valueChanged(int value)
+{
+	if (!updating)changeFrame(value);
 	QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 }
 
-void SequenceNavigationFrame::on_spinBoxFrame_valueChanged(int value){
+void SequenceNavigationFrame::on_spinBoxFrame_valueChanged(int value)
+{
 	if (!updating)changeFrame(value - 1);
 }
 
-void SequenceNavigationFrame::play_update(){
-	if (play_tag > 0){
+void SequenceNavigationFrame::play_update()
+{
+	if (play_tag > 0)
+	{
 		on_toolButtonNext_clicked();
 	}
 	else if (play_tag < 0)
@@ -203,15 +250,18 @@ void SequenceNavigationFrame::play_update(){
 	QApplication::processEvents();
 
 	if ((play_tag < 0 && frame->toolButtonPrev->isEnabled() == false) ||
-		(play_tag > 0 && frame->toolButtonNext->isEnabled() == false)){
+		(play_tag > 0 && frame->toolButtonNext->isEnabled() == false))
+	{
 		on_toolButtonStop_clicked();
 	}
 }
 
-void SequenceNavigationFrame::on_toolButtonPlay_clicked(){
+void SequenceNavigationFrame::on_toolButtonPlay_clicked()
+{
 	on_toolButtonStop_clicked();
 
-	if (play_tag == 0) {
+	if (play_tag == 0)
+	{
 		play_tag = 1;
 		play_timer->start(1);
 	}
@@ -219,10 +269,12 @@ void SequenceNavigationFrame::on_toolButtonPlay_clicked(){
 	frame->toolButtonPlay->setChecked(true);
 }
 
-void SequenceNavigationFrame::on_toolButtonPlayBackward_clicked(){
+void SequenceNavigationFrame::on_toolButtonPlayBackward_clicked()
+{
 	on_toolButtonStop_clicked();
 
-	if (play_tag == 0) {
+	if (play_tag == 0)
+	{
 		play_tag = -1;
 		play_timer->start(1);
 	}
@@ -230,10 +282,12 @@ void SequenceNavigationFrame::on_toolButtonPlayBackward_clicked(){
 	frame->toolButtonPlayBackward->setChecked(true);
 }
 
-void SequenceNavigationFrame::on_toolButtonStop_clicked(){
-	if (play_tag != 0) {
+void SequenceNavigationFrame::on_toolButtonStop_clicked()
+{
+	if (play_tag != 0)
+	{
 		play_tag = 0;
-		play_timer->stop();  
+		play_timer->stop();
 	}
 
 	frame->toolButtonPlayBackward->setChecked(false);
@@ -242,11 +296,13 @@ void SequenceNavigationFrame::on_toolButtonStop_clicked(){
 	WizardDockWidget::getInstance()->stop();
 }
 
-void SequenceNavigationFrame::on_toolButtonNext_clicked(){
+void SequenceNavigationFrame::on_toolButtonNext_clicked()
+{
 	changeFrame(frame->horizontalSlider->value() + 1);
 }
 
-void SequenceNavigationFrame::on_toolButtonPrev_clicked(){
+void SequenceNavigationFrame::on_toolButtonPrev_clicked()
+{
 	changeFrame(frame->horizontalSlider->value() - 1);
 }
 
@@ -254,8 +310,9 @@ void SequenceNavigationFrame::on_toolButtonFrameStart_clicked()
 {
 	bool ok;
 	int idx = QInputDialog::getInt(this, tr("Set start frame"),
-		tr("frame "), startFrame, 1, endFrame, 1, &ok);
-	if (ok){
+	                               tr("frame "), startFrame, 1, endFrame, 1, &ok);
+	if (ok)
+	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setStartFrame(idx);
 		setStartEndSequence(idx, endFrame);
 	}
@@ -265,9 +322,11 @@ void SequenceNavigationFrame::on_toolButtonFrameEnd_clicked()
 {
 	bool ok;
 	int idx = QInputDialog::getInt(this, "Set end frame (Max : " + QString::number(maxFrame) + ")",
-		tr("frame "), endFrame, startFrame, maxFrame, 1, &ok);
-	if (ok){
+	                               tr("frame "), endFrame, startFrame, maxFrame, 1, &ok);
+	if (ok)
+	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setEndFrame(idx);
 		setStartEndSequence(startFrame, idx);
 	}
 }
+

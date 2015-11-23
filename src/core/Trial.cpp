@@ -1,5 +1,31 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file Trial.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "core/Trial.h"
@@ -29,7 +55,8 @@
 
 using namespace xma;
 
-Trial::Trial(QString trialname, std::vector<QStringList> &imageFilenames){
+Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
+{
 	name = trialname;
 	activeFrame = 0;
 	referenceCalibrationImage = 0;
@@ -37,15 +64,16 @@ Trial::Trial(QString trialname, std::vector<QStringList> &imageFilenames){
 	cutoffFrequency = 0;
 	interpolateMissingFrames = 0;
 
-	activeMarkerIdx = -1; 
+	activeMarkerIdx = -1;
 	activeBodyIdx = -1;
 
 	requiresRecomputation = true;
 
-	for (std::vector< QStringList>::iterator filenameList = imageFilenames.begin(); filenameList != imageFilenames.end(); ++filenameList)
+	for (std::vector<QStringList>::iterator filenameList = imageFilenames.begin(); filenameList != imageFilenames.end(); ++filenameList)
 	{
-		VideoStream * newSequence = NULL;
-		if ((*filenameList).size() > 1){
+		VideoStream* newSequence = NULL;
+		if ((*filenameList).size() > 1)
+		{
 			newSequence = new ImageSequence(*filenameList);
 		}
 		else
@@ -75,7 +103,8 @@ Trial::Trial(QString trialname, std::vector<QStringList> &imageFilenames){
 	endFrame = nbImages;
 }
 
-Trial::Trial(QString trialname, QString folder){
+Trial::Trial(QString trialname, QString folder)
+{
 	name = trialname;
 	activeFrame = 0;
 	referenceCalibrationImage = 0;
@@ -87,19 +116,21 @@ Trial::Trial(QString trialname, QString folder){
 	activeBodyIdx = -1;
 	requiresRecomputation = true;
 
-	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
+	for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+	{
 		QStringList filenameList;
 		QString camera_filenames = folder + Project::getInstance()->getCameras()[i]->getName() + "_filenames_absolute.txt";
 		std::ifstream fin(camera_filenames.toAscii().data());
 		std::string line;
 		while (!littleHelper::safeGetline(fin, line).eof())
 		{
-				filenameList << QString::fromStdString(line);
+			filenameList << QString::fromStdString(line);
 		}
 		fin.close();
 
-		VideoStream * newSequence = NULL;
-		if (filenameList.size() > 1){
+		VideoStream* newSequence = NULL;
+		if (filenameList.size() > 1)
+		{
 			newSequence = new ImageSequence(filenameList);
 		}
 		else
@@ -132,19 +163,19 @@ Trial::Trial(QString trialname, QString folder){
 }
 
 
-
-Trial::~Trial(){
-	for (std::vector< VideoStream* >::iterator video = videos.begin(); video != videos.end(); ++video)
+Trial::~Trial()
+{
+	for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
 	{
 		delete *video;
 	}
 
-	for (std::vector< RigidBody* >::iterator rigidBody = rigidBodies.begin(); rigidBody != rigidBodies.end(); ++rigidBody)
+	for (std::vector<RigidBody*>::iterator rigidBody = rigidBodies.begin(); rigidBody != rigidBodies.end(); ++rigidBody)
 	{
 		delete *rigidBody;
 	}
 
-	for (std::vector< Marker* >::iterator marker = markers.begin(); marker != markers.end(); ++marker)
+	for (std::vector<Marker*>::iterator marker = markers.begin(); marker != markers.end(); ++marker)
 	{
 		delete *marker;
 	}
@@ -153,17 +184,16 @@ Trial::~Trial(){
 void Trial::setNbImages()
 {
 	nbImages = 0;
-	for (int i = 0; i < videos.size(); i++)
+	for (unsigned int i = 0; i < videos.size(); i++)
 	{
-		if (videos[i]->getNbImages() >= 0){
+		if (videos[i]->getNbImages() >= 0)
+		{
 			if (i == 0)
 			{
-
 				nbImages = videos[i]->getNbImages();
 			}
 			else
 			{
-
 				assert(nbImages == videos[i]->getNbImages());
 			}
 		}
@@ -172,7 +202,7 @@ void Trial::setNbImages()
 
 void Trial::bindTextures()
 {
-	for (std::vector< VideoStream* >::iterator video = videos.begin(); video != videos.end(); ++video)
+	for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
 	{
 		(*video)->bindTexture();
 	}
@@ -180,9 +210,8 @@ void Trial::bindTextures()
 
 void Trial::save(QString path)
 {
-	for (int i = 0; i < videos.size(); i++)
+	for (unsigned int i = 0; i < videos.size(); i++)
 	{
-
 		QString cameraPath = path + Project::getInstance()->getCameras()[i]->getName() + "_filenames_absolute.txt";
 		videos[i]->save(cameraPath);
 	}
@@ -196,7 +225,7 @@ int Trial::getActiveFrame()
 void Trial::setActiveFrame(int _activeFrame)
 {
 	activeFrame = _activeFrame;
-	for (std::vector< VideoStream* >::iterator video = videos.begin(); video != videos.end(); ++video)
+	for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
 	{
 		(*video)->setActiveFrame(activeFrame);
 	}
@@ -220,14 +249,14 @@ const std::vector<RigidBody*>& Trial::getRigidBodies()
 
 Marker* Trial::getActiveMarker()
 {
-	if (activeMarkerIdx >= markers.size() || activeMarkerIdx < 0) return NULL;
+	if (activeMarkerIdx >= (int) markers.size() || activeMarkerIdx < 0) return NULL;
 
 	return markers[activeMarkerIdx];
 }
 
 bool Trial::isActiveMarkerUndefined(int camera)
 {
-	return ((markers.size() != 0) && (activeMarkerIdx < markers.size()) && (activeMarkerIdx >= 0) && (getMarkers()[activeMarkerIdx]->getStatus2D()[camera][activeFrame] == UNDEFINED));
+	return ((markers.size() != 0) && (activeMarkerIdx < (int) markers.size()) && (activeMarkerIdx >= 0) && (getMarkers()[activeMarkerIdx]->getStatus2D()[camera][activeFrame] == UNDEFINED));
 }
 
 void Trial::setActiveToNextUndefinedMarker(int camera)
@@ -237,10 +266,11 @@ void Trial::setActiveToNextUndefinedMarker(int camera)
 		addMarker();
 		return;
 	}
-	else{
+	else
+	{
 		if (activeMarkerIdx < 0) activeMarkerIdx = 0;
 
-		while (activeMarkerIdx < markers.size() && getMarkers()[activeMarkerIdx]->getStatus2D()[camera][activeFrame] != UNDEFINED)
+		while (activeMarkerIdx < (int) markers.size() && getMarkers()[activeMarkerIdx]->getStatus2D()[camera][activeFrame] != UNDEFINED)
 		{
 			activeMarkerIdx++;
 		}
@@ -250,14 +280,14 @@ void Trial::setActiveToNextUndefinedMarker(int camera)
 
 RigidBody* Trial::getActiveRB()
 {
-	if (activeBodyIdx >= rigidBodies.size() || activeBodyIdx < 0) return NULL;
+	if (activeBodyIdx >= (int) rigidBodies.size() || activeBodyIdx < 0) return NULL;
 
 	return rigidBodies[activeBodyIdx];
 }
 
 void Trial::addRigidBody()
 {
-	RigidBody *rb = new RigidBody(nbImages, this);
+	RigidBody* rb = new RigidBody(nbImages, this);
 	rigidBodies.push_back(rb);
 }
 
@@ -266,7 +296,7 @@ void Trial::removeRigidBody(int idx)
 {
 	delete rigidBodies[idx];
 	rigidBodies.erase(std::remove(rigidBodies.begin(), rigidBodies.end(), rigidBodies[idx]), rigidBodies.end());
-	if (activeBodyIdx >= rigidBodies.size())activeBodyIdx = rigidBodies.size() - 1;
+	if (activeBodyIdx >= (int) rigidBodies.size())activeBodyIdx = rigidBodies.size() - 1;
 }
 
 void Trial::addMarker()
@@ -279,7 +309,7 @@ void Trial::removeMarker(int idx)
 {
 	delete markers[idx];
 	markers.erase(std::remove(markers.begin(), markers.end(), markers[idx]), markers.end());
-	if (activeMarkerIdx >= markers.size())setActiveMarkerIdx(markers.size() - 1);
+	if (activeMarkerIdx >= (int) markers.size())setActiveMarkerIdx(markers.size() - 1);
 }
 
 int Trial::getActiveMarkerIdx()
@@ -357,25 +387,30 @@ QString Trial::getName()
 	return name;
 }
 
-void Trial::drawRigidBodies(Camera * cam)
+void Trial::drawRigidBodies(Camera* cam)
 {
-	for (std::vector <RigidBody *>::const_iterator it = rigidBodies.begin(); it != rigidBodies.end(); ++it){
+	for (std::vector<RigidBody *>::const_iterator it = rigidBodies.begin(); it != rigidBodies.end(); ++it)
+	{
 		(*it)->draw2D(cam, activeFrame);
 	}
 }
 
 void Trial::drawPoints(int cameraId, bool detailView)
 {
-	
 	int idx = 0;
-	if (!detailView ){
+	if (!detailView)
+	{
 		glBegin(GL_LINES);
-		for (std::vector <Marker *>::const_iterator it = markers.begin(); it != markers.end(); ++it){
-			if (((*it)->getStatus2D()[cameraId][activeFrame] > 0)){
-				if (idx == activeMarkerIdx){
+		for (std::vector<Marker *>::const_iterator it = markers.begin(); it != markers.end(); ++it)
+		{
+			if (((*it)->getStatus2D()[cameraId][activeFrame] > 0))
+			{
+				if (idx == activeMarkerIdx)
+				{
 					glColor3f(1.0, 0.0, 0.0);
 				}
-				else{
+				else
+				{
 					glColor3f(0.0, 1.0, 0.0);
 				}
 
@@ -388,7 +423,7 @@ void Trial::drawPoints(int cameraId, bool detailView)
 		}
 		glEnd();
 	}
-	else if (activeMarkerIdx >= 0 && activeMarkerIdx < markers.size())
+	else if (activeMarkerIdx >= 0 && activeMarkerIdx < (int) markers.size())
 	{
 		double x = markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].x;
 		double y = markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].y;
@@ -401,7 +436,8 @@ void Trial::drawPoints(int cameraId, bool detailView)
 		glVertex2f(x, y + 12);
 		glEnd();
 
-		if (Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView")){
+		if (Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView"))
+		{
 			glBegin(GL_LINES);
 			for (int i = 0; i < 6; i++)
 			{
@@ -424,7 +460,7 @@ void Trial::drawPoints(int cameraId, bool detailView)
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glBegin(GL_LINES);
-				glColor4f(1.0, 0.0, 0.0, 0.3);
+				glColor4f(1.0f, 0.0f, 0.0f, 0.3f);
 				glVertex2f(x - size, y - size);
 				glVertex2f(x - size, y + size);
 
@@ -442,8 +478,10 @@ void Trial::drawPoints(int cameraId, bool detailView)
 		}
 	}
 
-	if (activeMarkerIdx >= 0 && activeMarkerIdx < markers.size() && markers[activeMarkerIdx]->getStatus3D()[activeFrame] > 0){
-		if (!detailView || Settings::getInstance()->getBoolSetting("Show3dPointDetailView")){
+	if (activeMarkerIdx >= 0 && activeMarkerIdx < (int) markers.size() && markers[activeMarkerIdx]->getStatus3D()[activeFrame] > 0)
+	{
+		if (!detailView || Settings::getInstance()->getBoolSetting("Show3dPointDetailView"))
+		{
 			glBegin(GL_LINES);
 			glColor3f(0.0, 1.0, 1.0);
 			glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x - 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y - 5);
@@ -454,16 +492,19 @@ void Trial::drawPoints(int cameraId, bool detailView)
 		}
 	}
 
-	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+	for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 	{
-		if (!detailView || Settings::getInstance()->getBoolSetting("ShowEpiLineDetailView")){
-			if (activeMarkerIdx >= 0 && activeMarkerIdx < markers.size() && markers[activeMarkerIdx]->getStatus2D()[i][activeFrame] > 0){
+		if (!detailView || Settings::getInstance()->getBoolSetting("ShowEpiLineDetailView"))
+		{
+			if (activeMarkerIdx >= 0 && activeMarkerIdx < (int) markers.size() && markers[activeMarkerIdx]->getStatus2D()[i][activeFrame] > 0)
+			{
 				if (cameraId != i)
 				{
-					std::vector < cv::Point2d > epiline = markers[activeMarkerIdx]->getEpipolarLine(i, cameraId, activeFrame);
+					std::vector<cv::Point2d> epiline = markers[activeMarkerIdx]->getEpipolarLine(i, cameraId, activeFrame);
 					glBegin(GL_LINE_STRIP);
 					glColor3f(0.0, 0.0, 1.0);
-					for (std::vector < cv::Point2d >::const_iterator pt = epiline.begin(); pt != epiline.end(); ++pt){
+					for (std::vector<cv::Point2d>::const_iterator pt = epiline.begin(); pt != epiline.end(); ++pt)
+					{
 						glVertex2f(pt->x, pt->y);
 					}
 					epiline.clear();
@@ -503,7 +544,7 @@ void Trial::setRequiresRecomputation(bool value)
 {
 	requiresRecomputation = value;
 
-	for (int i = 0; i < getMarkers().size(); i++)
+	for (unsigned int i = 0; i < getMarkers().size(); i++)
 	{
 		getMarkers()[i]->setRequiresRecomputation(requiresRecomputation);
 	}
@@ -527,8 +568,8 @@ void Trial::loadMarkersFromCSV(QString filename)
 	QStringList names_list = tmp_names.split(",");
 	QStringList coords_list = tmp_coords.split(",");
 
-	std::vector <cv::Point3d> points3D_tmp;
-	std::vector <QString> referenceNames_tmp;
+	std::vector<cv::Point3d> points3D_tmp;
+	std::vector<QString> referenceNames_tmp;
 
 	for (int i = 0; i < names_list.size() / 3; i++)
 	{
@@ -537,7 +578,7 @@ void Trial::loadMarkersFromCSV(QString filename)
 		points3D_tmp.push_back(cv::Point3d(coords_list.at(3 * i).toDouble(), coords_list.at(3 * i + 1).toDouble(), coords_list.at(3 * i + 2).toDouble()));
 	}
 
-	for (int i = 0; i < points3D_tmp.size(); i++)
+	for (unsigned int i = 0; i < points3D_tmp.size(); i++)
 	{
 		addMarker();
 		markers[markers.size() - 1]->setDescription(referenceNames_tmp[i]);
@@ -546,7 +587,8 @@ void Trial::loadMarkersFromCSV(QString filename)
 }
 
 
-void Trial::loadMarkers(QString filename){
+void Trial::loadMarkers(QString filename)
+{
 	std::ifstream fin;
 	fin.open(filename.toAscii().data());
 	std::string line;
@@ -558,12 +600,13 @@ void Trial::loadMarkers(QString filename){
 
 		this->getMarkers()[count]->setDescription(QString::fromStdString(line));
 		count++;
-		line.clear();	
+		line.clear();
 	}
 	fin.close();
 }
 
-void Trial::loadRigidBodies(QString filename){
+void Trial::loadRigidBodies(QString filename)
+{
 	std::ifstream fin;
 	fin.open(filename.toAscii().data());
 	std::istringstream in;
@@ -573,8 +616,10 @@ void Trial::loadRigidBodies(QString filename){
 	int count = 0;
 	while (!littleHelper::safeGetline(fin, line).eof())
 	{
-		if (!line.empty()){
-			if (count >= this->getRigidBodies().size()){
+		if (!line.empty())
+		{
+			if (count >= (int) this->getRigidBodies().size())
+			{
 				this->addRigidBody();
 			}
 			desc = line.substr(0, line.find('['));
@@ -584,7 +629,8 @@ void Trial::loadRigidBodies(QString filename){
 			this->getRigidBodies()[count]->clearPointIdx();
 			in.clear();
 			in.str(indices);
-			for (int value; in >> value; littleHelper::comma(in)) {
+			for (int value; in >> value; littleHelper::comma(in))
+			{
 				this->getRigidBodies()[count]->addPointIdx(value - 1);
 			}
 			count++;
@@ -596,21 +642,26 @@ void Trial::loadRigidBodies(QString filename){
 	fin.close();
 }
 
-void Trial::saveMarkers(QString filename){
+void Trial::saveMarkers(QString filename)
+{
 	std::ofstream outfile(filename.toAscii().data());
 	outfile.precision(12);
-	for (unsigned int i = 0; i < this->getMarkers().size(); i++){
+	for (unsigned int i = 0; i < this->getMarkers().size(); i++)
+	{
 		outfile << this->getMarkers()[i]->getDescription().toAscii().data() << std::endl;
 	}
 	outfile.close();
 }
 
-void Trial::saveRigidBodies(QString filename){
+void Trial::saveRigidBodies(QString filename)
+{
 	std::ofstream outfile(filename.toAscii().data());
 	outfile.precision(12);
-	for (unsigned int i = 0; i < this->getRigidBodies().size(); i++){
+	for (unsigned int i = 0; i < this->getRigidBodies().size(); i++)
+	{
 		outfile << this->getRigidBodies()[i]->getDescription().toAscii().data() << "[";
-		for (unsigned int k = 0; k < this->getRigidBodies()[i]->getPointsIdx().size(); k++){
+		for (unsigned int k = 0; k < this->getRigidBodies()[i]->getPointsIdx().size(); k++)
+		{
 			outfile << this->getRigidBodies()[i]->getPointsIdx()[k] + 1;
 			if (k != (this->getRigidBodies()[i]->getPointsIdx().size() - 1)) outfile << " , ";
 		}
@@ -621,15 +672,16 @@ void Trial::saveRigidBodies(QString filename){
 
 void Trial::update()
 {
-	if (requiresRecomputation){
-		for (int i = 0; i < getMarkers().size(); i++)
+	if (requiresRecomputation)
+	{
+		for (unsigned int i = 0; i < getMarkers().size(); i++)
 		{
 			getMarkers()[i]->update(true);
 		}
-		
-		for (int i = 0; i < getRigidBodies().size(); i++)
+
+		for (unsigned int i = 0; i < getRigidBodies().size(); i++)
 		{
-				getRigidBodies()[i]->recomputeTransformations();
+			getRigidBodies()[i]->recomputeTransformations();
 		}
 		requiresRecomputation = false;
 	}
@@ -637,7 +689,7 @@ void Trial::update()
 
 void Trial::changeImagePath(int camera, QString newfolder, QString oldfolder)
 {
-	videos[camera]->changeImagePath(newfolder, oldfolder); 	
+	videos[camera]->changeImagePath(newfolder, oldfolder);
 }
 
 void Trial::updateAfterChangeImagePath()
@@ -649,17 +701,17 @@ void Trial::updateAfterChangeImagePath()
 
 void Trial::recomputeAndFilterRigidBodyTransformations()
 {
-	for (int i = 0; i < getRigidBodies().size(); i++)
+	for (unsigned int i = 0; i < getRigidBodies().size(); i++)
 	{
 		getRigidBodies()[i]->recomputeTransformations();
-		
+
 		getRigidBodies()[i]->filterTransformations();
 	}
 }
 
 void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, bool headerRow, bool filtered)
 {
-	for (int i = 0; i < getRigidBodies().size(); i++)
+	for (unsigned int i = 0; i < getRigidBodies().size(); i++)
 	{
 		getRigidBodies()[i]->recomputeTransformations();
 		if (filtered)getRigidBodies()[i]->filterTransformations();
@@ -671,7 +723,7 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 		outfile.precision(12);
 		if (headerRow)
 		{
-			for (int i = 0; i < getRigidBodies().size(); i++)
+			for (unsigned int i = 0; i < getRigidBodies().size(); i++)
 			{
 				QString name;
 				QString filterRate = "";
@@ -690,23 +742,24 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 				}
 
 				outfile << name.toAscii().data() << "_R11" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_R12" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_R13" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_01" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_R21" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_R22" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_R23" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_02" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_R31" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_R32" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_R33" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_03" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_TX" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
-						<< name.toAscii().data() << "_1" << filterRate.toAscii().data() ;
+					<< name.toAscii().data() << "_R12" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R13" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_01" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R21" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R22" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R23" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_02" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R31" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R32" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_R33" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_03" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_TX" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_1" << filterRate.toAscii().data() ;
 
-				if (i != getRigidBodies().size() - 1){
+				if (i != getRigidBodies().size() - 1)
+				{
 					outfile << " , ";
 				}
 				else
@@ -716,24 +769,27 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 			}
 
 			double trans[16];
-			for (unsigned int f = 0; f < nbImages; f++){
-				for (int i = 0; i < getRigidBodies().size(); i++)
+			for (int f = 0; f < nbImages; f++)
+			{
+				for (unsigned int i = 0; i < getRigidBodies().size(); i++)
 				{
-					if (getRigidBodies()[i]->getTransformationMatrix(f,filtered,&trans[0]))
+					if (getRigidBodies()[i]->getTransformationMatrix(f, filtered, &trans[0]))
 					{
 						outfile << trans[0] << " , " << trans[1] << " , " << trans[2] << " , " << trans[3] << " , ";
 						outfile << trans[4] << " , " << trans[5] << " , " << trans[6] << " , " << trans[7] << " , ";
 						outfile << trans[8] << " , " << trans[9] << " , " << trans[10] << " , " << trans[11] << " , ";
 						outfile << trans[12] << " , " << trans[13] << " , " << trans[14] << " , " << trans[15];
 					}
-					else{
+					else
+					{
 						outfile << "NaN , NaN , NaN , NaN , ";
 						outfile << "NaN , NaN , NaN , NaN , ";
 						outfile << "NaN , NaN , NaN , NaN , ";
 						outfile << "NaN , NaN , NaN , NaN";
 					}
 
-					if (i != getRigidBodies().size() - 1){
+					if (i != getRigidBodies().size() - 1)
+					{
 						outfile << " , ";
 					}
 					else
@@ -747,7 +803,7 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 	}
 	else
 	{
-		for (int i = 0; i < getRigidBodies().size(); i++)
+		for (unsigned int i = 0; i < getRigidBodies().size(); i++)
 		{
 			QString filename;
 			if (filtered)
@@ -800,7 +856,8 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 			}
 
 			double trans[16];
-			for (unsigned int f = 0; f < nbImages; f++){
+			for (int f = 0; f < nbImages; f++)
+			{
 				if (getRigidBodies()[i]->getTransformationMatrix(f, filtered, &trans[0]))
 				{
 					outfile << trans[0] << " , " << trans[1] << " , " << trans[2] << " , " << trans[3] << " , ";
@@ -808,7 +865,8 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 					outfile << trans[8] << " , " << trans[9] << " , " << trans[10] << " , " << trans[11] << " , ";
 					outfile << trans[12] << " , " << trans[13] << " , " << trans[14] << " , " << trans[15];
 				}
-				else{
+				else
+				{
 					outfile << "NaN , NaN , NaN , NaN , ";
 					outfile << "NaN , NaN , NaN , NaN , ";
 					outfile << "NaN , NaN , NaN , NaN , ";
@@ -825,16 +883,16 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 
 void Trial::saveTrialImages(QString outputfolder, int from, int to, QString format)
 {
-
-
-	for (int i = 0; i < videos.size(); i++)
+	for (unsigned int i = 0; i < videos.size(); i++)
 	{
 		QFileInfo info(videos[i]->getFileBasename());
 		QString foldername = outputfolder + info.completeBaseName() + "UND";
-		if (!QDir().mkpath(foldername)){
+		if (!QDir().mkpath(foldername))
+		{
 			return;
 		}
-		if (Project::getInstance()->getCameras()[i]->hasUndistortion()){
+		if (Project::getInstance()->getCameras()[i]->hasUndistortion())
+		{
 			for (int j = from - 1; j < to; j++)
 			{
 				QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND_" + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
@@ -859,15 +917,17 @@ void Trial::saveMarkerToMarkerDistances(QString filename)
 	std::ofstream outfile(filename.toAscii().data());
 	outfile.precision(12);
 	outfile << "Mean";
-	for (int i = 0; i < markers.size(); i++){
-		outfile << " , " << "Marker " << (i+1) << " " << markers[i]->getDescription().toAscii().data() ;
+	for (unsigned int i = 0; i < markers.size(); i++)
+	{
+		outfile << " , " << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data() ;
 	}
 	outfile << std::endl;
 
-	for (int i = 0;  i< markers.size(); i++){
+	for (unsigned int i = 0; i < markers.size(); i++)
+	{
 		outfile << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data() << " , ";
 
-		for (int j = 0; j < markers.size(); j++)
+		for (unsigned int j = 0; j < markers.size(); j++)
 		{
 			double sd = 0;
 			double mean = 0;
@@ -881,7 +941,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename)
 				}
 			}
 
-			for (int k = 0; k < value.size(); k++)
+			for (unsigned int k = 0; k < value.size(); k++)
 			{
 				mean += value[k];
 			}
@@ -894,19 +954,21 @@ void Trial::saveMarkerToMarkerDistances(QString filename)
 	}
 
 	outfile << std::endl;
-	
+
 	outfile << std::endl;
 
 	outfile << "SD";
-	for (int i = 0; i < markers.size(); i++){
+	for (unsigned int i = 0; i < markers.size(); i++)
+	{
 		outfile << " , " << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data();
 	}
 	outfile << std::endl;
 
-	for (int i = 0; i< markers.size(); i++){
+	for (unsigned int i = 0; i < markers.size(); i++)
+	{
 		outfile << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data() << " , ";
 
-		for (int j = 0; j < markers.size(); j++)
+		for (unsigned int j = 0; j < markers.size(); j++)
 		{
 			double sd = 0;
 			double mean = 0;
@@ -920,13 +982,13 @@ void Trial::saveMarkerToMarkerDistances(QString filename)
 				}
 			}
 
-			for (int k = 0; k < value.size(); k++)
+			for (unsigned int k = 0; k < value.size(); k++)
 			{
 				mean += value[k];
 			}
 			if (value.size() > 0) mean = mean / value.size();
 
-			for (int k = 0; k < value.size(); k++)
+			for (unsigned int k = 0; k < value.size(); k++)
 			{
 				sd += pow(value[k] - mean, 2);
 			}
@@ -941,16 +1003,15 @@ void Trial::saveMarkerToMarkerDistances(QString filename)
 
 void Trial::resetRigidBodyByMarker(Marker* marker, int frame)
 {
-	for (int i = 0; i < getRigidBodies().size(); i++)
+	for (unsigned int i = 0; i < getRigidBodies().size(); i++)
 	{
-		for (int j = 0; j < getRigidBodies()[i]->getPointsIdx().size(); j++)
+		for (unsigned int j = 0; j < getRigidBodies()[i]->getPointsIdx().size(); j++)
 		{
-			if (getRigidBodies()[i]->getPointsIdx()[j] < getMarkers().size() && getMarkers()[getRigidBodies()[i]->getPointsIdx()[j]] == marker)
+			if (getRigidBodies()[i]->getPointsIdx()[j] < (int) getMarkers().size() && getMarkers()[getRigidBodies()[i]->getPointsIdx()[j]] == marker)
 			{
 				getRigidBodies()[i]->computePose(frame);
 				return;
 			}
-
 		}
 	}
 }
@@ -963,7 +1024,7 @@ void Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow)
 		outfile.precision(12);
 		if (headerRow)
 		{
-			for (int i = 0; i < getMarkers().size(); i++)
+			for (unsigned int i = 0; i < getMarkers().size(); i++)
 			{
 				QString name;
 				if (getMarkers()[i]->getDescription().isEmpty())
@@ -977,7 +1038,8 @@ void Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow)
 
 				outfile << name.toAscii().data() << "_X" << " , " << name.toAscii().data() << "_Y" << " , " << name.toAscii().data() << "_Z";
 
-				if (i != getMarkers().size() - 1){
+				if (i != getMarkers().size() - 1)
+				{
 					outfile << " , ";
 				}
 				else
@@ -987,31 +1049,34 @@ void Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow)
 			}
 		}
 
-		for (unsigned int f = 0; f < nbImages; f++){
-			for (int i = 0; i < getMarkers().size(); i++)
-			{				
+		for (int f = 0; f < nbImages; f++)
+		{
+			for (unsigned int i = 0; i < getMarkers().size(); i++)
+			{
 				if (getMarkers()[i]->getStatus3D()[f] <= 0)
 				{
 					outfile << "NaN" << " , " << "NaN" << " , " << "NaN";
 				}
-				else{
+				else
+				{
 					outfile << getMarkers()[i]->getPoints3D()[f].x << " , " << getMarkers()[i]->getPoints3D()[f].y << " , " << getMarkers()[i]->getPoints3D()[f].z ;
 				}
 
-				if (i != getMarkers().size() - 1){
+				if (i != getMarkers().size() - 1)
+				{
 					outfile << " , ";
 				}
 				else
 				{
 					outfile << std::endl;
 				}
-			}		
+			}
 		}
 		outfile.close();
 	}
 	else
 	{
-		for (int i = 0; i < getMarkers().size(); i++)
+		for (unsigned int i = 0; i < getMarkers().size(); i++)
 		{
 			QString filename = outputfolder + "Marker" + QString().sprintf("%03d", i + 1) + "_" + getMarkers()[i]->getDescription() + "_points3d.csv";
 			std::ofstream outfile(filename.toAscii().data());
@@ -1031,24 +1096,25 @@ void Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow)
 
 				outfile << std::endl;
 			}
-			for (unsigned int f = 0; f < nbImages; f++){
+			for (int f = 0; f < nbImages; f++)
+			{
 				if (getMarkers()[i]->getStatus3D()[f] <= 0)
 				{
 					outfile << "NaN" << " , " << "NaN" << " , " << "NaN";
 				}
-				else{
+				else
+				{
 					outfile << getMarkers()[i]->getPoints3D()[f].x << " , " << getMarkers()[i]->getPoints3D()[f].y << " , " << getMarkers()[i]->getPoints3D()[f].z ;
 				}
 
 				outfile << std::endl;
-							
 			}
 			outfile.close();
 		}
 	}
 }
 
-void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, bool offset1, bool yinvert, bool headerRow,bool offsetCols)
+void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols)
 {
 	if (onefile)
 	{
@@ -1056,14 +1122,15 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 		outfile.precision(12);
 		if (headerRow)
 		{
-			if (offsetCols){
-				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+			if (offsetCols)
+			{
+				for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
 				{
 					outfile << "cam" << j << "_offset";
 				}
 			}
 
-			for (int i = 0; i < getMarkers().size(); i++)
+			for (unsigned int i = 0; i < getMarkers().size(); i++)
 			{
 				QString name;
 				if (getMarkers()[i]->getDescription().isEmpty())
@@ -1075,11 +1142,12 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 					name = getMarkers()[i]->getDescription();
 				}
 
-				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
 				{
 					outfile << name.toAscii().data() << "_cam" << j + 1 << "_X" << " , " << name.toAscii().data() << "_cam" << j + 1 << "_Y";
 
-					if (i != getMarkers().size() - 1 || j != Project::getInstance()->getCameras().size() - 1){
+					if (i != getMarkers().size() - 1 || j != Project::getInstance()->getCameras().size() - 1)
+					{
 						outfile << " , ";
 					}
 					else
@@ -1089,20 +1157,22 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 				}
 			}
 		}
-		
-		for (unsigned int f = 0; f < nbImages; f++){
-			if (offsetCols){
-				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+
+		for (int f = 0; f < nbImages; f++)
+		{
+			if (offsetCols)
+			{
+				for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
 				{
 					outfile << 0.0 << " , ";
 				}
 			}
-			for (int i = 0; i < getMarkers().size(); i++)
+			for (unsigned int i = 0; i < getMarkers().size(); i++)
 			{
-				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
 				{
-					if (getMarkers()[i]->getStatus2D()[j][f] > 0){
-
+					if (getMarkers()[i]->getStatus2D()[j][f] > 0)
+					{
 						double x;
 						double y;
 						if (distorted)
@@ -1111,7 +1181,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 							y = getMarkers()[i]->getPoints2D()[j][f].y;
 						}
 						else
-						{			
+						{
 							cv::Point2d pt = Project::getInstance()->getCameras()[j]->undistortPoint(getMarkers()[i]->getPoints2D()[j][f], true);
 							x = pt.x;
 							y = pt.y;
@@ -1120,7 +1190,6 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 						if (yinvert)
 						{
 							y = Project::getInstance()->getCameras()[j]->getHeight() - y - 1;
-
 						}
 
 						if (offset1)
@@ -1134,8 +1203,9 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 					{
 						outfile << "NaN" << " , " << "NaN";
 					}
-					
-					if (i != getMarkers().size() - 1 || j != Project::getInstance()->getCameras().size() - 1){
+
+					if (i != getMarkers().size() - 1 || j != Project::getInstance()->getCameras().size() - 1)
+					{
 						outfile << " , ";
 					}
 					else
@@ -1149,15 +1219,16 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 	}
 	else
 	{
-		for (int i = 0; i < getMarkers().size(); i++)
+		for (unsigned int i = 0; i < getMarkers().size(); i++)
 		{
 			QString filename = outputfolder + "Marker" + QString().sprintf("%03d", i + 1) + "_" + getMarkers()[i]->getDescription() + "_points2d.csv";
 			std::ofstream outfile(filename.toAscii().data());
 			outfile.precision(12);
 			if (headerRow)
 			{
-				if (offsetCols){
-					for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				if (offsetCols)
+				{
+					for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
 					{
 						outfile << "cam" << j << "_offset";
 					}
@@ -1173,11 +1244,12 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 					name = getMarkers()[i]->getDescription();
 				}
 
-				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
 				{
-					outfile << name.toAscii().data() << "_cam" << j + 1 << "_X"<< " , " << name.toAscii().data() << "_cam" << j + 1 << "_Y";
+					outfile << name.toAscii().data() << "_cam" << j + 1 << "_X" << " , " << name.toAscii().data() << "_cam" << j + 1 << "_Y";
 
-					if (j != Project::getInstance()->getCameras().size() - 1){
+					if (j != Project::getInstance()->getCameras().size() - 1)
+					{
 						outfile << " , ";
 					}
 					else
@@ -1186,18 +1258,21 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 					}
 				}
 			}
-			
-			for (unsigned int f = 0; f < nbImages; f++){
-				if (offsetCols){
-					for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+
+			for (int f = 0; f < nbImages; f++)
+			{
+				if (offsetCols)
+				{
+					for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
 					{
 						outfile << 0.0 << " , ";
 					}
 				}
 
-				for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
 				{
-					if (getMarkers()[i]->getStatus2D()[j][f] > 0){
+					if (getMarkers()[i]->getStatus2D()[j][f] > 0)
+					{
 						double x;
 						double y;
 						if (distorted)
@@ -1229,7 +1304,8 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 						outfile << "NaN" << " , " << "NaN";
 					}
 
-					if (j != Project::getInstance()->getCameras().size() - 1){
+					if (j != Project::getInstance()->getCameras().size() - 1)
+					{
 						outfile << " , ";
 					}
 					else
@@ -1238,7 +1314,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 					}
 				}
 			}
-		
+
 			outfile.close();
 		}
 	}
@@ -1246,7 +1322,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 
 int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols)
 {
-	std::vector <Marker *> newMarkers;
+	std::vector<Marker *> newMarkers;
 
 	std::ifstream fin;
 	fin.open(input.toAscii().data());
@@ -1254,7 +1330,7 @@ int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinver
 	std::string line;
 	QString tmp_names;
 	QStringList list;
-	
+
 	bool firstRun = true;
 	bool readHeader = headerRow;
 	int frame = 0;
@@ -1262,7 +1338,8 @@ int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinver
 
 	while (!littleHelper::safeGetline(fin, line).eof())
 	{
-		if (!line.empty()){
+		if (!line.empty())
+		{
 			QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 			tmp_names = QString::fromStdString(line);
 			list = tmp_names.split(",");
@@ -1280,7 +1357,7 @@ int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinver
 
 			if (readHeader)
 			{
-				for (int i = 0; i < newMarkers.size(); i++)
+				for (unsigned int i = 0; i < newMarkers.size(); i++)
 				{
 					QString name = list.at(i * 2 * Project::getInstance()->getCameras().size() + offset);
 					name.replace("_cam1_X", "");
@@ -1298,14 +1375,13 @@ int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinver
 			}
 			else
 			{
-				for (int i = 0; i < newMarkers.size(); i++)
+				for (unsigned int i = 0; i < newMarkers.size(); i++)
 				{
-					for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+					for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
 					{
 						if (!list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + offset).contains("NaN")
 							&& !list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + 1 + offset).contains("NaN"))
 						{
-
 							double x = list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + offset).toDouble();
 							double y = list.at(i * Project::getInstance()->getCameras().size() * 2 + 2 * j + 1 + offset).toDouble();
 
@@ -1329,7 +1405,7 @@ int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinver
 		}
 	}
 
-	for (int i = 0; i < newMarkers.size(); i++)
+	for (unsigned int i = 0; i < newMarkers.size(); i++)
 	{
 		newMarkers[i]->update();
 	}
@@ -1338,15 +1414,19 @@ int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinver
 	return newMarkers.size();
 }
 
-void Trial::getDrawTextData(int cam, int frame, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text){
+void Trial::getDrawTextData(int cam, int frame, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text)
+{
 	x.clear();
 	y.clear();
 	text.clear();
-	if (frame >= 0){
-		for (int i = 0; i < markers.size(); i++){
+	if (frame >= 0)
+	{
+		for (unsigned int i = 0; i < markers.size(); i++)
+		{
 			x.push_back(markers[i]->getPoints2D()[cam][frame].x);
 			y.push_back(markers[i]->getPoints2D()[cam][frame].y);
 			text.push_back(QString::number(i + 1));
 		}
 	}
 }
+

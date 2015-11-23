@@ -1,8 +1,34 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file BlobDetection.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "processing/BlobDetection.h"	
+#include "processing/BlobDetection.h" 
 
 #include "ui/ProgressDialog.h"
 #include "ui/MainWindow.h"
@@ -19,21 +45,26 @@
 
 using namespace xma;
 
-BlobDetection::BlobDetection(int camera, int image):ThreadedProcessing("Detect Points") {
+BlobDetection::BlobDetection(int camera, int image): ThreadedProcessing("Detect Points")
+{
 	m_camera = camera;
 	m_image = image;
 }
 
-BlobDetection::~BlobDetection(){
-
+BlobDetection::~BlobDetection()
+{
 }
 
-void BlobDetection::process(){
+void BlobDetection::process()
+{
 	tmpPoints.clear();
 	cv::Mat image;
-	if(m_image < 0){
- 		Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->getImage()->getImage(image);
-	}else{
+	if (m_image < 0)
+	{
+		Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->getImage()->getImage(image);
+	}
+	else
+	{
 		Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[m_image]->getImage()->getImage(image);
 	}
 
@@ -46,10 +77,12 @@ void BlobDetection::process(){
 	paramsBlob.minDistBetweenBlobs = Settings::getInstance()->getFloatSetting("BlobDetectorMinDistBetweenBlobs");
 
 	paramsBlob.filterByColor = Settings::getInstance()->getBoolSetting("BlobDetectorFilterByColor");
-	if (m_image < 0 || CalibrationObject::getInstance()->hasWhiteBlobs()){
+	if (m_image < 0 || CalibrationObject::getInstance()->hasWhiteBlobs())
+	{
 		paramsBlob.blobColor = Settings::getInstance()->getIntSetting("BlobDetectorBlobColor");
 	}
-	else{
+	else
+	{
 		paramsBlob.blobColor = 255 - Settings::getInstance()->getIntSetting("BlobDetectorBlobColor");
 	}
 
@@ -69,23 +102,29 @@ void BlobDetection::process(){
 	paramsBlob.minConvexity = Settings::getInstance()->getFloatSetting("BlobDetectorMinConvexity");
 	paramsBlob.maxConvexity = Settings::getInstance()->getFloatSetting("BlobDetectorMaxConvexity");
 
-	cv::FeatureDetector * detector = new cv::SimpleBlobDetector(paramsBlob);
+	cv::FeatureDetector* detector = new cv::SimpleBlobDetector(paramsBlob);
 	cv::vector<cv::KeyPoint> keypoints;
 
-	detector->detect(image,keypoints);
+	detector->detect(image, keypoints);
 
-	for (unsigned int i=0; i<keypoints.size(); i++){
-		tmpPoints.push_back(cv::Point2d(keypoints[i].pt.x,keypoints[i].pt.y));
+	for (unsigned int i = 0; i < keypoints.size(); i++)
+	{
+		tmpPoints.push_back(cv::Point2d(keypoints[i].pt.x, keypoints[i].pt.y));
 	}
 	image.release();
 }
 
-void BlobDetection::process_finished(){
-	if(m_image < 0){
+void BlobDetection::process_finished()
+{
+	if (m_image < 0)
+	{
 		Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->setDetectedPoints(tmpPoints);
-	}else{
+	}
+	else
+	{
 		Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[m_image]->setDetectedPoints(tmpPoints);
 	}
 
 	tmpPoints.clear();
 }
+

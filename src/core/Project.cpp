@@ -1,5 +1,31 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file Project.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "core/Project.h"
@@ -13,7 +39,7 @@
 #include <QFileInfo>
 
 #ifdef WIN32
-	#define OS_SEP "\\"
+#define OS_SEP "\\"
 #else
 	#define OS_SEP "/"
 #endif
@@ -22,18 +48,20 @@ using namespace xma;
 
 Project* Project::instance = NULL;
 
-Project::Project(){
+Project::Project()
+{
 	projectFilename = "";
 	calibrated = false;
 	nbImagesCalibration = 0;
 }
 
-Project::~Project(){
-	for(std::vector <Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+Project::~Project()
+{
+	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
 		delete (*it);
 	cameras.clear();
 
-	for (std::vector <Trial*>::iterator it = trials.begin(); it != trials.end(); ++it)
+	for (std::vector<Trial*>::iterator it = trials.begin(); it != trials.end(); ++it)
 		delete (*it);
 	trials.clear();
 
@@ -44,7 +72,7 @@ Project::~Project(){
 
 Project* Project::getInstance()
 {
-	if(!instance) 
+	if (!instance)
 	{
 		instance = new Project();
 	}
@@ -68,19 +96,20 @@ const std::vector<Trial*>& Project::getTrials()
 
 Trial* Project::getTrialByName(QString Name)
 {
-	for (std::vector <Trial*>::iterator it = trials.begin(); it != trials.end(); ++it)
+	for (std::vector<Trial*>::iterator it = trials.begin(); it != trials.end(); ++it)
 	{
 		if ((*it)->getName() == Name) return *it;
 	}
 	return NULL;
 }
 
-QString Project::getProjectBasename(){
-	if(projectFilename.isEmpty())
+QString Project::getProjectBasename()
+{
+	if (projectFilename.isEmpty())
 		return "";
 
 	QFileInfo info(projectFilename);
-	return info.completeBaseName(); 
+	return info.completeBaseName();
 }
 
 int Project::getNbImagesCalibration()
@@ -96,11 +125,12 @@ bool Project::isCalibrated()
 void Project::checkCalibration()
 {
 	calibrated = true;
-	for (std::vector <Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
 		calibrated = (*it)->isCalibrated() && calibrated;
 }
 
-void Project::addCamera(Camera * cam){
+void Project::addCamera(Camera* cam)
+{
 	cameras.push_back(cam);
 	nbImagesCalibration = cam->getCalibrationImages().size();
 }
@@ -117,48 +147,66 @@ void Project::deleteTrial(Trial* trial)
 	trials.erase(position);
 }
 
-void Project::recountFrames(){
-	if(cameras.size() > 0){
+void Project::recountFrames()
+{
+	if (cameras.size() > 0)
+	{
 		nbImagesCalibration = cameras[0]->getCalibrationImages().size();
-		for(std::vector <Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it){	
-			if(nbImagesCalibration != (*it)->getCalibrationImages().size()){
-				fprintf(stderr,"Error Invalid number of images");
+		for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+		{
+			if (nbImagesCalibration != (*it)->getCalibrationImages().size())
+			{
+				fprintf(stderr, "Error Invalid number of images");
 			}
 		}
 	}
 }
 
-void Project::loadTextures(){
-	for(std::vector <Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it){
+void Project::loadTextures()
+{
+	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+	{
 		(*it)->loadTextures();
 		QApplication::processEvents();
 	}
 }
 
-void Project::exportDLT(QString foldername){
-	for(int frame = 0 ; frame < nbImagesCalibration ; frame++){
+void Project::exportDLT(QString foldername)
+{
+	for (int frame = 0; frame < nbImagesCalibration; frame++)
+	{
 		std::vector<double*> dlts;
 		double allCamsSet = true;
 
-		for(std::vector <Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it){	
-			if((*it)->getCalibrationImages()[frame]->isCalibrated()){
+		for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+		{
+			if ((*it)->getCalibrationImages()[frame]->isCalibrated())
+			{
 				double* out = new double[12];
-				(*it)->getDLT(&out[0],frame);
+				(*it)->getDLT(&out[0], frame);
 				dlts.push_back(out);
-			}else{
+			}
+			else
+			{
 				allCamsSet = false;
 			}
 		}
 
-		if(allCamsSet){
-			std::ofstream outfile ((foldername + OS_SEP + "MergedDlts_Frame" + QString::number(frame) +".csv").toAscii().data() );
+		if (allCamsSet)
+		{
+			std::ofstream outfile((foldername + OS_SEP + "MergedDlts_Frame" + QString::number(frame) + ".csv").toAscii().data());
 			outfile.precision(12);
-			for(unsigned int i = 0; i < 11 ; i++){
-				for(unsigned int c = 0; c < dlts.size() ; c++){	
+			for (unsigned int i = 0; i < 11; i++)
+			{
+				for (unsigned int c = 0; c < dlts.size(); c++)
+				{
 					outfile << dlts[c][i];
-					if(c == dlts.size()-1) {
+					if (c == dlts.size() - 1)
+					{
 						outfile << std::endl;
-					}else{
+					}
+					else
+					{
 						outfile << ",";
 					}
 				}
@@ -166,23 +214,29 @@ void Project::exportDLT(QString foldername){
 			outfile.close();
 		}
 
-		for(unsigned int c = 0; c < dlts.size() ; c++){	
+		for (unsigned int c = 0; c < dlts.size(); c++)
+		{
 			delete[] dlts[c];
 		}
 		dlts.clear();
 	}
 }
 
-void Project::exportMayaCam(QString foldername){
-	for(std::vector <Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it){
-		for(int frame = 0 ; frame < (*it)->getCalibrationImages().size();frame++){
-			if((*it)->getCalibrationImages()[frame]->isCalibrated()){
+void Project::exportMayaCam(QString foldername)
+{
+	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+	{
+		for (unsigned int frame = 0; frame < (*it)->getCalibrationImages().size(); frame++)
+		{
+			if ((*it)->getCalibrationImages()[frame]->isCalibrated())
+			{
 				double out[15];
-				(*it)->getMayaCam(&out[0],frame);
-				std::ofstream outfile ((foldername + OS_SEP + (*it)->getCalibrationImages()[frame]->getFilenameBase() + "_MayaCam.csv").toAscii().data() );
+				(*it)->getMayaCam(&out[0], frame);
+				std::ofstream outfile((foldername + OS_SEP + (*it)->getCalibrationImages()[frame]->getFilenameBase() + "_MayaCam.csv").toAscii().data());
 				outfile.precision(12);
-				for(unsigned int i = 0; i < 5 ; i++){
-					outfile << out[i*3] << "," << out[i*3+1] << "," << out[i*3+2] << "\n";
+				for (unsigned int i = 0; i < 5; i++)
+				{
+					outfile << out[i * 3] << "," << out[i * 3 + 1] << "," << out[i * 3 + 2] << "\n";
 				}
 				outfile.close();
 			}
@@ -190,22 +244,29 @@ void Project::exportMayaCam(QString foldername){
 	}
 }
 
-void Project::exportMayaCamVersion2(QString foldername){
-	for (std::vector <Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it){
-		for (int frame = 0; frame < (*it)->getCalibrationImages().size(); frame++){
-			if ((*it)->getCalibrationImages()[frame]->isCalibrated()){
+void Project::exportMayaCamVersion2(QString foldername)
+{
+	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+	{
+		for (unsigned int frame = 0; frame < (*it)->getCalibrationImages().size(); frame++)
+		{
+			if ((*it)->getCalibrationImages()[frame]->isCalibrated())
+			{
 				(*it)->saveMayaCamVersion2(frame, foldername + OS_SEP + (*it)->getCalibrationImages()[frame]->getFilenameBase() + "_MayaCam.txt");
 			}
 		}
 	}
 }
 
-void Project::exportLUT(QString foldername){
-	for(std::vector <Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it){
-		if((*it)->hasUndistortion() && (*it)->getUndistortionObject()->isComputed()){
+void Project::exportLUT(QString foldername)
+{
+	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+	{
+		if ((*it)->hasUndistortion() && (*it)->getUndistortionObject()->isComputed())
+		{
 			(*it)->getUndistortionObject()->exportData(foldername + OS_SEP + (*it)->getUndistortionObject()->getFilenameBase() + "_LUT.csv",
-														 foldername + OS_SEP + (*it)->getUndistortionObject()->getFilenameBase() + "_INPTS.csv",
-														 foldername + OS_SEP + (*it)->getUndistortionObject()->getFilenameBase() + "_BSPTS.csv");
+			                                           foldername + OS_SEP + (*it)->getUndistortionObject()->getFilenameBase() + "_INPTS.csv",
+			                                           foldername + OS_SEP + (*it)->getUndistortionObject()->getFilenameBase() + "_BSPTS.csv");
 		}
 	}
 }

@@ -1,3 +1,29 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file Trial.h
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifndef TRIAL_H
 #define TRIAL_H
 
@@ -6,41 +32,42 @@
 #include <QStringList>
 #include "VideoStream.h"
 
-namespace xma{
+namespace xma
+{
 	class Image;
 	class RigidBody;
 	class Marker;
 	class Camera;
 	class VideoStream;
 
-	class Trial{
-
+	class Trial
+	{
 	public:
-		Trial(QString trialname, std::vector<QStringList> &imageFilenames);
+		Trial(QString trialname, std::vector<QStringList>& imageFilenames);
 		Trial(QString trialname, QString folder);
 		virtual ~Trial();
 
 		int getActiveFrame();
 		void setActiveFrame(int _activeFrame);
-		const std::vector <VideoStream *> & getVideoStreams();
+		const std::vector<VideoStream *>& getVideoStreams();
 		QString getActiveFilename(int camera);
 		double getRecordingSpeed();
 		void setRecordingSpeed(double value);
 
-		
+
 		int getReferenceCalibrationImage();
 		void setReferenceCalibrationImage(int value);
 
-		const std::vector <Marker * > &getMarkers();
-		const std::vector <RigidBody * > &getRigidBodies();
+		const std::vector<Marker *>& getMarkers();
+		const std::vector<RigidBody *>& getRigidBodies();
 
-		Marker *getActiveMarker();
+		Marker* getActiveMarker();
 		int getActiveMarkerIdx();
 		void setActiveMarkerIdx(int _activeMarker);
 		bool isActiveMarkerUndefined(int camera);
 		void setActiveToNextUndefinedMarker(int camera);
 
-		RigidBody *getActiveRB();
+		RigidBody* getActiveRB();
 		int getActiveRBIdx();
 		void setActiveRBIdx(int _activeBody);
 
@@ -48,7 +75,7 @@ namespace xma{
 		void removeRigidBody(int idx);
 		void addMarker();
 		void removeMarker(int idx);
-		
+
 
 		double getCutoffFrequency();
 		void setCutoffFrequency(double value);
@@ -60,7 +87,7 @@ namespace xma{
 		void bindTextures();
 		void save(QString path);
 
-		void drawRigidBodies(Camera * cam);
+		void drawRigidBodies(Camera* cam);
 		void drawPoints(int cameraId, bool detailView);
 
 		int getStartFrame();
@@ -90,7 +117,7 @@ namespace xma{
 		void saveTrialImages(QString outputfolder, int from, int to, QString format);
 		void saveMarkerToMarkerDistances(QString filename);
 		void recomputeAndFilterRigidBodyTransformations();
-		void resetRigidBodyByMarker(Marker * marker, int frame);
+		void resetRigidBodyByMarker(Marker* marker, int frame);
 
 		void getDrawTextData(int cam, int frame, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text);
 
@@ -104,7 +131,7 @@ namespace xma{
 
 		int nbImages;
 
-		int referenceCalibrationImage; 
+		int referenceCalibrationImage;
 		double recordingSpeed;
 		double cutoffFrequency;
 		int interpolateMissingFrames;
@@ -112,14 +139,15 @@ namespace xma{
 		int startFrame;
 		int endFrame;
 
-		std::vector <VideoStream*> videos;
-		std::vector <RigidBody * > rigidBodies;
-		std::vector <Marker * > markers;
+		std::vector<VideoStream*> videos;
+		std::vector<RigidBody *> rigidBodies;
+		std::vector<Marker *> markers;
 
 		bool requiresRecomputation;
 	};
 }
 
-	
 
-#endif  // TRIAL_H
+#endif // TRIAL_H
+
+

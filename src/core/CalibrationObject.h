@@ -1,3 +1,29 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file CalibrationObject.h
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifndef CALIBRATIONOBJECT_H_
 #define CALIBRATIONOBJECT_H_
 
@@ -6,30 +32,78 @@
 #include <opencv/cv.h>
 #include <fstream>
 
-namespace xma{
-	class CalibrationObject{
+namespace xma
+{
+	class CalibrationObject
+	{
 	public:
 		static CalibrationObject* getInstance();
 		virtual ~CalibrationObject();
 
 		int loadCoords(QString frameSpecificationsFilename, QString referencesFilename);
 		void saveCoords(QString folder);
-		QString getFrameSpecificationsFilename(){ return frameSpecificationsFilename; }
-		QString getReferencesFilename(){ return referencesFilename; }
+
+		QString getFrameSpecificationsFilename()
+		{
+			return frameSpecificationsFilename;
+		}
+
+		QString getReferencesFilename()
+		{
+			return referencesFilename;
+		}
 
 		void setCheckerboard(int nbHorizontalSquares, int nbVerticalSquares, int squareSize);
 
-		bool isInitialised(){ return initialised; }
-		bool isPlanar(){ return planar; }
-		bool isCheckerboard(){ return checkerboard; }
-		bool hasWhiteBlobs(){ return whiteBlobs; }
-		cv::vector<cv::Point3d>& getFrameSpecifications(){ return frameSpecifications; }
-		cv::vector<int>& getReferenceIDs(){ return referenceIDs; }
-		cv::vector<QString>& getReferenceNames(){ return referenceNames; }
+		bool isInitialised()
+		{
+			return initialised;
+		}
 
-		int getNbHorizontalSquares(){ return nbHorizontalSquares; }
-		int getNbVerticalSquares(){ return nbVerticalSquares; }
-		int getSquareSize(){ return squareSize; }
+		bool isPlanar()
+		{
+			return planar;
+		}
+
+		bool isCheckerboard()
+		{
+			return checkerboard;
+		}
+
+		bool hasWhiteBlobs()
+		{
+			return whiteBlobs;
+		}
+
+		cv::vector<cv::Point3d>& getFrameSpecifications()
+		{
+			return frameSpecifications;
+		}
+
+		cv::vector<int>& getReferenceIDs()
+		{
+			return referenceIDs;
+		}
+
+		cv::vector<QString>& getReferenceNames()
+		{
+			return referenceNames;
+		}
+
+		int getNbHorizontalSquares()
+		{
+			return nbHorizontalSquares;
+		}
+
+		int getNbVerticalSquares()
+		{
+			return nbVerticalSquares;
+		}
+
+		int getSquareSize()
+		{
+			return squareSize;
+		}
 
 	private:
 		CalibrationObject();
@@ -57,3 +131,4 @@ namespace xma{
 
 
 #endif /* CALIBRATIONOBJECT_H_ */
+

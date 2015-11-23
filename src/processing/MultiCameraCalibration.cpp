@@ -1,8 +1,34 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file MultiCameraCalibration.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "processing/MultiCameraCalibration.h"	
+#include "processing/MultiCameraCalibration.h" 
 
 #include "ui/ProgressDialog.h"
 #include "ui/MainWindow.h"
@@ -26,26 +52,27 @@ using namespace xma;
 int MultiCameraCalibration::nbInstances = 0;
 
 
-void ros(double *p, double *x, int m, int n, void *data)
+void ros(double* p, double* x, int m, int n, void* data)
 {
-	MultiCameraCalibration *   calib_data = static_cast <MultiCameraCalibration *>(data);
-	int step = calib_data->getStep();
-	for (int i = 0; i < n  / step; i++)
-	{
-		calib_data->projError(i, p, &x[i*step]);
-	}
-}
-void jacros(double *p, double *jac, int m, int n, void *data)
-{
-	MultiCameraCalibration *   calib_data = static_cast <MultiCameraCalibration *>(data);
+	MultiCameraCalibration* calib_data = static_cast<MultiCameraCalibration *>(data);
 	int step = calib_data->getStep();
 	for (int i = 0; i < n / step; i++)
 	{
-		calib_data->projErrorJac(i, m, p, &jac[i*m*step]);
+		calib_data->projError(i, p, &x[i * step]);
 	}
 }
 
-void MultiCameraCalibration::projErrorJac(int n, int m, double * p, double * Jac)
+void jacros(double* p, double* jac, int m, int n, void* data)
+{
+	MultiCameraCalibration* calib_data = static_cast<MultiCameraCalibration *>(data);
+	int step = calib_data->getStep();
+	for (int i = 0; i < n / step; i++)
+	{
+		calib_data->projErrorJac(i, m, p, &jac[i * m * step]);
+	}
+}
+
+void MultiCameraCalibration::projErrorJac(int n, int m, double* p, double* Jac)
 {
 	double RxCam = p[nbCamParams * camIdx[n] + 0];
 	double RyCam = p[nbCamParams * camIdx[n] + 1];
@@ -82,7 +109,8 @@ void MultiCameraCalibration::projErrorJac(int n, int m, double * p, double * Jac
 	double u = Pts2D[n].x;
 	double v = Pts2D[n].y;
 
-	if (!seperateDimensions){
+	if (!seperateDimensions)
+	{
 		double A0[21];
 		for (int i = 0; i < m; i++)
 		{
@@ -91,9 +119,12 @@ void MultiCameraCalibration::projErrorJac(int n, int m, double * p, double * Jac
 		if (withDistortion)
 		{
 #include "processing/optimizationFuncs/jacFuncWithDistortion.h"
+
 		}
-		else{
+		else
+		{
 #include "processing/optimizationFuncs/jacFuncNoDistortion.h"
+
 		}
 
 		Jac[nbCamParams * camIdx[n] + 0] = A0[0];
@@ -122,11 +153,10 @@ void MultiCameraCalibration::projErrorJac(int n, int m, double * p, double * Jac
 		Jac[6 * frameIdx[n] + nbCamParams * nbCameras + 3] = A0[nbCamParams + 3];
 		Jac[6 * frameIdx[n] + nbCamParams * nbCameras + 4] = A0[nbCamParams + 4];
 		Jac[6 * frameIdx[n] + nbCamParams * nbCameras + 5] = A0[nbCamParams + 5];
-
 	}
 	else
 	{
-		for (int i = 0; i < 2*m; i++)
+		for (int i = 0; i < 2 * m; i++)
 		{
 			Jac[i] = 0;
 		}
@@ -134,34 +164,37 @@ void MultiCameraCalibration::projErrorJac(int n, int m, double * p, double * Jac
 
 #include "processing/optimizationFuncs/jacFuncNoDistortionSeperateDimensions.h"
 
-		for (int i = 0; i < 2; i++){
-			Jac[m*i + nbCamParams * camIdx[n] + 0] = A0[i][0];
-			Jac[m*i + nbCamParams * camIdx[n] + 1] = A0[i][1];
-			Jac[m*i + nbCamParams * camIdx[n] + 2] = A0[i][2];
-			Jac[m*i + nbCamParams * camIdx[n] + 3] = A0[i][3];
-			Jac[m*i + nbCamParams * camIdx[n] + 4] = A0[i][4];
-			Jac[m*i + nbCamParams * camIdx[n] + 5] = A0[i][5];
-			Jac[m*i + nbCamParams * camIdx[n] + 6] = A0[i][6];
-			Jac[m*i + nbCamParams * camIdx[n] + 7] = A0[i][7];
-			Jac[m*i + nbCamParams * camIdx[n] + 8] = A0[i][8];
-			Jac[m*i + nbCamParams * camIdx[n] + 9] = A0[i][9];
 
-			Jac[m*i + 6 * frameIdx[n] + nbCamParams * nbCameras + 0] = A0[i][nbCamParams];
-			Jac[m*i + 6 * frameIdx[n] + nbCamParams * nbCameras + 1] = A0[i][nbCamParams + 1];
-			Jac[m*i + 6 * frameIdx[n] + nbCamParams * nbCameras + 2] = A0[i][nbCamParams + 2];
-			Jac[m*i + 6 * frameIdx[n] + nbCamParams * nbCameras + 3] = A0[i][nbCamParams + 3];
-			Jac[m*i + 6 * frameIdx[n] + nbCamParams * nbCameras + 4] = A0[i][nbCamParams + 4];
-			Jac[m*i + 6 * frameIdx[n] + nbCamParams * nbCameras + 5] = A0[i][nbCamParams + 5];
+
+		for (int i = 0; i < 2; i++)
+		{
+			Jac[m * i + nbCamParams * camIdx[n] + 0] = A0[i][0];
+			Jac[m * i + nbCamParams * camIdx[n] + 1] = A0[i][1];
+			Jac[m * i + nbCamParams * camIdx[n] + 2] = A0[i][2];
+			Jac[m * i + nbCamParams * camIdx[n] + 3] = A0[i][3];
+			Jac[m * i + nbCamParams * camIdx[n] + 4] = A0[i][4];
+			Jac[m * i + nbCamParams * camIdx[n] + 5] = A0[i][5];
+			Jac[m * i + nbCamParams * camIdx[n] + 6] = A0[i][6];
+			Jac[m * i + nbCamParams * camIdx[n] + 7] = A0[i][7];
+			Jac[m * i + nbCamParams * camIdx[n] + 8] = A0[i][8];
+			Jac[m * i + nbCamParams * camIdx[n] + 9] = A0[i][9];
+
+			Jac[m * i + 6 * frameIdx[n] + nbCamParams * nbCameras + 0] = A0[i][nbCamParams];
+			Jac[m * i + 6 * frameIdx[n] + nbCamParams * nbCameras + 1] = A0[i][nbCamParams + 1];
+			Jac[m * i + 6 * frameIdx[n] + nbCamParams * nbCameras + 2] = A0[i][nbCamParams + 2];
+			Jac[m * i + 6 * frameIdx[n] + nbCamParams * nbCameras + 3] = A0[i][nbCamParams + 3];
+			Jac[m * i + 6 * frameIdx[n] + nbCamParams * nbCameras + 4] = A0[i][nbCamParams + 4];
+			Jac[m * i + 6 * frameIdx[n] + nbCamParams * nbCameras + 5] = A0[i][nbCamParams + 5];
 		}
 	}
 }
 
 int MultiCameraCalibration::getStep()
 {
-	return (seperateDimensions) ? 2 : 1; 
+	return (seperateDimensions) ? 2 : 1;
 }
 
-void MultiCameraCalibration::projError(int n, double * p,  double * x)
+void MultiCameraCalibration::projError(int n, double* p, double* x)
 {
 	double RxCam = p[nbCamParams * camIdx[n] + 0];
 	double RyCam = p[nbCamParams * camIdx[n] + 1];
@@ -169,10 +202,10 @@ void MultiCameraCalibration::projError(int n, double * p,  double * x)
 	double txCam = p[nbCamParams * camIdx[n] + 3];
 	double tyCam = p[nbCamParams * camIdx[n] + 4];
 	double tzCam = p[nbCamParams * camIdx[n] + 5];
-	double fx    = p[nbCamParams * camIdx[n] + 6];
-	double fy    = p[nbCamParams * camIdx[n] + 7];
-	double cx    = p[nbCamParams * camIdx[n] + 8];
-	double cy    = p[nbCamParams * camIdx[n] + 9];
+	double fx = p[nbCamParams * camIdx[n] + 6];
+	double fy = p[nbCamParams * camIdx[n] + 7];
+	double cx = p[nbCamParams * camIdx[n] + 8];
+	double cy = p[nbCamParams * camIdx[n] + 9];
 
 	double k1, k2, p1, p2, k3;
 	if (withDistortion)
@@ -198,14 +231,20 @@ void MultiCameraCalibration::projError(int n, double * p,  double * x)
 	double u = Pts2D[n].x;
 	double v = Pts2D[n].y;
 
-	if (!seperateDimensions){
+	if (!seperateDimensions)
+	{
 		if (withDistortion)
 		{
 #include "processing/optimizationFuncs/projFuncWithDistortion.h"
+
+
 			x[0] = t0;
 		}
-		else{
+		else
+		{
 #include "processing/optimizationFuncs/projFuncNoDistortion.h"
+
+
 			x[0] = t0;
 		}
 	}
@@ -213,15 +252,17 @@ void MultiCameraCalibration::projError(int n, double * p,  double * x)
 	{
 		double A0[2];
 #include "processing/optimizationFuncs/projFuncNoDistortionSeperateDimensions.h"
+
+
 		x[0] = A0[0];
 		x[1] = A0[1];
 	}
 }
 
 
-
-MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, double initial):QObject()
-		,m_method(method),m_iterations(iterations),m_initial(initial){
+MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, double initial): QObject()
+                                                                                            , m_method(method), m_iterations(iterations), m_initial(initial)
+{
 	nbInstances++;
 
 	switch (m_method)
@@ -241,7 +282,8 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 		break;
 	}
 
-	if (withDistortion){
+	if (withDistortion)
+	{
 		std::cerr << "WithDistortion " << m_method << std::endl;
 		nbCamParams = 15;
 	}
@@ -253,11 +295,16 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 	nbCameras = Project::getInstance()->getCameras().size();
 	nbFrames = Project::getInstance()->getNbImagesCalibration();
 	nbPoints = 0;
-	for (unsigned int c = 0; c < nbCameras; c++){
-		for (unsigned int f = 0; f < nbFrames; f++){
-			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0){
-				for (unsigned int k = 0; k < CalibrationObject::getInstance()->getFrameSpecifications().size(); k++){
-					if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getInliers()[k] > 0){
+	for (int c = 0; c < nbCameras; c++)
+	{
+		for (int f = 0; f < nbFrames; f++)
+		{
+			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0)
+			{
+				for (unsigned int k = 0; k < CalibrationObject::getInstance()->getFrameSpecifications().size(); k++)
+				{
+					if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getInliers()[k] > 0)
+					{
 						frameIdx.push_back(f);
 						camIdx.push_back(c);
 						pts3DIdx.push_back(k);
@@ -275,8 +322,9 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 	}
 
 	nbPoints = nbPoints * getStep();
-	
-	for (unsigned int k = 0; k < CalibrationObject::getInstance()->getFrameSpecifications().size(); k++){
+
+	for (unsigned int k = 0; k < CalibrationObject::getInstance()->getFrameSpecifications().size(); k++)
+	{
 		Pts3D.push_back(cv::Point3d(CalibrationObject::getInstance()->getFrameSpecifications()[k]));
 	}
 
@@ -284,10 +332,13 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 	nbParams = nbCamParams * nbCameras + 6 * nbFrames;
 	p = new double[nbParams];
 	refIdx = -1;
-	for (unsigned int f = 0; f < nbFrames; f++){
+	for (int f = 0; f < nbFrames; f++)
+	{
 		int count = 0;
-		for (unsigned int c = 0; c< nbCameras; c++){
-			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0){
+		for (int c = 0; c < nbCameras; c++)
+		{
+			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0)
+			{
 				count++;
 			}
 		}
@@ -300,16 +351,17 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 
 	if (refIdx >= 0)
 	{
-		for (unsigned int c = 0; c < nbCameras; c++){
+		for (int c = 0; c < nbCameras; c++)
+		{
 			//We have to rotateCameras to make sure rotationmatrices are not identity matrix
 			cv::Mat rot_mat;
-			cv::Mat r_tmp = (cv::Mat_<double>(3, 1) << 0.1, 0.1, 0.1);
+			cv::Mat r_tmp = (cv::Mat_<double>(3, 1) << 0.1 , 0.1 , 0.1);
 			cv::Rodrigues(r_tmp, rot_mat);
 			cv::Mat rot_mat2;
 			cv::Rodrigues(cv::Mat(Project::getInstance()->getCameras()[c]->getCalibrationImages()[refIdx]->getRotationVector()), rot_mat2);
 			cv::Mat Rot_vec;
 			Rodrigues(rot_mat2 * rot_mat, Rot_vec);
-			
+
 			cameraRotationVector.push_back(Rot_vec);
 			cameraTranslationVector.push_back(cv::Mat(Project::getInstance()->getCameras()[c]->getCalibrationImages()[refIdx]->getTranslationVector()));
 			cameraMatrix.push_back(cv::Mat(Project::getInstance()->getCameras()[c]->getCameraMatrix()));
@@ -321,14 +373,17 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 	}
 
 
-	for (unsigned int f = 0; f < nbFrames; f++){
+	for (int f = 0; f < nbFrames; f++)
+	{
 		cv::Mat r_vec;
 		r_vec = cv::Mat::zeros(3, 1, CV_64F);
 		cv::Mat t_vec;
 		t_vec = cv::Mat::zeros(3, 1, CV_64F);
 		int count = 0;
-		for (unsigned int c = 0; c< nbCameras; c++){
-			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0){
+		for (int c = 0; c < nbCameras; c++)
+		{
+			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0)
+			{
 				cv::Mat t_cam = getTransformationMatrix(cameraRotationVector[c], cameraTranslationVector[c]);
 				cv::Mat t_chess = getTransformationMatrix(Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getRotationVector(), Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getTranslationVector());
 				r_vec += getRotationVector(t_cam.inv() * t_chess);
@@ -364,7 +419,8 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 #endif
 	//Fill param vector
 	//Cameras
-	for (unsigned int c = 0; c < nbCameras; c++){
+	for (int c = 0; c < nbCameras; c++)
+	{
 		//Rotation
 		p[nbCamParams * c + 0] = cameraRotationVector[c].at<double>(0, 0);
 		p[nbCamParams * c + 1] = cameraRotationVector[c].at<double>(1, 0);
@@ -390,7 +446,8 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 		}
 	}
 
-	for (unsigned int f = 0; f < nbFrames; f++){
+	for (int f = 0; f < nbFrames; f++)
+	{
 		//Rotation
 		p[6 * f + nbCamParams * nbCameras + 0] = chessRotationVector[f].at<double>(0, 0);
 		p[6 * f + nbCamParams * nbCameras + 1] = chessRotationVector[f].at<double>(1, 0);
@@ -425,18 +482,20 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 	std::cerr << mean/ nbPoints << std::endl;
 #endif
 
-	for (unsigned int i = 0; i < nbPoints; i++)
+	for (int i = 0; i < nbPoints; i++)
 	{
 		x[i] = 0.0;
 	}
 }
 
-MultiCameraCalibration::~MultiCameraCalibration(){
+MultiCameraCalibration::~MultiCameraCalibration()
+{
 	delete[] x;
 	delete[] p;
 }
 
-cv::Mat MultiCameraCalibration::getTransformationMatrix(cv::Mat rotationvector, cv::Mat translationvector){
+cv::Mat MultiCameraCalibration::getTransformationMatrix(cv::Mat rotationvector, cv::Mat translationvector)
+{
 	cv::Mat trans;
 	trans.create(4, 4, CV_64FC1);
 	cv::Mat rotationmatrix;
@@ -444,17 +503,21 @@ cv::Mat MultiCameraCalibration::getTransformationMatrix(cv::Mat rotationvector, 
 	//set R
 	cv::Rodrigues(rotationvector, rotationmatrix);
 
-	for (unsigned int i = 0; i < 3; ++i){
-		for (unsigned int j = 0; j < 3; ++j){
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+		{
 			trans.at<double>(i, j) = rotationmatrix.at<double>(i, j);
 		}
 	}
 	//set t
-	for (unsigned int j = 0; j < 3; ++j){
+	for (unsigned int j = 0; j < 3; ++j)
+	{
 		trans.at<double>(j, 3) = translationvector.at<double>(j, 0);
 	}
 
-	for (unsigned int j = 0; j < 3; ++j){
+	for (unsigned int j = 0; j < 3; ++j)
+	{
 		trans.at<double>(3, j) = 0;
 	}
 	trans.at<double>(3, 3) = 1;
@@ -462,14 +525,17 @@ cv::Mat MultiCameraCalibration::getTransformationMatrix(cv::Mat rotationvector, 
 	return trans;
 }
 
-cv::Mat MultiCameraCalibration::getRotationVector(cv::Mat trans){
+cv::Mat MultiCameraCalibration::getRotationVector(cv::Mat trans)
+{
 	cv::Mat rotationmatrix;
 	rotationmatrix.create(3, 3, CV_64FC1);
-	
+
 	cv::Mat rotationvector;
 
-	for (unsigned int i = 0; i < 3; ++i){
-		for (unsigned int j = 0; j < 3; ++j){
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+		{
 			rotationmatrix.at<double>(i, j) = trans.at<double>(i, j);
 		}
 	}
@@ -479,29 +545,33 @@ cv::Mat MultiCameraCalibration::getRotationVector(cv::Mat trans){
 	return rotationvector;
 }
 
-cv::Mat MultiCameraCalibration::getTranslation(cv::Mat trans){
+cv::Mat MultiCameraCalibration::getTranslation(cv::Mat trans)
+{
 	cv::Mat translationvector;
 	translationvector.create(3, 1, CV_64FC1);
 
-	for (unsigned int j = 0; j < 3; ++j){
+	for (unsigned int j = 0; j < 3; ++j)
+	{
 		translationvector.at<double>(j, 0) = trans.at<double>(j, 3);
 	}
 
 	return translationvector;
 }
 
-void MultiCameraCalibration::optimizeCameraSetup(){
+void MultiCameraCalibration::optimizeCameraSetup()
+{
 	m_FutureWatcher = new QFutureWatcher<void>();
 	connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(optimizeCameraSetup_threadFinished()));
 
 	QFuture<void> future = QtConcurrent::run(this, &MultiCameraCalibration::optimizeCameraSetup_thread);
-	m_FutureWatcher->setFuture( future );
+	m_FutureWatcher->setFuture(future);
 	ProgressDialog::getInstance()->showProgressbar(0, 0, "Optimize camera setup");
 }
 
-void MultiCameraCalibration::optimizeCameraSetup_threadFinished(){
-
-	for (unsigned int c = 0; c < nbCameras; c++){
+void MultiCameraCalibration::optimizeCameraSetup_threadFinished()
+{
+	for (int c = 0; c < nbCameras; c++)
+	{
 		//Rotation
 		cameraRotationVector[c].at<double>(0, 0) = p[nbCamParams * c + 0];
 		cameraRotationVector[c].at<double>(1, 0) = p[nbCamParams * c + 1];
@@ -537,7 +607,8 @@ void MultiCameraCalibration::optimizeCameraSetup_threadFinished(){
 		Project::getInstance()->getCameras()[c]->setOptimized(true);
 	}
 
-	for (unsigned int f = 0; f < nbFrames; f++){
+	for (int f = 0; f < nbFrames; f++)
+	{
 		//Rotation
 		chessRotationVector[f].at<double>(0, 0) = p[6 * f + nbCamParams * nbCameras + 0];
 		chessRotationVector[f].at<double>(1, 0) = p[6 * f + nbCamParams * nbCameras + 1];
@@ -550,23 +621,27 @@ void MultiCameraCalibration::optimizeCameraSetup_threadFinished(){
 
 		cv::Mat t_chess = getTransformationMatrix(chessRotationVector[f], chessTranslationVector[f]);
 
-		for (unsigned int c = 0; c < nbCameras; c++){
-			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0){
+		for (int c = 0; c < nbCameras; c++)
+		{
+			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0)
+			{
 				cv::Mat t_cam = getTransformationMatrix(cameraRotationVector[c], cameraTranslationVector[c]);
-                cv::Mat r_tmp = getRotationVector(t_cam * t_chess);
-                cv::Mat t_tmp = getTranslation(t_cam * t_chess);
-                
-				Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->setMatrices(r_tmp,t_tmp);
+				cv::Mat r_tmp = getRotationVector(t_cam * t_chess);
+				cv::Mat t_tmp = getTranslation(t_cam * t_chess);
+
+				Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->setMatrices(r_tmp, t_tmp);
 			}
 		}
 	}
-	for (unsigned int c = 0; c < nbCameras; c++){
+	for (int c = 0; c < nbCameras; c++)
+	{
 		reproject(c);
 	}
 
 	delete m_FutureWatcher;
 	nbInstances--;
-	if(nbInstances == 0){
+	if (nbInstances == 0)
+	{
 		ProgressDialog::getInstance()->closeProgressbar();
 		MainWindow::getInstance()->redrawGL();
 		emit optimizeCameraSetup_finished();
@@ -575,9 +650,13 @@ void MultiCameraCalibration::optimizeCameraSetup_threadFinished(){
 }
 
 
-void MultiCameraCalibration::optimizeCameraSetup_thread(){
-	double opts[LM_OPTS_SZ], info[LM_INFO_SZ];
-	opts[0] = m_initial; opts[1] = 1E-30; opts[2] = 1E-30; opts[3] = 1E-40;
+void MultiCameraCalibration::optimizeCameraSetup_thread()
+{
+	double opts[LM_OPTS_SZ ], info[LM_INFO_SZ];
+	opts[0] = m_initial;
+	opts[1] = 1E-30;
+	opts[2] = 1E-30;
+	opts[3] = 1E-40;
 	opts[4] = LM_DIFF_DELTA; // relevant only if the Jacobian is approximated using finite differences; specifies forward differencing 
 
 	int ret = dlevmar_der(ros, jacros, p, x, nbParams, nbPoints, m_iterations, opts, info, NULL, NULL, this); // with analytic Jacobian
@@ -595,7 +674,7 @@ void MultiCameraCalibration::optimizeCameraSetup_thread(){
 	}
 	double mean = 0;
 	for (unsigned int i = 0; i < nbPoints; i++){
-		//std::cerr << x[i] << std::endl;
+	//std::cerr << x[i] << std::endl;
 		mean += fabs(x[i]);
 	}
 	std::cerr << "NewMean : " << mean / nbPoints << std::endl;
@@ -603,15 +682,16 @@ void MultiCameraCalibration::optimizeCameraSetup_thread(){
 }
 
 
-void MultiCameraCalibration::reproject(int c){
-
+void MultiCameraCalibration::reproject(int c)
+{
 	bool m_planar = CalibrationObject::getInstance()->isPlanar();
 
 	CvMat* object_points2 = cvCreateMat(CalibrationObject::getInstance()->getFrameSpecifications().size(), 3, CV_64FC1);
 	CvMat* image_points2 = cvCreateMat(CalibrationObject::getInstance()->getFrameSpecifications().size(), 2, CV_64FC1);
 
 	// Transfer the points into the correct size matrices
-	for (unsigned int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); ++i){
+	for (unsigned int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); ++i)
+	{
 		CV_MAT_ELEM(*object_points2, double, i, 0) = CalibrationObject::getInstance()->getFrameSpecifications()[i].x;
 		CV_MAT_ELEM(*object_points2, double, i, 1) = CalibrationObject::getInstance()->getFrameSpecifications()[i].y;
 		CV_MAT_ELEM(*object_points2, double, i, 2) = CalibrationObject::getInstance()->getFrameSpecifications()[i].z;
@@ -621,39 +701,46 @@ void MultiCameraCalibration::reproject(int c){
 	CvMat* intrinsic_matrix2 = cvCreateMat(3, 3, CV_64FC1);
 	CvMat* distortion_coeffs2 = cvCreateMat(8, 1, CV_64FC1);
 
-	for (unsigned int i = 0; i < 3; ++i){
+	for (unsigned int i = 0; i < 3; ++i)
+	{
 		CV_MAT_ELEM(*intrinsic_matrix2, double, i, 0) = Project::getInstance()->getCameras()[c]->getCameraMatrix().at<double>(i, 0);
 		CV_MAT_ELEM(*intrinsic_matrix2, double, i, 1) = Project::getInstance()->getCameras()[c]->getCameraMatrix().at<double>(i, 1);
 		CV_MAT_ELEM(*intrinsic_matrix2, double, i, 2) = Project::getInstance()->getCameras()[c]->getCameraMatrix().at<double>(i, 2);
 	}
 
 	//We save the  undistorted points
-	for (unsigned int i = 0; i < 8; ++i){
+	for (unsigned int i = 0; i < 8; ++i)
+	{
 		CV_MAT_ELEM(*distortion_coeffs2, double, i, 0) = 0;
 	}
 
 	CvMat* r_matrices = cvCreateMat(1, 1, CV_64FC3);
 	CvMat* t_matrices = cvCreateMat(1, 1, CV_64FC3);
 	cv::vector<cv::Point2d> projectedPoints;
-	for (unsigned int f = 0; f < Project::getInstance()->getNbImagesCalibration(); f++){
+	for (int f = 0; f < Project::getInstance()->getNbImagesCalibration(); f++)
+	{
 		if ((!m_planar && Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0)
-			|| (m_planar && Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getDetectedPoints().size() > 0)){
+			|| (m_planar && Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getDetectedPoints().size() > 0))
+		{
 			projectedPoints.clear();
-			for (unsigned int i = 0; i < 3; i++){
+			for (unsigned int i = 0; i < 3; i++)
+			{
 				CV_MAT_ELEM(*r_matrices, cv::Vec3d, 0, 0)[i] = Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getRotationVector().at<double>(i, 0);
 				CV_MAT_ELEM(*t_matrices, cv::Vec3d, 0, 0)[i] = Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getTranslationVector().at<double>(i, 0);
 			}
-			try{
+			try
+			{
 				cvProjectPoints2(object_points2, r_matrices, t_matrices, intrinsic_matrix2, distortion_coeffs2, image_points2);
 				projectedPoints.clear();
-				for (unsigned int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); i++){
+				for (unsigned int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); i++)
+				{
 					cv::Point2d pt = cv::Point2d(CV_MAT_ELEM(*image_points2, double, i, 0), CV_MAT_ELEM(*image_points2, double, i, 1));
 					projectedPoints.push_back(pt);
 				}
 				Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->setPointsProjectedUndistorted(projectedPoints);
-
 			}
-			catch (std::exception e){
+			catch (std::exception e)
+			{
 				fprintf(stderr, "Frame::reprojectAndComputeError : cvProjectPoints2 Failed with Exception - %s\n", e.what());
 			}
 		}
@@ -666,5 +753,5 @@ void MultiCameraCalibration::reproject(int c){
 	cvReleaseMat(&image_points2);
 	cvReleaseMat(&r_matrices);
 	cvReleaseMat(&t_matrices);
-	
 }
+

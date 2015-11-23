@@ -1,5 +1,31 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file Settings.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "core/Settings.h"
@@ -13,7 +39,8 @@ using namespace xma;
 
 Settings* Settings::instance = NULL;
 
-Settings::Settings(){
+Settings::Settings()
+{
 	QCoreApplication::setOrganizationName("XROMM");
 	QCoreApplication::setApplicationName("XMALab");
 	QSettings::setDefaultFormat(QSettings::IniFormat);
@@ -31,7 +58,7 @@ Settings::Settings(){
 	//Undistortion
 	addIntSetting("LocalUndistortionNeighbours", 12);
 	addQStringSetting("UndistortNamingPattern", "%NAMEBASE%%NUMBER%");
-	
+
 	//Calibration
 	addBoolSetting("AutoCalibAfterReference", true);
 	addIntSetting("DetectionMethodForCalibration", 0);
@@ -54,7 +81,7 @@ Settings::Settings(){
 	addFloatSetting("BlobDetectorMaxThreshold", 220.0);
 	addIntSetting("BlobDetectorMinRepeatability", 2);
 	addFloatSetting("BlobDetectorMinDistBetweenBlobs", 5.0);
-	
+
 	addBoolSetting("BlobDetectorFilterByColor", true);
 	addIntSetting("BlobDetectorBlobColor", 255);
 
@@ -71,20 +98,20 @@ Settings::Settings(){
 	addFloatSetting("BlobDetectorMaxInertiaRatio", 5000000.0);
 
 	addBoolSetting("BlobDetectorFilterByConvexity", true);
-	addFloatSetting("BlobDetectorMinConvexity", 0.9);
+	addFloatSetting("BlobDetectorMinConvexity", 0.9f);
 	addFloatSetting("BlobDetectorMaxConvexity", 5000000.0);
 
 	//ImportExport Points
-	addBoolSetting("Import2DCount0",true);
-	addBoolSetting("Import2DCount1",false);
-	addBoolSetting("Import2DYDown",true);
-	addBoolSetting("Import2DYUp",false);
-	addBoolSetting("Import2DNoHeader",false);
-	addBoolSetting("Import2DHeader",true);
+	addBoolSetting("Import2DCount0", true);
+	addBoolSetting("Import2DCount1", false);
+	addBoolSetting("Import2DYDown", true);
+	addBoolSetting("Import2DYUp", false);
+	addBoolSetting("Import2DNoHeader", false);
+	addBoolSetting("Import2DHeader", true);
 	addBoolSetting("Import2DDistorted", true);
 	addBoolSetting("Import2DUndistorted", false);
 	addBoolSetting("Import2DNoCols", true);
-	addBoolSetting("Import2DOffsetCols", false); 
+	addBoolSetting("Import2DOffsetCols", false);
 
 	addBoolSetting("Export2DMulti", true);
 	addBoolSetting("Export2DSingle", false);
@@ -111,12 +138,13 @@ Settings::Settings(){
 	addBoolSetting("ExportTransUnfiltered", false);
 	addBoolSetting("ExportTransFiltered", true);
 
-	addBoolSetting("TrialDrawMarkerIds",false);
+	addBoolSetting("TrialDrawMarkerIds", false);
 
 	addIntSetting("EpipolarLinePrecision", 5);
 }
 
-Settings::~Settings(){
+Settings::~Settings()
+{
 	booleanSettings.clear();
 	intSettings.clear();
 	floatSettings.clear();
@@ -132,8 +160,8 @@ Settings* Settings::getInstance()
 	return instance;
 }
 
-template<typename T>
-int findIdx(QString name, std::vector< std::pair < QString, T > > &vec)
+template <typename T>
+int findIdx(QString name, std::vector<std::pair<QString, T>>& vec)
 {
 	for (unsigned int i = 0; i < vec.size(); i++)
 	{
@@ -153,6 +181,7 @@ void Settings::set(QString name, bool value)
 	}
 	assert(idx < 0);
 }
+
 void Settings::set(QString name, int value)
 {
 	QSettings settings;
@@ -164,6 +193,7 @@ void Settings::set(QString name, int value)
 	}
 	assert(idx < 0);
 }
+
 void Settings::set(QString name, float value)
 {
 	QSettings settings;
@@ -175,6 +205,7 @@ void Settings::set(QString name, float value)
 	}
 	assert(idx < 0);
 }
+
 void Settings::set(QString name, QString value)
 {
 	QSettings settings;
@@ -191,14 +222,17 @@ void Settings::addBoolSetting(QString name, bool defaultValue)
 {
 	booleanSettings.push_back(std::make_pair(name, defaultValue));
 }
+
 void Settings::addIntSetting(QString name, int defaultValue)
 {
 	intSettings.push_back(std::make_pair(name, defaultValue));
 }
+
 void Settings::addFloatSetting(QString name, float defaultValue)
 {
 	floatSettings.push_back(std::make_pair(name, defaultValue));
 }
+
 void Settings::addQStringSetting(QString name, QString defaultValue)
 {
 	qstringSettings.push_back(std::make_pair(name, defaultValue));
@@ -215,6 +249,7 @@ bool Settings::getBoolSetting(QString name)
 	assert(idx < 0);
 	return false;
 }
+
 int Settings::getIntSetting(QString name)
 {
 	QSettings settings;
@@ -226,6 +261,7 @@ int Settings::getIntSetting(QString name)
 	assert(idx < 0);
 	return -1;
 }
+
 float Settings::getFloatSetting(QString name)
 {
 	QSettings settings;
@@ -237,6 +273,7 @@ float Settings::getFloatSetting(QString name)
 	assert(idx < 0);
 	return -1;
 }
+
 QString Settings::getQStringSetting(QString name)
 {
 	QSettings settings;
@@ -250,34 +287,47 @@ QString Settings::getQStringSetting(QString name)
 }
 
 //Special Settings
-void Settings::setLastUsedDirectory(QString filename, bool directory){
+void Settings::setLastUsedDirectory(QString filename, bool directory)
+{
 	QSettings settings;
-	if(!directory){
+	if (!directory)
+	{
 		QFileInfo fileinfo(filename);
-		settings.setValue("lastDirectoryUsed",fileinfo.absolutePath());
-	}else{
-		settings.setValue("lastDirectoryUsed",filename);
+		settings.setValue("lastDirectoryUsed", fileinfo.absolutePath());
+	}
+	else
+	{
+		settings.setValue("lastDirectoryUsed", filename);
 	}
 }
-QString Settings::getLastUsedDirectory(){
+
+QString Settings::getLastUsedDirectory()
+{
 	QSettings settings;
 	return settings.value("lastDirectoryUsed").toString();
 }
-void Settings::setUIGeometry(QString windowTitle, QByteArray geometry){
+
+void Settings::setUIGeometry(QString windowTitle, QByteArray geometry)
+{
 	QSettings settings;
 	settings.setValue("UIGeometry_" + windowTitle, geometry);
 }
-QByteArray Settings::getUIGeometry(QString windowTitle){
+
+QByteArray Settings::getUIGeometry(QString windowTitle)
+{
 	QSettings settings;
-	return settings.value("UIGeometry_" + windowTitle,"").toByteArray();
+	return settings.value("UIGeometry_" + windowTitle, "").toByteArray();
 }
-void Settings::setUIState(QString windowTitle, QByteArray state){
+
+void Settings::setUIState(QString windowTitle, QByteArray state)
+{
 	QSettings settings;
 	settings.setValue("UIState_" + windowTitle, state);
 }
-QByteArray Settings::getUIState(QString windowTitle){
-	QSettings settings;
-	return settings.value("UIState_" + windowTitle,"").toByteArray();
-}
 
+QByteArray Settings::getUIState(QString windowTitle)
+{
+	QSettings settings;
+	return settings.value("UIState_" + windowTitle, "").toByteArray();
+}
 

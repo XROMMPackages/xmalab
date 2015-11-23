@@ -1,5 +1,31 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file Image.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "Image.h"
@@ -16,14 +42,18 @@
 
 using namespace xma;
 
-Image::Image(QString _imageFileName){
+Image::Image(QString _imageFileName)
+{
 	color = false;
 	cv::Mat imageTMP;
-	imageTMP = cv::imread(_imageFileName.toAscii().data(),CV_LOAD_IMAGE_GRAYSCALE | CV_LOAD_IMAGE_ANYDEPTH);
+	imageTMP = cv::imread(_imageFileName.toAscii().data(), CV_LOAD_IMAGE_GRAYSCALE | CV_LOAD_IMAGE_ANYDEPTH);
 
-	if(imageTMP.depth() == CV_16U){
-		imageTMP.convertTo(image,CV_8U,1.0/256.0);
-	}else{
+	if (imageTMP.depth() == CV_16U)
+	{
+		imageTMP.convertTo(image,CV_8U, 1.0 / 256.0);
+	}
+	else
+	{
 		image = imageTMP.clone();
 	}
 
@@ -34,11 +64,15 @@ Image::Image(QString _imageFileName){
 	imageTMP.release();
 }
 
-Image::Image(Image *_image){
+Image::Image(Image* _image)
+{
 	color = _image->color;
-	if(_image->image.depth() == CV_16U){
-		_image->image.convertTo(image,CV_8U,1.0/256.0);
-	}else{
+	if (_image->image.depth() == CV_16U)
+	{
+		_image->image.convertTo(image,CV_8U, 1.0 / 256.0);
+	}
+	else
+	{
 		image = _image->image.clone();
 	}
 
@@ -48,7 +82,8 @@ Image::Image(Image *_image){
 	image_reset = false;
 }
 
-Image::Image(cv::Mat &_image){
+Image::Image(cv::Mat& _image)
+{
 	color = false;
 	image = _image.clone();
 
@@ -58,11 +93,13 @@ Image::Image(cv::Mat &_image){
 	image_reset = false;
 }
 
-Image::~Image(){
+Image::~Image()
+{
 	deleteTexture();
 }
 
-void Image::getImage(cv::Mat &_image){
+void Image::getImage(cv::Mat& _image)
+{
 	_image.release();
 	_image = image.clone();
 }
@@ -79,11 +116,12 @@ void Image::getSubImage(cv::Mat& _image, int size, double x, double y)
 {
 	_image.release();
 	cv::Size img_size(2 * size + 1, 2 * size + 1);
-	cv::Point2f center(x,y);
+	cv::Point2f center(x, y);
 	cv::getRectSubPix(image, img_size, center, _image);
 }
 
-void Image::setImage(cv::Mat &_image, bool _color){
+void Image::setImage(cv::Mat& _image, bool _color)
+{
 	color = _color;
 	image.release();
 	image = _image.clone();
@@ -95,33 +133,40 @@ void Image::setImage(QString imageFileName)
 	image.release();
 	cv::Mat imageTMP;
 	imageTMP = cv::imread(imageFileName.toAscii().data(), CV_LOAD_IMAGE_GRAYSCALE | CV_LOAD_IMAGE_ANYDEPTH);
-	if (imageTMP.depth() == CV_16U){
+	if (imageTMP.depth() == CV_16U)
+	{
 		imageTMP.convertTo(image, CV_8U, 1.0 / 256.0);
 	}
-	else{
+	else
+	{
 		image = imageTMP.clone();
 	}
 	image_reset = true;
 }
 
-void Image::loadTexture(){
-	if(!textureLoaded || image_reset){
-		
-		if(!textureLoaded)((QGLContext*) (GLSharedWidget::getInstance()->getQGLContext()))->makeCurrent();
+void Image::loadTexture()
+{
+	if (!textureLoaded || image_reset)
+	{
+		if (!textureLoaded)((QGLContext*) (GLSharedWidget::getInstance()->getQGLContext()))->makeCurrent();
 
-		cv::Mat imageOut;	
-		if(!color){
-			imageOut.create( image.rows,  image.cols, CV_8UC(3) );
-			cvtColor( image, imageOut, CV_GRAY2RGB);
-		}else{
+		cv::Mat imageOut;
+		if (!color)
+		{
+			imageOut.create(image.rows, image.cols, CV_8UC(3));
+			cvtColor(image, imageOut, CV_GRAY2RGB);
+		}
+		else
+		{
 			imageOut = image.clone();
 		}
 		glEnable(GL_TEXTURE_2D);
 
-		if(!textureLoaded){
+		if (!textureLoaded)
+		{
 			glGenTextures(1, &texture);
 		}
-			
+
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -131,7 +176,7 @@ void Image::loadTexture(){
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.cols, image.rows,
-			0, GL_BGR, GL_UNSIGNED_BYTE,imageOut.ptr());       
+		                          0, GL_BGR, GL_UNSIGNED_BYTE, imageOut.ptr());
 
 		imageOut.release();
 		textureLoaded = true;
@@ -139,19 +184,24 @@ void Image::loadTexture(){
 	}
 }
 
-void Image::bindTexture(){
+void Image::bindTexture()
+{
 	loadTexture();
 	glBindTexture(GL_TEXTURE_2D, texture);
 }
 
-void Image::deleteTexture(){
-	if(textureLoaded){
+void Image::deleteTexture()
+{
+	if (textureLoaded)
+	{
 		GLSharedWidget::getInstance()->makeCurrent();
 		glDeleteTextures(1, &texture);
 	}
 	textureLoaded = false;
 }
 
-void Image::save(QString filename){
-	cv::imwrite(filename.toAscii().data(),image);
+void Image::save(QString filename)
+{
+	cv::imwrite(filename.toAscii().data(), image);
 }
+

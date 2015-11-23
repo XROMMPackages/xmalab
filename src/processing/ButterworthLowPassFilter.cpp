@@ -1,4 +1,5 @@
-/* The computation of the butterworth low pass filter is taken from http ://www.exstrom.com/journal/sigproc/liir.c with the following Copyright
+/* The computation of the butterworth low pass filter is taken from 
+* http ://www.exstrom.com/journal/sigproc/liir.c with the following Copyright
 *
 *                            COPYRIGHT
 *
@@ -45,23 +46,23 @@
 
 
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "processing/ButterworthLowPassFilter.h"	
+#include "processing/ButterworthLowPassFilter.h" 
 #ifndef M_PI
-	#define M_PI   3.14159265358979323846	
+#define M_PI   3.14159265358979323846	
 #endif
 
 using namespace xma;
 
-double *binomial_mult(int n, double *p)
+double* binomial_mult(int n, double* p)
 {
 	int i, j;
-	double *a;
+	double* a;
 
 	a = (double *)calloc(2 * n, sizeof(double));
-	if (a == NULL) return(NULL);
+	if (a == NULL) return (NULL);
 
 	for (i = 0; i < n; ++i)
 	{
@@ -73,24 +74,24 @@ double *binomial_mult(int n, double *p)
 		a[0] += p[2 * i];
 		a[1] += p[2 * i + 1];
 	}
-	return(a);
+	return (a);
 }
 
-double *dcof_bwlp(int n, double fcf)
+double* dcof_bwlp(int n, double fcf)
 {
-	int k;            // loop variables
-	double theta;     // M_PI * fcf / 2.0
-	double st;        // sine of theta
-	double ct;        // cosine of theta
-	double parg;      // pole angle
-	double sparg;     // sine of the pole angle
-	double cparg;     // cosine of the pole angle
-	double a;         // workspace variable
-	double *rcof;     // binomial coefficients
-	double *dcof;     // dk coefficients
+	int k; // loop variables
+	double theta; // M_PI * fcf / 2.0
+	double st; // sine of theta
+	double ct; // cosine of theta
+	double parg; // pole angle
+	double sparg; // sine of the pole angle
+	double cparg; // cosine of the pole angle
+	double a; // workspace variable
+	double* rcof; // binomial coefficients
+	double* dcof; // dk coefficients
 
 	rcof = (double *)calloc(2 * n, sizeof(double));
-	if (rcof == NULL) return(NULL);
+	if (rcof == NULL) return (NULL);
 
 	theta = M_PI * fcf;
 	st = sin(theta);
@@ -101,9 +102,9 @@ double *dcof_bwlp(int n, double fcf)
 		parg = M_PI * (double)(2 * k + 1) / (double)(2 * n);
 		sparg = sin(parg);
 		cparg = cos(parg);
-		a = 1.0 + st*sparg;
+		a = 1.0 + st * sparg;
 		rcof[2 * k] = -ct / a;
-		rcof[2 * k + 1] = -st*cparg / a;
+		rcof[2 * k + 1] = -st * cparg / a;
 	}
 
 	dcof = binomial_mult(n, rcof);
@@ -113,39 +114,39 @@ double *dcof_bwlp(int n, double fcf)
 	dcof[0] = 1.0;
 	for (k = 3; k <= n; ++k)
 		dcof[k] = dcof[2 * k - 2];
-	return(dcof);
+	return (dcof);
 }
 
-int *ccof_bwlp(int n)
+int* ccof_bwlp(int n)
 {
-	int *ccof;
+	int* ccof;
 	int m;
 	int i;
 
 	ccof = (int *)calloc(n + 1, sizeof(int));
-	if (ccof == NULL) return(NULL);
+	if (ccof == NULL) return (NULL);
 
 	ccof[0] = 1;
 	ccof[1] = n;
 	m = n / 2;
 	for (i = 2; i <= m; ++i)
 	{
-		ccof[i] = (n - i + 1)*ccof[i - 1] / i;
+		ccof[i] = (n - i + 1) * ccof[i - 1] / i;
 		ccof[n - i] = ccof[i];
 	}
 	ccof[n - 1] = n;
 	ccof[n] = 1;
 
-	return(ccof);
+	return (ccof);
 }
 
 double sf_bwlp(int n, double fcf)
 {
-	int m, k;         // loop variables
-	double omega;     // M_PI * fcf
-	double fomega;    // function of omega
-	double parg0;     // zeroth pole angle
-	double sf;        // scaling factor
+	int m, k; // loop variables
+	double omega; // M_PI * fcf
+	double fomega; // function of omega
+	double parg0; // zeroth pole angle
+	double sf; // scaling factor
 
 	omega = M_PI * fcf;
 	fomega = sin(omega);
@@ -154,37 +155,37 @@ double sf_bwlp(int n, double fcf)
 	m = n / 2;
 	sf = 1.0;
 	for (k = 0; k < n / 2; ++k)
-		sf *= 1.0 + fomega * sin((double)(2 * k + 1)*parg0);
+		sf *= 1.0 + fomega * sin((double)(2 * k + 1) * parg0);
 
 	fomega = sin(omega / 2.0);
 
 	if (n % 2) sf *= fomega + cos(omega / 2.0);
 	sf = pow(fomega, n) / sf;
 
-	return(sf);
+	return (sf);
 }
 
 typedef std::vector<int> vectori;
 typedef std::vector<double> vectord;
 
-void add_index_range(vectori &indices, int beg, int end, int inc = 1)
+void add_index_range(vectori& indices, int beg, int end, int inc = 1)
 {
 	for (int i = beg; i <= end; i += inc)
 		indices.push_back(i);
 }
 
-void add_index_const(vectori &indices, int value, size_t numel)
+void add_index_const(vectori& indices, int value, size_t numel)
 {
 	while (numel--)
 		indices.push_back(value);
 }
 
-void append_vector(vectord &vec, const vectord &tail)
+void append_vector(vectord& vec, const vectord& tail)
 {
 	vec.insert(vec.end(), tail.begin(), tail.end());
 }
 
-vectord subvector_reverse(const vectord &vec, int idx_end, int idx_start)
+vectord subvector_reverse(const vectord& vec, int idx_end, int idx_start)
 {
 	vectord result(&vec[idx_start], &vec[idx_end + 1]);
 	std::reverse(result.begin(), result.end());
@@ -197,11 +198,14 @@ inline int max_val(const vectori& vec)
 }
 
 
-void filter(vectord B, vectord A, const vectord &X, vectord &Y, vectord &Zi)
+void filter(vectord B, vectord A, const vectord& X, vectord& Y, vectord& Zi)
 {
 	if (A.empty())
 		throw std::domain_error("The feedback filter coefficients are empty.");
-	if (std::all_of(A.begin(), A.end(), [](double coef){ return coef == 0; }))
+	if (std::all_of(A.begin(), A.end(), [](double coef)
+	                {
+		                return coef == 0;
+	                }))
 		throw std::domain_error("At least one of the feedback filter coefficients has to be non-zero.");
 	if (A[0] == 0)
 		throw std::domain_error("First feedback coefficient has to be non-zero.");
@@ -210,8 +214,14 @@ void filter(vectord B, vectord A, const vectord &X, vectord &Y, vectord &Zi)
 	auto a0 = A[0];
 	if (a0 != 1.0)
 	{
-		std::transform(A.begin(), A.end(), A.begin(), [a0](double v) { return v / a0; });
-		std::transform(B.begin(), B.end(), B.begin(), [a0](double v) { return v / a0; });
+		std::transform(A.begin(), A.end(), A.begin(), [a0](double v)
+		               {
+			               return v / a0;
+		               });
+		std::transform(B.begin(), B.end(), B.begin(), [a0](double v)
+		               {
+			               return v / a0;
+		               });
 	}
 
 	size_t input_size = X.size();
@@ -221,11 +231,11 @@ void filter(vectord B, vectord A, const vectord &X, vectord &Y, vectord &Zi)
 	Zi.resize(filter_order, 0);
 	Y.resize(input_size);
 
-	const double *x = &X[0];
-	const double *b = &B[0];
-	const double *a = &A[0];
-	double *z = &Zi[0];
-	double *y = &Y[0];
+	const double* x = &X[0];
+	const double* b = &B[0];
+	const double* a = &A[0];
+	double* z = &Zi[0];
+	double* y = &Y[0];
 
 	for (size_t i = 0; i < input_size; ++i)
 	{
@@ -242,11 +252,11 @@ void filter(vectord B, vectord A, const vectord &X, vectord &Y, vectord &Zi)
 }
 
 
-void filtfilt(vectord B, vectord A, const vectord &X, vectord &Y)
+void filtfilt(vectord B, vectord A, const vectord& X, vectord& Y)
 {
 	//using namespace Eigen;
 
-	int len = X.size();     // length of input
+	int len = X.size(); // length of input
 	int na = A.size();
 	int nb = B.size();
 	int nfilt = (nb > na) ? nb : na;
@@ -280,7 +290,8 @@ void filtfilt(vectord B, vectord A, const vectord &X, vectord &Y)
 	auto klen = rows.size();
 	vectord data;
 	data.resize(klen);
-	data[0] = 1 + A[1];  int j = 1;
+	data[0] = 1 + A[1];
+	int j = 1;
 	if (nfilt > 2)
 	{
 		for (int i = 2; i < nfilt; i++)
@@ -293,11 +304,17 @@ void filtfilt(vectord B, vectord A, const vectord &X, vectord &Y)
 
 	vectord leftpad = subvector_reverse(X, nfact, 1);
 	double _2x0 = 2 * X[0];
-	std::transform(leftpad.begin(), leftpad.end(), leftpad.begin(), [_2x0](double val) {return _2x0 - val; });
+	std::transform(leftpad.begin(), leftpad.end(), leftpad.begin(), [_2x0](double val)
+	               {
+		               return _2x0 - val;
+	               });
 
 	vectord rightpad = subvector_reverse(X, len - 2, len - nfact - 1);
 	double _2xl = 2 * X[len - 1];
-	std::transform(rightpad.begin(), rightpad.end(), rightpad.begin(), [_2xl](double val) {return _2xl - val; });
+	std::transform(rightpad.begin(), rightpad.end(), rightpad.begin(), [_2xl](double val)
+	               {
+		               return _2xl - val;
+	               });
 
 	double y0;
 	vectord signal1, signal2, zi;
@@ -313,23 +330,30 @@ void filtfilt(vectord B, vectord A, const vectord &X, vectord &Y)
 		sp.at<double>(rows[k], cols[k]) = data[k];
 
 	cv::Mat bb = cv::Mat(B, true);
-	cv::Mat aa = cv::Mat(A,true);
+	cv::Mat aa = cv::Mat(A, true);
 	cv::Mat zzi = (sp.inv() * (bb.rowRange(1, nfilt) - (aa.rowRange(1, nfilt) * bb.at<double>(0, 0))));
 	zi.resize(zzi.rows);
 
 	// Do the forward and backward filtering
 	y0 = signal1[0];
-	std::transform(zzi.begin<double>(), zzi.end<double>(), zi.begin(), [y0](double val){ return val*y0; });
+	std::transform(zzi.begin<double>(), zzi.end<double>(), zi.begin(), [y0](double val)
+	               {
+		               return val * y0;
+	               });
 	filter(B, A, signal1, signal2, zi);
 	std::reverse(signal2.begin(), signal2.end());
 	y0 = signal2[0];
-	std::transform(zzi.begin<double>(), zzi.end<double>(), zi.begin(), [y0](double val){ return val*y0; });
+	std::transform(zzi.begin<double>(), zzi.end<double>(), zi.begin(), [y0](double val)
+	               {
+		               return val * y0;
+	               });
 	filter(B, A, signal2, signal1, zi);
 	Y = subvector_reverse(signal1, signal1.size() - nfact - 1, nfact);
 }
 
-ButterworthLowPassFilter::ButterworthLowPassFilter(int order, double cutOffFrequency, double recordingFrequency){
-	double fcf;       // cutoff frequency (fraction of pi)
+ButterworthLowPassFilter::ButterworthLowPassFilter(int order, double cutOffFrequency, double recordingFrequency)
+{
+	double fcf; // cutoff frequency (fraction of pi)
 
 	n = order;
 	fcf = cutOffFrequency / (recordingFrequency * 0.5);
@@ -343,7 +367,8 @@ ButterworthLowPassFilter::ButterworthLowPassFilter(int order, double cutOffFrequ
 	sf = sf_bwlp(n, fcf); /* scaling factor for the c coefficients */
 }
 
-ButterworthLowPassFilter::~ButterworthLowPassFilter(){
+ButterworthLowPassFilter::~ButterworthLowPassFilter()
+{
 	free(dcof);
 	free(ccof);
 }

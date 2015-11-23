@@ -1,5 +1,31 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file CameraViewWidget.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "ui/CameraViewWidget.h"
@@ -11,10 +37,10 @@
 
 using namespace xma;
 
-CameraViewWidget::CameraViewWidget(Camera * _camera, QWidget *parent) :
-											QWidget(parent),
-												widget(new Ui::CameraViewWidget){
-	
+CameraViewWidget::CameraViewWidget(Camera* _camera, QWidget* parent) :
+	QWidget(parent),
+	widget(new Ui::CameraViewWidget)
+{
 	camera = _camera;
 
 	widget->setupUi(this);
@@ -47,81 +73,100 @@ CameraViewWidget::CameraViewWidget(Camera * _camera, QWidget *parent) :
 	if (camera->getID() == State::getInstance()->getActiveCamera())activeCameraChanged(State::getInstance()->getActiveCamera());
 }
 
-CameraViewWidget::~CameraViewWidget(){
-
+CameraViewWidget::~CameraViewWidget()
+{
 }
 
-void CameraViewWidget::setCameraName(QString name){
+void CameraViewWidget::setCameraName(QString name)
+{
 	widget->cameraTitleLabel->setText(name);
 }
 
-void CameraViewWidget::setImageName(QString name){
+void CameraViewWidget::setImageName(QString name)
+{
 	widget->imageTitleLabel->setText(name);
 }
 
-void CameraViewWidget::setSharedGLContext(const QGLContext * sharedContext){
+void CameraViewWidget::setSharedGLContext(const QGLContext* sharedContext)
+{
 	QGLContext* context = new QGLContext(sharedContext->format(), widget->glCameraView);
 	context->create(sharedContext);
-	widget->glCameraView->setContext(context,sharedContext,true);
+	widget->glCameraView->setContext(context, sharedContext, true);
 }
 
-void CameraViewWidget::draw(){
+void CameraViewWidget::draw()
+{
 	widget->glCameraView->update();
 }
 
-void CameraViewWidget::updateInfo(){
+void CameraViewWidget::updateInfo()
+{
 	calibrationFrame->update(camera);
 	undistortionFrame->update(camera);
 }
 
 
-void CameraViewWidget::setMinimumWidthGL(bool set){
+void CameraViewWidget::setMinimumWidthGL(bool set)
+{
 	widget->glCameraView->setMinimumWidthGL(set);
 }
 
-void CameraViewWidget::on_toolButtonFitZoom_clicked(bool checked){
+void CameraViewWidget::on_toolButtonFitZoom_clicked(bool checked)
+{
 	widget->glCameraView->setAutoZoom(checked);
 	widget->glCameraView->update();
 }
 
-void CameraViewWidget::on_toolButtonInfo_clicked(bool checked){
-	if(checked)
+void CameraViewWidget::on_toolButtonInfo_clicked(bool checked)
+{
+	if (checked)
 	{
 		widget->frameInfo->show();
-	}else{
+	}
+	else
+	{
 		widget->frameInfo->hide();
-	} 
+	}
 }
 
 
-void CameraViewWidget::on_spinBoxZoom_valueChanged(int value){
+void CameraViewWidget::on_spinBoxZoom_valueChanged(int value)
+{
 	widget->glCameraView->setZoom(value);
 	widget->glCameraView->update();
 }
 
-void CameraViewWidget::autozoomChanged(bool on){
+void CameraViewWidget::autozoomChanged(bool on)
+{
 	widget->toolButtonFitZoom->setChecked(on);
 }
-void CameraViewWidget::zoomChanged(int zoom){
-	if(zoom != widget->spinBoxZoom->value())
+
+void CameraViewWidget::zoomChanged(int zoom)
+{
+	if (zoom != widget->spinBoxZoom->value())
 		widget->spinBoxZoom->setValue(zoom);
 }
 
-void CameraViewWidget::workspaceChanged(work_state workspace){
-	if(workspace == UNDISTORTION){
+void CameraViewWidget::workspaceChanged(work_state workspace)
+{
+	if (workspace == UNDISTORTION)
+	{
 		undistortionFrame->show();
 		calibrationFrame->hide();
-	}else if(workspace == CALIBRATION){
+	}
+	else if (workspace == CALIBRATION)
+	{
 		undistortionFrame->hide();
 		calibrationFrame->show();
 	}
 }
 
-void CameraViewWidget::activeFrameCalibrationChanged(int activeFrame){
+void CameraViewWidget::activeFrameCalibrationChanged(int activeFrame)
+{
 	calibrationFrame->updateFrame(camera);
 }
 
-bool CameraViewWidget::eventFilter(QObject *obj, QEvent *event)
+bool CameraViewWidget::eventFilter(QObject* obj, QEvent* event)
 {
 	if (event->type() == QEvent::MouseButtonPress) State::getInstance()->changeActiveCamera(camera->getID());
 
@@ -129,7 +174,8 @@ bool CameraViewWidget::eventFilter(QObject *obj, QEvent *event)
 	{
 		return QWidget::eventFilter(obj, event);
 	}
-	else{
+	else
+	{
 		return false;
 	}
 }
@@ -155,3 +201,4 @@ void CameraViewWidget::activeCameraChanged(int activeCamera)
 		setPalette(pal);
 	}
 }
+

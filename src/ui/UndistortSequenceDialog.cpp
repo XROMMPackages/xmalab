@@ -1,5 +1,31 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file UndistortSequenceDialog.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 #include "ui/UndistortSequenceDialog.h"
 #include "ui_UndistortSequenceDialog.h"
@@ -18,7 +44,7 @@
 
 
 #ifdef WIN32
-	#define OS_SEP "\\"
+#define OS_SEP "\\"
 #else
 	#define OS_SEP "/"
 #endif
@@ -26,13 +52,15 @@
 
 using namespace xma;
 
-UndistortSequenceDialog::UndistortSequenceDialog(QWidget *parent) :
-												QDialog(parent),
-												diag(new Ui::UndistortSequenceDialog){
-
+UndistortSequenceDialog::UndistortSequenceDialog(QWidget* parent) :
+	QDialog(parent),
+	diag(new Ui::UndistortSequenceDialog)
+{
 	diag->setupUi(this);
-	for(std::vector <Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it){
-		if((*it)->hasUndistortion() && (*it)->getUndistortionObject()->isComputed()){
+	for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
+	{
+		if ((*it)->hasUndistortion() && (*it)->getUndistortionObject()->isComputed())
+		{
 			diag->comboBox_Camera->addItem((*it)->getUndistortionObject()->getFilenameBase());
 		}
 	}
@@ -42,50 +70,61 @@ UndistortSequenceDialog::UndistortSequenceDialog(QWidget *parent) :
 	diag->lineEdit_pattern->setText(Settings::getInstance()->getQStringSetting("UndistortNamingPattern"));
 }
 
-UndistortSequenceDialog::~UndistortSequenceDialog(){
+UndistortSequenceDialog::~UndistortSequenceDialog()
+{
 	delete diag;
 }
 
-QString UndistortSequenceDialog::commonPostfix(QStringList fileNames){
+QString UndistortSequenceDialog::commonPostfix(QStringList fileNames)
+{
 	bool isValid = true;
 	int count = 0;
 	//int max = (fileNames.size() > 20) ? 20 : fileNames.size();
 
-	while (isValid && count < fileNames.at(0).length()){
-		QString postfix = fileNames.at(0).right(count+1);
-		for(int i = 0; i < fileNames.size() ;i++){
-			if(!fileNames.at(i).contains(postfix)){
-				isValid=false;
+	while (isValid && count < fileNames.at(0).length())
+	{
+		QString postfix = fileNames.at(0).right(count + 1);
+		for (int i = 0; i < fileNames.size(); i++)
+		{
+			if (!fileNames.at(i).contains(postfix))
+			{
+				isValid = false;
 				break;
 			}
 		}
-		
-		if(isValid)count++;
+
+		if (isValid)count++;
 	}
 	return fileNames.at(0).right(count);
 }
 
-QString UndistortSequenceDialog::commonPrefix(QStringList fileNames){
+QString UndistortSequenceDialog::commonPrefix(QStringList fileNames)
+{
 	bool isValid = true;
 	int count = 0;
 	//int max = (fileNames.size() > 20) ? 20 : fileNames.size();
 
-	while (isValid && count < fileNames.at(0).length()){
-		QString prefix = fileNames.at(0).left(count+1);
-		for(int i = 0; i <fileNames.size();i++){
-			if(!fileNames.at(i).contains(prefix)){
-				isValid=false;
+	while (isValid && count < fileNames.at(0).length())
+	{
+		QString prefix = fileNames.at(0).left(count + 1);
+		for (int i = 0; i < fileNames.size(); i++)
+		{
+			if (!fileNames.at(i).contains(prefix))
+			{
+				isValid = false;
 				break;
 			}
 		}
-		
-		if(isValid)count++;
+
+		if (isValid)count++;
 	}
 	return fileNames.at(0).left(count);
 }
 
-int UndistortSequenceDialog::getNumber(QStringList fileNames){
-	if(fileNames.size() > 1){
+int UndistortSequenceDialog::getNumber(QStringList fileNames)
+{
+	if (fileNames.size() > 1)
+	{
 		QString number = fileNames.at(0);
 		number.replace(commonPrefixString, QString(""));
 		number.replace(commonPostfixString, QString(""));
@@ -94,35 +133,38 @@ int UndistortSequenceDialog::getNumber(QStringList fileNames){
 	return 0;
 }
 
-void UndistortSequenceDialog::on_toolButton_Input_clicked(){
+void UndistortSequenceDialog::on_toolButton_Input_clicked()
+{
 	fileNames = QFileDialog::getOpenFileNames(this,
-		tr("Open Files"),Settings::getInstance()->getLastUsedDirectory(),tr("Video and Image Files (*.cine *.avi *.png *.jpg *.jpeg *.bmp *.tif)"));
+	                                          tr("Open Files"), Settings::getInstance()->getLastUsedDirectory(), tr("Video and Image Files (*.cine *.avi *.png *.jpg *.jpeg *.bmp *.tif)"));
 
 	fileNames.sort();
-	if ( fileNames.size() > 0 && fileNames[0].isNull() == false )
-    {
-        Settings::getInstance()->setLastUsedDirectory(fileNames[0]);
+	if (fileNames.size() > 0 && fileNames[0].isNull() == false)
+	{
+		Settings::getInstance()->setLastUsedDirectory(fileNames[0]);
 		commonPrefixString = commonPrefix(fileNames);
 		commonPostfixString = commonPostfix(fileNames);
 		diag->lineEdit_Input->setText(commonPrefixString);
 		diag->spinBox_NumberStart->setValue(getNumber(fileNames));
-    }
+	}
 	updatePreview();
 }
 
-void UndistortSequenceDialog::on_toolButton_OutputFolder_clicked(){
+void UndistortSequenceDialog::on_toolButton_OutputFolder_clicked()
+{
 	outputfolder = QFileDialog::getExistingDirectory(this,
-		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+	                                                 tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
-	if ( outputfolder.isNull() == false )
-    {
+	if (outputfolder.isNull() == false)
+	{
 		diag->lineEdit_Outputfolder->setText(outputfolder);
-		Settings::getInstance()->setLastUsedDirectory(outputfolder,true);
-    }
+		Settings::getInstance()->setLastUsedDirectory(outputfolder, true);
+	}
 }
 
-void UndistortSequenceDialog::on_lineEdit_pattern_textChanged(QString text){
-	Settings::getInstance()->set("UndistortNamingPattern",text);
+void UndistortSequenceDialog::on_lineEdit_pattern_textChanged(QString text)
+{
+	Settings::getInstance()->set("UndistortNamingPattern", text);
 	updatePreview();
 }
 
@@ -138,7 +180,8 @@ void UndistortSequenceDialog::on_spinBox_NumberLength_valueChanged(int i)
 
 void UndistortSequenceDialog::updatePreview()
 {
-	if (fileNames.size() > 0){
+	if (fileNames.size() > 0)
+	{
 		QFileInfo info(fileNames.at(0));
 		QString name = getFilename(info, diag->spinBox_NumberStart->value());
 		name.replace(OS_SEP, "");
@@ -160,14 +203,17 @@ QString UndistortSequenceDialog::getFilename(QFileInfo fileinfo, int numberFrame
 	return outfilename;
 }
 
-bool UndistortSequenceDialog::overwriteFile(QString outfilename, bool &overwrite)
+bool UndistortSequenceDialog::overwriteFile(QString outfilename, bool& overwrite)
 {
 	QFile outfile(outfilename);
-	if (!overwrite && outfile.exists()){
-		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("The file " + outfilename + " already exists. Are you sure you want to overwrite it?")){
+	if (!overwrite && outfile.exists())
+	{
+		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("The file " + outfilename + " already exists. Are you sure you want to overwrite it?"))
+		{
 			return false;
 		}
-		else{
+		else
+		{
 			overwrite = true;
 			return true;
 		}
@@ -175,24 +221,29 @@ bool UndistortSequenceDialog::overwriteFile(QString outfilename, bool &overwrite
 	return true;
 }
 
-void UndistortSequenceDialog::on_pushButton_clicked(){
+void UndistortSequenceDialog::on_pushButton_clicked()
+{
 	int frameStart = diag->spinBox_NumberStart->value();
 	bool overwrite = false;
 
 	int camera_id = -1;
 	int count = 0;
-	for(std::vector <Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it){
-		if((*it)->hasUndistortion() && (*it)->getUndistortionObject()->isComputed()){
-			if(diag->comboBox_Camera->currentText() == (*it)->getUndistortionObject()->getFilenameBase())
+	for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
+	{
+		if ((*it)->hasUndistortion() && (*it)->getUndistortionObject()->isComputed())
+		{
+			if (diag->comboBox_Camera->currentText() == (*it)->getUndistortionObject()->getFilenameBase())
 				camera_id = count;
 		}
 		count++;
 	}
-	if(camera_id >= 0){
+	if (camera_id >= 0)
+	{
 		diag->progressBar->setMaximum(fileNames.size());
 		diag->progressBar->setValue(0);
 		diag->progressBar->show();
-		for(int i = 0; i <fileNames.size();i++){
+		for (int i = 0; i < fileNames.size(); i++)
+		{
 			QFileInfo infoName(fileNames.at(i));
 			if (infoName.suffix() == "cine")
 			{
@@ -205,7 +256,8 @@ void UndistortSequenceDialog::on_pushButton_clicked(){
 					QString outfilename = getFilename(infoName, frameStart + f);
 					if (!overwriteFile(outfilename, overwrite)) return;
 					video.setActiveFrame(f);
-					if (!Project::getInstance()->getCameras()[camera_id]->getUndistortionObject()->undistort(video.getImage(), outfilename)){
+					if (!Project::getInstance()->getCameras()[camera_id]->getUndistortionObject()->undistort(video.getImage(), outfilename))
+					{
 						ErrorDialog::getInstance()->showErrorDialog("There was a PRoblem during Undistortion. Check your data, e.g. the resolutions.");
 						break;
 					}
@@ -225,7 +277,8 @@ void UndistortSequenceDialog::on_pushButton_clicked(){
 					QString outfilename = getFilename(infoName, frameStart + f);
 					if (!overwriteFile(outfilename, overwrite)) return;
 					video.setActiveFrame(f);
-					if (!Project::getInstance()->getCameras()[camera_id]->getUndistortionObject()->undistort(video.getImage(), outfilename)){
+					if (!Project::getInstance()->getCameras()[camera_id]->getUndistortionObject()->undistort(video.getImage(), outfilename))
+					{
 						ErrorDialog::getInstance()->showErrorDialog("There was a PRoblem during Undistortion. Check your data, e.g. the resolutions.");
 						break;
 					}
@@ -234,19 +287,22 @@ void UndistortSequenceDialog::on_pushButton_clicked(){
 					QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 				}
 			}
-			else{
+			else
+			{
 				QString outfilename = getFilename(infoName, frameStart);
-				if (!overwriteFile(outfilename,overwrite)) return;
+				if (!overwriteFile(outfilename, overwrite)) return;
 
-				if (!Project::getInstance()->getCameras()[camera_id]->getUndistortionObject()->undistort(fileNames.at(i), outfilename)){
+				if (!Project::getInstance()->getCameras()[camera_id]->getUndistortionObject()->undistort(fileNames.at(i), outfilename))
+				{
 					ErrorDialog::getInstance()->showErrorDialog("There was a PRoblem during Undistortion. Check your data, e.g. the resolutions.");
 					break;
 				}
 				frameStart++;
 				diag->progressBar->setValue(i);
 				QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
-			}	
+			}
 		}
 	}
 	diag->progressBar->hide();
 }
+

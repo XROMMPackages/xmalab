@@ -1,5 +1,31 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file CameraViewDetailWidget.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "ui/CameraViewDetailWidget.h"
@@ -10,10 +36,10 @@
 
 using namespace xma;
 
-CameraViewDetailWidget::CameraViewDetailWidget(Camera * _camera, QWidget *parent) :
-											QWidget(parent),
-											widget(new Ui::CameraViewDetailWidget){
-	
+CameraViewDetailWidget::CameraViewDetailWidget(Camera* _camera, QWidget* parent) :
+	QWidget(parent),
+	widget(new Ui::CameraViewDetailWidget)
+{
 	camera = _camera;
 	widget->setupUi(this);
 	widget->glCameraView->setCamera(camera);
@@ -23,20 +49,21 @@ CameraViewDetailWidget::CameraViewDetailWidget(Camera * _camera, QWidget *parent
 	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameTrialChanged(int)));
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(PointsDockWidget::getInstance(), SIGNAL(activePointChanged(int)), this, SLOT(activePointChanged(int)));
-
 }
 
-CameraViewDetailWidget::~CameraViewDetailWidget(){
-
+CameraViewDetailWidget::~CameraViewDetailWidget()
+{
 }
 
-void CameraViewDetailWidget::setSharedGLContext(const QGLContext * sharedContext){
+void CameraViewDetailWidget::setSharedGLContext(const QGLContext* sharedContext)
+{
 	QGLContext* context = new QGLContext(sharedContext->format(), widget->glCameraView);
 	context->create(sharedContext);
-	widget->glCameraView->setContext(context,sharedContext,true);
+	widget->glCameraView->setContext(context, sharedContext, true);
 }
 
-void CameraViewDetailWidget::draw(){
+void CameraViewDetailWidget::draw()
+{
 	widget->glCameraView->update();
 }
 
@@ -46,13 +73,13 @@ void CameraViewDetailWidget::centerViews()
 	widget->glCameraView->update();
 }
 
-void CameraViewDetailWidget::setMinimumWidthGL(bool set){
+void CameraViewDetailWidget::setMinimumWidthGL(bool set)
+{
 	widget->glCameraView->setMinimumWidthGL(set);
 }
 
 void CameraViewDetailWidget::on_doubleSpinBoxBias_valueChanged(double value)
 {
-
 	if (widget->horizontalSliderBias->value() != value * 100)
 	{
 		widget->horizontalSliderBias->setValue(value * 100);
@@ -96,7 +123,8 @@ void CameraViewDetailWidget::workspaceChanged(work_state workspace)
 
 void CameraViewDetailWidget::activeFrameTrialChanged(int)
 {
-	if (!State::getInstance()->getDisableDraw()){
+	if (!State::getInstance()->getDisableDraw())
+	{
 		widget->glCameraView->centerViewToPoint();
 		widget->glCameraView->update();
 	}

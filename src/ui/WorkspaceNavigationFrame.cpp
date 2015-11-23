@@ -1,5 +1,31 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file WorkspaceNavigationFrame.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "ui/WorkspaceNavigationFrame.h"
@@ -19,28 +45,29 @@ using namespace xma;
 
 WorkspaceNavigationFrame* WorkspaceNavigationFrame::instance = NULL;
 
-WorkspaceNavigationFrame::WorkspaceNavigationFrame(QWidget *parent) :
-												QFrame(parent),
-												frame(new Ui::WorkspaceNavigationFrame){
-
+WorkspaceNavigationFrame::WorkspaceNavigationFrame(QWidget* parent) :
+	QFrame(parent),
+	frame(new Ui::WorkspaceNavigationFrame)
+{
 	frame->setupUi(this);
 	setTrialVisible(false);
 	updating = false;
-	
+
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(State::getInstance(), SIGNAL(displayChanged(ui_state)), this, SLOT(displayChanged(ui_state)));
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 }
 
-WorkspaceNavigationFrame::~WorkspaceNavigationFrame(){
+WorkspaceNavigationFrame::~WorkspaceNavigationFrame()
+{
 	delete frame;
 	instance = NULL;
 }
 
 WorkspaceNavigationFrame* WorkspaceNavigationFrame::getInstance()
 {
-	if(!instance) 
+	if (!instance)
 
 	{
 		instance = new WorkspaceNavigationFrame(MainWindow::getInstance());
@@ -48,23 +75,28 @@ WorkspaceNavigationFrame* WorkspaceNavigationFrame::getInstance()
 	return instance;
 }
 
-void WorkspaceNavigationFrame::setUndistortion(bool hasUndistortion){
-	if(hasUndistortion){
-		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion") );
+void WorkspaceNavigationFrame::setUndistortion(bool hasUndistortion)
+{
+	if (hasUndistortion)
+	{
+		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion"));
 		on_comboBoxWorkspace_currentIndexChanged(frame->comboBoxWorkspace->currentText());
-		frame->horizontalSpacer->changeSize(10,10,QSizePolicy::Expanding, QSizePolicy::Minimum);
-		frame->comboBoxWorkspace->setVisible(true);	
-	}else{
-		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration") );
+		frame->horizontalSpacer->changeSize(10, 10, QSizePolicy::Expanding, QSizePolicy::Minimum);
+		frame->comboBoxWorkspace->setVisible(true);
+	}
+	else
+	{
+		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration"));
 		on_comboBoxWorkspace_currentIndexChanged(frame->comboBoxWorkspace->currentText());
-		frame->horizontalSpacer->changeSize(10,10,QSizePolicy::Ignored, QSizePolicy::Minimum);
+		frame->horizontalSpacer->changeSize(10, 10, QSizePolicy::Ignored, QSizePolicy::Minimum);
 		frame->comboBoxWorkspace->setVisible(true);
 		frame->comboBoxWorkspace->removeItem(frame->comboBoxWorkspace->findText("Undistortion"));
 	}
 }
 
-void WorkspaceNavigationFrame::addCamera(int idx, QString name){
-	frame->comboBoxViewspace->insertItem(idx,name);
+void WorkspaceNavigationFrame::addCamera(int idx, QString name)
+{
+	frame->comboBoxViewspace->insertItem(idx, name);
 }
 
 void WorkspaceNavigationFrame::addTrial(QString name)
@@ -80,60 +112,86 @@ void WorkspaceNavigationFrame::closeProject()
 	updating = false;
 }
 
-void WorkspaceNavigationFrame::removeCamera(int idx){
+void WorkspaceNavigationFrame::removeCamera(int idx)
+{
 	frame->comboBoxViewspace->removeItem(idx);
 }
 
-void WorkspaceNavigationFrame::workspaceChanged(work_state workspace){
-	if(workspace == UNDISTORTION){
-		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion") );
-	}else if(workspace == CALIBRATION){
-		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration") );
-	}else if (workspace == DIGITIZATION){
+void WorkspaceNavigationFrame::workspaceChanged(work_state workspace)
+{
+	if (workspace == UNDISTORTION)
+	{
+		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion"));
+	}
+	else if (workspace == CALIBRATION)
+	{
+		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration"));
+	}
+	else if (workspace == DIGITIZATION)
+	{
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Marker tracking"));
-		if (!State::getInstance()->isLoading() && State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size()){
+		if (!State::getInstance()->isLoading() && State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
+		{
 			ThreadScheduler::getInstance()->updateTrialData(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
 		}
 	}
 }
 
-void WorkspaceNavigationFrame::displayChanged(ui_state display){
-	if(display == ALL_CAMERAS_FULL_HEIGHT){
-		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText("All Cameras - Full Height") );
-	}else if(display == ALL_CAMERAS_1ROW_SCALED){
-		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText("All Cameras - 1 Row Scaled") );
-	}else if(display == ALL_CAMERAS_2ROW_SCALED){
-		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText("All Cameras - 2 Row Scaled") );
-	}else if(display == ALL_CAMERAS_3ROW_SCALED){
-		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText("All Cameras - 3 Row Scaled") );
-	}else if(display == SINGLE_CAMERA){
-		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getName()) );
+void WorkspaceNavigationFrame::displayChanged(ui_state display)
+{
+	if (display == ALL_CAMERAS_FULL_HEIGHT)
+	{
+		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText("All Cameras - Full Height"));
 	}
-}  
+	else if (display == ALL_CAMERAS_1ROW_SCALED)
+	{
+		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText("All Cameras - 1 Row Scaled"));
+	}
+	else if (display == ALL_CAMERAS_2ROW_SCALED)
+	{
+		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText("All Cameras - 2 Row Scaled"));
+	}
+	else if (display == ALL_CAMERAS_3ROW_SCALED)
+	{
+		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText("All Cameras - 3 Row Scaled"));
+	}
+	else if (display == SINGLE_CAMERA)
+	{
+		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getName()));
+	}
+}
 
-void WorkspaceNavigationFrame::activeCameraChanged(int activeCamera){
-	if(State::getInstance()->getDisplay() == SINGLE_CAMERA){
-		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText(Project::getInstance()->getCameras()[activeCamera]->getName()) );
+void WorkspaceNavigationFrame::activeCameraChanged(int activeCamera)
+{
+	if (State::getInstance()->getDisplay() == SINGLE_CAMERA)
+	{
+		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText(Project::getInstance()->getCameras()[activeCamera]->getName()));
 	}
 }
 
 void WorkspaceNavigationFrame::activeTrialChanged(int activeTrial)
 {
-	if (activeTrial >= 0){
+	if (activeTrial >= 0)
+	{
 		frame->comboBoxTrial->setCurrentIndex(activeTrial);
-		if (!State::getInstance()->isLoading() && State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size()){
+		if (!State::getInstance()->isLoading() && State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
+		{
 			ThreadScheduler::getInstance()->updateTrialData(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
 		}
 	}
 }
 
-void WorkspaceNavigationFrame::setTrialVisible(bool visible){
-	if (visible){
+void WorkspaceNavigationFrame::setTrialVisible(bool visible)
+{
+	if (visible)
+	{
 		frame->label_Trial->show();
 		frame->toolButtonAddTrial->show();
 		frame->comboBoxTrial->show();
 		frame->toolButtonTrialSettings->show();
-	}else{
+	}
+	else
+	{
 		frame->label_Trial->hide();
 		frame->toolButtonAddTrial->hide();
 		frame->comboBoxTrial->hide();
@@ -141,18 +199,26 @@ void WorkspaceNavigationFrame::setTrialVisible(bool visible){
 	}
 }
 
-void WorkspaceNavigationFrame::on_comboBoxWorkspace_currentIndexChanged(QString value){
-	if(currentComboBoxWorkspaceIndex != frame->comboBoxWorkspace->currentIndex()){
-		if(WizardDockWidget::getInstance()->checkForPendingChanges()){
-			if(value == "Undistortion"){
+void WorkspaceNavigationFrame::on_comboBoxWorkspace_currentIndexChanged(QString value)
+{
+	if (currentComboBoxWorkspaceIndex != frame->comboBoxWorkspace->currentIndex())
+	{
+		if (WizardDockWidget::getInstance()->checkForPendingChanges())
+		{
+			if (value == "Undistortion")
+			{
 				State::getInstance()->changeWorkspace(UNDISTORTION);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
 				setTrialVisible(false);
-			}else if(value == "Calibration"){
+			}
+			else if (value == "Calibration")
+			{
 				State::getInstance()->changeWorkspace(CALIBRATION);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
 				setTrialVisible(false);
-			}else if (value == "Marker tracking"){
+			}
+			else if (value == "Marker tracking")
+			{
 				State::getInstance()->changeWorkspace(DIGITIZATION);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
 				if (Project::getInstance()->isCalibrated())
@@ -164,7 +230,9 @@ void WorkspaceNavigationFrame::on_comboBoxWorkspace_currentIndexChanged(QString 
 					setTrialVisible(false);
 				}
 			}
-		}else{
+		}
+		else
+		{
 			frame->comboBoxWorkspace->setCurrentIndex(currentComboBoxWorkspaceIndex);
 		}
 	}
@@ -175,20 +243,32 @@ void WorkspaceNavigationFrame::on_comboBoxTrial_currentIndexChanged(int idx)
 	if (!updating)State::getInstance()->changeActiveTrial(idx);
 }
 
-void WorkspaceNavigationFrame::on_comboBoxViewspace_currentIndexChanged(QString value){
-	if(value == "All Cameras - Full Height"){
+void WorkspaceNavigationFrame::on_comboBoxViewspace_currentIndexChanged(QString value)
+{
+	if (value == "All Cameras - Full Height")
+	{
 		State::getInstance()->changeDisplay(ALL_CAMERAS_FULL_HEIGHT);
-	}else if(value == "All Cameras - 1 Row Scaled"){
+	}
+	else if (value == "All Cameras - 1 Row Scaled")
+	{
 		State::getInstance()->changeDisplay(ALL_CAMERAS_1ROW_SCALED);
-	}else if(value == "All Cameras - 2 Row Scaled"){
+	}
+	else if (value == "All Cameras - 2 Row Scaled")
+	{
 		State::getInstance()->changeDisplay(ALL_CAMERAS_2ROW_SCALED);
-	}else if(value == "All Cameras - 3 Row Scaled"){
+	}
+	else if (value == "All Cameras - 3 Row Scaled")
+	{
 		State::getInstance()->changeDisplay(ALL_CAMERAS_3ROW_SCALED);
-	}else{
+	}
+	else
+	{
 		//Single cameras
 		int count = 0;
-		for(std::vector <Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it){
-			if( (*it)->getName() == value ){
+		for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
+		{
+			if ((*it)->getName() == value)
+			{
 				State::getInstance()->changeActiveCamera(count);
 				State::getInstance()->changeDisplay(SINGLE_CAMERA);
 				return;
@@ -200,33 +280,35 @@ void WorkspaceNavigationFrame::on_comboBoxViewspace_currentIndexChanged(QString 
 
 void WorkspaceNavigationFrame::on_toolButtonTrialSettings_clicked()
 {
-	if (State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size())
+	if (State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
 	{
-		TrialDialog * dialog = new TrialDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
+		TrialDialog* dialog = new TrialDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
 		dialog->exec();
 
-		if (dialog->result()) {
+		if (dialog->result())
+		{
 			MainWindow::getInstance()->redrawGL();
 		}
 		else if (dialog->doUpdateTrial())
 		{
-			Trial * trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
+			Trial* trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
 			trial->setRequiresRecomputation(true);
 			ThreadScheduler::getInstance()->updateTrialData(trial);
 		}
-		else if (dialog->doDeleteTrial()){
-			Trial * trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
+		else if (dialog->doDeleteTrial())
+		{
+			Trial* trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
 			int oldTrial = State::getInstance()->getActiveTrial();
 			int activeTrial = State::getInstance()->getActiveTrial();
 			Project::getInstance()->deleteTrial(trial);
 			frame->comboBoxTrial->removeItem(oldTrial);
 
-			if (activeTrial >= Project::getInstance()->getTrials().size()) activeTrial -= 1;
+			if (activeTrial >= (int) Project::getInstance()->getTrials().size()) activeTrial -= 1;
 			State::getInstance()->changeActiveTrial(activeTrial, true);
 
 			if (activeTrial == -1)
 			{
-				State::getInstance()->changeWorkspace(DIGITIZATION,true);
+				State::getInstance()->changeWorkspace(DIGITIZATION, true);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
 				if (Project::getInstance()->isCalibrated())
 				{
@@ -248,15 +330,22 @@ void WorkspaceNavigationFrame::on_toolButtonAddTrial_clicked()
 	MainWindow::getInstance()->on_pushButtonNewTrial_clicked();
 }
 
-void WorkspaceNavigationFrame::setWorkState(work_state workspace){
-	if(workspace == UNDISTORTION){
+void WorkspaceNavigationFrame::setWorkState(work_state workspace)
+{
+	if (workspace == UNDISTORTION)
+	{
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion"));
 		setTrialVisible(false);
-	}else if(workspace == CALIBRATION){
+	}
+	else if (workspace == CALIBRATION)
+	{
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration"));
 		setTrialVisible(false);
-	}else if (workspace == DIGITIZATION){
+	}
+	else if (workspace == DIGITIZATION)
+	{
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Marker tracking"));
 		setTrialVisible(true);
 	}
 }
+

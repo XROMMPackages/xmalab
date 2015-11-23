@@ -1,10 +1,36 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file CineVideo.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "core/CineVideo.h"
 
-#include <fstream>      
+#include <fstream> 
 
 #include <QtCore/QFileInfo>
 
@@ -32,35 +58,42 @@ using namespace xma;
 #define SHOWEND std::cout << std::endl
 #define printHeader false
 
-template<typename T> void readAndAdvance(T &output, char* &ptr)
+template <typename T>
+void readAndAdvance(T& output, char* & ptr)
 {
-	T * Tptr = (T *) ptr; ptr += sizeof(T);
+	T* Tptr = (T *) ptr;
+	ptr += sizeof(T);
 	output = *Tptr;
 }
 
-template<typename T> void readAndAdvance(T *output, char* &ptr, int length)
+template <typename T>
+void readAndAdvance(T* output, char* & ptr, int length)
 {
-	for (int i = 0; i < length; i++){
-		T * Tptr = (T *) ptr; ptr += sizeof(T);
+	for (int i = 0; i < length; i++)
+	{
+		T* Tptr = (T *) ptr;
+		ptr += sizeof(T);
 		output[i] = *Tptr;
 	}
 }
 
-CineVideo::CineVideo(QStringList _filenames) :VideoStream(_filenames){
+CineVideo::CineVideo(QStringList _filenames) : VideoStream(_filenames)
+{
 	loadCineInfo();
 }
 
 void CineVideo::loadCineInfo()
 {
 	//Open File
-	if (QFile::exists(filenames.at(0))){
+	if (QFile::exists(filenames.at(0)))
+	{
 		std::ifstream is(filenames.at(0).toAscii().data(), std::ifstream::binary);
 
-		char * counter;
+		char* counter;
 		if (printHeader)std::cout << "Read Cine File " << filenames.at(0).toAscii().data() << std::endl;
 		//Read CINEFILEHEADER
 		is.seekg(0);
-		char * header = new char[44];
+		char* header = new char[44];
 		counter = header;
 		is.read(header, 44);
 
@@ -102,7 +135,7 @@ void CineVideo::loadCineInfo()
 
 		//Read BITMAPINFOHEADER 
 		is.seekg(OffImageHeader);
-		char * bitmapInfoHeader = new char[lengthBitmapInfoHeader];
+		char* bitmapInfoHeader = new char[lengthBitmapInfoHeader];
 		counter = bitmapInfoHeader;
 		is.read(bitmapInfoHeader, lengthBitmapInfoHeader);
 
@@ -130,7 +163,7 @@ void CineVideo::loadCineInfo()
 		delete[]bitmapInfoHeader;
 
 		is.seekg(OffSetup);
-		char * camerasetup = new char[5740];
+		char* camerasetup = new char[5740];
 		counter = camerasetup;
 		is.read(camerasetup, 5740);
 
@@ -173,7 +206,12 @@ void CineVideo::loadCineInfo()
 		readAndAdvance(SamplesPerImage, counter);
 		if (printHeader) SHOW(SamplesPerImage);
 		for (int i = 0; i < 8; i++)readAndAdvance(&BinName[i][0], counter, 11);
-		if (printHeader){ SHOWNAME(BinName); for (int i = 0; i < 8; i++)SHOWSTRINGONLY(BinName[i]); SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(BinName) ;
+			for (int i = 0; i < 8; i++)SHOWSTRINGONLY(BinName[i]);
+			SHOWEND;
+		}
 		readAndAdvance(AnaOption, counter);
 		if (printHeader) SHOW(AnaOption);
 		readAndAdvance(AnaChannels, counter);
@@ -183,13 +221,33 @@ void CineVideo::loadCineInfo()
 		readAndAdvance(AnaBoard, counter);
 		if (printHeader) SHOW(AnaBoard);
 		readAndAdvance(ChOption, counter, 8);
-		if (printHeader){ SHOWNAME(ChOption); for (int i = 0; i < 8; i++) SHOWVALONLY(ChOption[i]); SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(ChOption) ;
+			for (int i = 0; i < 8; i++) SHOWVALONLY(ChOption[i]);
+			SHOWEND;
+		}
 		readAndAdvance(AnaGain, counter, 8);
-		if (printHeader){ SHOWNAME(AnaGain); for (int i = 0; i < 8; i++)SHOWVALONLY(AnaGain[i]); SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(AnaGain) ;
+			for (int i = 0; i < 8; i++)SHOWVALONLY(AnaGain[i]);
+			SHOWEND;
+		}
 		for (int i = 0; i < 8; i++)readAndAdvance(&AnaUnit[i][0], counter, 6);
-		if (printHeader){ SHOWNAME(AnaUnit); for (int i = 0; i < 8; i++)SHOWSTRINGONLY(AnaUnit[i]); SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(AnaUnit) ;
+			for (int i = 0; i < 8; i++)SHOWSTRINGONLY(AnaUnit[i]);
+			SHOWEND;
+		}
 		for (int i = 0; i < 8; i++)readAndAdvance(&AnaName[i][0], counter, 11);
-		if (printHeader){ SHOWNAME(AnaName); for (int i = 0; i < 8; i++)SHOWSTRINGONLY(AnaName[i]); SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(AnaName) ;
+			for (int i = 0; i < 8; i++)SHOWSTRINGONLY(AnaName[i]);
+			SHOWEND;
+		}
 		readAndAdvance(lFirstImage, counter);
 		if (printHeader) SHOW(lFirstImage);
 		readAndAdvance(dwImageCount, counter);
@@ -199,7 +257,12 @@ void CineVideo::loadCineInfo()
 		readAndAdvance(wCineFileType, counter);
 		if (printHeader) SHOW(wCineFileType);
 		for (int i = 0; i < 4; i++)readAndAdvance(&szCinePath[i][0], counter, 65);
-		if (printHeader){ SHOWNAME(szCinePath); for (int i = 0; i < 4; i++)SHOWSTRINGONLY(szCinePath[i]); SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(szCinePath) ;
+			for (int i = 0; i < 4; i++)SHOWSTRINGONLY(szCinePath[i]);
+			SHOWEND;
+		}
 		readAndAdvance(bMainsFreq, counter);
 		if (printHeader) SHOW(bMainsFreq);
 		readAndAdvance(bTimeCode, counter);
@@ -275,19 +338,49 @@ void CineVideo::loadCineInfo()
 		readAndAdvance(AutoExpSpeed, counter);
 		if (printHeader) SHOW(AutoExpSpeed);
 		readAndAdvance(AutoExpRect, counter, 4);
-		if (printHeader){ SHOWNAME(AutoExpRect); for (int i = 0; i < 4; i++) SHOWVALONLY(AutoExpRect[i]); SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(AutoExpRect) ;
+			for (int i = 0; i < 4; i++) SHOWVALONLY(AutoExpRect[i]);
+			SHOWEND;
+		}
 		readAndAdvance(WBGain1, counter, 2);
-		if (printHeader){ SHOWNAME(WBGain1); for (int i = 0; i < 2; i++) SHOWVALONLY(WBGain1[i]);  SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(WBGain1) ;
+			for (int i = 0; i < 2; i++) SHOWVALONLY(WBGain1[i]);
+			SHOWEND;
+		}
 		readAndAdvance(WBGain2, counter, 2);
-		if (printHeader){ SHOWNAME(WBGain2); for (int i = 0; i < 2; i++) SHOWVALONLY(WBGain2[i]);  SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(WBGain2) ;
+			for (int i = 0; i < 2; i++) SHOWVALONLY(WBGain2[i]);
+			SHOWEND;
+		}
 		readAndAdvance(WBGain3, counter, 2);
-		if (printHeader){ SHOWNAME(WBGain3); for (int i = 0; i < 2; i++) SHOWVALONLY(WBGain3[i]);  SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(WBGain3) ;
+			for (int i = 0; i < 2; i++) SHOWVALONLY(WBGain3[i]);
+			SHOWEND;
+		}
 		readAndAdvance(WBGain4, counter, 2);
-		if (printHeader){ SHOWNAME(WBGain4); for (int i = 0; i < 2; i++) SHOWVALONLY(WBGain4[i]);  SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(WBGain4) ;
+			for (int i = 0; i < 2; i++) SHOWVALONLY(WBGain4[i]);
+			SHOWEND;
+		}
 		readAndAdvance(Rotate, counter);
 		if (printHeader) SHOW(Rotate);
 		readAndAdvance(WBView, counter, 2);
-		if (printHeader){ SHOWNAME(WBView); for (int i = 0; i < 2; i++) SHOWVALONLY(WBView[i]);  SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(WBView) ;
+			for (int i = 0; i < 2; i++) SHOWVALONLY(WBView[i]);
+			SHOWEND;
+		}
 		readAndAdvance(RealBPP, counter);
 		if (printHeader) SHOW(RealBPP);
 		readAndAdvance(Conv8Min, counter);
@@ -305,7 +398,12 @@ void CineVideo::loadCineInfo()
 		readAndAdvance(UF_Bias, counter);
 		if (printHeader) SHOW(UF_Bias);
 		readAndAdvance(UF_Coeff, counter, 25);
-		if (printHeader){ SHOWNAME(UF_Coeff); for (int i = 0; i < 25; i++) SHOWVALONLY(UF_Coeff[i]);  SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(UF_Coeff) ;
+			for (int i = 0; i < 25; i++) SHOWVALONLY(UF_Coeff[i]);
+			SHOWEND;
+		}
 		readAndAdvance(BlackCalSVer, counter);
 		if (printHeader) SHOW(BlackCalSVer);
 		readAndAdvance(WhiteCalSVer, counter);
@@ -319,15 +417,35 @@ void CineVideo::loadCineInfo()
 		readAndAdvance(FRPSteps, counter);
 		if (printHeader) SHOW(FRPSteps);
 		readAndAdvance(FRPImgNr, counter, 16);
-		if (printHeader){ SHOWNAME(FRPImgNr); for (int i = 0; i < 16; i++) SHOWVALONLY(FRPImgNr[i]); SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(FRPImgNr) ;
+			for (int i = 0; i < 16; i++) SHOWVALONLY(FRPImgNr[i]);
+			SHOWEND;
+		}
 		readAndAdvance(FRPRate, counter, 16);
-		if (printHeader){ SHOWNAME(FRPRate); for (int i = 0; i < 16; i++) SHOWVALONLY(FRPRate[i]);  SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(FRPRate) ;
+			for (int i = 0; i < 16; i++) SHOWVALONLY(FRPRate[i]);
+			SHOWEND;
+		}
 		readAndAdvance(FRPExp, counter, 16);
-		if (printHeader){ SHOWNAME(FRPExp); for (int i = 0; i < 16; i++) SHOWVALONLY(FRPExp[i]);  SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(FRPExp) ;
+			for (int i = 0; i < 16; i++) SHOWVALONLY(FRPExp[i]);
+			SHOWEND;
+		}
 		readAndAdvance(MCCnt, counter);
 		if (printHeader) SHOW(MCCnt);
 		readAndAdvance(MCPercent, counter, 64);
-		if (printHeader){ SHOWNAME(MCPercent); for (int i = 0; i < 64; i++) SHOWVALONLY(MCPercent[i]);  SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(MCPercent) ;
+			for (int i = 0; i < 64; i++) SHOWVALONLY(MCPercent[i]);
+			SHOWEND;
+		}
 		readAndAdvance(CICalib, counter);
 		if (printHeader) SHOW(CICalib);
 		readAndAdvance(CalibWidth, counter);
@@ -343,7 +461,12 @@ void CineVideo::loadCineInfo()
 		readAndAdvance(CalibTemp, counter);
 		if (printHeader) SHOW(CalibTemp);
 		readAndAdvance(HeadSerial, counter, 4);
-		if (printHeader){ SHOWNAME(HeadSerial); for (int i = 0; i < 4; i++) SHOWVALONLY(HeadSerial[i]);  SHOWEND; }
+		if (printHeader)
+		{
+			SHOWNAME(HeadSerial) ;
+			for (int i = 0; i < 4; i++) SHOWVALONLY(HeadSerial[i]);
+			SHOWEND;
+		}
 		readAndAdvance(RangeCode, counter);
 		if (printHeader) SHOW(RangeCode);
 		readAndAdvance(RangeSize, counter);
@@ -375,12 +498,13 @@ void CineVideo::loadCineInfo()
 		//IMAGE POSITIONS
 		is.seekg(OffImageOffsets);
 		int addressSize = (Version == 0) ? 4 : 8;
-		char * imageAddressarray = new char[addressSize * ImageCount];
+		char* imageAddressarray = new char[addressSize * ImageCount];
 		is.read(imageAddressarray, addressSize * ImageCount);
 		counter = imageAddressarray;
 
 		image_addresses.clear();
-		for (int i = 0; i < ImageCount; i++){
+		for (unsigned int i = 0; i < ImageCount; i++)
+		{
 			if (Version == 0)
 			{
 				unsigned long var;
@@ -398,15 +522,16 @@ void CineVideo::loadCineInfo()
 		delete[] imageAddressarray;
 
 		nbImages = ImageCount;
-		fps = FrameRate; 
+		fps = FrameRate;
 
-		if (ImageCount > 0){
+		if (ImageCount > 0)
+		{
 			is.seekg(image_addresses[0]);
 			DWORD annotationSize;
 			is.read((char*)&annotationSize, sizeof(DWORD));
 
 			is.seekg(image_addresses[0] + annotationSize);
-			char * imageData = new char[biSizeImage];
+			char* imageData = new char[biSizeImage];
 			is.read(imageData, biSizeImage);
 			cv::Mat imageWithData = cv::Mat(biHeight, biWidth, CV_8U, imageData).clone();
 			delete[]imageData;
@@ -421,25 +546,26 @@ void CineVideo::loadCineInfo()
 	}
 }
 
-CineVideo::~CineVideo(){
-
+CineVideo::~CineVideo()
+{
 }
 
 void CineVideo::setActiveFrame(int _activeFrame)
 {
 	std::ifstream is(filenames.at(0).toAscii().data(), std::ifstream::binary);
-	if (_activeFrame < ImageCount && _activeFrame < image_addresses.size()){
+	if (_activeFrame < (int) ImageCount && _activeFrame < (int) image_addresses.size())
+	{
 		is.seekg(image_addresses[_activeFrame]);
 		DWORD annotationSize;
 		is.read((char*)&annotationSize, sizeof(DWORD));
 
 		is.seekg(image_addresses[_activeFrame] + annotationSize);
-		char * imageData = new char[biSizeImage];
+		char* imageData = new char[biSizeImage];
 		is.read(imageData, biSizeImage);
 		cv::Mat imageWithData = cv::Mat(biHeight, biWidth, CV_8U, imageData).clone();
 		delete[]imageData;
 		cv::flip(imageWithData, imageWithData, 0);
-		image->setImage(imageWithData,false);
+		image->setImage(imageWithData, false);
 		imageWithData.release();
 	}
 	is.close();
@@ -455,3 +581,4 @@ void CineVideo::reloadFile()
 {
 	loadCineInfo();
 }
+

@@ -60,7 +60,6 @@ set(PROJECT_DOMAIN_FIRST "xromm")
 set(PROJECT_DOMAIN_SECOND "org")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 
-
 # Set some Win32 Specific Settings
 OPTION(WITH_CONSOLE "Build with a command line for debugging" OFF)
 IF(WIN32)
@@ -338,6 +337,7 @@ SET(XMALab_FORMS_MOC
 		${CMAKE_CURRENT_BINARY_DIR}/ui_TrialDialog.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_PlotWindow.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_PointImportExportDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_OptimizationDialog.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_FromToDialog.h
 )
 

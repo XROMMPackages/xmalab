@@ -1,5 +1,31 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file RigidBodyDialog.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "ui/RigidBodyDialog.h"
@@ -21,10 +47,10 @@
 
 using namespace xma;
 
-RigidBodyDialog::RigidBodyDialog(RigidBody * body, QWidget *parent) :
-												QDialog(parent),
-												diag(new Ui::RigidBodyDialog), m_body(body){
-
+RigidBodyDialog::RigidBodyDialog(RigidBody* body, QWidget* parent) :
+	QDialog(parent),
+	diag(new Ui::RigidBodyDialog), m_body(body)
+{
 	diag->setupUi(this);
 
 	updateIcon();
@@ -42,7 +68,7 @@ RigidBodyDialog::RigidBodyDialog(RigidBody * body, QWidget *parent) :
 	sizePolicy2.setHorizontalStretch(0);
 	sizePolicy2.setVerticalStretch(0);
 
-	for (int i = 0; i < m_body->getPointsIdx().size(); i++)
+	for (unsigned int i = 0; i < m_body->getPointsIdx().size(); i++)
 	{
 		label_RefPoint.push_back(new QLabel(diag->groupBox));
 		sizePolicy1.setHeightForWidth(label_RefPoint[i]->sizePolicy().hasHeightForWidth());
@@ -57,7 +83,7 @@ RigidBodyDialog::RigidBodyDialog(RigidBody * body, QWidget *parent) :
 		comboBox[i]->setSizePolicy(sizePolicy2);
 
 		label_RefPoint[i]->setText(m_body->getReferenceNames()[i]);
-		for (int j = 0; j < m_body->getPointsIdx().size(); j++)
+		for (unsigned int j = 0; j < m_body->getPointsIdx().size(); j++)
 		{
 			comboBox[i]->addItem(QString::number(m_body->getPointsIdx()[j] + 1));
 		}
@@ -72,7 +98,8 @@ RigidBodyDialog::RigidBodyDialog(RigidBody * body, QWidget *parent) :
 		diag->gridLayout->addWidget(label_DescPoint[i], i, 2, 1, 1);
 	}
 
-	if (m_body->getOverrideCutoffFrequency()){
+	if (m_body->getOverrideCutoffFrequency())
+	{
 		diag->checkBoxCutoffOverride->setChecked(true);
 		diag->doubleSpinBoxCutoff->setEnabled(true);
 		diag->doubleSpinBoxCutoff->setValue(m_body->getCutoffFrequency());
@@ -90,13 +117,15 @@ RigidBodyDialog::RigidBodyDialog(RigidBody * body, QWidget *parent) :
 }
 
 
-void  RigidBodyDialog::updateIcon()
+void RigidBodyDialog::updateIcon()
 {
 	QIcon icon;
-	if (m_body->isReferencesSet() == 2){
+	if (m_body->isReferencesSet() == 2)
+	{
 		icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d.png"), QSize(), QIcon::Normal, QIcon::Off);
 	}
-	else if (m_body->isReferencesSet() == 1){
+	else if (m_body->isReferencesSet() == 1)
+	{
 		icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_setMarker.png"), QSize(), QIcon::Normal, QIcon::Off);
 	}
 	else
@@ -108,17 +137,19 @@ void  RigidBodyDialog::updateIcon()
 
 void RigidBodyDialog::updateLabels()
 {
-	for (int i = 0; i <comboBox.size(); i++)
+	for (unsigned int i = 0; i < comboBox.size(); i++)
 	{
 		label_RefPoint[i]->setText(m_body->getReferenceNames()[i]);
 		label_DescPoint[i]->setText(m_body->getMarker(comboBox[i]->currentText().toInt() - 1)->getDescription());
 	}
 }
 
-RigidBodyDialog::~RigidBodyDialog(){
+RigidBodyDialog::~RigidBodyDialog()
+{
 	delete diag;
 
-	for (int i = 0; i < comboBox.size(); i++){
+	for (unsigned int i = 0; i < comboBox.size(); i++)
+	{
 		delete label_RefPoint[i];
 		delete comboBox[i];
 		delete label_DescPoint[i];
@@ -131,9 +162,9 @@ RigidBodyDialog::~RigidBodyDialog(){
 bool RigidBodyDialog::isComplete()
 {
 	bool valid_Selection = true;
-	for (int i = 0; i < comboBox.size(); i++)
+	for (unsigned int i = 0; i < comboBox.size(); i++)
 	{
-		for (int j = 0; j < comboBox.size(); j++)
+		for (unsigned int j = 0; j < comboBox.size(); j++)
 		{
 			if (i != j && comboBox[i]->currentText() == comboBox[j]->currentText()) valid_Selection = false;
 		}
@@ -141,7 +172,7 @@ bool RigidBodyDialog::isComplete()
 
 	if (!valid_Selection)
 	{
-		ErrorDialog::getInstance()->showErrorDialog("Each Marker can only be used once. Please correct your selection.");	
+		ErrorDialog::getInstance()->showErrorDialog("Each Marker can only be used once. Please correct your selection.");
 		return false;
 	}
 
@@ -154,9 +185,9 @@ bool RigidBodyDialog::isComplete()
 bool RigidBodyDialog::setRigidBodyIdxByDialog()
 {
 	bool valid_Selection = true;
-	for (int i = 0; i < comboBox.size(); i++)
+	for (unsigned int i = 0; i < comboBox.size(); i++)
 	{
-		for (int j = 0; j < comboBox.size(); j++)
+		for (unsigned int j = 0; j < comboBox.size(); j++)
 		{
 			if (i != j && comboBox[i]->currentText() == comboBox[j]->currentText()) valid_Selection = false;
 		}
@@ -168,7 +199,7 @@ bool RigidBodyDialog::setRigidBodyIdxByDialog()
 		return false;
 	}
 
-	for (int j = 0; j < m_body->getPointsIdx().size(); j++)
+	for (unsigned int j = 0; j < m_body->getPointsIdx().size(); j++)
 	{
 		m_body->setPointIdx(j, comboBox[j]->currentText().toInt() - 1);
 	}
@@ -178,24 +209,24 @@ bool RigidBodyDialog::setRigidBodyIdxByDialog()
 
 void RigidBodyDialog::updateColorButton()
 {
-	QPixmap pix(16,16);
+	QPixmap pix(16, 16);
 	pix.fill(m_body->getColor());
 	diag->toolButton_Color->setIcon(pix);
 }
 
 void RigidBodyDialog::reloadDummyPoints()
 {
-	for (int i = 0; i < label_Dummy.size(); i++)
+	for (unsigned int i = 0; i < label_Dummy.size(); i++)
 	{
 		diag->gridLayout_5->removeWidget(label_Dummy[i]);
 		delete label_Dummy[i];
 	}
 	label_Dummy.clear();
 
-	for (int i = 0; i < m_body->getDummyNames().size(); i++)
+	for (unsigned int i = 0; i < m_body->getDummyNames().size(); i++)
 	{
-		QLabel * label = new QLabel(m_body->getDummyNames()[i]);
-		diag->gridLayout_5->addWidget(label , i + 1, 0,1,2);
+		QLabel* label = new QLabel(m_body->getDummyNames()[i]);
+		diag->gridLayout_5->addWidget(label, i + 1, 0, 1, 2);
 		label_Dummy.push_back(label);
 	}
 }
@@ -204,8 +235,8 @@ void RigidBodyDialog::on_pushButton_setFromFile_clicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open rigid body references"), Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
 
-	if (fileName.isNull() == false){
-
+	if (fileName.isNull() == false)
+	{
 		if (m_body->isReferencesSet())
 		{
 			if (!ConfirmationDialog::getInstance()->showConfirmationDialog("References are already set by using a file. Are you sure you want to reset the references?"))
@@ -239,13 +270,13 @@ void RigidBodyDialog::on_pushButton_setFromFile_clicked()
 }
 
 
-
-
-void RigidBodyDialog::on_pushButton_OK_clicked(){
+void RigidBodyDialog::on_pushButton_OK_clicked()
+{
 	if (isComplete()) this->accept();
 }
 
-void RigidBodyDialog::on_pushButton_Cancel_clicked(){
+void RigidBodyDialog::on_pushButton_Cancel_clicked()
+{
 	this->reject();
 }
 
@@ -261,7 +292,7 @@ void RigidBodyDialog::on_checkBox_Draw_clicked()
 
 void RigidBodyDialog::on_toolButton_Color_clicked()
 {
-	QColorDialog * cdiag = new QColorDialog();
+	QColorDialog* cdiag = new QColorDialog();
 	cdiag->setCurrentColor(m_body->getColor());
 	cdiag->exec();
 
@@ -274,7 +305,8 @@ void RigidBodyDialog::on_toolButton_Color_clicked()
 
 void RigidBodyDialog::on_checkBoxCutoffOverride_clicked()
 {
-	if (diag->checkBoxCutoffOverride->isChecked()){
+	if (diag->checkBoxCutoffOverride->isChecked())
+	{
 		m_body->setOverrideCutoffFrequency(true);
 		diag->doubleSpinBoxCutoff->setEnabled(true);
 		diag->doubleSpinBoxCutoff->setValue(m_body->getCutoffFrequency());
@@ -289,7 +321,8 @@ void RigidBodyDialog::on_checkBoxCutoffOverride_clicked()
 
 void RigidBodyDialog::on_doubleSpinBoxCutoff_valueChanged(double value)
 {
-	if (diag->checkBoxCutoffOverride->isChecked()){
+	if (diag->checkBoxCutoffOverride->isChecked())
+	{
 		m_body->setCutoffFrequency(value);
 	}
 }
@@ -298,7 +331,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 {
 	bool ok;
 	QString name = QInputDialog::getText(this, tr("QInputDialog::getText()"),
-		tr("Enter a name for the virtual point:"), QLineEdit::Normal, "Virtual " + QString::number(m_body->getDummyNames().size()+1), &ok);
+	                                     tr("Enter a name for the virtual point:"), QLineEdit::Normal, "Virtual " + QString::number(m_body->getDummyNames().size() + 1), &ok);
 	QString filenameCoords;
 	QString filenameRef;
 	int markerID = -1;
@@ -315,28 +348,27 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 			return;
 		}
 
-		if(ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to animate the virtual point by using a Rigid Body? Click cancel if you want to import a csv of tracked data instead."))
+		if (ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to animate the virtual point by using a Rigid Body? Click cancel if you want to import a csv of tracked data instead."))
 		{
-			
 			QStringList trialnames;
-			for (int i = 0; i < m_body->getTrial()->getRigidBodies().size(); i++)
+			for (unsigned int i = 0; i < m_body->getTrial()->getRigidBodies().size(); i++)
 			{
-	
 				trialnames << QString::number(i + 1);
 			}
-			
+
 			bool ok;
 			QString item = QInputDialog::getItem(this, tr("Choose Rigid Body"),
-				tr("RB:"), trialnames, 0, false, &ok);
+			                                     tr("RB:"), trialnames, 0, false, &ok);
 
 			if (ok && !item.isEmpty())
 			{
-				markerID = item.toInt() -1;
+				markerID = item.toInt() - 1;
 				name = name + " RB" + QString::number(markerID + 1);
 			}
 		}
 
-		if (markerID == -1){
+		if (markerID == -1)
+		{
 			filenameCoords = QFileDialog::getOpenFileName(this, tr("Open tracked virtual data file"), Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
 			if (!filenameCoords.isEmpty())
 			{
@@ -354,7 +386,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 	}
 
 	m_body->addDummyPoint(name, filenameRef, markerID, filenameCoords);
-	
+
 	reloadDummyPoints();
 
 	m_body->recomputeTransformations();
@@ -375,3 +407,4 @@ void RigidBodyDialog::on_pushButton_Reset_clicked()
 	updateIcon();
 	updateLabels();
 }
+

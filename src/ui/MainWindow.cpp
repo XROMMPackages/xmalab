@@ -1,5 +1,31 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file MainWindow.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "ui/MainWindow.h"
@@ -62,33 +88,32 @@
 #endif
 
 
-
 //#define BETA 1
 
 using namespace xma;
 
 MainWindow* MainWindow::instance = NULL;
 
-MainWindow::MainWindow(QWidget *parent) :
-												QMainWindow(parent),
-												ui(new Ui::MainWindow){
-
+MainWindow::MainWindow(QWidget* parent) :
+	QMainWindow(parent),
+	ui(new Ui::MainWindow)
+{
 	//To prevent endless looping when accesing MainWindow::getInstance in constructors
 	worldViewDockWidget = NULL;
-	if(!instance) instance = this;
+	if (!instance) instance = this;
 
 	ui->setupUi(this);
 	this->statusBar()->hide();
 
 	ui->imageMainFrame->setVisible(false);
 	WorkspaceNavigationFrame::getInstance()->setObjectName(QString::fromUtf8("workspaceNavigationFrame"));
-    WorkspaceNavigationFrame::getInstance()->setFrameShape(QFrame::StyledPanel);
-    WorkspaceNavigationFrame::getInstance()->setFrameShadow(QFrame::Raised);
-	
+	WorkspaceNavigationFrame::getInstance()->setFrameShape(QFrame::StyledPanel);
+	WorkspaceNavigationFrame::getInstance()->setFrameShadow(QFrame::Raised);
+
 	SequenceNavigationFrame::getInstance()->setObjectName(QString::fromUtf8("sequenceNavigationFrame"));
 	SequenceNavigationFrame::getInstance()->setFrameShape(QFrame::StyledPanel);
 	SequenceNavigationFrame::getInstance()->setFrameShadow(QFrame::Raised);
-	
+
 	ui->gridLayout_2->removeWidget(ui->imageScrollArea);
 	ui->gridLayout_2->addWidget(WorkspaceNavigationFrame::getInstance(), 0, 0, 1, 1);
 	ui->gridLayout_2->addWidget(ui->imageScrollArea, 1, 0, 1, 1);
@@ -101,7 +126,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	ui->actionDetailed_View->setChecked(Settings::getInstance()->getBoolSetting("ShowDetailView"));
 	ui->actionDetailed_View->setEnabled(false);
-	
+
 	ui->actionPlot->setChecked(Settings::getInstance()->getBoolSetting("ShowPlot"));
 	ui->actionPlot->setEnabled(false);
 
@@ -112,38 +137,39 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	project = NULL;
 
-	resizeTimer.setSingleShot( true );
-	connect( &resizeTimer, SIGNAL(timeout()), SLOT(resizeDone()) );
+	resizeTimer.setSingleShot(true);
+	connect(&resizeTimer, SIGNAL(timeout()), SLOT(resizeDone()));
 
 	GLSharedWidget::getInstance()->makeGLCurrent();
 	worldViewDockWidget = new WorldViewDockWidget(this);
-    addDockWidget(Qt::LeftDockWidgetArea, worldViewDockWidget);
+	addDockWidget(Qt::LeftDockWidgetArea, worldViewDockWidget);
 	worldViewDockWidget->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());
 
 	WizardDockWidget::getInstance();
-	ProgressDialog::getInstance();	
+	ProgressDialog::getInstance();
 	ConsoleDockWidget::getInstance();
 	PointsDockWidget::getInstance();
 	DetailViewDockWidget::getInstance();
 	PlotWindow::getInstance();
 
 	restoreGeometry(Settings::getInstance()->getUIGeometry("XMALab"));
-	if (Settings::getInstance()->getUIState("XMALab").size()<0 ||
-		!restoreState(Settings::getInstance()->getUIState("XMALab"), UI_VERSION)){
+	if (Settings::getInstance()->getUIState("XMALab").size() < 0 ||
+		!restoreState(Settings::getInstance()->getUIState("XMALab"), UI_VERSION))
+	{
 		WizardDockWidget::getInstance()->setFloating(true);
 		ProgressDialog::getInstance()->setFloating(true);
-		worldViewDockWidget->setFloating(true);	
-		ConsoleDockWidget::getInstance()->setFloating(true);	
+		worldViewDockWidget->setFloating(true);
+		ConsoleDockWidget::getInstance()->setFloating(true);
 		DetailViewDockWidget::getInstance()->setFloating(true);
 		PlotWindow::getInstance()->setFloating(true);
 	}
-	
+
 	WizardDockWidget::getInstance()->hide();
 	if (Settings::getInstance()->getBoolSetting("Console"))
 	{
-		
 	}
-	else{
+	else
+	{
 		ConsoleDockWidget::getInstance()->hide();
 	}
 	worldViewDockWidget->hide();
@@ -183,7 +209,8 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 
-MainWindow::~MainWindow(){
+MainWindow::~MainWindow()
+{
 	closeProject();
 	delete GLSharedWidget::getInstance();
 	delete WizardDockWidget::getInstance();
@@ -193,27 +220,32 @@ MainWindow::~MainWindow(){
 
 MainWindow* MainWindow::getInstance()
 {
-	if(!instance) 
+	if (!instance)
 	{
 		instance = new MainWindow();
 	}
 	return instance;
 }
 
-void MainWindow::resizeDone(){
-	if(State::getInstance()->getDisplay() == ALL_CAMERAS_FULL_HEIGHT){
-		for (int i = 0 ; i < cameraViews.size();i++){
+void MainWindow::resizeDone()
+{
+	if (State::getInstance()->getDisplay() == ALL_CAMERAS_FULL_HEIGHT)
+	{
+		for (unsigned int i = 0; i < cameraViews.size(); i++)
+		{
 			cameraViews[i]->setMinimumWidthGL(true);
 		}
 	}
 }
 
-void MainWindow::resizeEvent(QResizeEvent *event){
-	resizeTimer.start( 500 );
+void MainWindow::resizeEvent(QResizeEvent* event)
+{
+	resizeTimer.start(500);
 	QMainWindow::resizeEvent(event);
-} 
+}
 
-void MainWindow::closeEvent(QCloseEvent * event){
+void MainWindow::closeEvent(QCloseEvent* event)
+{
 	if (!Settings::getInstance()->getBoolSetting("ConfirmQuitXMALab") || ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to quit XMALab. Please make sure your data have been saved. \nAre you sure you want to quit?"))
 	{
 		Settings::getInstance()->setUIGeometry("XMALab", saveGeometry());
@@ -226,28 +258,31 @@ void MainWindow::closeEvent(QCloseEvent * event){
 	{
 		event->ignore();
 	}
-}	
+}
 
-void MainWindow::recountFrames(){
+void MainWindow::recountFrames()
+{
 	project->recountFrames();
 	SequenceNavigationFrame::getInstance()->setNbImages(project->getNbImagesCalibration());
 }
 
-void MainWindow::setupProjectUI(){
+void MainWindow::setupProjectUI()
+{
 	State::getInstance()->changeActiveCamera(0);
 	State::getInstance()->changeActiveFrameCalibration(0);
 
 	bool hasUndistorion = false;
 	int count = 0;
-	for(std::vector <Camera*>::const_iterator it = project->getCameras().begin(); it != project->getCameras().end(); ++it){
+	for (std::vector<Camera*>::const_iterator it = project->getCameras().begin(); it != project->getCameras().end(); ++it)
+	{
 		CameraViewWidget* cam_widget = new CameraViewWidget((*it), this);
-		cam_widget->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());	
-		cameraViews.push_back(cam_widget);	
+		cam_widget->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());
+		cameraViews.push_back(cam_widget);
 		hasUndistorion = hasUndistorion || (*it)->hasUndistortion();
-		WorkspaceNavigationFrame::getInstance()->addCamera(count,(*it)->getName());
+		WorkspaceNavigationFrame::getInstance()->addCamera(count, (*it)->getName());
 		count++;
 		QApplication::processEvents();
-    }
+	}
 
 	ui->startMainFrame->setVisible(false);
 	ui->imageMainFrame->setVisible(true);
@@ -256,9 +291,10 @@ void MainWindow::setupProjectUI(){
 
 	WorkspaceNavigationFrame::getInstance()->setVisible(true);
 	WorkspaceNavigationFrame::getInstance()->setUndistortion(hasUndistorion);
-	
+
 	if (hasUndistorion) State::getInstance()->changeWorkspace(UNDISTORTION);
-	else  {
+	else
+	{
 		State::getInstance()->changeUndistortion(UNDISTORTED);
 		State::getInstance()->changeWorkspace(CALIBRATION, true);
 	}
@@ -268,9 +304,11 @@ void MainWindow::setupProjectUI(){
 	redrawGL();
 }
 
-void MainWindow::tearDownProjectUI(){
+void MainWindow::tearDownProjectUI()
+{
 	clearSplitters();
-	for (int i = 0 ; i < cameraViews.size();i++){
+	for (unsigned int i = 0; i < cameraViews.size(); i++)
+	{
 		delete cameraViews[i];
 		WorkspaceNavigationFrame::getInstance()->removeCamera(0);
 	}
@@ -286,130 +324,156 @@ void MainWindow::tearDownProjectUI(){
 	WorkspaceNavigationFrame::getInstance()->closeProject();
 }
 
-void MainWindow::clearSplitters(){
-	for (int i = 0 ; i < cameraViews.size();i++){
+void MainWindow::clearSplitters()
+{
+	for (unsigned int i = 0; i < cameraViews.size(); i++)
+	{
 		cameraViews[i]->setParent(NULL);
 	}
 
 	QObjectList objs = ui->imageMainFrame->children();
-	for(int x = 0; x < objs.size(); x ++){
+	for (int x = 0; x < objs.size(); x++)
+	{
 		QObjectList objs2 = objs[x]->children();
-		QSplitter * vertsplit = dynamic_cast<QSplitter*> (objs[x]);
-		for(int y = objs2.size() - 1 ; y >= 0; y --){	
-			QSplitter * horsplit = dynamic_cast<QSplitter*> (objs2[y]);
-			if(horsplit){
+		QSplitter* vertsplit = dynamic_cast<QSplitter*>(objs[x]);
+		for (int y = objs2.size() - 1; y >= 0; y --)
+		{
+			QSplitter* horsplit = dynamic_cast<QSplitter*>(objs2[y]);
+			if (horsplit)
+			{
 				QObjectList objs3 = horsplit->children();
 				delete horsplit;
 			}
-		}	
-		
-		if(vertsplit){
+		}
+
+		if (vertsplit)
+		{
 			ui->gridLayout_4->removeWidget(vertsplit);
 			delete vertsplit;
 		}
 	}
 }
 
-void MainWindow::relayoutCameras(){
-	
+void MainWindow::relayoutCameras()
+{
 	clearSplitters();
-	
-	if(State::getInstance()->getDisplay() == SINGLE_CAMERA){
+
+	if (State::getInstance()->getDisplay() == SINGLE_CAMERA)
+	{
 		ui->imageScrollArea->setVisible(false);
 		ui->imageMainFrame->setVisible(true);
 
-		for (int i = 0 ; i < cameraViews.size();i++){
+		for (unsigned int i = 0; i < cameraViews.size(); i++)
+		{
 			cameraViews[i]->setMinimumWidthGL(false);
 		}
 		ui->gridLayout_4->addWidget(cameraViews[State::getInstance()->getActiveCamera()]);
 	}
-	else if(State::getInstance()->getDisplay() == ALL_CAMERAS_FULL_HEIGHT){
+	else if (State::getInstance()->getDisplay() == ALL_CAMERAS_FULL_HEIGHT)
+	{
 		ui->imageScrollArea->setVisible(true);
 		ui->imageMainFrame->setVisible(false);
-		for (int i = 0 ; i < cameraViews.size();i++){
+		for (unsigned int i = 0; i < cameraViews.size(); i++)
+		{
 			ui->horizontalLayout->addWidget(cameraViews[i]);
 		}
-		resizeTimer.start( 500 );
-	}else{
+		resizeTimer.start(500);
+	}
+	else
+	{
 		ui->imageScrollArea->setVisible(false);
 		ui->imageMainFrame->setVisible(true);
 		QApplication::processEvents();
 
 		int rows = 1;
 
-		if(State::getInstance()->getDisplay() == ALL_CAMERAS_2ROW_SCALED){
+		if (State::getInstance()->getDisplay() == ALL_CAMERAS_2ROW_SCALED)
+		{
 			rows = 2;
-		}else if(State::getInstance()->getDisplay() == ALL_CAMERAS_3ROW_SCALED){
+		}
+		else if (State::getInstance()->getDisplay() == ALL_CAMERAS_3ROW_SCALED)
+		{
 			rows = 3;
 		}
 
 		//Create New
-		QSize cameraViewArrangement = QSize(ceil( ((double) cameraViews.size())/rows),rows);
+		QSize cameraViewArrangement = QSize(ceil(((double) cameraViews.size()) / rows), rows);
 
-		QSplitter * splitter = new QSplitter(this);
+		QSplitter* splitter = new QSplitter(this);
 		splitter->setOrientation(Qt::Vertical);
-		for(int i = 0; i < cameraViewArrangement.height() ; i ++){
-			QSplitter * splitterHorizontal = new QSplitter(splitter);
+		for (int i = 0; i < cameraViewArrangement.height(); i ++)
+		{
+			QSplitter* splitterHorizontal = new QSplitter(splitter);
 			splitterHorizontal->setOrientation(Qt::Horizontal);
 			splitter->addWidget(splitterHorizontal);
 		}
 
 		int freeSpaces = cameraViewArrangement.height() * cameraViewArrangement.width() - cameraViews.size();
-	
+
 		int count = 0;
-		for (int i = 0 ; i < cameraViews.size();i++, count++){
+		for (unsigned int i = 0; i < cameraViews.size(); i++, count++)
+		{
 			cameraViews[i]->setMinimumWidthGL(false);
-			if(cameraViews.size() < i + freeSpaces) count++;
+			if ((int)cameraViews.size() < i + freeSpaces) count++;
 			QObject* obj = splitter->children().at(rows - 1 - count / (cameraViewArrangement.width()));
-			QSplitter * horsplit = dynamic_cast<QSplitter*> (obj);
-			if(horsplit)horsplit->addWidget(cameraViews[i]);
+			QSplitter* horsplit = dynamic_cast<QSplitter*>(obj);
+			if (horsplit)horsplit->addWidget(cameraViews[i]);
 		}
 
 		ui->gridLayout_4->addWidget(splitter, 0, 0, 1, 1);
 		QApplication::processEvents();
 
-		for(int i = 0; i < cameraViewArrangement.height() ; i ++){
+		for (int i = 0; i < cameraViewArrangement.height(); i ++)
+		{
 			QObject* obj = splitter->children().at(i);
-			QSplitter * horsplit = dynamic_cast<QSplitter*> (obj);
-			if(horsplit){
+			QSplitter* horsplit = dynamic_cast<QSplitter*>(obj);
+			if (horsplit)
+			{
 				QList<int> sizelist = horsplit->sizes();
-				for(int m = 0; m < sizelist.size(); m++){
-						sizelist[m] = 100;
+				for (int m = 0; m < sizelist.size(); m++)
+				{
+					sizelist[m] = 100;
 				}
 				horsplit->setSizes(sizelist);
 			}
-		}		
+		}
 	}
 }
 
 //Project functions
-void MainWindow::newProject(){
-	if(project) 
+void MainWindow::newProject()
+{
+	if (project)
 		closeProject();
 
 	project = Project::getInstance();
-	
+
 	newProjectdialog = new NewProjectDialog();
 
 	newProjectdialog->exec();
 
-	if(newProjectdialog->result()){
+	if (newProjectdialog->result())
+	{
 		m_FutureWatcher = new QFutureWatcher<int>();
-		connect( m_FutureWatcher, SIGNAL( finished() ), this, SLOT( newProjectFinished() ) );
+		connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( newProjectFinished() ));
 
 		QFuture<int> future = QtConcurrent::run(newProjectdialog, &NewProjectDialog::createProject);
-		m_FutureWatcher->setFuture( future );
+		m_FutureWatcher->setFuture(future);
 
 		ProgressDialog::getInstance()->showProgressbar(0, 0, "Create new dataset");
-	}else{
+	}
+	else
+	{
 		delete newProjectdialog;
 		delete project;
 		project = NULL;
 	}
 }
 
-void MainWindow::newProjectFinished(){
-	if (m_FutureWatcher->result() >= 0){
+void MainWindow::newProjectFinished()
+{
+	if (m_FutureWatcher->result() >= 0)
+	{
 		project->loadTextures();
 		setupProjectUI();
 		delete newProjectdialog;
@@ -419,7 +483,8 @@ void MainWindow::newProjectFinished(){
 		WizardDockWidget::getInstance()->updateDialog();
 		WizardDockWidget::getInstance()->show();
 	}
-	else{
+	else
+	{
 		delete project;
 		project = NULL;
 
@@ -432,16 +497,18 @@ void MainWindow::newProjectFinished(){
 }
 
 //Project functions
-void MainWindow::newProjectFromXMALab(QString filename){
+void MainWindow::newProjectFromXMALab(QString filename)
+{
 	project = Project::getInstance();
 
 	newProjectdialog = new NewProjectDialog();
-	
+
 	ProjectFileIO::getInstance()->loadXMALabProject(filename, newProjectdialog);
 
 	newProjectdialog->exec();
 
-	if (newProjectdialog->result()){
+	if (newProjectdialog->result())
+	{
 		m_FutureWatcher = new QFutureWatcher<int>();
 		connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(newProjectFinished()));
 
@@ -450,7 +517,8 @@ void MainWindow::newProjectFromXMALab(QString filename){
 
 		ProgressDialog::getInstance()->showProgressbar(0, 0, "Create new dataset");
 	}
-	else{
+	else
+	{
 		delete newProjectdialog;
 		delete project;
 		project = NULL;
@@ -461,37 +529,39 @@ void MainWindow::newProjectFromXMALab(QString filename){
 #else 
 	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA");
 #endif
-	
 }
 
-void MainWindow::loadProject(){
-	if(project) 
+void MainWindow::loadProject()
+{
+	if (project)
 		closeProject();
 
 	project = Project::getInstance();
-	
+
 	QString fileName = QFileDialog::getOpenFileName(this,
-									tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(),tr("Dataset (*.xma  *.zip)"));
-	if ( fileName.isNull() == false )
-    {
+	                                                tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xma  *.zip)"));
+	if (fileName.isNull() == false)
+	{
 		State::getInstance()->setLoading(true);
 
 		Settings::getInstance()->setLastUsedDirectory(fileName);
 
 		m_FutureWatcher = new QFutureWatcher<int>();
-		connect( m_FutureWatcher, SIGNAL( finished() ), this, SLOT( loadProjectFinished() ) );
+		connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( loadProjectFinished() ));
 
-		QFuture<int> future = QtConcurrent::run( ProjectFileIO::getInstance(), &ProjectFileIO::loadProject,fileName  );
-		m_FutureWatcher->setFuture( future );
-		
-		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load dataset "  + fileName).toAscii().data());
+		QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::loadProject, fileName);
+		m_FutureWatcher->setFuture(future);
+
+		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load dataset " + fileName).toAscii().data());
 	}
 }
 
-void MainWindow::loadProjectFinished(){
+void MainWindow::loadProjectFinished()
+{
 	checkTrialImagePaths();
 
-	if (m_FutureWatcher->result() == 0){
+	if (m_FutureWatcher->result() == 0)
+	{
 		project->loadTextures();
 		for (std::vector<Trial*>::const_iterator trial = Project::getInstance()->getTrials().begin(); trial != Project::getInstance()->getTrials().end(); ++trial)
 		{
@@ -505,9 +575,11 @@ void MainWindow::loadProjectFinished(){
 		WizardDockWidget::getInstance()->updateDialog();
 		WizardDockWidget::getInstance()->show();
 
-		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++){
-			if (Project::getInstance()->getCameras()[i]->hasUndistortion() && Project::getInstance()->getCameras()[i]->getUndistortionObject()->isComputed()){
-				LocalUndistortion * localUndistortion = new LocalUndistortion(i);
+		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+		{
+			if (Project::getInstance()->getCameras()[i]->hasUndistortion() && Project::getInstance()->getCameras()[i]->getUndistortionObject()->isComputed())
+			{
+				LocalUndistortion* localUndistortion = new LocalUndistortion(i);
 				connect(localUndistortion, SIGNAL(localUndistortion_finished()), this, SLOT(UndistortionAfterloadProjectFinished()));
 				localUndistortion->computeUndistortion(true);
 			}
@@ -516,7 +588,8 @@ void MainWindow::loadProjectFinished(){
 				Project::getInstance()->getCameras()[i]->undistort();
 			}
 		}
-		if (!LocalUndistortion::isRunning()){
+		if (!LocalUndistortion::isRunning())
+		{
 			MainWindow::getInstance()->redrawGL();
 			UndistortionAfterloadProjectFinished();
 		}
@@ -547,28 +620,36 @@ void MainWindow::loadProjectFinished(){
 	}
 }
 
-void MainWindow::UndistortionAfterloadProjectFinished(){
+void MainWindow::UndistortionAfterloadProjectFinished()
+{
 	bool allCamerasUndistorted = true;
 
-	for(std::vector <Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it){
-		if((*it)->hasUndistortion()){
-			if(!(*it)->getUndistortionObject()->isComputed()){
+	for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
+	{
+		if ((*it)->hasUndistortion())
+		{
+			if (!(*it)->getUndistortionObject()->isComputed())
+			{
 				allCamerasUndistorted = false;
 			}
 		}
 	}
-	if(allCamerasUndistorted) State::getInstance()->changeUndistortion(UNDISTORTED);
+	if (allCamerasUndistorted) State::getInstance()->changeUndistortion(UNDISTORTED);
 
 	bool allCamerasCalibrated = true;
 	bool optimized = false;
-	for(std::vector <Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it){
+	for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
+	{
 		bool calibrated = false;
-		for(std::vector <CalibrationImage*>::const_iterator it2 = (*it)->getCalibrationImages().begin(); it2 != (*it)->getCalibrationImages().end(); ++it2){
-			if((*it2)->isCalibrated()) calibrated = true;
+		for (std::vector<CalibrationImage*>::const_iterator it2 = (*it)->getCalibrationImages().begin(); it2 != (*it)->getCalibrationImages().end(); ++it2)
+		{
+			if ((*it2)->isCalibrated()) calibrated = true;
 		}
-		if(calibrated){
+		if (calibrated)
+		{
 			(*it)->setCalibrated(true);
-			if (!(*it)->isOptimized()){
+			if (!(*it)->isOptimized())
+			{
 				(*it)->setRecalibrationRequired(1);
 			}
 			else
@@ -584,7 +665,8 @@ void MainWindow::UndistortionAfterloadProjectFinished(){
 			allCamerasCalibrated = false;
 		}
 	}
-	if (allCamerasCalibrated){
+	if (allCamerasCalibrated)
+	{
 		ui->actionImportTrial->setEnabled(true);
 	}
 
@@ -597,16 +679,18 @@ void MainWindow::UndistortionAfterloadProjectFinished(){
 	MainWindow::getInstance()->redrawGL();
 }
 
-void MainWindow::closeProject(){
-	
-	if(project){
+void MainWindow::closeProject()
+{
+	if (project)
+	{
 		//prompt for save
 		bool saveProject = false;
-		
-		if(saveProject){
+
+		if (saveProject)
+		{
 			saveProjectAs();
 		}
-	
+
 		//unlink UI and remove project
 		tearDownProjectUI();
 		delete project;
@@ -616,7 +700,7 @@ void MainWindow::closeProject(){
 	State::getInstance()->changeActiveTrial(-1);
 	WizardDockWidget::getInstance()->hide();
 	PointsDockWidget::getInstance()->hide();
-    DetailViewDockWidget::getInstance()->hide();
+	DetailViewDockWidget::getInstance()->hide();
 
 #ifndef BETA
 	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
@@ -629,35 +713,39 @@ void MainWindow::closeProject(){
 	PlotWindow::getInstance()->hide();
 }
 
-void MainWindow::saveProject(){
-	if(WizardDockWidget::getInstance()->checkForPendingChanges()){
+void MainWindow::saveProject()
+{
+	if (WizardDockWidget::getInstance()->checkForPendingChanges())
+	{
 		m_FutureWatcher = new QFutureWatcher<int>();
-		connect( m_FutureWatcher, SIGNAL( finished() ), this, SLOT( saveProjectFinished() ) );
+		connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( saveProjectFinished() ));
 
-		QFuture<int> future = QtConcurrent::run( ProjectFileIO::getInstance(), &ProjectFileIO::saveProject,project->getProjectFilename()  );
-		m_FutureWatcher->setFuture( future );
-		
+		QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, project->getProjectFilename());
+		m_FutureWatcher->setFuture(future);
+
 		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + project->getProjectFilename()).toAscii().data());
 	}
 }
 
-void MainWindow::saveProjectAs(){
-	if(WizardDockWidget::getInstance()->checkForPendingChanges()){
+void MainWindow::saveProjectAs()
+{
+	if (WizardDockWidget::getInstance()->checkForPendingChanges())
+	{
 		QString fileName = QFileDialog::getSaveFileName(this,
-			tr("Save dataset as"), project->getProjectFilename().isEmpty() ? Settings::getInstance()->getLastUsedDirectory() : project->getProjectFilename(),tr("Dataset (*.xma *.zip)"));
+		                                                tr("Save dataset as"), project->getProjectFilename().isEmpty() ? Settings::getInstance()->getLastUsedDirectory() : project->getProjectFilename(), tr("Dataset (*.xma *.zip)"));
 
 		ConsoleDockWidget::getInstance()->prepareSave();
 
-		if ( fileName.isNull() == false )
+		if (fileName.isNull() == false)
 		{
 			Settings::getInstance()->setLastUsedDirectory(fileName);
-    
+
 			m_FutureWatcher = new QFutureWatcher<int>();
-			connect( m_FutureWatcher, SIGNAL( finished() ), this, SLOT( saveProjectFinished() ) );
+			connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( saveProjectFinished() ));
 
 			QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, fileName);
-			m_FutureWatcher->setFuture( future );
-		
+			m_FutureWatcher->setFuture(future);
+
 			ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + fileName).toAscii().data());
 		}
 	}
@@ -665,10 +753,11 @@ void MainWindow::saveProjectAs(){
 
 void MainWindow::newTrial()
 {
-	NewTrialDialog * newTriaLdialog = new NewTrialDialog();
+	NewTrialDialog* newTriaLdialog = new NewTrialDialog();
 	newTriaLdialog->exec();
 
-	if (newTriaLdialog->result()){
+	if (newTriaLdialog->result())
+	{
 		newTriaLdialog->createTrial();
 		State::getInstance()->changeActiveTrial(project->getTrials().size() - 1);
 		State::getInstance()->changeActiveFrameTrial(project->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
@@ -679,28 +768,30 @@ QString listFiles(QDir directory, QString name)
 {
 	QDir dir(directory);
 	QFileInfoList list = dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
-	foreach(QFileInfo finfo, list) {
-		if (finfo.fileName() == name)
+	foreach(QFileInfo finfo, list)
 		{
-			return finfo.absolutePath();
-		}
-		else if (finfo.isDir()) {
-			QString path = listFiles(QDir(finfo.absoluteFilePath()), name);
-			if (!path.isEmpty())
+			if (finfo.fileName() == name)
 			{
-				return path;
+				return finfo.absolutePath();
+			}
+			else if (finfo.isDir())
+			{
+				QString path = listFiles(QDir(finfo.absoluteFilePath()), name);
+				if (!path.isEmpty())
+				{
+					return path;
+				}
 			}
 		}
-	}
 	return "";
 }
 
 void MainWindow::checkTrialImagePaths()
 {
-	for (int t = 0; t < Project::getInstance()->getTrials().size(); t++)
+	for (unsigned int t = 0; t < Project::getInstance()->getTrials().size(); t++)
 	{
 		bool requiresReload = false;
-		for (int c = 0; c < Project::getInstance()->getCameras().size(); c++)
+		for (unsigned int c = 0; c < Project::getInstance()->getCameras().size(); c++)
 		{
 			QString filename = littleHelper::adjustPathToOS(Project::getInstance()->getTrials()[t]->getVideoStreams()[c]->getFilenames()[0]);
 			QFileInfo fileinfo(filename);
@@ -711,15 +802,16 @@ void MainWindow::checkTrialImagePaths()
 				QDir projectDir = projectinfo.absoluteDir();
 				QString path = listFiles(projectDir, fileinfo.fileName());
 				if (!path.isEmpty())
-				{				
+				{
 					QString oldfolder = filename.replace(fileinfo.fileName(), "");
 					Project::getInstance()->getTrials()[t]->changeImagePath(c, path + OS_SEP, oldfolder);
 					Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
-					requiresReload = true;		
+					requiresReload = true;
 				}
-				else{
-					if (Project::getInstance()->getTrials()[t]->getVideoStreams()[c]->getFilenames().size() > 1){
-
+				else
+				{
+					if (Project::getInstance()->getTrials()[t]->getVideoStreams()[c]->getFilenames().size() > 1)
+					{
 #ifdef __APPLE__
 						char str[256];
 						size_t size = sizeof(str);
@@ -775,22 +867,25 @@ void MainWindow::checkTrialImagePaths()
 	}
 }
 
-void MainWindow::saveProjectFinished(){
+void MainWindow::saveProjectFinished()
+{
 	delete m_FutureWatcher;
 	ProgressDialog::getInstance()->closeProgressbar();
-	
+
 
 #ifndef BETA
 	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
 #else 
 	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA");
 #endif
-
 }
 
-void MainWindow::redrawGL(){
-	if (!State::getInstance()->getDisableDraw()){
-		for (unsigned int i = 0; i < cameraViews.size(); i++) {
+void MainWindow::redrawGL()
+{
+	if (!State::getInstance()->getDisableDraw())
+	{
+		for (unsigned int i = 0; i < cameraViews.size(); i++)
+		{
 			cameraViews[i]->draw();
 			cameraViews[i]->updateInfo();
 		}
@@ -800,25 +895,35 @@ void MainWindow::redrawGL(){
 	}
 }
 
-void MainWindow::setCameraViewWidgetTitles(){
-	if(State::getInstance()->getWorkspace() == CALIBRATION){
-		for (unsigned int i = 0; i < cameraViews.size(); i++) {
+void MainWindow::setCameraViewWidgetTitles()
+{
+	if (State::getInstance()->getWorkspace() == CALIBRATION)
+	{
+		for (unsigned int i = 0; i < cameraViews.size(); i++)
+		{
 			cameraViews[i]->setImageName(Project::getInstance()->getCameras()[i]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getFilename());
 		}
 	}
-	else if (State::getInstance()->getWorkspace() == UNDISTORTION){
-		for (unsigned int i = 0; i < cameraViews.size(); i++) {
-			if (Project::getInstance()->getCameras()[i]->hasUndistortion()){
+	else if (State::getInstance()->getWorkspace() == UNDISTORTION)
+	{
+		for (unsigned int i = 0; i < cameraViews.size(); i++)
+		{
+			if (Project::getInstance()->getCameras()[i]->hasUndistortion())
+			{
 				cameraViews[i]->setImageName(Project::getInstance()->getCameras()[i]->getUndistortionObject()->getFilename());
 			}
-			else{
+			else
+			{
 				cameraViews[i]->setImageName("No undistortion Grid loaded");
 			}
 		}
 	}
-	else if (State::getInstance()->getWorkspace() == DIGITIZATION){
-		if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
-			for (unsigned int i = 0; i < cameraViews.size(); i++) {
+	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		if (((int) Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0))
+		{
+			for (unsigned int i = 0; i < cameraViews.size(); i++)
+			{
 				cameraViews[i]->setImageName(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFilename(i));
 			}
 		}
@@ -830,7 +935,8 @@ UI - SLOTS
 ***************************************************************/
 
 //custom slots for state
-void MainWindow::workspaceChanged(work_state workspace){
+void MainWindow::workspaceChanged(work_state workspace)
+{
 	if (project->isCalibrated())
 	{
 		ui->actionImportTrial->setEnabled(true);
@@ -862,10 +968,11 @@ void MainWindow::workspaceChanged(work_state workspace){
 	}
 	else if (workspace == CALIBRATION)
 	{
-		if (project->getNbImagesCalibration() > 1) {
+		if (project->getNbImagesCalibration() > 1)
+		{
 			SequenceNavigationFrame::getInstance()->setVisible(true);
 		}
-		else 
+		else
 		{
 			SequenceNavigationFrame::getInstance()->setVisible(false);
 		}
@@ -887,7 +994,8 @@ void MainWindow::workspaceChanged(work_state workspace){
 		PointsDockWidget::getInstance()->hide();
 		DetailViewDockWidget::getInstance()->hide();
 		PlotWindow::getInstance()->hide();
-		if (Settings::getInstance()->getBoolSetting("Show3DView")) {
+		if (Settings::getInstance()->getBoolSetting("Show3DView"))
+		{
 			worldViewDockWidget->show();
 		}
 		else
@@ -914,7 +1022,8 @@ void MainWindow::workspaceChanged(work_state workspace){
 
 				PointsDockWidget::getInstance()->show();
 
-				if (Settings::getInstance()->getBoolSetting("ShowPlot")){
+				if (Settings::getInstance()->getBoolSetting("ShowPlot"))
+				{
 					PlotWindow::getInstance()->show();
 				}
 				else
@@ -922,7 +1031,8 @@ void MainWindow::workspaceChanged(work_state workspace){
 					PlotWindow::getInstance()->hide();
 				}
 
-				if (Settings::getInstance()->getBoolSetting("Show3DView")){
+				if (Settings::getInstance()->getBoolSetting("Show3DView"))
+				{
 					worldViewDockWidget->show();
 				}
 				else
@@ -930,7 +1040,8 @@ void MainWindow::workspaceChanged(work_state workspace){
 					worldViewDockWidget->hide();
 				}
 
-				if (Settings::getInstance()->getBoolSetting("ShowDetailView")){
+				if (Settings::getInstance()->getBoolSetting("ShowDetailView"))
+				{
 					DetailViewDockWidget::getInstance()->show();
 				}
 				else
@@ -999,19 +1110,23 @@ void MainWindow::workspaceChanged(work_state workspace){
 	redrawGL();
 }
 
-void MainWindow::displayChanged(ui_state display){
+void MainWindow::displayChanged(ui_state display)
+{
 	relayoutCameras();
 	redrawGL();
 }
 
-void MainWindow::activeCameraChanged(int activeCamera){
-	if(State::getInstance()->getDisplay() == SINGLE_CAMERA){
+void MainWindow::activeCameraChanged(int activeCamera)
+{
+	if (State::getInstance()->getDisplay() == SINGLE_CAMERA)
+	{
 		relayoutCameras();
 	}
 	redrawGL();
 }
 
-void MainWindow::activeFrameCalibrationChanged(int activeFrame){
+void MainWindow::activeFrameCalibrationChanged(int activeFrame)
+{
 	setCameraViewWidgetTitles();
 	redrawGL();
 }
@@ -1024,39 +1139,53 @@ void MainWindow::activeFrameTrialChanged(int)
 
 void MainWindow::activeTrialChanged(int activeTrial)
 {
-	if (activeTrial >= 0){
+	if (activeTrial >= 0)
+	{
 		setCameraViewWidgetTitles();
 		redrawGL();
 	}
 }
 
 //File Menu Slots
-void MainWindow::on_actionNew_Project_triggered(bool checked){
+void MainWindow::on_actionNew_Project_triggered(bool checked)
+{
 	newProject();
 }
-void MainWindow::on_actionLoad_Project_triggered(bool checked){
+
+void MainWindow::on_actionLoad_Project_triggered(bool checked)
+{
 	loadProject();
 }
-void MainWindow::on_actionClose_Project_triggered(bool checked){
+
+void MainWindow::on_actionClose_Project_triggered(bool checked)
+{
 	closeProject();
 }
-void MainWindow::on_actionSave_Project_triggered(bool checked){
-	if(project->getProjectFilename().isEmpty()){
+
+void MainWindow::on_actionSave_Project_triggered(bool checked)
+{
+	if (project->getProjectFilename().isEmpty())
+	{
 		saveProjectAs();
-	}else{
+	}
+	else
+	{
 		saveProject();
 	}
 }
 
-void MainWindow::on_actionSave_Project_as_triggered(bool checked){
+void MainWindow::on_actionSave_Project_as_triggered(bool checked)
+{
 	saveProjectAs();
 }
 
 //File->Export Menu Slots
-void MainWindow::on_actionExportAll_triggered(bool checked){
-	if (Project::getInstance()->isCalibrated()){
+void MainWindow::on_actionExportAll_triggered(bool checked)
+{
+	if (Project::getInstance()->isCalibrated())
+	{
 		QString outputPath = QFileDialog::getExistingDirectory(this,
-			tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
@@ -1074,34 +1203,35 @@ void MainWindow::on_actionExportAll_triggered(bool checked){
 
 void MainWindow::on_actionExport3D_Points_triggered(bool checked)
 {
-	PointImportExportDialog * diag = new PointImportExportDialog(EXPORT3D, this);
+	PointImportExportDialog* diag = new PointImportExportDialog(EXPORT3D, this);
 
 	diag->exec();
 
 	if (diag->result())
 	{
-		if (Settings::getInstance()->getBoolSetting("Export3DSingle")){
+		if (Settings::getInstance()->getBoolSetting("Export3DSingle"))
+		{
 			QString outputPath = QFileDialog::getExistingDirectory(this,
-				tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+			                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 			if (outputPath.isNull() == false)
 			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(outputPath + OS_SEP
-					, Settings::getInstance()->getBoolSetting("Export3DMulti")
-					, Settings::getInstance()->getBoolSetting("Export3DHeader"));
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DMulti")
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DHeader"));
 				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 			}
 		}
 		else if (Settings::getInstance()->getBoolSetting("Export3DMulti"))
 		{
 			QString fileName = QFileDialog::getSaveFileName(this,
-				tr("Save 3D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+			                                                tr("Save 3D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
 
 			if (fileName.isNull() == false)
 			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(fileName
-					, Settings::getInstance()->getBoolSetting("Export3DMulti")
-					, Settings::getInstance()->getBoolSetting("Export3DHeader"));
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DMulti")
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DHeader"));
 				Settings::getInstance()->setLastUsedDirectory(fileName);
 			}
 		}
@@ -1112,42 +1242,43 @@ void MainWindow::on_actionExport3D_Points_triggered(bool checked)
 
 void MainWindow::on_actionExport2D_Points_triggered(bool checked)
 {
-	PointImportExportDialog * diag = new PointImportExportDialog(EXPORT2D, this);
+	PointImportExportDialog* diag = new PointImportExportDialog(EXPORT2D, this);
 
 	diag->exec();
 
 	if (diag->result())
 	{
-		if (Settings::getInstance()->getBoolSetting("Export2DSingle")){
+		if (Settings::getInstance()->getBoolSetting("Export2DSingle"))
+		{
 			QString outputPath = QFileDialog::getExistingDirectory(this, tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 			if (outputPath.isNull() == false)
 			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(outputPath + OS_SEP
-					, Settings::getInstance()->getBoolSetting("Export2DMulti")
-					, Settings::getInstance()->getBoolSetting("Export2DDistorted")
-					, Settings::getInstance()->getBoolSetting("Export2DCount1")
-					, Settings::getInstance()->getBoolSetting("Export2DYUp")
-					, Settings::getInstance()->getBoolSetting("Export2DHeader")
-					, Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DMulti")
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DDistorted")
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DCount1")
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DYUp")
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DHeader")
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
 				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 			}
 		}
 		else if (Settings::getInstance()->getBoolSetting("Export2DMulti"))
 		{
 			QString fileName = QFileDialog::getSaveFileName(this,
-				tr("Save 2D points as"),Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
-			
+			                                                tr("Save 2D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+
 
 			if (fileName.isNull() == false)
 			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(fileName
-					, Settings::getInstance()->getBoolSetting("Export2DMulti")
-					, Settings::getInstance()->getBoolSetting("Export2DDistorted")
-					, Settings::getInstance()->getBoolSetting("Export2DCount1")
-					, Settings::getInstance()->getBoolSetting("Export2DYUp")
-					, Settings::getInstance()->getBoolSetting("Export2DHeader")
-					, Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DMulti")
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DDistorted")
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DCount1")
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DYUp")
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DHeader")
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
 				Settings::getInstance()->setLastUsedDirectory(fileName);
 			}
 		}
@@ -1158,47 +1289,46 @@ void MainWindow::on_actionExport2D_Points_triggered(bool checked)
 
 void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 {
-	PointImportExportDialog * diag = new PointImportExportDialog(EXPORTTRANS, this);
+	PointImportExportDialog* diag = new PointImportExportDialog(EXPORTTRANS, this);
 
 	diag->exec();
 	if (diag->result())
 	{
-		if (Settings::getInstance()->getBoolSetting("ExportTransSingle")){
+		if (Settings::getInstance()->getBoolSetting("ExportTransSingle"))
+		{
 			QString outputPath = QFileDialog::getExistingDirectory(this, tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 			if (outputPath.isNull() == false)
 			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(outputPath + OS_SEP
-					, Settings::getInstance()->getBoolSetting("ExportTransMulti")
-					, Settings::getInstance()->getBoolSetting("ExportTransHeader")
-					, Settings::getInstance()->getBoolSetting("ExportTransFiltered"));
+				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransMulti")
+				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransHeader")
+				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransFiltered"));
 				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 			}
 		}
 		else if (Settings::getInstance()->getBoolSetting("ExportTransMulti"))
 		{
 			QString fileName = QFileDialog::getSaveFileName(this,
-				tr("Save 2D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+			                                                tr("Save 2D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
 
 
 			if (fileName.isNull() == false)
 			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(fileName
-					, Settings::getInstance()->getBoolSetting("ExportTransMulti")
-					, Settings::getInstance()->getBoolSetting("ExportTransHeader")
-					, Settings::getInstance()->getBoolSetting("ExportTransFiltered"));
+				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransMulti")
+				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransHeader")
+				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransFiltered"));
 				Settings::getInstance()->setLastUsedDirectory(fileName);
 			}
 		}
-
-
 	}
 }
 
 void MainWindow::on_actionMarkertoMarkerDistances_triggered(bool checked)
 {
 	QString fileName = QFileDialog::getSaveFileName(this,
-		tr("Save distances as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+	                                                tr("Save distances as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
 
 
 	if (fileName.isNull() == false)
@@ -1209,15 +1339,16 @@ void MainWindow::on_actionMarkertoMarkerDistances_triggered(bool checked)
 
 void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(bool checked)
 {
-	FromToDialog * fromTo = new FromToDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame()
-											, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame()
-											, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages()
-											, true, this);
+	FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame()
+	                                        , Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame()
+	                                        , Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages()
+	                                        , true, this);
 
 	bool ok = fromTo->exec();
-	if (ok){
+	if (ok)
+	{
 		QString outputPath = QFileDialog::getExistingDirectory(this,
-			tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
@@ -1231,9 +1362,10 @@ void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(boo
 
 void MainWindow::on_actionMayaCams_triggered(bool checked)
 {
-	if (Project::getInstance()->isCalibrated()){
+	if (Project::getInstance()->isCalibrated())
+	{
 		QString outputPath = QFileDialog::getExistingDirectory(this,
-			tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
@@ -1249,9 +1381,10 @@ void MainWindow::on_actionMayaCams_triggered(bool checked)
 
 void MainWindow::on_actionMayaCams_2_0_triggered(bool checked)
 {
-	if (Project::getInstance()->isCalibrated()){
+	if (Project::getInstance()->isCalibrated())
+	{
 		QString outputPath = QFileDialog::getExistingDirectory(this,
-			tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
@@ -1265,15 +1398,16 @@ void MainWindow::on_actionMayaCams_2_0_triggered(bool checked)
 	}
 }
 
-void MainWindow::on_actionUndistort_sequence_triggered(bool checked){
-	UndistortSequenceDialog * diag = new UndistortSequenceDialog(this);
+void MainWindow::on_actionUndistort_sequence_triggered(bool checked)
+{
+	UndistortSequenceDialog* diag = new UndistortSequenceDialog(this);
 	diag->exec();
 	delete diag;
 }
 
 void MainWindow::on_actionImport2D_Points_triggered(bool checked)
 {
-	PointImportExportDialog * diag = new PointImportExportDialog(IMPORT2D, this);
+	PointImportExportDialog* diag = new PointImportExportDialog(IMPORT2D, this);
 
 	int loadPoints = 0;
 
@@ -1281,19 +1415,19 @@ void MainWindow::on_actionImport2D_Points_triggered(bool checked)
 	if (diag->result())
 	{
 		QStringList fileNames = QFileDialog::getOpenFileNames(this,
-			tr("Open csv files for 2D points"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+		                                                      tr("Open csv files for 2D points"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
 
 		if (!fileNames.isEmpty())
 		{
-			ProgressDialog::getInstance()->showProgressbar(0,0,"Importing points");
+			ProgressDialog::getInstance()->showProgressbar(0, 0, "Importing points");
 			for (int i = 0; i < fileNames.size(); i++)
 			{
 				loadPoints += Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->load2dPoints(fileNames.at(i)
-					, Settings::getInstance()->getBoolSetting("Import2DDistorted")
-					, Settings::getInstance()->getBoolSetting("Import2DCount1")
-					, Settings::getInstance()->getBoolSetting("Import2DYUp")
-					, Settings::getInstance()->getBoolSetting("Import2DHeader")
-					, Settings::getInstance()->getBoolSetting("Import2DOffsetCols"));
+				                                                                                                        , Settings::getInstance()->getBoolSetting("Import2DDistorted")
+				                                                                                                        , Settings::getInstance()->getBoolSetting("Import2DCount1")
+				                                                                                                        , Settings::getInstance()->getBoolSetting("Import2DYUp")
+				                                                                                                        , Settings::getInstance()->getBoolSetting("Import2DHeader")
+				                                                                                                        , Settings::getInstance()->getBoolSetting("Import2DOffsetCols"));
 			}
 			ProgressDialog::getInstance()->closeProgressbar();
 			Settings::getInstance()->setLastUsedDirectory(fileNames.at(0));
@@ -1309,7 +1443,7 @@ void MainWindow::on_actionImport2D_Points_triggered(bool checked)
 void MainWindow::on_actionImportTrial_triggered(bool checked)
 {
 	QString fileName = QFileDialog::getOpenFileName(this,
-		tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xma  *.zip)"));
+	                                                tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xma  *.zip)"));
 
 	if (fileName.isNull() == false)
 	{
@@ -1318,16 +1452,16 @@ void MainWindow::on_actionImportTrial_triggered(bool checked)
 
 		bool ok;
 		QString item = QInputDialog::getItem(this, tr("Choose trial to import"),
-			tr("Trial:"), trialnames, 0, false, &ok);
+		                                     tr("Trial:"), trialnames, 0, false, &ok);
 
 		if (ok && !item.isEmpty())
 		{
-			Trial * trial = ProjectFileIO::getInstance()->loadTrials(fileName, item);
+			Trial* trial = ProjectFileIO::getInstance()->loadTrials(fileName, item);
 			Project::getInstance()->addTrial(trial);
 			WorkspaceNavigationFrame::getInstance()->addTrial(item);
 			checkTrialImagePaths();
 			trial->bindTextures();
-			
+
 			if (State::getInstance()->getWorkspace() == DIGITIZATION)
 			{
 				State::getInstance()->changeWorkspace(DIGITIZATION, true);
@@ -1336,47 +1470,56 @@ void MainWindow::on_actionImportTrial_triggered(bool checked)
 	}
 }
 
-void MainWindow::on_actionSettings_triggered(bool checked){
-	SettingsDialog * diag = new SettingsDialog(this);
+void MainWindow::on_actionSettings_triggered(bool checked)
+{
+	SettingsDialog* diag = new SettingsDialog(this);
 	diag->exec();
 	delete diag;
 }
 
 
-void MainWindow::on_actionAbout_triggered(bool checked){
-	AboutDialog * diag = new AboutDialog(this);
+void MainWindow::on_actionAbout_triggered(bool checked)
+{
+	AboutDialog* diag = new AboutDialog(this);
 	diag->exec();
 	delete diag;
 }
 
 //startMainFrameButtons
-void MainWindow::on_pushButtonNew_Project_clicked(){
+void MainWindow::on_pushButtonNew_Project_clicked()
+{
 	newProject();
 }
 
-void MainWindow::on_pushButtonLoad_Project_clicked(){
+void MainWindow::on_pushButtonLoad_Project_clicked()
+{
 	loadProject();
 }
 
 void MainWindow::on_pushButtonNewTrial_clicked()
 {
-	newTrial(); 
+	newTrial();
 }
 
-void MainWindow::on_action3D_world_view_triggered(bool checked){
-	if (checked){
+void MainWindow::on_action3D_world_view_triggered(bool checked)
+{
+	if (checked)
+	{
 		worldViewDockWidget->show();
 		Settings::getInstance()->set("Show3DView", true);
 	}
-	else {
+	else
+	{
 		worldViewDockWidget->hide();
-		Settings::getInstance()->set("Show3DView",false);
+		Settings::getInstance()->set("Show3DView", false);
 		ui->action3D_world_view->setChecked(false);
 	}
 }
 
-void MainWindow::on_actionConsole_triggered(bool checked){
-	if (checked){
+void MainWindow::on_actionConsole_triggered(bool checked)
+{
+	if (checked)
+	{
 		ConsoleDockWidget::getInstance()->show();
 		Settings::getInstance()->set("Console", true);
 	}
@@ -1388,12 +1531,15 @@ void MainWindow::on_actionConsole_triggered(bool checked){
 	}
 }
 
-void MainWindow::on_actionDetailed_View_triggered(bool checked){
-	if (checked){
+void MainWindow::on_actionDetailed_View_triggered(bool checked)
+{
+	if (checked)
+	{
 		DetailViewDockWidget::getInstance()->show();
 		Settings::getInstance()->set("ShowDetailView", true);
 	}
-	else {
+	else
+	{
 		ui->actionDetailed_View->setChecked(false);
 		DetailViewDockWidget::getInstance()->hide();
 		Settings::getInstance()->set("ShowDetailView", false);
@@ -1402,15 +1548,18 @@ void MainWindow::on_actionDetailed_View_triggered(bool checked){
 
 void MainWindow::on_actionPlot_triggered(bool checked)
 {
-	if (checked){
+	if (checked)
+	{
 		PlotWindow::getInstance()->show();
 		PlotWindow::getInstance()->updateMarkers(false);
 		PlotWindow::getInstance()->draw();
 		Settings::getInstance()->set("ShowPlot", true);
 	}
-	else {
+	else
+	{
 		ui->actionPlot->setChecked(false);
 		PlotWindow::getInstance()->hide();
 		Settings::getInstance()->set("ShowPlot", false);
 	}
 }
+

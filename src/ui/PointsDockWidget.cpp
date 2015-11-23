@@ -1,5 +1,31 @@
+//  ----------------------------------
+//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  
+//  All Rights Reserved
+//   
+//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
+//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//  prior permission from Brown University.
+//  
+//  See license.txt for further information.
+//  
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//  ----------------------------------
+//  
+///\file PointsDockWidget.cpp
+///\author Benjamin Knorlein
+///\date 11/20/2015
+
 #ifdef _MSC_VER
-	#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "ui/PointsDockWidget.h"
@@ -28,21 +54,22 @@ using namespace xma;
 
 PointsDockWidget* PointsDockWidget::instance = NULL;
 
-PointsDockWidget::PointsDockWidget(QWidget *parent) :
-											QDockWidget(parent),
-											dock(new Ui::PointsDockWidget){
-
+PointsDockWidget::PointsDockWidget(QWidget* parent) :
+	QDockWidget(parent),
+	dock(new Ui::PointsDockWidget)
+{
 	dock->setupUi(this);
 
-	qApp->installEventFilter( this );
+	qApp->installEventFilter(this);
 
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 
 	Shortcuts::getInstance()->installEventFilterToChildren(this);
 	dock->checkBoxDrawMarkerIds->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawMarkerIds"));
 }
-	
-PointsDockWidget::~PointsDockWidget(){
+
+PointsDockWidget::~PointsDockWidget()
+{
 	delete dock;
 }
 
@@ -56,19 +83,23 @@ PointsDockWidget* PointsDockWidget::getInstance()
 	return instance;
 }
 
-void PointsDockWidget::addPointToList(int idx){
-	QTreeWidgetItem *qtreewidgetitem = new QTreeWidgetItem(MARKER);
+void PointsDockWidget::addPointToList(int idx)
+{
+	QTreeWidgetItem* qtreewidgetitem = new QTreeWidgetItem(MARKER);
 	qtreewidgetitem->setFlags(qtreewidgetitem->flags() & ~Qt::ItemIsDropEnabled);
 	qtreewidgetitem->setText(0, QString::number(idx));
-	dock->treeWidgetPoints->addTopLevelItem(qtreewidgetitem); 
+	dock->treeWidgetPoints->addTopLevelItem(qtreewidgetitem);
 }
 
-void PointsDockWidget::reloadListFromObject(){
-	if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
+void PointsDockWidget::reloadListFromObject()
+{
+	if ((int) Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
+	{
 		dock->treeWidgetPoints->clear();
-		QTreeWidgetItem *qtreewidgetitem;
+		QTreeWidgetItem* qtreewidgetitem;
 
-		for (unsigned int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers().size(); i++){
+		for (unsigned int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers().size(); i++)
+		{
 			qtreewidgetitem = new QTreeWidgetItem(MARKER);
 			dock->treeWidgetPoints->addTopLevelItem(qtreewidgetitem);
 			qtreewidgetitem->setFlags(qtreewidgetitem->flags() & ~Qt::ItemIsDropEnabled);
@@ -81,7 +112,8 @@ void PointsDockWidget::reloadListFromObject(){
 		}
 
 		//Setup Rigid Body
-		for (unsigned int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies().size(); i++){
+		for (unsigned int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies().size(); i++)
+		{
 			qtreewidgetitem = new QTreeWidgetItem(RIGID_BODY);
 			qtreewidgetitem->setFlags(qtreewidgetitem->flags() & ~Qt::ItemIsDragEnabled);
 			dock->treeWidgetPoints->insertTopLevelItem(i, qtreewidgetitem);
@@ -89,11 +121,13 @@ void PointsDockWidget::reloadListFromObject(){
 			qtreewidgetitem->setText(1, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getDescription());
 			dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 1, i));
 
-			for (unsigned int k = 0; k < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx().size(); k++){
-				QList<QTreeWidgetItem *>  items = dock->treeWidgetPoints->findItems(QString::number(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx()[k] + 1), Qt::MatchExactly | Qt::MatchRecursive, 0);
-				if (items.size()>0){
+			for (unsigned int k = 0; k < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx().size(); k++)
+			{
+				QList<QTreeWidgetItem *> items = dock->treeWidgetPoints->findItems(QString::number(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx()[k] + 1), Qt::MatchExactly | Qt::MatchRecursive, 0);
+				if (items.size() > 0)
+				{
 					int ind = dock->treeWidgetPoints->indexOfTopLevelItem(items.at(0));
-					QTreeWidgetItem *qtreewidgetitem2 = dock->treeWidgetPoints->takeTopLevelItem(ind);
+					QTreeWidgetItem* qtreewidgetitem2 = dock->treeWidgetPoints->takeTopLevelItem(ind);
 					dock->treeWidgetPoints->removeItemWidget(qtreewidgetitem2, 2);
 					qtreewidgetitem->addChild(qtreewidgetitem2);
 					dock->treeWidgetPoints->setItemWidget(qtreewidgetitem2, 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 2, i));
@@ -102,12 +136,14 @@ void PointsDockWidget::reloadListFromObject(){
 			if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->isExpanded())dock->treeWidgetPoints->expandItem(qtreewidgetitem);
 		}
 
-		if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() >=0 &&
-			!selectPoint(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() + 1)){
+		if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() >= 0 &&
+			!selectPoint(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() + 1))
+		{
 			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveMarkerIdx(-1);
 		}
 		if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveRBIdx() >= 0 &&
-			!selectBody(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveRBIdx() + 1)){
+			!selectBody(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveRBIdx() + 1))
+		{
 			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveRBIdx(-1);
 		}
 	}
@@ -117,11 +153,12 @@ void PointsDockWidget::reloadListFromObject(){
 
 void PointsDockWidget::selectNextPoint()
 {
-	if (State::getInstance()->getWorkspace() == DIGITIZATION){
-		if ((Project::getInstance()->getTrials().size() > 0 && Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0))
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		if (Project::getInstance()->getTrials().size() > 0 && (int) Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
 		{
 			int idx = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() + 1;
-			if (idx >= 0 && idx < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
+			if (idx >= 0 && idx < (int) Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
 			{
 				selectPoint(idx + 1);
 			}
@@ -131,56 +168,66 @@ void PointsDockWidget::selectNextPoint()
 
 void PointsDockWidget::selectPrevPoint()
 {
-
-	if (State::getInstance()->getWorkspace() == DIGITIZATION){
-		if ((Project::getInstance()->getTrials().size() > 0 && Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0))
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		if ((Project::getInstance()->getTrials().size() > 0 && (int) Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0))
 		{
 			int idx = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() - 1;
-			if (idx >= 0 && idx < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
+			if (idx >= 0 && idx < (int) Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
 			{
 				selectPoint(idx + 1);
-				
 			}
 		}
 	}
 }
 
 
-bool PointsDockWidget::selectPoint(int idx){
-	if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
-		QList<QTreeWidgetItem *>  items = dock->treeWidgetPoints->findItems(QString::number(idx), Qt::MatchExactly | Qt::MatchRecursive, 0);
+bool PointsDockWidget::selectPoint(int idx)
+{
+	if ((int) Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
+	{
+		QList<QTreeWidgetItem *> items = dock->treeWidgetPoints->findItems(QString::number(idx), Qt::MatchExactly | Qt::MatchRecursive, 0);
 		dock->treeWidgetPoints->clearSelection();
-		if (items.size() > 0){
+		if (items.size() > 0)
+		{
 			if (dock->treeWidgetPoints->currentItem() == items.at(0)) on_treeWidgetPoints_currentItemChanged(items.at(0), items.at(0));
 			dock->treeWidgetPoints->setCurrentItem(items.at(0));
 			return true;
 		}
-		else{
+		else
+		{
 			return false;
 		}
 	}
 	return false;
 }
 
-bool PointsDockWidget::selectBody(int idx){
-	if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
-		QList<QTreeWidgetItem *>  items = dock->treeWidgetPoints->findItems("RB" + QString::number(idx), Qt::MatchExactly | Qt::MatchRecursive, 0);
+bool PointsDockWidget::selectBody(int idx)
+{
+	if ((int) Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
+	{
+		QList<QTreeWidgetItem *> items = dock->treeWidgetPoints->findItems("RB" + QString::number(idx), Qt::MatchExactly | Qt::MatchRecursive, 0);
 		dock->treeWidgetPoints->clearSelection();
-		if (items.size() > 0){
+		if (items.size() > 0)
+		{
 			if (dock->treeWidgetPoints->currentItem() == items.at(0)) on_treeWidgetPoints_currentItemChanged(items.at(0), items.at(0));
 			dock->treeWidgetPoints->setCurrentItem(items.at(0));
 			return true;
 		}
-		else{
+		else
+		{
 			return false;
 		}
 	}
 	return false;
 }
 
-void PointsDockWidget::on_treeWidgetPoints_currentItemChanged(QTreeWidgetItem * current, QTreeWidgetItem * previous){
-	if ((Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)){
-		if (current && current->type() == MARKER){
+void PointsDockWidget::on_treeWidgetPoints_currentItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)
+{
+	if ((int) Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
+	{
+		if (current && current->type() == MARKER)
+		{
 			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveMarkerIdx(current->text(0).toInt() - 1);
 			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveRBIdx(-1);
 			emit activePointChanged(current->text(0).toInt() - 1);
@@ -205,19 +252,23 @@ void PointsDockWidget::on_pushButtonSetNumberMarkers_clicked()
 {
 	bool ok;
 	int idx = QInputDialog::getInt(this, tr("Set Number of Markers to"),
-		tr(""), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(), 0, 1000, 1, &ok);
-	if (ok){
-		if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() < idx)
+	                               tr(""), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(), 0, 1000, 1, &ok);
+	if (ok)
+	{
+		if ((int)Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() < idx)
 		{
-			while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() != idx){
+			while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() != idx)
+			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addMarker();
 			}
 			PlotWindow::getInstance()->updateMarkers(true);
 		}
 		else
 		{
-			if(ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to delete Points " + QString::number(idx + 1) + " to " + QString::number(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()) + ". Are you sure you want to proceed?")){	
-				while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() != idx){
+			if (ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to delete Points " + QString::number(idx + 1) + " to " + QString::number(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()) + ". Are you sure you want to proceed?"))
+			{
+				while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() != idx)
+				{
 					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->removeMarker(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() - 1);
 				}
 			}
@@ -230,18 +281,22 @@ void PointsDockWidget::on_pushButtonSetNumberRigidBodies_clicked()
 {
 	bool ok;
 	int idx = QInputDialog::getInt(this, tr("Set Number of Rigid Bodies to"),
-		tr(""), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size(), 0, 1000, 1, &ok);
-	if (ok){
-		if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() < idx)
+	                               tr(""), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size(), 0, 1000, 1, &ok);
+	if (ok)
+	{
+		if ((int)Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() < idx)
 		{
-			while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() != idx){
+			while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() != idx)
+			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addRigidBody();
 			}
 		}
 		else
 		{
-			if (ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to delete Rigid Bodies " + QString::number(idx + 1) + " to " + QString::number(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size()) + ". Are you sure you want to proceed?")){
-				while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() != idx){
+			if (ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to delete Rigid Bodies " + QString::number(idx + 1) + " to " + QString::number(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size()) + ". Are you sure you want to proceed?"))
+			{
+				while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() != idx)
+				{
 					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->removeRigidBody(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() - 1);
 				}
 			}
@@ -252,7 +307,7 @@ void PointsDockWidget::on_pushButtonSetNumberRigidBodies_clicked()
 
 void PointsDockWidget::on_pushButtonImportExport_clicked()
 {
-	ImportExportPointsDialog * diag = new ImportExportPointsDialog(this);
+	ImportExportPointsDialog* diag = new ImportExportPointsDialog(this);
 	diag->exec();
 	delete diag;
 	reloadListFromObject();
@@ -266,7 +321,9 @@ void PointsDockWidget::on_checkBoxDrawMarkerIds_clicked()
 
 void PointsDockWidget::activeTrialChanged(int activeTrial)
 {
-	if (activeTrial >= 0){
+	if (activeTrial >= 0)
+	{
 		reloadListFromObject();
 	}
 }
+
