@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>XMALab</string>
+   <string>XMA Lab</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../calibrationtool_resources.qrc">

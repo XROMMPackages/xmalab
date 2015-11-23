@@ -202,9 +202,9 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->actionImportTrial->setEnabled(false);
 	Shortcuts::getInstance()->bindApplicationShortcuts();
 #ifndef BETA
-	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
+	this->setWindowTitle("XMA Lab " + QString(PROJECT_VERSION));
 #else 
-	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA");
+	this->setWindowTitle("XMA Lab " + QString(PROJECT_VERSION) + " - BETA");
 #endif
 }
 
@@ -246,7 +246,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-	if (!Settings::getInstance()->getBoolSetting("ConfirmQuitXMALab") || ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to quit XMALab. Please make sure your data have been saved. \nAre you sure you want to quit?"))
+	if (!Settings::getInstance()->getBoolSetting("ConfirmQuitXMALab") || ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to quit XMA Lab. Please make sure your data have been saved. \nAre you sure you want to quit?"))
 	{
 		Settings::getInstance()->setUIGeometry("XMALab", saveGeometry());
 		Settings::getInstance()->setUIState("XMALab", saveState(UI_VERSION));
@@ -525,9 +525,9 @@ void MainWindow::newProjectFromXMALab(QString filename)
 	}
 
 #ifndef BETA
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMA Lab " + PROJECT_VERSION);
 #else 
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA");
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMA Lab " + PROJECT_VERSION + " - BETA");
 #endif
 }
 
@@ -595,9 +595,9 @@ void MainWindow::loadProjectFinished()
 		}
 
 #ifndef BETA
-		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
+		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMA Lab " + PROJECT_VERSION);
 #else 
-		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION " - BETA");
+		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMA Lab " + PROJECT_VERSION " - BETA");
 #endif
 	}
 	else if (m_FutureWatcher->result() == 1)
@@ -703,9 +703,9 @@ void MainWindow::closeProject()
 	DetailViewDockWidget::getInstance()->hide();
 
 #ifndef BETA
-	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
+	this->setWindowTitle("XMA Lab " + QString(PROJECT_VERSION));
 #else 
-	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA");
+	this->setWindowTitle("XMA Lab " + QString(PROJECT_VERSION) + " - BETA");
 #endif
 
 	ConsoleDockWidget::getInstance()->clear();
@@ -874,9 +874,9 @@ void MainWindow::saveProjectFinished()
 
 
 #ifndef BETA
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMA Lab " + PROJECT_VERSION);
 #else 
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA");
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMA Lab " + PROJECT_VERSION + " - BETA");
 #endif
 }
 
