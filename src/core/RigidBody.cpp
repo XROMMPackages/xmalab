@@ -724,7 +724,7 @@ void RigidBody::updateError(int Frame, bool filtered)
 
 	int count = 0;
 
-	if ((poseComputed[Frame] && !filtered) || (filtered && poseFiltered[Frame]))
+	if (points3D.size() > 0 && (poseComputed[Frame] && !filtered) || (filtered && poseFiltered[Frame]))
 	{
 		count = 0;
 
@@ -1204,6 +1204,13 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, int marker
 				}
 			}
 		}
+
+		while (tmpCoords.size() < poseComputed.size())
+		{
+			tmpDef.push_back(false);
+			tmpCoords.push_back(cv::Point3d(0, 0, 0));
+		}
+
 		dummypointsCoords.push_back(tmpCoords);
 		dummypointsCoordsSet.push_back(tmpDef);
 		fin.close();
@@ -1607,8 +1614,13 @@ std::vector<cv::Point2d> RigidBody::projectToImage(Camera* cam, int Frame, bool 
 		CV_MAT_ELEM(*t_matrices, cv::Vec3d, 0, 0)[i] = cam->getCalibrationImages()[trial->getReferenceCalibrationImage()]->getTranslationVector().at<double>(i, 0);
 	}
 
-	cvProjectPoints2(object_points, r_matrices, t_matrices, intrinsic_matrix, distortion_coeffs, image_points);
-
+	if (points3D_frame.size() != 0){
+		cvProjectPoints2(object_points, r_matrices, t_matrices, intrinsic_matrix, distortion_coeffs, image_points);
+	}
+	else
+	{
+		std::cerr << description.toAscii().data() << " " << poseComputed[Frame] << " " << Frame << std::endl;
+ 	}
 	cv::Point2d pt0 = cv::Point2d(CV_MAT_ELEM(*image_points, double, 0, 0), CV_MAT_ELEM(*image_points, double, 0, 1));
 
 	std::vector<cv::Point2d> points2D_frame;
@@ -1819,6 +1831,25 @@ void RigidBody::draw2D(Camera* cam, int frame)
 
 		if (dummyNames.size() > 0)
 		{
+			int count = 0;
+			for (unsigned int i = 0; i < dummypoints.size(); i++)
+			{
+				if (dummyRBIndex[i] >= 0)
+				{
+					cv::Point3d dummy_tmp;
+					if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints[i], dummy_tmp, frame))
+					{
+						count++;
+					}
+				}
+				else if (dummypointsCoordsSet[i][frame])
+				{
+					count++;
+				}
+			}
+
+			if (count == 0) return;
+
 			points2D_projected.clear();
 			points2D_projected = projectToImage(cam, frame, true, true);
 
