@@ -76,7 +76,7 @@
      <item row="11" column="0" colspan="2">
       <widget class="QLabel" name="label_9">
        <property name="text">
-        <string>&lt;a href=&quot;https://wiki.brown.edu/confluence/display/ctx/Recent+Changes+and+DOWNLOADS&quot;&gt;Check XROMM Download page for newer version&lt;/a&gt; </string>
+        <string>&lt;a href=&quot;https://bitbucket.org/xromm/xma-lab/downloads&quot;&gt;Check for newer version&lt;/a&gt; </string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -108,7 +108,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>&lt;a href=&quot;https://docs.google.com/document/d/1QIepjaJQKrRvCiLj1_Nz2m1sGLc76wukp6sla7z7dpc/edit?usp=sharing&quot;&gt;Report a bug, request a feature or check recent changes&lt;/a&gt; </string>
+        <string>&lt;a href=&quot;https://bitbucket.org/xromm/xma-lab/issues/new&quot;&gt;Report a bug or request a feature&lt;/a&gt; </string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
