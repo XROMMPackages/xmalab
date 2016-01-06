@@ -58,8 +58,8 @@ WorldViewDockGLWidget::WorldViewDockGLWidget(QWidget* parent)
 	: QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
 {
 	eyedistance = 500.0;
-	azimuth = 135.0;
-	polar = 0.0;
+	azimuth = 45.0;
+	polar = -45.0;
 
 	w = 50;
 	h = 50;
@@ -151,7 +151,8 @@ void WorldViewDockGLWidget::paintGL()
 	double e_y = eyedistance * cos(azimuth * _PI / 180.0);
 
 	gluLookAt(e_x, e_y, e_z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-
+	glRotated(-90.0, 1.0, 0.0, 0.0);
+	glRotated(180.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
