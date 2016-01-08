@@ -39,6 +39,13 @@ namespace xma
 	class
 	Trial;
 
+	enum trialDialogReturn
+	{
+		TRIALDAILOGDEFAULT = 0,
+		TRIALDIALOGDELETE = 1,
+		TRIALDIALOGUPDATE = 2,
+		TRIALDIALOGCHANGE = 3
+	};
 
 	class TrialDialog : public QDialog
 	{
@@ -50,15 +57,13 @@ namespace xma
 		Trial* m_trial;
 
 		bool isComplete();
-		bool deleteTrial;
-		bool updateTrial;
+		trialDialogReturn returnValue;
 
 	public:
 		explicit TrialDialog(Trial* marker, QWidget* parent = 0);
 		virtual ~TrialDialog();
 
-		bool doDeleteTrial();
-		bool doUpdateTrial();
+		trialDialogReturn getDialogReturn();
 
 	public slots:
 
@@ -66,6 +71,7 @@ namespace xma
 		void on_pushButton_OK_clicked();
 		void on_pushButton_Cancel_clicked();
 		void on_pushButton_DeleteTrial_clicked();
+		void on_pushButton_ChangeTrialData_clicked();
 		void on_pushButton_Update_clicked();
 	};
 }

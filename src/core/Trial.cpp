@@ -169,16 +169,59 @@ Trial::~Trial()
 	{
 		delete *video;
 	}
-
+	videos.clear();
 	for (std::vector<RigidBody*>::iterator rigidBody = rigidBodies.begin(); rigidBody != rigidBodies.end(); ++rigidBody)
 	{
 		delete *rigidBody;
 	}
-
+	rigidBodies.clear();
 	for (std::vector<Marker*>::iterator marker = markers.begin(); marker != markers.end(); ++marker)
 	{
 		delete *marker;
 	}
+	markers.clear();
+}
+
+void Trial::changeTrialData(QString trialname, std::vector<QStringList>& imageFilenames)
+{
+	name = trialname;
+
+	for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
+	{
+		delete *video;
+	}
+	videos.clear();
+
+	for (std::vector<QStringList>::iterator filenameList = imageFilenames.begin(); filenameList != imageFilenames.end(); ++filenameList)
+	{
+		VideoStream* newSequence = NULL;
+		if ((*filenameList).size() > 1)
+		{
+			newSequence = new ImageSequence(*filenameList);
+		}
+		else
+		{
+			QFileInfo info((*filenameList).at(0));
+			if (info.suffix() == "cine")
+			{
+				newSequence = new CineVideo(*filenameList);
+			}
+			else if (info.suffix() == "avi")
+			{
+				newSequence = new AviVideo(*filenameList);
+			}
+			else
+			{
+				newSequence = new ImageSequence(*filenameList);
+			}
+		}
+		newSequence->setActiveFrame(activeFrame);
+		videos.push_back(newSequence);
+	}
+
+	setNbImages();
+	startFrame = 1;
+	endFrame = nbImages;
 }
 
 void Trial::setNbImages()

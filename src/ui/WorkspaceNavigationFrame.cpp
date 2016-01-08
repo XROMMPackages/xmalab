@@ -289,13 +289,20 @@ void WorkspaceNavigationFrame::on_toolButtonTrialSettings_clicked()
 		{
 			MainWindow::getInstance()->redrawGL();
 		}
-		else if (dialog->doUpdateTrial())
+		else if (dialog->getDialogReturn() == TRIALDIALOGCHANGE)
+		{
+			frame->comboBoxTrial->setItemText(State::getInstance()->getActiveTrial(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getName());
+			State::getInstance()->changeWorkspace(DIGITIZATION, true); 
+			State::getInstance()->changeActiveFrameTrial(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame(), true);
+			MainWindow::getInstance()->redrawGL();
+		}
+		else if (dialog->getDialogReturn() == TRIALDIALOGUPDATE)
 		{
 			Trial* trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
 			trial->setRequiresRecomputation(true);
 			ThreadScheduler::getInstance()->updateTrialData(trial);
 		}
-		else if (dialog->doDeleteTrial())
+		else if (dialog->getDialogReturn() == TRIALDIALOGDELETE)
 		{
 			Trial* trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
 			int oldTrial = State::getInstance()->getActiveTrial();

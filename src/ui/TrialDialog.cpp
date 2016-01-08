@@ -33,6 +33,7 @@
 #include "ui/State.h"
 #include "ui/PlotWindow.h"
 #include "ui/ConfirmationDialog.h"
+#include "ui/NewTrialDialog.h"
 
 #include "core/Trial.h"
 #include "core/Project.h"
@@ -45,11 +46,10 @@ using namespace xma;
 
 TrialDialog::TrialDialog(Trial* trial, QWidget* parent) :
 	QDialog(parent),
-	diag(new Ui::TrialDialog), m_trial(trial)
+	diag(new Ui::TrialDialog), m_trial(trial), returnValue(TRIALDAILOGDEFAULT)
 {
 	diag->setupUi(this);
-	deleteTrial = false;
-	updateTrial = false;
+	returnValue = TRIALDAILOGDEFAULT;
 
 	this->setWindowTitle("Trial : " + m_trial->getName());
 
@@ -96,15 +96,11 @@ TrialDialog::~TrialDialog()
 	delete diag;
 }
 
-bool TrialDialog::doDeleteTrial()
+trialDialogReturn TrialDialog::getDialogReturn()
 {
-	return deleteTrial;
+	return returnValue;
 }
 
-bool TrialDialog::doUpdateTrial()
-{
-	return updateTrial;
-}
 
 bool TrialDialog::isComplete()
 {
@@ -141,14 +137,27 @@ void TrialDialog::on_pushButton_DeleteTrial_clicked()
 {
 	if (ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you really want to delete the trial?"))
 	{
-		deleteTrial = true;
+		returnValue = TRIALDIALOGDELETE;
 		this->reject();
 	}
 }
 
+void TrialDialog::on_pushButton_ChangeTrialData_clicked()
+{
+	NewTrialDialog* newTriaLdialog = new NewTrialDialog(m_trial);
+	newTriaLdialog->exec();
+
+	if (newTriaLdialog->result())
+	{
+		newTriaLdialog->createTrial();
+	}
+	returnValue = TRIALDIALOGCHANGE;
+	this->reject();
+}
+
 void TrialDialog::on_pushButton_Update_clicked()
 {
-	updateTrial = true;
+	returnValue = TRIALDIALOGUPDATE;
 	this->reject();
 }
 

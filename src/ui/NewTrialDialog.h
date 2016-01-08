@@ -37,13 +37,13 @@ namespace Ui
 namespace xma
 {
 	class CameraBoxTrial;
-
+	class Trial;
 	class NewTrialDialog : public QDialog
 	{
 		Q_OBJECT
 
 	public:
-		explicit NewTrialDialog(QWidget* parent = 0);
+		explicit NewTrialDialog(Trial * trial =- NULL , QWidget* parent = 0);
 		virtual ~NewTrialDialog();
 
 		Ui::NewTrialDialog* diag;
@@ -57,7 +57,7 @@ namespace xma
 		QString trialname;
 	private:
 		std::vector<CameraBoxTrial *> cameras;
-
+		Trial * m_trial;
 		//checks if all inputs are done
 		bool isComplete();
 

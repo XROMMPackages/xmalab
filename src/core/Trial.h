@@ -47,6 +47,8 @@ namespace xma
 		Trial(QString trialname, QString folder);
 		virtual ~Trial();
 
+		void changeTrialData(QString trialname, std::vector<QStringList>& imageFilenames);
+
 		int getActiveFrame();
 		void setActiveFrame(int _activeFrame);
 		const std::vector<VideoStream *>& getVideoStreams();

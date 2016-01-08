@@ -41,12 +41,11 @@
 
 using namespace xma;
 
-NewTrialDialog::NewTrialDialog(QWidget* parent) :
-	QDialog(MainWindow::getInstance()),
+NewTrialDialog::NewTrialDialog(Trial * trial, QWidget* parent) :
+QDialog(MainWindow::getInstance()), m_trial(trial),
 	diag(new Ui::NewTrialDialog)
 {
 	diag->setupUi(this);
-
 	trialname = "Trial " + QString::number(Project::getInstance()->getTrials().size() + 1);
 	diag->lineEditTrialName->setText(trialname);
 	for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
@@ -55,6 +54,13 @@ NewTrialDialog::NewTrialDialog(QWidget* parent) :
 		box->setCameraName(Project::getInstance()->getCameras()[i]->getName());
 		diag->gridLayout_6->addWidget(box, i, 0, 1, 1);
 		cameras.push_back(box);
+	}
+
+	if (m_trial)
+	{
+		this->setWindowTitle("Change trial data");
+		trialname = m_trial->getName();
+		diag->lineEditTrialName->setText(trialname);
 	}
 }
 
@@ -70,18 +76,31 @@ NewTrialDialog::~NewTrialDialog()
 
 bool NewTrialDialog::createTrial()
 {
-	std::vector<QStringList> list;
-	for (std::vector<CameraBoxTrial*>::const_iterator it = getCameras().begin(); it != getCameras().end(); ++it)
+	if (m_trial)
 	{
-		list.push_back((*it)->getImageFileNames());
+		std::vector<QStringList> list;
+		for (std::vector<CameraBoxTrial*>::const_iterator it = getCameras().begin(); it != getCameras().end(); ++it)
+		{
+			list.push_back((*it)->getImageFileNames());
+		}
+		m_trial->changeTrialData(trialname, list);
+		return true;
 	}
-	Project::getInstance()->addTrial(new Trial(trialname, list));
-	WorkspaceNavigationFrame::getInstance()->addTrial(trialname);
-	State::getInstance()->changeActiveTrial(Project::getInstance()->getTrials().size() - 1, true);
-	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->bindTextures();
-	State::getInstance()->changeActiveFrameTrial(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame(), true);
-	State::getInstance()->changeWorkspace(DIGITIZATION, true);
-	return true;
+	else
+	{
+		std::vector<QStringList> list;
+		for (std::vector<CameraBoxTrial*>::const_iterator it = getCameras().begin(); it != getCameras().end(); ++it)
+		{
+			list.push_back((*it)->getImageFileNames());
+		}
+		Project::getInstance()->addTrial(new Trial(trialname, list));
+		WorkspaceNavigationFrame::getInstance()->addTrial(trialname);
+		State::getInstance()->changeActiveTrial(Project::getInstance()->getTrials().size() - 1, true);
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->bindTextures();
+		State::getInstance()->changeActiveFrameTrial(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame(), true);
+		State::getInstance()->changeWorkspace(DIGITIZATION, true);
+		return true;
+	}
 }
 
 bool NewTrialDialog::isComplete()
@@ -91,7 +110,7 @@ bool NewTrialDialog::isComplete()
 	bool nameUnique = true;
 	for (std::vector<Trial *>::const_iterator trial = Project::getInstance()->getTrials().begin(); trial != Project::getInstance()->getTrials().end(); ++trial)
 	{
-		if (trialname == (*trial)->getName())nameUnique = false;
+		if (trialname == (*trial)->getName() && (*trial) != m_trial)nameUnique = false;
 	}
 
 	if (!nameUnique)
