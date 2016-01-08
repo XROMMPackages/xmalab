@@ -212,6 +212,7 @@ int ProjectFileIO::saveProject(QString filename)
 					{
 						Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->saveDummy(p,
 						                                                                       path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences.csv",
+																							   path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences2.csv",
 						                                                                       path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointCoordinates.csv");
 					}
 				}
@@ -461,9 +462,17 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 
 															QString dummyName = attr.value("Name").toString();
 															QString dummyPointReferences = basedir + OS_SEP + attr.value("PointReferences").toString();
+															QString dummyPointReferences2 = attr.value("PointReferences2").toString();
+															if (dummyPointReferences2.isEmpty())
+															{
+																dummyPointReferences2 = dummyPointReferences;
+															} else
+															{
+																dummyPointReferences2 = basedir + OS_SEP + dummyPointReferences2;
+															}
 															QString dummyPointCoordinates = basedir + OS_SEP + attr.value("PointCoordinates").toString();
 
-															trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), 1, littleHelper::adjustPathToOS(dummyPointCoordinates));
+															trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), littleHelper::adjustPathToOS(dummyPointReferences2), 1, littleHelper::adjustPathToOS(dummyPointCoordinates));
 														}
 													}
 													xml.readNext();
@@ -919,6 +928,7 @@ bool ProjectFileIO::writeProjectFile(QString filename)
 						xmlWriter.writeStartElement("DummyMarker");
 						xmlWriter.writeAttribute("Name", Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getDummyNames()[p]);
 						xmlWriter.writeAttribute("PointReferences", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences.csv");
+						xmlWriter.writeAttribute("PointReferences2", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences2.csv");
 						xmlWriter.writeAttribute("PointCoordinates", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointCoordinates.csv");
 						xmlWriter.writeEndElement();
 					}
@@ -1271,9 +1281,18 @@ bool ProjectFileIO::readProjectFile(QString filename)
 
 													QString dummyName = attr.value("Name").toString();
 													QString dummyPointReferences = basedir + OS_SEP + attr.value("PointReferences").toString();
+													QString dummyPointReferences2 = attr.value("PointReferences2").toString();
+													if (dummyPointReferences2.isEmpty())
+													{
+														dummyPointReferences2 = dummyPointReferences;
+													}
+													else
+													{
+														dummyPointReferences2 = basedir + OS_SEP + dummyPointReferences2;
+													}
 													QString dummyPointCoordinates = basedir + OS_SEP + attr.value("PointCoordinates").toString();
 
-													trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), -1, littleHelper::adjustPathToOS(dummyPointCoordinates));
+													trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), littleHelper::adjustPathToOS(dummyPointReferences2), 1, littleHelper::adjustPathToOS(dummyPointCoordinates));
 												}
 											}
 											xml.readNext();

@@ -119,8 +119,8 @@ namespace xma
 
 		Trial* getTrial();
 
-		void addDummyPoint(QString name, QString filenamePointRef, int markerID, QString filenamePointCoords = "");
-		void saveDummy(int count, QString filenamePointRef, QString filenamePointCoords);
+		void addDummyPoint(QString name, QString filenamePointRef, QString filenamePointRef2, int markerID, QString filenamePointCoords = "");
+		void saveDummy(int count, QString filenamePointRef, QString filenamePointRef2, QString filenamePointCoords);
 		void clearAllDummyPoints();
 		const std::vector<QString>& getDummyNames();
 		bool allReferenceMarkerReferencesSet();
@@ -157,6 +157,7 @@ namespace xma
 
 		std::vector<QString> dummyNames;
 		std::vector<cv::Point3d> dummypoints;
+		std::vector<cv::Point3d> dummypoints2;
 		std::vector<int> dummyRBIndex;
 		std::vector<std::vector<cv::Point3d>> dummypointsCoords;
 		std::vector<std::vector<bool>> dummypointsCoordsSet;

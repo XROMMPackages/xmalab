@@ -334,11 +334,18 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 	                                     tr("Enter a name for the virtual point:"), QLineEdit::Normal, "Virtual " + QString::number(m_body->getDummyNames().size() + 1), &ok);
 	QString filenameCoords;
 	QString filenameRef;
+	QString filenameRef2;
 	int markerID = -1;
 
 	if (ok && !name.isEmpty())
 	{
-		filenameRef = QFileDialog::getOpenFileName(this, tr("Open CT coordinate file"), Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
+		int id = -1;
+		for (unsigned int i = 0; i < m_body->getTrial()->getRigidBodies().size(); i++)
+		{
+			if (m_body == m_body->getTrial()->getRigidBodies()[i]) id = i + 1;
+		}
+
+		filenameRef = QFileDialog::getOpenFileName(this, "Open CT coordinate file. (Point in the reference of RB" + QString::number(id) + ")" , Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
 		if (!filenameRef.isEmpty())
 		{
 			Settings::getInstance()->setLastUsedDirectory(filenameRef);
@@ -365,6 +372,21 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 				markerID = item.toInt() - 1;
 				name = name + " RB" + QString::number(markerID + 1);
 			}
+
+			if (markerID != -1)
+			{
+				if (ConfirmationDialog::getInstance()->showConfirmationDialog("Do need to use different CT coordinates for the animated point (Point in the reference of RB" + QString::number(markerID + 1) + ") ?"" Click cancel if both rigid bodies use the same point."))
+				{
+					filenameRef2 = QFileDialog::getOpenFileName(this, "Open CT coordinate file. (Point in the reference of RB" + QString::number(markerID + 1) + ")", Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
+					if (!filenameRef2.isEmpty())
+					{
+						Settings::getInstance()->setLastUsedDirectory(filenameRef2);
+					}
+				} else
+				{
+					filenameRef2 = filenameRef;
+				}
+			}
 		}
 
 		if (markerID == -1)
@@ -378,6 +400,11 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 			{
 				return;
 			}
+		} 
+		else
+		{
+			
+
 		}
 	}
 	else
@@ -385,7 +412,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 		return;
 	}
 
-	m_body->addDummyPoint(name, filenameRef, markerID, filenameCoords);
+	m_body->addDummyPoint(name, filenameRef, filenameRef2, markerID, filenameCoords);
 
 	reloadDummyPoints();
 

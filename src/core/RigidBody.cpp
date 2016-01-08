@@ -65,7 +65,6 @@ RigidBody::RigidBody(int size, Trial* _trial)
 	initialised = false;
 	trial = _trial;
 	referencesSet = false;
-
 	color.setRgb(255, 0, 0);
 	visible = false;
 
@@ -607,7 +606,7 @@ void RigidBody::computePose(int Frame)
 			if (dummyRBIndex[i] >= 0)
 			{
 				cv::Point3d dummy_tmp;
-				if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints[i], dummy_tmp, Frame))
+				if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints2[i], dummy_tmp, Frame))
 				{
 					src.push_back(cv::Point3f(dummy_tmp.x
 					                          , dummy_tmp.y
@@ -1157,7 +1156,7 @@ Trial* RigidBody::getTrial()
 	return trial;
 }
 
-void RigidBody::addDummyPoint(QString name, QString filenamePointRef, int markerID, QString filenamePointCoords)
+void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString filenamePointRef2, int markerID, QString filenamePointCoords)
 {
 	dummyNames.push_back(name);
 
@@ -1176,6 +1175,14 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, int marker
 	{
 		markerID = coords_list.at(3).toInt();
 	}
+
+	fin.open(filenamePointRef2.toAscii().data());
+	littleHelper::safeGetline(fin, line);
+	littleHelper::safeGetline(fin, line);
+	fin.close();
+	tmp_coords = QString::fromStdString(line);
+	coords_list = tmp_coords.split(",");
+	dummypoints2.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
 
 	dummyRBIndex.push_back(markerID);
 
@@ -1217,7 +1224,7 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, int marker
 	}
 }
 
-void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenamePointCoords)
+void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenamePointRef2, QString filenamePointCoords)
 {
 	std::ofstream outfileRef(filenamePointRef.toAscii().data());
 	outfileRef.precision(12);
@@ -1225,18 +1232,26 @@ void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenameP
 	outfileRef << dummypoints[count].x << "," << dummypoints[count].y << "," << dummypoints[count].z << "," << dummyRBIndex[count] << std::endl;
 	outfileRef.close();
 
+	std::ofstream outfileRef2(filenamePointRef2.toAscii().data());
+	outfileRef2.precision(12);
+	outfileRef2 << "x,y,z" << std::endl;
+	outfileRef2 << dummypoints2[count].x << "," << dummypoints2[count].y << "," << dummypoints2[count].z << std::endl;
+	outfileRef2.close();
+
 	std::ofstream outfileCoords(filenamePointCoords.toAscii().data());
 	outfileCoords.precision(12);
 	outfileCoords << "x,y,z" << std::endl;
-	for (unsigned int i = 0; i < dummypointsCoords[count].size(); i++)
-	{
-		if (dummypointsCoordsSet[count][i])
+	if(dummyRBIndex[count] < 0){
+		for (unsigned int i = 0; i < dummypointsCoords[count].size(); i++)
 		{
-			outfileCoords << dummypointsCoords[count][i].x << "," << dummypointsCoords[count][i].y << "," << dummypointsCoords[count][i].z << std::endl;
-		}
-		else
-		{
-			outfileCoords << "NaN,NaN,NaN" << std::endl;
+			if (dummypointsCoordsSet[count][i])
+			{
+				outfileCoords << dummypointsCoords[count][i].x << "," << dummypointsCoords[count][i].y << "," << dummypointsCoords[count][i].z << std::endl;
+			}
+			else
+			{
+				outfileCoords << "NaN,NaN,NaN" << std::endl;
+			}
 		}
 	}
 	outfileRef.close();
@@ -1564,7 +1579,7 @@ std::vector<cv::Point2d> RigidBody::projectToImage(Camera* cam, int Frame, bool 
 				if (dummyRBIndex[i] >= 0)
 				{
 					cv::Point3d dummy_tmp;
-					if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints[i], dummy_tmp, Frame))
+					if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints2[i], dummy_tmp, Frame))
 					{
 						points3D_frame.push_back(dummy_tmp);
 					}
@@ -1837,7 +1852,7 @@ void RigidBody::draw2D(Camera* cam, int frame)
 				if (dummyRBIndex[i] >= 0)
 				{
 					cv::Point3d dummy_tmp;
-					if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints[i], dummy_tmp, frame))
+					if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints2[i], dummy_tmp, frame))
 					{
 						count++;
 					}
