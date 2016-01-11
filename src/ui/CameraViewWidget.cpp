@@ -32,6 +32,7 @@
 #include "ui_CameraViewWidget.h"
 #include "ui/UndistortionInfoFrame.h"
 #include "ui/CalibrationInfoFrame.h"
+#include "ui/DigitizationInfoFrame.h"
 
 #include "core/Camera.h"
 
@@ -50,8 +51,11 @@ CameraViewWidget::CameraViewWidget(Camera* _camera, QWidget* parent) :
 
 	undistortionFrame = new UndistortionInfoFrame(this);
 	calibrationFrame = new CalibrationInfoFrame(this);
+	digitizationFrame = new DigitizationInfoFrame(this);
+
 	widget->gridLayout_3->addWidget(undistortionFrame, 0, 0, 1, 1);
 	widget->gridLayout_3->addWidget(calibrationFrame, 1, 0, 1, 1);
+	widget->gridLayout_3->addWidget(digitizationFrame, 2, 0, 1, 1);
 
 	connect(widget->glCameraView, SIGNAL(autozoomChanged(bool)), this, SLOT(autozoomChanged(bool)));
 	connect(widget->glCameraView, SIGNAL(zoomChanged(int)), this, SLOT(zoomChanged(int)));
@@ -69,6 +73,7 @@ CameraViewWidget::CameraViewWidget(Camera* _camera, QWidget* parent) :
 
 	calibrationFrame->installEventFilter(this);
 	undistortionFrame->installEventFilter(this);
+	digitizationFrame->installEventFilter(this);
 
 	if (camera->getID() == State::getInstance()->getActiveCamera())activeCameraChanged(State::getInstance()->getActiveCamera());
 }
@@ -85,6 +90,18 @@ void CameraViewWidget::setCameraName(QString name)
 void CameraViewWidget::setImageName(QString name)
 {
 	widget->imageTitleLabel->setText(name);
+}
+
+void CameraViewWidget::setBias(double value)
+{
+	if (widget != NULL && widget->glCameraView != NULL) 
+		widget->glCameraView->setBias(value);
+}
+
+void CameraViewWidget::setScale(double value)
+{
+	if (widget != NULL && widget->glCameraView != NULL) 
+		widget->glCameraView->setScale(value);
 }
 
 void CameraViewWidget::setSharedGLContext(const QGLContext* sharedContext)
@@ -153,11 +170,22 @@ void CameraViewWidget::workspaceChanged(work_state workspace)
 	{
 		undistortionFrame->show();
 		calibrationFrame->hide();
+		digitizationFrame->hide();
+		digitizationFrame->reset();
 	}
 	else if (workspace == CALIBRATION)
 	{
 		undistortionFrame->hide();
 		calibrationFrame->show();
+		digitizationFrame->hide();
+		digitizationFrame->reset();
+	}
+	else if (workspace == DIGITIZATION)
+	{
+		undistortionFrame->hide();
+		calibrationFrame->hide();
+		digitizationFrame->show();
+		digitizationFrame->reset();
 	}
 }
 

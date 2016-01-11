@@ -43,6 +43,7 @@ namespace xma
 	class Camera;
 	class CalibrationInfoFrame;
 	class UndistortionInfoFrame;
+	class DigitizationInfoFrame;
 
 	class CameraViewWidget : public QWidget
 	{
@@ -60,6 +61,9 @@ namespace xma
 
 		void setCameraName(QString name);
 		void setImageName(QString name);
+
+		void setBias(double value);
+		void setScale(double value);
 
 	protected:
 		bool eventFilter(QObject* obj, QEvent* event);
@@ -81,7 +85,7 @@ namespace xma
 
 		UndistortionInfoFrame* undistortionFrame;
 		CalibrationInfoFrame* calibrationFrame;
-
+		DigitizationInfoFrame* digitizationFrame;
 		Camera* camera;
 
 		Ui::CameraViewWidget* widget;
