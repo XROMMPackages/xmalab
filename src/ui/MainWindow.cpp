@@ -54,6 +54,7 @@
 #include "ui/Shortcuts.h"
 #include "ui/PointImportExportDialog.h"
 #include "ui/FromToDialog.h"
+#include "ui/MetaDataInfo.h"
 
 #include "core/Project.h"
 #include "core/Camera.h"
@@ -1563,3 +1564,8 @@ void MainWindow::on_actionPlot_triggered(bool checked)
 	}
 }
 
+void MainWindow::on_actionProject_Metadata_triggered(bool checked)
+{
+	MetaDataInfo* info = new MetaDataInfo(this);
+	info->show();
+}

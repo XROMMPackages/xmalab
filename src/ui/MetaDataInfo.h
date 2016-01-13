@@ -20,56 +20,36 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file ProjectFileIO.h
+///\file MetaDataInfo.h
 ///\author Benjamin Knorlein
-///\date 11/20/2015
+///\date 1/12/2016
 
-#ifndef PROJECTFILEIO_H
-#define PROJECTFILEIO_H
+#ifndef METADATAINFO_H_
+#define METADATAINFO_H_
 
-#include <QString>
-class QDir;
-class QStringList;
+#include <QDialog>
 
+namespace Ui
+{
+	class MetaDataInfo;
+}
 
 namespace xma
 {
-	class NewProjectDialog;
-	class Trial;
-
-	class ProjectFileIO
+	class MetaDataInfo : public QDialog
 	{
-	public:
-		static ProjectFileIO* getInstance();
-		virtual ~ProjectFileIO();
+		Q_OBJECT
 
-		int saveProject(QString filename);
-		int loadProject(QString filename);
-
-		QStringList readTrials(QString filename);
-		Trial* loadTrials(QString filename, QString trialname);
-		void loadMarker(QString filename, QString trialname, Trial* trial);
-
-		void loadXMALabProject(QString filename, NewProjectDialog* dialog);
-		void removeTmpDir();
-		void loadProjectMetaData(QString xml_filename);
 	private:
+		Ui::MetaDataInfo* diag;
 
-		ProjectFileIO();
-		static ProjectFileIO* instance;
+	public:
+		explicit MetaDataInfo(QWidget* parent = 0);
+		virtual ~MetaDataInfo();
 
-		bool writeProjectFile(QString filename);
-		bool readProjectFile(QString filename);
-
-		bool zipFromFolderToFile(const QString& filePath, const QDir& dir, const QString& comment = QString(""));
-		bool unzipFromFileToFolder(const QString& filePath, const QString& extDirPath, const QString& singleFileName = QString(""));
-		void recurseAddDir(QDir d, QStringList& list);
-		void correctFolder(QString filename, QString& newfolder, QString& oldfolder);
-		bool removeDir(QString folder);
 	};
 }
 
 
-#endif // PROJECTFILEIO_H
-
+#endif /* AboutDialog_H_ */
 

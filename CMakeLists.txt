@@ -209,7 +209,8 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/OptimizationDialog.h
 	src/ui/FromToDialog.h
 	src/ui/DigitizationInfoFrame.h
-	)
+	src/ui/MetaDataInfo.h
+)
 
 SET(XMALab_FORMS_SOURCES
 		src/ui/main.cpp
@@ -255,6 +256,7 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/OptimizationDialog.cpp
 		src/ui/FromToDialog.cpp
 		src/ui/DigitizationInfoFrame.cpp
+		src/ui/MetaDataInfo.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
@@ -294,6 +296,7 @@ SET(XMALab_FORMS
 		src/ui/ui-files/OptimizationDialog.ui
 		src/ui/ui-files/FromToDialog.ui
 		src/ui/ui-files/DigitizationInfoFrame.ui
+		src/ui/ui-files/MetaDataInfo.ui
 	)
 
 SOURCE_GROUP(UI_Files FILES ${XMALab_FORMS})
@@ -334,6 +337,7 @@ SET(XMALab_FORMS_MOC
 		${CMAKE_CURRENT_BINARY_DIR}/ui_OptimizationDialog.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_FromToDialog.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_DigitizationInfoFrame.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_MetaDataInfo.h
 )
 
 SOURCE_GROUP(UI_Generated FILES ${XMALab_FORMS_MOC})

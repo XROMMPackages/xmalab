@@ -350,6 +350,7 @@
     <addaction name="actionDetailed_View"/>
     <addaction name="actionPlot"/>
     <addaction name="action3D_world_view"/>
+    <addaction name="actionProject_Metadata"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -814,6 +815,11 @@
   <action name="actionMarkertoMarkerDistances">
    <property name="text">
     <string>Marker to Marker Distances</string>
+   </property>
+  </action>
+  <action name="actionProject_Metadata">
+   <property name="text">
+    <string>Project Metadata</string>
    </property>
   </action>
  </widget>

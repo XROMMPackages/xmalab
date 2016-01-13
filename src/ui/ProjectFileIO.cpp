@@ -131,6 +131,19 @@ int ProjectFileIO::saveProject(QString filename)
 		success = writeProjectFile(tmpDir_path + "project.xml");
 	}
 
+	if (success)
+	{
+		if (Project::getInstance()->getHasStudyData()){
+			QString path = tmpDir_path + "projectMetaData";
+			if (!QDir().mkpath(path))
+			{
+				ErrorDialog::getInstance()->showErrorDialog("Can not create tmp folder " + path);
+				success = false;
+			}
+			Project::getInstance()->saveXMLData(path + OS_SEP + "metadata.xml");
+		}
+	}
+
 	//Write Images 
 	if (success)
 	{
@@ -638,6 +651,8 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog* dialog
 
 	QFileInfo infoDir(filename);
 	QString xml_filename = tmpDir_path + OS_SEP + infoDir.completeBaseName() + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml";
+	
+	loadProjectMetaData(xml_filename);
 
 	std::vector<int> camera_vec;
 	std::vector<int> type_vec;
@@ -663,7 +678,6 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog* dialog
 
 				if (token == QXmlStreamReader::StartElement)
 				{
-					fprintf(stderr, "%s\n", xml.name().toAscii().data());
 					if (xml.name() == "File")
 					{
 						QString imagename = "";
@@ -749,6 +763,14 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog* dialog
 	}
 }
 
+void ProjectFileIO::loadProjectMetaData(QString xml_filename)
+{
+	if (xml_filename.isNull() == false)
+	{
+		Project::getInstance()->setXMLData(xml_filename);
+	}
+}
+
 void ProjectFileIO::removeTmpDir()
 {
 	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp" + OS_SEP;
@@ -769,6 +791,10 @@ bool ProjectFileIO::writeProjectFile(QString filename)
 			xmlWriter.writeStartElement("Project");
 			xmlWriter.writeAttribute("Version", "0.1");
 			xmlWriter.writeAttribute("ActiveTrial", QString::number(State::getInstance()->getActiveTrial()));
+			if (Project::getInstance()->getHasStudyData()){
+				xmlWriter.writeAttribute("MetaData", QString("projectMetaData") + OS_SEP + QString("metadata.xml"));
+			}
+			
 			//Cameras
 			for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
 			{
@@ -979,6 +1005,12 @@ bool ProjectFileIO::readProjectFile(QString filename)
 
 							QString activeTrialString = attr.value("ActiveTrial").toString();
 							if (!activeTrialString.isEmpty())activeTrial = activeTrialString.toInt();
+
+							QString xml_file = attr.value("MetaData").toString();
+							if (!xml_file.isEmpty())
+							{
+								loadProjectMetaData(littleHelper::adjustPathToOS(basedir + OS_SEP + xml_file));
+							}
 						}
 						if (xml.name() == "Camera")
 						{

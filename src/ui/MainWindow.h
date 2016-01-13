@@ -135,6 +135,7 @@ namespace xma
 		void on_actionConsole_triggered(bool checked);
 		void on_actionDetailed_View_triggered(bool checked);
 		void on_actionPlot_triggered(bool checked);
+		void on_actionProject_Metadata_triggered(bool checked);
 
 		//startMainFrameButtons
 		void on_pushButtonNew_Project_clicked();

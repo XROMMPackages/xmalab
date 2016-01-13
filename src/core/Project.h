@@ -29,6 +29,7 @@
 
 #include <vector>
 #include <QString>
+#include <QStringList>
 
 namespace xma
 {
@@ -64,6 +65,25 @@ namespace xma
 		void recountFrames();
 		void deleteTrial(Trial* trial);
 
+		void saveXMLData(QString filename);
+		void setXMLData(QString filename);
+		void parseXMLData(QString xmlData);
+
+		const QString getXMLData() const;
+
+		const bool& getHasStudyData() const;
+		const QString& getStudyName() const;
+		const QString& getRepository() const;
+		const int& getStudyId() const;
+		const QString& getTrialName() const;
+		const int& getTrialId() const;
+		const int& getTrialNumber() const;
+		const QString& getTrialType() const;
+		const QString& getLab() const;
+		const QString& getAttribcomment() const;
+		const QString& getTs() const;
+		const QString& getTrialDate() const;
+
 	private:
 		Project();
 		static Project* instance;
@@ -75,6 +95,26 @@ namespace xma
 
 		std::vector<Camera *> cameras;
 		std::vector<Trial *> trials;
+
+		bool hasStudyData;
+
+		//StudyData
+		QString studyName;
+		QString repository;
+		int studyID;
+
+		//CalibrationTrial Data
+		QString trialName;
+		int trialID;
+		int trialNumber;
+		QString trialType;
+
+		QString lab;
+		QString attribcomment;
+		QString	ts;
+		QString	trialDate;
+
+		QStringList xml_data;
 	};
 }
 

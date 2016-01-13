@@ -37,6 +37,8 @@
 
 #include <QApplication>
 #include <QFileInfo>
+#include <QTextStream>
+#include <QXmlStreamReader>
 
 #ifdef WIN32
 #define OS_SEP "\\"
@@ -53,6 +55,85 @@ Project::Project()
 	projectFilename = "";
 	calibrated = false;
 	nbImagesCalibration = 0;
+
+	//StudyData
+	hasStudyData = false;
+	studyName = "";
+	repository = "";
+	studyID = -1;
+
+	//CalibrationTrial Data
+	trialName = "";
+	trialID = -1;
+	trialNumber = -1;
+	trialType = "";;
+	lab = "";;
+	attribcomment = "";;
+	ts = "";;
+	trialDate = "";;
+
+	xml_data = QStringList();;
+}
+
+const bool& Project::getHasStudyData() const
+{
+	return hasStudyData;
+}
+
+const QString& Project::getStudyName() const
+{
+	return studyName;
+}
+
+const QString& Project::getRepository() const
+{
+	return repository;
+}
+
+
+const int& Project::getStudyId() const
+{
+	return studyID;
+}
+
+const QString& Project::getTrialName() const
+{
+	return trialName;
+}
+
+const int& Project::getTrialId() const
+{
+	return trialID;
+}
+
+const int& Project::getTrialNumber() const
+{
+	return trialNumber;
+}
+
+const QString& Project::getTrialType() const
+{
+	return trialType;
+}
+
+const QString& Project::getLab() const
+{
+	return lab;
+}
+
+const QString& Project::getAttribcomment() const
+{
+	return attribcomment;
+}
+
+const QString& Project::getTs() const
+{
+	return ts;
+}
+
+const QString& Project::getTrialDate() const
+{
+	return trialDate;
 }
 
 Project::~Project()
@@ -145,6 +226,112 @@ void Project::deleteTrial(Trial* trial)
 	std::vector<Trial *>::iterator position = std::find(trials.begin(), trials.end(), trial);
 	delete *position;
 	trials.erase(position);
+}
+
+void Project::saveXMLData(QString filename)
+{
+	if (hasStudyData)
+	{
+		QFile file(filename); //
+		if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+		{
+			QTextStream out(&file);
+
+			for (int i = 0; i < xml_data.size(); i++)
+			{
+				out << xml_data.at(i).toAscii().data()  << endl;
+			}
+		}
+		file.close();
+	}
+}
+
+void Project::setXMLData(QString filename)
+{
+	QFile file(filename); // this is a name of a file text1.txt sent from main method
+	if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		hasStudyData = true;
+
+		QTextStream in(&file);
+		QString line = in.readLine();
+		while (!line.isNull())
+		{		
+			xml_data << line;
+			line = in.readLine();
+		}
+		file.close();
+	}
+
+	parseXMLData(Project::getInstance()->getXMLData());
+}
+
+void Project::parseXMLData(QString xmlData)
+{
+	QXmlStreamReader xml(xmlData);
+
+	while (!xml.atEnd() && !xml.hasError())
+	{
+		QXmlStreamReader::TokenType token = xml.readNext();
+
+		if (token == QXmlStreamReader::StartDocument)
+		{
+			continue;
+		}
+
+		if (token == QXmlStreamReader::StartElement)
+		{
+			if (xml.name() == "Repository")
+			{
+				repository = xml.readElementText();
+			}
+			else if (xml.name() == "StudyName")
+			{
+				studyName = xml.readElementText();
+			}
+			else if (xml.name() == "StudyID")
+			{
+				studyID = xml.readElementText().toInt();
+			}
+			else if (xml.name() == "TrialName")
+			{
+				trialName = xml.readElementText();
+			}
+			else if (xml.name() == "TrialID")
+			{
+				trialID = xml.readElementText().toInt();
+			}
+			else if (xml.name() == "TrialNumber")
+			{
+				trialNumber = xml.readElementText().toInt();
+			}
+			else if (xml.name() == "TrialType")
+			{
+				trialType = xml.readElementText();
+			}
+			else if (xml.name() == "lab")
+			{
+				lab = xml.readElementText();
+			}
+			else if (xml.name() == "attribcomment")
+			{
+				attribcomment = xml.readElementText();
+			}
+			else if (xml.name() == "ts")
+			{
+				ts = xml.readElementText();
+			}
+			else if (xml.name() == "trialDate")
+			{
+				trialDate = xml.readElementText();
+			}
+		}
+	}
+}
+
+const QString Project::getXMLData() const
+{
+	return xml_data.join("");
 }
 
 void Project::recountFrames()
