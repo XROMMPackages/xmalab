@@ -88,25 +88,25 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>673</width>
-           <height>134</height>
+           <width>729</width>
+           <height>349</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="3" column="0">
-           <spacer name="verticalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
+          <item row="2" column="0" colspan="4">
+           <widget class="QCheckBox" name="checkBox_ConfirmQuitXMALab">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
+            <property name="text">
+             <string>Confirmation required to quit XMALAb</string>
             </property>
-           </spacer>
+           </widget>
           </item>
-          <item row="1" column="0">
+          <item row="1" column="0" colspan="4">
            <widget class="QCheckBox" name="checkBox_AutoConfirmPendingChanges">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -119,8 +119,91 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="checkBox_ConfirmQuitXMALab">
+          <item row="6" column="1" colspan="3">
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="3" column="0" colspan="4">
+           <widget class="QCheckBox" name="checkBox_Workspace">
+            <property name="text">
+             <string>Use custom workspace to save data imported from XMA Portal</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Workspace path</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="lineEditWorkspace">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QToolButton" name="toolButton_Workspace">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QScrollArea" name="scrollArea_Calibration">
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="scrollAreaWidgetContents_Calibration">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>729</width>
+           <height>350</height>
+          </rect>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="3" column="2">
+           <widget class="QSpinBox" name="spinBox_IdentificationThreshold">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Use Detection Method when Alt key is held:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="checkBox_AutoCalibAfterReference">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
               <horstretch>0</horstretch>
@@ -128,7 +211,92 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Confirmation required to quit XMALAb</string>
+             <string>Automatically run calibration after selection of last reference point</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0" colspan="2">
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>487</width>
+              <height>246</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="4" column="2">
+           <widget class="QSpinBox" name="spinBox_OutlierThreshold">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Distance threshold during automatic point identification </string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_Advanced">
+            <property name="text">
+             <string>show advanced options</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" colspan="2">
+           <widget class="QComboBox" name="comboBox_DetectionMethodForCalibration">
+            <item>
+             <property name="text">
+              <string>none</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>default Xray marker</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>dark Blobs </string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>white marker</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>corner detection</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>white Blobs</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QCheckBox" name="checkBox_HideWarningsCalibration">
+            <property name="text">
+             <string>do not show warnings during calibration</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Reprojection error threshlod for a considering point as outlier</string>
             </property>
            </widget>
           </item>
@@ -146,8 +314,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>673</width>
-           <height>502</height>
+           <width>729</width>
+           <height>349</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
@@ -281,140 +449,6 @@
           </item>
           <item row="7" column="2">
            <widget class="QDoubleSpinBox" name="doubleSpinBox_MaxError"/>
-          </item>
-         </layout>
-        </widget>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QScrollArea" name="scrollArea_Calibration">
-        <property name="widgetResizable">
-         <bool>true</bool>
-        </property>
-        <widget class="QWidget" name="scrollAreaWidgetContents_Calibration">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>673</width>
-           <height>376</height>
-          </rect>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_4">
-          <item row="0" column="0" colspan="2">
-           <widget class="QCheckBox" name="checkBox_AutoCalibAfterReference">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Automatically run calibration after selection of last reference point</string>
-            </property>
-           </widget>
-          </item>
-          <item row="9" column="0" colspan="2">
-           <spacer name="verticalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>487</width>
-              <height>246</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Use Detection Method when Alt key is held:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="2">
-           <widget class="QSpinBox" name="spinBox_IdentificationThreshold">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Distance threshold during automatic point identification </string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0" colspan="3">
-           <widget class="QCheckBox" name="checkBox_Advanced">
-            <property name="text">
-             <string>show advanced options</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="2">
-           <widget class="QSpinBox" name="spinBox_OutlierThreshold">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1" colspan="2">
-           <widget class="QComboBox" name="comboBox_DetectionMethodForCalibration">
-            <item>
-             <property name="text">
-              <string>none</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>default Xray marker</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>dark Blobs </string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>white marker</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>corner detection</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>white Blobs</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Reprojection error threshlod for a considering point as outlier</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QCheckBox" name="checkBox_HideWarningsCalibration">
-            <property name="text">
-             <string>do not show warnings during calibration</string>
-            </property>
-           </widget>
           </item>
          </layout>
         </widget>

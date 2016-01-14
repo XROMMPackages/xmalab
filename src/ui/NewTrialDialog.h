@@ -28,6 +28,7 @@
 #define NEWTRAILDIALOG_H_
 
 #include <QDialog>
+#include <QFuture>
 
 namespace Ui
 {
@@ -53,6 +54,10 @@ namespace xma
 			return cameras;
 		}
 
+		void setCam(int i, QString filename);
+		void setTrialName(QString trialName);
+		void setXmlMetadata(const QString& xml_metadata);
+
 		bool createTrial();
 		QString trialname;
 	private:
@@ -61,12 +66,19 @@ namespace xma
 		//checks if all inputs are done
 		bool isComplete();
 
+		QFutureWatcher<void>* m_FutureWatcher;
+		QString xml_metadata;
+		QString xmaTrial_filename;
+		bool deleteAfterLoad;
+
 	public slots:
 		//Footer buttons
 		void on_pushButton_OK_clicked();
 		void on_pushButton_Cancel_clicked();
+		void on_pushButton_LoadXMA_clicked();
 
 		void on_lineEditTrialName_textChanged(QString text);
+		void LoadXMAFinished();
 	};
 }
 #endif /* NEWTRAILDIALOG_H_ */

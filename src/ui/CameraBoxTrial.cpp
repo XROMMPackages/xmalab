@@ -52,6 +52,28 @@ CameraBoxTrial::~CameraBoxTrial()
 }
 
 
+void CameraBoxTrial::setFilename(QString filename)
+{
+	imageFileNames.clear();
+	if (filename.endsWith(".zip"))
+	{
+		QDir pdir(filename.replace(".zip",""));
+		QStringList imageFileNames_rel = pdir.entryList(QStringList() << "*.png" << "*.tif" << "*.bmp" << "*.jpeg" << "*.jpg", QDir::Files | QDir::NoSymLinks);
+		for (int i = 0; i < imageFileNames_rel.size(); ++i)
+		{
+			imageFileNames << QString("%1/%2").arg(pdir.absolutePath()).arg(imageFileNames_rel.at(i));
+		}
+
+		imageFileNames.sort();
+		widget->lineEdit->setText(filename.replace(".zip", ""));
+	}
+	else{	
+		imageFileNames << filename;
+		widget->lineEdit->setText(commonPrefix(imageFileNames));	
+	}
+	widget->label->setText("(" + QString::number(imageFileNames.size()) + ")");
+}
+
 void CameraBoxTrial::setCameraName(QString name)
 {
 	widget->groupBox->setTitle(name);

@@ -35,6 +35,7 @@ class QStringList;
 namespace xma
 {
 	class NewProjectDialog;
+	class NewTrialDialog;
 	class Trial;
 
 	class ProjectFileIO
@@ -50,6 +51,7 @@ namespace xma
 		Trial* loadTrials(QString filename, QString trialname);
 		void loadMarker(QString filename, QString trialname, Trial* trial);
 
+		void loadXMAPortalTrial(QString filename, NewTrialDialog* dialog);
 		void loadXMALabProject(QString filename, NewProjectDialog* dialog);
 		void removeTmpDir();
 		void loadProjectMetaData(QString xml_filename);

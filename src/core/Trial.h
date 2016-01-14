@@ -123,6 +123,26 @@ namespace xma
 
 		void getDrawTextData(int cam, int frame, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text);
 
+		void saveXMLData(QString filename);
+		void setXMLData(QString filename);
+		bool setFrameRateFromXML();
+		void parseXMLData();
+
+		const QString getXMLData() const;
+
+		const bool& getHasStudyData() const;
+		const QString& getStudyName() const;
+		const QString& getRepository() const;
+		const int& getStudyId() const;
+		const QString& getTrialName() const;
+		const int& getTrialId() const;
+		const int& getTrialNumber() const;
+		const QString& getTrialType() const;
+		const QString& getLab() const;
+		const QString& getAttribcomment() const;
+		const QString& getTs() const;
+		const QString& getTrialDate() const;
+
 	private:
 		QString name;
 		void setNbImages();
@@ -146,6 +166,26 @@ namespace xma
 		std::vector<Marker *> markers;
 
 		bool requiresRecomputation;
+
+		bool hasStudyData;
+
+		//StudyData
+		QString studyName;
+		QString repository;
+		int studyID;
+
+		//CalibrationTrial Data
+		QString trialName;
+		int trialID;
+		int trialNumber;
+		QString trialType;
+
+		QString lab;
+		QString attribcomment;
+		QString	ts;
+		QString	trialDate;
+
+		QStringList xml_data;
 	};
 }
 

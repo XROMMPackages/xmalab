@@ -43,6 +43,8 @@ namespace littleHelper
 	std::istream& comma(std::istream& in);
 
 	QString adjustPathToOS(QString filename);
+
+	void copyPath(QString src, QString dst);
 }
 
 #endif //VIDEOSTREAM_H

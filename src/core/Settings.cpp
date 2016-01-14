@@ -54,6 +54,8 @@ Settings::Settings()
 	//General
 	addBoolSetting("AutoConfirmPendingChanges", false);
 	addBoolSetting("ConfirmQuitXMALab", true);
+	addBoolSetting("CustomWorkspacePath", false);
+	addQStringSetting("WorkspacePath", "");
 
 	//Undistortion
 	addIntSetting("LocalUndistortionNeighbours", 12);

@@ -36,6 +36,9 @@
 #include "core/Trial.h"
 #include "State.h"
 #include "processing/ThreadScheduler.h"
+#include <QFileDialog>
+
+#include "ErrorDialog.h"
 
 using namespace xma;
 
@@ -48,6 +51,9 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 
 	diag->scrollArea_Calibration->hide();
 	diag->scrollArea_Digitizing->hide();
+
+	diag->lineEditWorkspace->setText(Settings::getInstance()->getQStringSetting("WorkspacePath"));
+	diag->checkBox_Workspace->setChecked(Settings::getInstance()->getBoolSetting("CustomWorkspacePath"));
 
 	diag->checkBox_AutoConfirmPendingChanges->setChecked(Settings::getInstance()->getBoolSetting("AutoConfirmPendingChanges"));
 	diag->checkBox_ConfirmQuitXMALab->setChecked(Settings::getInstance()->getBoolSetting("ConfirmQuitXMALab"));
@@ -74,6 +80,15 @@ SettingsDialog::~SettingsDialog()
 	delete diag;
 }
 
+void SettingsDialog::closeEvent(QCloseEvent* event)
+{
+	if (diag->lineEditWorkspace->text().isEmpty() && diag->checkBox_Workspace->isChecked())
+	{
+		ErrorDialog::getInstance()->showErrorDialog("You have to select a custom workspace or disable the custom workspace");
+		event->ignore();
+	}
+}
+
 void SettingsDialog::on_pushButton_General_clicked()
 {
 	diag->scrollArea_General->show();
@@ -93,6 +108,38 @@ void SettingsDialog::on_pushButton_Digitizing_clicked()
 	diag->scrollArea_General->hide();
 	diag->scrollArea_Calibration->hide();
 	diag->scrollArea_Digitizing->show();
+}
+
+void SettingsDialog::on_toolButton_Workspace_clicked()
+{
+	QString folder = QFileDialog::getExistingDirectory(this, tr("Load Directory "), Settings::getInstance()->getLastUsedDirectory());
+
+	if (!folder.isEmpty())
+	{
+		diag->lineEditWorkspace->setText(folder);
+		Settings::getInstance()->setLastUsedDirectory(folder);
+	}
+}
+
+void SettingsDialog::on_checkBox_Workspace_stateChanged(int state)
+{
+	Settings::getInstance()->set("CustomWorkspacePath", diag->checkBox_Workspace->isChecked());
+	if (diag->checkBox_Workspace->isChecked())
+	{
+		diag->toolButton_Workspace->setEnabled(true);
+		diag->lineEditWorkspace->setEnabled(true);
+	} 
+	else
+	{
+		diag->toolButton_Workspace->setEnabled(false);
+		diag->lineEditWorkspace->setEnabled(false);
+		diag->lineEditWorkspace->setText("");
+	}
+}
+
+void SettingsDialog::on_lineEditWorkspace_textChanged(QString text)
+{
+	Settings::getInstance()->set("WorkspacePath", text);
 }
 
 void SettingsDialog::on_checkBox_AutoConfirmPendingChanges_stateChanged(int state)

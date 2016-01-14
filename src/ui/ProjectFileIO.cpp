@@ -36,6 +36,7 @@
 #include "ui/ConsoleDockWidget.h"
 #include "ui/WorkspaceNavigationFrame.h"
 #include "ui/NewProjectDialog.h"
+#include "ui/NewTrialDialog.h"
 
 #include "core/Project.h" 
 #include "core/Camera.h" 
@@ -46,6 +47,7 @@
 #include "core/UndistortionObject.h"
 #include "core/CalibrationObject.h"
 #include "core/HelperFunctions.h"
+#include "core/Settings.h"
 
 #include <QDir>
 #include <QXmlStreamWriter>
@@ -196,6 +198,11 @@ int ProjectFileIO::saveProject(QString filename)
 			}
 			else
 			{
+
+				if (Project::getInstance()->getTrials()[i]->getHasStudyData()){
+					Project::getInstance()->getTrials()[i]->saveXMLData(path + OS_SEP + "metadata.xml");
+				}
+
 				Project::getInstance()->getTrials()[i]->save(path);
 				QDir().mkpath(path + OS_SEP + "data");
 				Project::getInstance()->getTrials()[i]->saveMarkers(path + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
@@ -250,10 +257,10 @@ int ProjectFileIO::loadProject(QString filename)
 	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
 
 	unzipFromFileToFolder(filename, tmpDir_path);
-	readProjectFile(tmpDir_path + OS_SEP + "project.xml");
-
+	
 	if (QFile::exists(tmpDir_path + OS_SEP + "project.xml"))
 	{
+		readProjectFile(tmpDir_path + OS_SEP + "project.xml");
 		ConsoleDockWidget::getInstance()->load(tmpDir_path + OS_SEP + "log.html");
 	}
 	else
@@ -391,6 +398,14 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 
 									trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
 
+									QString xml_file = attr.value("MetaData").toString();
+									if (!xml_file.isEmpty())
+									{
+										loadProjectMetaData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
+										trial->setXMLData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
+										trial->parseXMLData();
+									}
+
 									while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "Trial"))
 									{
 										if (xml.tokenType() == QXmlStreamReader::StartElement)
@@ -509,7 +524,7 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 	}
 
 	removeDir(tmpDir_path);
-
+	
 	return trial;
 }
 
@@ -641,6 +656,133 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 		}
 	}
 
+	removeDir(tmpDir_path);
+}
+
+void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
+{
+	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+	unzipFromFileToFolder(filename, tmpDir_path);
+	QString studyName;
+	QString trialName;
+
+	std::vector<int> camera_vec;
+	std::vector<QString> filename_vec;
+
+	QFileInfo info(filename);
+	if (QFile::exists(tmpDir_path + OS_SEP + info.completeBaseName() + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml"))
+	{
+		QString xml_filename = tmpDir_path + OS_SEP + info.completeBaseName() + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml";
+		
+		if (xml_filename.isNull() == false)
+		{
+			QString basedir = tmpDir_path + OS_SEP + info.completeBaseName() + OS_SEP;
+
+			QFile file(xml_filename);
+			if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+			{
+				QXmlStreamReader xml(&file);
+				while (!xml.atEnd() && !xml.hasError())
+				{
+					QXmlStreamReader::TokenType token = xml.readNext();
+
+					if (token == QXmlStreamReader::StartDocument)
+					{
+						continue;
+					}
+
+					if (token == QXmlStreamReader::StartElement)
+					{
+						if (xml.name() == "StudyName")
+						{
+							studyName = xml.readElementText();
+						}
+						else if (xml.name() == "TrialName")
+						{
+							trialName = xml.readElementText();
+						}
+
+						else if (xml.name() == "File")
+						{
+							QString imagename = "";
+							int camera = -1;
+							while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "File"))
+							{
+								if (xml.tokenType() == QXmlStreamReader::StartElement)
+								{
+									if (xml.name() == "Filename")
+									{
+										imagename = xml.readElementText();
+									}
+									
+									else if (xml.name() == "metadata")
+									{
+										while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "metadata"))
+										{
+											if (xml.tokenType() == QXmlStreamReader::StartElement)
+											{
+												if (xml.name() == "cameraNumber")
+												{
+													camera = xml.readElementText().replace("cam", "").toInt() - 1;
+												}
+											}
+											xml.readNext();
+										}
+									}
+								}
+								xml.readNext();
+							}
+							if (camera >= 0 && !imagename.isEmpty())
+							{
+								camera_vec.push_back(camera);
+								filename_vec.push_back(imagename);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		//copy to workspace
+		QString folder;
+		if (Settings::getInstance()->getBoolSetting("CustomWorkspacePath"))
+		{
+			folder = Settings::getInstance()->getQStringSetting("WorkspacePath");
+			folder = folder + OS_SEP + studyName;
+			QDir().mkpath(folder);
+			folder = folder + OS_SEP + trialName;
+			QDir().mkpath(folder);
+		} 
+		else
+		{
+
+			folder = QFileInfo(Project::getInstance()->getProjectFilename()).absolutePath();
+			folder = folder + OS_SEP + trialName;
+			QDir().mkpath(folder);
+		}
+		littleHelper::copyPath(tmpDir_path + OS_SEP + info.completeBaseName(), folder);
+		//Fill Dialog
+
+		//check for zip
+
+
+		for (unsigned int i = 0; i < camera_vec.size(); i++)
+		{
+			if (filename_vec[i].endsWith("zip"))
+			{
+				QString videoPath = QString(folder + OS_SEP + filename_vec[i]).replace(".zip", "");
+				unzipFromFileToFolder(folder + OS_SEP + filename_vec[i], videoPath);
+				QFile(folder + OS_SEP + filename_vec[i]).remove();
+			}
+			dialog->setTrialName(trialName);
+			dialog->setCam(camera_vec[i], folder + OS_SEP + filename_vec[i]);
+		}
+		dialog->setXmlMetadata(folder + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml");
+	} 
+	else
+	{
+		ErrorDialog::getInstance()->showErrorDialog("Not a valid xma file from the portal");
+	}
 	removeDir(tmpDir_path);
 }
 
@@ -909,7 +1051,9 @@ bool ProjectFileIO::writeProjectFile(QString filename)
 				xmlWriter.writeAttribute("recordingSpeed", QString::number(Project::getInstance()->getTrials()[i]->getRecordingSpeed()));
 				xmlWriter.writeAttribute("cutOffFrequency", QString::number(Project::getInstance()->getTrials()[i]->getCutoffFrequency()));
 				xmlWriter.writeAttribute("interpolateMissingFrames", QString::number(Project::getInstance()->getTrials()[i]->getInterpolateMissingFrames()));
-
+				if (Project::getInstance()->getTrials()[i]->getHasStudyData()){
+					xmlWriter.writeAttribute("MetaData", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + QString("metadata.xml"));
+				}
 				for (unsigned int k = 0; k < Project::getInstance()->getTrials()[i]->getMarkers().size(); k++)
 				{
 					xmlWriter.writeStartElement("Marker");
@@ -974,6 +1118,7 @@ bool ProjectFileIO::writeProjectFile(QString filename)
 bool ProjectFileIO::readProjectFile(QString filename)
 {
 	int activeTrial = -1;
+
 	if (filename.isNull() == false)
 	{
 		QFileInfo info(filename);
@@ -1216,6 +1361,14 @@ bool ProjectFileIO::readProjectFile(QString filename)
 
 							trial->loadMarkers(trialfolder + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
 							trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
+
+							QString xml_file = attr.value("MetaData").toString();
+							if (!xml_file.isEmpty())
+							{
+								loadProjectMetaData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
+								trial->setXMLData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
+								trial->parseXMLData();
+							}
 
 							while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "Trial"))
 							{

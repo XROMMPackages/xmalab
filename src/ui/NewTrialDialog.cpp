@@ -33,11 +33,18 @@
 #include "ui/CameraBoxTrial.h"
 #include "ui/ErrorDialog.h"
 #include "ui/MainWindow.h"
+#include "ui/ProjectFileIO.h"
 #include "ui/WorkspaceNavigationFrame.h"
+#include "ui/ProgressDialog.h"
 
 #include "core/Camera.h"
 #include "core/Project.h"
 #include "core/Trial.h"
+#include "core/Settings.h"
+
+#include <QFileDialog>
+#include <QtCore>
+#include "ConfirmationDialog.h"
 
 using namespace xma;
 
@@ -48,6 +55,7 @@ QDialog(MainWindow::getInstance()), m_trial(trial),
 	diag->setupUi(this);
 	trialname = "Trial " + QString::number(Project::getInstance()->getTrials().size() + 1);
 	diag->lineEditTrialName->setText(trialname);
+	xml_metadata = "";
 	for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 	{
 		CameraBoxTrial* box = new CameraBoxTrial();
@@ -72,6 +80,21 @@ NewTrialDialog::~NewTrialDialog()
 		delete (*it);
 
 	cameras.clear();
+}
+
+void NewTrialDialog::setCam(int i, QString filename)
+{
+	cameras[i]->setFilename(filename);
+}
+
+void NewTrialDialog::setTrialName(QString trialName)
+{
+	diag->lineEditTrialName->setText(trialName);
+}
+
+void NewTrialDialog::setXmlMetadata(const QString& xml_metadata)
+{
+	this->xml_metadata = xml_metadata;
 }
 
 bool NewTrialDialog::createTrial()
@@ -99,6 +122,13 @@ bool NewTrialDialog::createTrial()
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->bindTextures();
 		State::getInstance()->changeActiveFrameTrial(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame(), true);
 		State::getInstance()->changeWorkspace(DIGITIZATION, true);
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setXMLData(xml_metadata);
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->parseXMLData();
+		if (!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setFrameRateFromXML())
+		{
+			ErrorDialog::getInstance()->showErrorDialog("Framerate could not be set. Either the framerates of the files differ or Framerates have not been defined");
+		}
+
 		return true;
 	}
 }
@@ -150,6 +180,32 @@ void NewTrialDialog::on_pushButton_OK_clicked()
 void NewTrialDialog::on_pushButton_Cancel_clicked()
 {
 	this->reject();
+}
+
+void NewTrialDialog::on_pushButton_LoadXMA_clicked()
+{
+	xmaTrial_filename = QFileDialog::getOpenFileName(this,
+		tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xmatrial  *.zip)"));
+	if (xmaTrial_filename.isNull() == false)
+	{
+		deleteAfterLoad = ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to delete the .xmatrial file after the import? Click Yes if you want to delete it. Cancel if you do not want to delete it.");
+
+		m_FutureWatcher = new QFutureWatcher<void>();
+		connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(LoadXMAFinished()));
+
+		QFuture<void> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::loadXMAPortalTrial, xmaTrial_filename, this);
+		m_FutureWatcher->setFuture(future);
+
+		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load trial " + xmaTrial_filename).toAscii().data());
+	}
+}
+
+void NewTrialDialog::LoadXMAFinished()
+{
+	delete m_FutureWatcher;
+	if (deleteAfterLoad) QFile(xmaTrial_filename).remove();
+
+	ProgressDialog::getInstance()->closeProgressbar();
 }
 
 void NewTrialDialog::on_lineEditTrialName_textChanged(QString text)

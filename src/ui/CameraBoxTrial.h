@@ -56,6 +56,7 @@ namespace xma
 		{
 			return imageFileNames;
 		}
+		void setFilename(QString filename);
 
 		void setCameraName(QString name);
 		const QString getCameraName();

@@ -40,8 +40,11 @@
 #include "core/Settings.h"
 #include "core/UndistortionObject.h"
 #include "core/HelperFunctions.h"
+
 #include <QFileInfo>
 #include <QDir>
+#include <QTextStream>
+#include <QXmlStreamReader>
 
 #include <fstream>
 
@@ -738,8 +741,6 @@ void Trial::changeImagePath(int camera, QString newfolder, QString oldfolder)
 void Trial::updateAfterChangeImagePath()
 {
 	setNbImages();
-
-	recordingSpeed = videos[0]->getFPS();
 }
 
 void Trial::recomputeAndFilterRigidBodyTransformations()
@@ -1473,3 +1474,237 @@ void Trial::getDrawTextData(int cam, int frame, std::vector<double>& x, std::vec
 	}
 }
 
+void Trial::saveXMLData(QString filename)
+{
+	if (hasStudyData)
+	{
+		QFile file(filename); //
+		if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+		{
+			QTextStream out(&file);
+
+			for (int i = 0; i < xml_data.size(); i++)
+			{
+				out << xml_data.at(i).toAscii().data() << endl;
+			}
+		}
+		file.close();
+	}
+}
+
+void Trial::setXMLData(QString filename)
+{
+	QFile file(filename); // this is a name of a file text1.txt sent from main method
+	if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		hasStudyData = true;
+
+		QTextStream in(&file);
+		QString line = in.readLine();
+		while (!line.isNull())
+		{
+			xml_data << line;
+			line = in.readLine();
+		}
+		file.close();
+	}
+}
+
+bool Trial::setFrameRateFromXML()
+{
+	if (hasStudyData){
+		QXmlStreamReader xml(xml_data.join(""));
+
+		std::vector<double> FrameRates;
+
+		while (!xml.atEnd() && !xml.hasError())
+		{
+			QXmlStreamReader::TokenType token = xml.readNext();
+
+			if (token == QXmlStreamReader::StartDocument)
+			{
+				continue;
+			}
+
+			if (token == QXmlStreamReader::StartElement)
+			{
+				if (xml.name() == "File")
+				{
+					double FrameRate_tmp = -1;
+
+					while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "File"))
+					{
+						if (xml.tokenType() == QXmlStreamReader::StartElement)
+						{
+							if (xml.name() == "metadata")
+							{
+								while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "metadata"))
+								{
+									if (xml.tokenType() == QXmlStreamReader::StartElement)
+									{
+										if (xml.name() == "FrameRate")
+										{
+											FrameRate_tmp = xml.readElementText().toDouble();
+										}
+
+									}
+									xml.readNext();
+								}
+							}
+						}
+						xml.readNext();
+					}
+					FrameRates.push_back(FrameRate_tmp);
+				}
+			}
+		}
+		if (FrameRates.size() <= 0) return false;
+
+		double FrameRate = FrameRates[0];
+		bool equal = FrameRate > 0;
+		for (int i = 1; i < FrameRates.size(); i ++)
+		{
+			if (FrameRate != FrameRates[i]) equal = false;
+		}
+
+		if (equal)
+		{
+			recordingSpeed = FrameRate;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void Trial::parseXMLData()
+{
+	if (hasStudyData){
+		QXmlStreamReader xml(xml_data.join(""));
+
+		while (!xml.atEnd() && !xml.hasError())
+		{
+			QXmlStreamReader::TokenType token = xml.readNext();
+
+			if (token == QXmlStreamReader::StartDocument)
+			{
+				continue;
+			}
+
+			if (token == QXmlStreamReader::StartElement)
+			{
+				if (xml.name() == "Repository")
+				{
+					repository = xml.readElementText();
+				}
+				else if (xml.name() == "StudyName")
+				{
+					studyName = xml.readElementText();
+				}
+				else if (xml.name() == "StudyID")
+				{
+					studyID = xml.readElementText().toInt();
+				}
+				else if (xml.name() == "TrialName")
+				{
+					trialName = xml.readElementText();
+				}
+				else if (xml.name() == "TrialID")
+				{
+					trialID = xml.readElementText().toInt();
+				}
+				else if (xml.name() == "TrialNumber")
+				{
+					trialNumber = xml.readElementText().toInt();
+				}
+				else if (xml.name() == "TrialType")
+				{
+					trialType = xml.readElementText();
+				}
+				else if (xml.name() == "lab")
+				{
+					lab = xml.readElementText();
+				}
+				else if (xml.name() == "attribcomment")
+				{
+					attribcomment = xml.readElementText();
+				}
+				else if (xml.name() == "ts")
+				{
+					ts = xml.readElementText();
+				}
+				else if (xml.name() == "trialDate")
+				{
+					trialDate = xml.readElementText();
+				}
+			}
+		}
+		for (int i = 0; i < videos.size(); i++)
+		{
+			videos[i]->parseXMLData(i, xml_data.join(""));
+		}
+	}
+}
+
+const bool& Trial::getHasStudyData() const
+{
+	return hasStudyData;
+}
+
+const QString& Trial::getStudyName() const
+{
+	return studyName;
+}
+
+const QString& Trial::getRepository() const
+{
+	return repository;
+}
+
+const int& Trial::getStudyId() const
+{
+	return studyID;
+}
+
+const QString& Trial::getTrialName() const
+{
+	return trialName;
+}
+
+const int& Trial::getTrialId() const
+{
+	return trialID;
+}
+
+const int& Trial::getTrialNumber() const
+{
+	return trialNumber;
+}
+
+const QString& Trial::getTrialType() const
+{
+	return trialType;
+}
+
+const QString& Trial::getLab() const
+{
+	return lab;
+}
+
+const QString& Trial::getAttribcomment() const
+{
+	return attribcomment;
+}
+
+const QString& Trial::getTs() const
+{
+	return ts;
+}
+
+const QString& Trial::getTrialDate() const
+{
+	return trialDate;
+}

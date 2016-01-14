@@ -28,6 +28,7 @@
 #define SETTINGSDIALOG_H
 
 #include <QDialog>
+#include <QCloseEvent>
 
 namespace Ui
 {
@@ -46,6 +47,7 @@ namespace xma
 		Ui::SettingsDialog* diag;
 
 	protected:
+		void closeEvent(QCloseEvent* event);
 
 	private:
 		bool initPhase;
@@ -54,6 +56,10 @@ namespace xma
 		void on_pushButton_General_clicked();
 		void on_pushButton_Calibration_clicked();
 		void on_pushButton_Digitizing_clicked();
+		
+		void on_toolButton_Workspace_clicked();
+		void on_checkBox_Workspace_stateChanged(int state);
+		void on_lineEditWorkspace_textChanged(QString text);
 
 		void on_checkBox_AutoConfirmPendingChanges_stateChanged(int state);
 		void on_checkBox_AutoCalibAfterReference_stateChanged(int state);

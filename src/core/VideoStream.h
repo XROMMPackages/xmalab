@@ -53,11 +53,46 @@ namespace xma
 		double getFPS();
 
 
+		void parseXMLData(int id, QString xml_data);
+
+		const QString& getFilename() const;
+		const int& getFileId() const;
+		const QString& getFileCategory() const;
+		const QString& getCameraNumber() const;
+		const QString& getInstrument() const;
+		const double& getFrameRate() const;
+		const QString& getShutterSpeed() const;
+		const QString& getKV() const;
+		const QString& getMA() const;
+		const QString& getSid() const;
+		const QString& getMagLevel() const;
+		const QString& getRadiationtype() const;
+		const QString& getPulsewidth() const;
+		const QString& getFileDescription() const;
+		const QString& getLab() const;
+
 	protected:
 		Image* image;
 		int nbImages;
 		QStringList filenames;
 		double fps;
+
+	protected:
+		QString Filename;
+		int FileID;
+		QString FileCategory;
+		QString cameraNumber;
+		QString Instrument;
+		double FrameRate;
+		QString ShutterSpeed;
+		QString kV;
+		QString mA;
+		QString SID;
+		QString MagLevel;
+		QString Radiationtype;
+		QString Pulsewidth;
+		QString FileDescription;
+		QString Lab;
 	};
 }
 
