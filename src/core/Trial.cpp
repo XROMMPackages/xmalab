@@ -1494,19 +1494,21 @@ void Trial::saveXMLData(QString filename)
 
 void Trial::setXMLData(QString filename)
 {
-	QFile file(filename); // this is a name of a file text1.txt sent from main method
-	if (file.open(QIODevice::ReadOnly | QIODevice::Text))
-	{
-		hasStudyData = true;
-
-		QTextStream in(&file);
-		QString line = in.readLine();
-		while (!line.isNull())
+	if (!filename.isEmpty()){
+		QFile file(filename); // this is a name of a file text1.txt sent from main method
+		if (file.open(QIODevice::ReadOnly | QIODevice::Text))
 		{
-			xml_data << line;
-			line = in.readLine();
+			hasStudyData = true;
+
+			QTextStream in(&file);
+			QString line = in.readLine();
+			while (!line.isNull())
+			{
+				xml_data << line;
+				line = in.readLine();
+			}
+			file.close();
 		}
-		file.close();
 	}
 }
 

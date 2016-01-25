@@ -92,9 +92,9 @@ void NewTrialDialog::setTrialName(QString trialName)
 	diag->lineEditTrialName->setText(trialName);
 }
 
-void NewTrialDialog::setXmlMetadata(const QString& xml_metadata)
+void NewTrialDialog::setXmlMetadata(const QString& _xml_metadata)
 {
-	this->xml_metadata = xml_metadata;
+	this->xml_metadata = _xml_metadata;
 }
 
 bool NewTrialDialog::createTrial()
