@@ -9,4 +9,4 @@ CoPIs Stephen Gatesy and David Baier.
 Join the [XMA Lab Google Group](https://groups.google.com/a/brown.edu/forum/?hl=en#!forum/xmalab) to be notified of future releases and pose questions to the group.
 
 # Download the latest binary release #
-## Version 1.3.1 : [Mac](https://bitbucket.org/xromm/xma-lab/downloads/XMALab_1.3.1.dmg) and [Windows](https://bitbucket.org/xromm/xma-lab/downloads/XMALab_setup-1.3.1.msi) ##
+## Version 1.3.2 : [Mac](https://bitbucket.org/xromm/xma-lab/downloads/XMALab_1.3.2.dmg) and [Windows](https://bitbucket.org/xromm/xma-lab/downloads/XMALab_setup-1.3.2.msi) ##
