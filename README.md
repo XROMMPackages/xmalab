@@ -7,7 +7,6 @@ XMA Lab development is supported by the US National Science Foundation through a
 CoPIs Stephen Gatesy and David Baier.
 
 ### Visit the [XMA Lab Bitbucket Wiki](https://bitbucket.org/xromm/xma-lab/wiki/Home) for User Manual and Version History
-
 ### Join the [XMA Lab Google Group](https://groups.google.com/a/brown.edu/forum/?hl=en#!forum/xmalab) to be notified of future releases and pose questions to the group.
 
 # Download the latest binary release #
