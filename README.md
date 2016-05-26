@@ -2,9 +2,8 @@ XMA Lab is new software for marker-based XMA and XROMM. The developer is Dr. Ben
 
 XMA Lab integrates distortion correction, calibration, marker tracking, rigid body calculations and filtering all into one program. XMA Lab replaces all
 components of the MATLAB X-ray Project workflow. For marker-based XROMM, XMA Lab generates animation matrices suitable for animating bones in Autodesk Maya.
-# Download the latest binary release #
-## Version 1.3.2 : [Mac](https://bitbucket.org/xromm/xma-lab/downloads/XMALab_1.3.2.dmg) and [Windows](https://bitbucket.org/xromm/xma-lab/downloads/XMALab_setup-1.3.2.msi) ##
-
+## Download the latest binary release #
+### Version 1.3.2 : [Mac](https://bitbucket.org/xromm/xma-lab/downloads/XMALab_1.3.2.dmg) and [Windows](https://bitbucket.org/xromm/xma-lab/downloads/XMALab_setup-1.3.2.msi)
 ### Visit the [XMA Lab Bitbucket Wiki](https://bitbucket.org/xromm/xma-lab/wiki/Home) for User Manual and Version History
 ### Join the [XMA Lab Google Group](https://groups.google.com/a/brown.edu/forum/?hl=en#!forum/xmalab) to be notified of future releases and pose questions to the group.
 ### XMALab Tutorial with example data on [xmaportal.org/sandbox/](http://xmaportal.org/sandbox/larequest.php?request=explorePublicStudy&StudyID=49&instit=SANDBOX1)
