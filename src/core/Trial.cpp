@@ -939,7 +939,7 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 		{
 			for (int j = from - 1; j < to; j++)
 			{
-				QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND_" + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
+				QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
 				videos[i]->setActiveFrame(j);
 				Project::getInstance()->getCameras()[i]->getUndistortionObject()->undistort(videos[i]->getImage(), outname);
 			}
@@ -948,7 +948,7 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 		{
 			for (int j = from - 1; j < to; j++)
 			{
-				QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND_" + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
+				QString outname = foldername + OS_SEP + info.completeBaseName() + "." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
 				videos[i]->setActiveFrame(j);
 				videos[i]->getImage()->save(outname);
 			}
