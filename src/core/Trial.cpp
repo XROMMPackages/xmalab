@@ -800,7 +800,7 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 					<< name.toAscii().data() << "_TX" << filterRate.toAscii().data() << " , "
 					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
 					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_1" << filterRate.toAscii().data() ;
+					<< name.toAscii().data() << "_1" << filterRate.toAscii().data();
 
 				if (i != getRigidBodies().size() - 1)
 				{
@@ -811,38 +811,38 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 					outfile << std::endl;
 				}
 			}
-
-			double trans[16];
-			for (int f = 0; f < nbImages; f++)
+		}
+		double trans[16];
+		for (int f = 0; f < nbImages; f++)
+		{
+			for (unsigned int i = 0; i < getRigidBodies().size(); i++)
 			{
-				for (unsigned int i = 0; i < getRigidBodies().size(); i++)
+				if (getRigidBodies()[i]->getTransformationMatrix(f, filtered, &trans[0]))
 				{
-					if (getRigidBodies()[i]->getTransformationMatrix(f, filtered, &trans[0]))
-					{
-						outfile << trans[0] << " , " << trans[1] << " , " << trans[2] << " , " << trans[3] << " , ";
-						outfile << trans[4] << " , " << trans[5] << " , " << trans[6] << " , " << trans[7] << " , ";
-						outfile << trans[8] << " , " << trans[9] << " , " << trans[10] << " , " << trans[11] << " , ";
-						outfile << trans[12] << " , " << trans[13] << " , " << trans[14] << " , " << trans[15];
-					}
-					else
-					{
-						outfile << "NaN , NaN , NaN , NaN , ";
-						outfile << "NaN , NaN , NaN , NaN , ";
-						outfile << "NaN , NaN , NaN , NaN , ";
-						outfile << "NaN , NaN , NaN , NaN";
-					}
+					outfile << trans[0] << " , " << trans[1] << " , " << trans[2] << " , " << trans[3] << " , ";
+					outfile << trans[4] << " , " << trans[5] << " , " << trans[6] << " , " << trans[7] << " , ";
+					outfile << trans[8] << " , " << trans[9] << " , " << trans[10] << " , " << trans[11] << " , ";
+					outfile << trans[12] << " , " << trans[13] << " , " << trans[14] << " , " << trans[15];
+				}
+				else
+				{
+					outfile << "NaN , NaN , NaN , NaN , ";
+					outfile << "NaN , NaN , NaN , NaN , ";
+					outfile << "NaN , NaN , NaN , NaN , ";
+					outfile << "NaN , NaN , NaN , NaN";
+				}
 
-					if (i != getRigidBodies().size() - 1)
-					{
-						outfile << " , ";
-					}
-					else
-					{
-						outfile << std::endl;
-					}
+				if (i != getRigidBodies().size() - 1)
+				{
+					outfile << " , ";
+				}
+				else
+				{
+					outfile << std::endl;
 				}
 			}
 		}
+		
 		outfile.close();
 	}
 	else
