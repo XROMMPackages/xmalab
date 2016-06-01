@@ -377,7 +377,7 @@ void PlotWindow::activeTrialChanged(int activeTrial)
 
 void PlotWindow::draw()
 {
-	if (State::getInstance()->getWorkspace() == DIGITIZATION && this - isVisible())
+	if (State::getInstance()->getWorkspace() == DIGITIZATION && this->isVisible())
 	{
 		if (dock->comboBoxPlotType->currentIndex() == 0)
 		{

@@ -54,6 +54,7 @@
 
 #include <iostream> 
 #include <math.h>
+#include "MainWindow.h"
 
 #ifdef __APPLE__
 	#include <OpenGL/gl.h>
@@ -219,7 +220,7 @@ void GLCameraView::mousePressEvent(QMouseEvent* e)
 			if (WizardDockWidget::getInstance()->manualCalibrationRunning())
 			{
 				WizardDockWidget::getInstance()->addCalibrationReference(x, y);
-				updateGL();
+				//updateGL();
 			}
 			else
 			{
@@ -232,7 +233,7 @@ void GLCameraView::mousePressEvent(QMouseEvent* e)
 					if (e->modifiers().testFlag(Qt::ControlModifier))
 					{
 						camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->setPointManual(x, y, State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
-						updateGL();
+						//updateGL();
 					}
 				}
 			}
@@ -256,7 +257,7 @@ void GLCameraView::mousePressEvent(QMouseEvent* e)
 
 			WizardDockWidget::getInstance()->updateDialog();
 		}
-		updateGL();
+		MainWindow::getInstance()->redrawGL();
 	}
 }
 
