@@ -1,9 +1,9 @@
 //  ----------------------------------
-//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
-//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  Use of the XMALab software is provided under the terms of the GNU General Public License version 3 
 //  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
 //  that this copyright notice appear in all copies and that the name of Brown University not be used in 
 //  advertising or publicity pertaining to the use or distribution of the software without specific written 
@@ -203,9 +203,9 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->actionImportTrial->setEnabled(false);
 	Shortcuts::getInstance()->bindApplicationShortcuts();
 #ifndef BETA
-	this->setWindowTitle("XMA Lab " + QString(PROJECT_VERSION));
+	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
 #else 
-	this->setWindowTitle("XMA Lab " + QString(PROJECT_VERSION) + " - BETA");
+	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA");
 #endif
 }
 
@@ -247,7 +247,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-	if (!Settings::getInstance()->getBoolSetting("ConfirmQuitXMALab") || ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to quit XMA Lab. Please make sure your data have been saved. \nAre you sure you want to quit?"))
+	if (!Settings::getInstance()->getBoolSetting("ConfirmQuitXMALab") || ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to quit XMALab. Please make sure your data have been saved. \nAre you sure you want to quit?"))
 	{
 		Settings::getInstance()->setUIGeometry("XMALab", saveGeometry());
 		Settings::getInstance()->setUIState("XMALab", saveState(UI_VERSION));
@@ -526,9 +526,9 @@ void MainWindow::newProjectFromXMALab(QString filename)
 	}
 
 #ifndef BETA
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMA Lab " + PROJECT_VERSION);
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
 #else 
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMA Lab " + PROJECT_VERSION + " - BETA");
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA");
 #endif
 }
 
@@ -596,9 +596,9 @@ void MainWindow::loadProjectFinished()
 		}
 
 #ifndef BETA
-		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMA Lab " + PROJECT_VERSION);
+		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
 #else 
-		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMA Lab " + PROJECT_VERSION " - BETA");
+		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION " - BETA");
 #endif
 	}
 	else if (m_FutureWatcher->result() == 1)
@@ -704,9 +704,9 @@ void MainWindow::closeProject()
 	DetailViewDockWidget::getInstance()->hide();
 
 #ifndef BETA
-	this->setWindowTitle("XMA Lab " + QString(PROJECT_VERSION));
+	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
 #else 
-	this->setWindowTitle("XMA Lab " + QString(PROJECT_VERSION) + " - BETA");
+	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA");
 #endif
 
 	ConsoleDockWidget::getInstance()->clear();
@@ -875,9 +875,9 @@ void MainWindow::saveProjectFinished()
 
 
 #ifndef BETA
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMA Lab " + PROJECT_VERSION);
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
 #else 
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMA Lab " + PROJECT_VERSION + " - BETA");
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA");
 #endif
 }
 

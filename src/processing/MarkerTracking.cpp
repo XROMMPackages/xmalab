@@ -57,6 +57,7 @@ MarkerTracking::MarkerTracking(int camera, int trial, int frame_from, int frame_
 	Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[m_camera]->getImage()->getSubImage(templ, size + 3, x_from, y_from);
 	maxPenalty = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMaxPenalty();
 #ifdef WRITEIMAGES
+	cv::imwrite("Tra_Template.png", templ);
 	fprintf(stderr, "Start Track Marker : Camera %d Pos %lf %lf Size %d\n", camera, x_from, y_from,size);
 #endif
 }
@@ -87,6 +88,10 @@ void MarkerTracking::trackMarker_thread()
 	int off_y = (int)(y_to - used_size + 0.5);
 
 	Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[m_camera]->getImage()->getSubImage(ROI_to, used_size, off_x, off_y);
+
+#ifdef WRITEIMAGES
+	cv::imwrite("Tra_Target.png", ROI_to);
+#endif
 
 	/// Create the result matrix
 	int result_cols = ROI_to.cols - templ.cols + 1;
@@ -153,6 +158,8 @@ void MarkerTracking::trackMarker_thread()
 
 #ifdef WRITEIMAGES
 	fprintf(stderr, "Tracked %lf %lf\n", x_to, y_to);
+	fprintf(stderr, "Val %lf\n", maxVal);
+	fprintf(stderr, "Tracked (local) %d %d\n", matchLoc.x, matchLoc.y);
 	fprintf(stderr, "Stop Track Marker : Camera %d Pos %lf %lf\n", m_camera, x_to, y_to);
 #endif
 

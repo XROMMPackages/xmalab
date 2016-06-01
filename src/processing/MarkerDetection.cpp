@@ -41,7 +41,7 @@
 #include <opencv/highgui.h>
 #include <core/Settings.h>
 
-//#define WRITEIMAGES 0
+//#define WRITEIMAGES 1
 
 using namespace xma;
 
@@ -111,7 +111,9 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 	image->getSubImage(subimage, searchArea, off_x, off_y);
 
 #ifdef WRITEIMAGES
-	cv::imwrite("Det_original.png", subimage);
+	cv::Mat orig2;
+	cv::cvtColor(subimage, orig2, CV_GRAY2RGB);
+	cv::imwrite("1_Det_original.png", orig2);
 #endif
 	if (method == 0 || method == 2 || method == 4 || method == 5)
 	{
@@ -120,7 +122,10 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		//Convert To float
 		cv::Mat img_float;
 		subimage.convertTo(img_float, CV_32FC1);
-
+#ifdef WRITEIMAGES
+		cv::Mat orig;
+		cv::cvtColor(subimage, orig, CV_GRAY2RGB);
+#endif
 		//Create Blurred image
 		int radius = (int)(1.5 * masksize + 0.5);
 		double sigma = radius * sqrt(2 * log(255)) - 1;
@@ -128,7 +133,7 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		cv::GaussianBlur(img_float, blurred, cv::Size(2 * radius + 1, 2 * radius + 1), sigma);
 
 #ifdef WRITEIMAGES
-		cv::imwrite("Det_blur.png", blurred);
+		cv::imwrite("2_Det_blur.png", blurred);
 #endif
 
 		//Substract Background
@@ -137,14 +142,14 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		diff.convertTo(subimage, CV_8UC1);
 
 #ifdef WRITEIMAGES
-		cv::imwrite("Det_diff.png", diff);
+		cv::imwrite("3_Det_diff.png", diff);
 #endif
 
 		//Median
 		cv::medianBlur(subimage, subimage, 3);
 
 #ifdef WRITEIMAGES
-		cv::imwrite("Det_med.png", subimage);
+		cv::imwrite("4_Det_med.png", subimage);
 #endif
 
 		//Thresholding
@@ -154,11 +159,14 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		double thres = 0.5 * minVal + 0.5 * subimage.at<uchar>(searchArea, searchArea) + threshold * 0.01 * 255;
 		cv::threshold(subimage, subimage, thres, 255, cv::THRESH_BINARY_INV);
 		//cv::adaptiveThreshold(image, image, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 15, 10);
-
+#ifdef WRITEIMAGES
+		//fprintf(stderr, "Thres %lf Selected %d\n", thres, image.at<uchar>(searchArea, searchArea));
+		cv::imwrite("5_Det_thresh.png", subimage);
+#endif
 		cv::GaussianBlur(subimage, subimage, cv::Size(3, 3), 1.3);
 #ifdef WRITEIMAGES
 		//fprintf(stderr, "Thres %lf Selected %d\n", thres, image.at<uchar>(searchArea, searchArea));
-		cv::imwrite("Det_thresh.png", subimage);
+		cv::imwrite("6_Det_threshBlur.png", subimage);
 #endif
 
 		//Find contours
@@ -183,6 +191,8 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 			}
 		}
 
+
+
 		//set contour
 		if (bestIdx >= 0)
 		{
@@ -192,6 +202,15 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 			point_out.x = circle_center.x;
 			point_out.y = circle_center.y;
 			tmp_size = circle_radius;
+
+#ifdef WRITEIMAGES
+			cv::Point2d cent = circle_center - cv::Point2f(off_x, off_y);
+			cv::circle(orig, cent, circle_radius, cv::Scalar(0, 0, 255, 50));
+			std::cerr << circle_radius << std::endl;
+			std::cerr << cent.x << " " << cent.y << std::endl;
+
+			cv::imwrite("7_Detected.png", orig);
+#endif
 		}
 #ifdef WRITEIMAGES 
 		else
@@ -352,10 +371,10 @@ void MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_o
 	double radius = radius_out;
 	double x = pt.x;
 	double y = pt.y;
-
-	//std::cerr << "radius " << radius << std::endl;
-	//std::cerr << "Pt " << x << " " << y << std::endl;
-
+#ifdef WRITEIMAGES
+	std::cerr << "radius " << radius << std::endl;
+	std::cerr << "Pt " << x << " " << y << std::endl;
+#endif
 	//repeat subpixel correction until satisfactory
 	int doextracycles = 3;
 	bool stillgood = true;
@@ -374,6 +393,11 @@ void MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_o
 		//preprocess image
 		cv::Mat subimage;
 		Project::getInstance()->getTrials()[trial]->getVideoStreams()[camera]->getImage()->getSubImage(subimage, w, off_x, off_y);
+		
+#ifdef WRITEIMAGES
+		cv::imwrite("1_Refine_original.png", subimage);
+#endif
+
 		if (subimage.cols * subimage.rows < 15)
 		{
 			//std::cerr << "Too small" << std::endl;
@@ -558,6 +582,12 @@ void MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_o
 		pt.x = x;
 		radius_out = radius;
 	}
+
+#ifdef WRITEIMAGES
+	std::cerr << "radius " << radius_out << std::endl;
+	std::cerr << "Pt " << pt.x << " " << pt.y << std::endl;
+#endif
+
 	//std::cerr << "J " << J << std::endl;
 	//std::cerr << "skewness " << skewness << std::endl;
 	//std::cerr << "eccentricity " << eccentricity << std::endl;

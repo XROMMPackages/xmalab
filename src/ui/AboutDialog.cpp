@@ -1,9 +1,9 @@
 //  ----------------------------------
-//  XMA Lab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
-//  Use of the XMA Lab software is provided under the terms of the GNU General Public License version 3 
+//  Use of the XMALab software is provided under the terms of the GNU General Public License version 3 
 //  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
 //  that this copyright notice appear in all copies and that the name of Brown University not be used in 
 //  advertising or publicity pertaining to the use or distribution of the software without specific written 
@@ -54,10 +54,10 @@ void AboutDialog::on_pushButtonLicense_clicked()
 	QMessageBox msgBox;
 	QSpacerItem* horizontalSpacer = new QSpacerItem(800, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-	QString text = "XMA Lab -- Copyright © 2015, Brown University, Providence, RI";
+	QString text = "XMALab -- Copyright © 2015, Brown University, Providence, RI";
 	text += "\n\nAll Rights Reserved";
-	text += "\n\nUse of the XMA Lab software is provided under the terms of the GNU General Public License version 3 as published by the Free Software Foundation at http ://www.gnu.org/licenses/gpl-3.0.html, provided that this copyright notice appear in all copies and that the name of Brown University not be used in advertising or publicity pertaining to the use or distribution of the software without specific, written prior permission from Brown University.";
-	text += "\n\nXMA Lab currently uses several libraries which were acquired under open source licenses as follows :";
+	text += "\n\nUse of the XMALab software is provided under the terms of the GNU General Public License version 3 as published by the Free Software Foundation at http ://www.gnu.org/licenses/gpl-3.0.html, provided that this copyright notice appear in all copies and that the name of Brown University not be used in advertising or publicity pertaining to the use or distribution of the software without specific, written prior permission from Brown University.";
+	text += "\n\nXMALab currently uses several libraries which were acquired under open source licenses as follows :";
 	text += "\n   GLEW - 3 - clause BSD License";
 	text += "\n   OpenCV - 3 - clause BSD License";
 	text += "\n   QUAZIP - LGPL 2.0";

@@ -107,6 +107,8 @@ bool TrialDialog::isComplete()
 	m_trial->setRecordingSpeed(diag->doubleSpinBoxRecSpeedFPS->value());
 	m_trial->setCutoffFrequency(diag->doubleSpinBoxCutoffFrq->value());
 	m_trial->setInterpolateMissingFrames(diag->spinBoxInterpolateNFrames->value());
+	PlotWindow::getInstance()->updateTimeCheckBox();
+
 
 	if (diag->comboBoxReferenceCalibration->count() > 0)
 	{
@@ -114,11 +116,13 @@ bool TrialDialog::isComplete()
 		if (ref != m_trial->getReferenceCalibrationImage())
 		{
 			m_trial->setReferenceCalibrationImage(ref);
-			m_trial->setRequiresRecomputation(true);
-			ThreadScheduler::getInstance()->updateTrialData(m_trial);
+			returnValue = TRIALDIALOGDELETE;
+			//m_trial->setRequiresRecomputation(true);
+			//ThreadScheduler::getInstance()->updateTrialData(m_trial);
+			this->reject();
 		}
 	}
-	PlotWindow::getInstance()->updateTimeCheckBox();
+	
 
 	return true;
 }

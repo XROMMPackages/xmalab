@@ -215,7 +215,7 @@
      <item row="12" column="0" colspan="2">
       <widget class="QLabel" name="label_8">
        <property name="text">
-        <string>&lt;a href=&quot;https://groups.google.com/a/brown.edu/forum/?hl=en#!forum/xmalab&quot;&gt;Open XMA Lab google group&lt;/a&gt; </string>
+        <string>&lt;a href=&quot;https://groups.google.com/a/brown.edu/forum/?hl=en#!forum/xmalab&quot;&gt;Open XMALab google group&lt;/a&gt; </string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -231,7 +231,7 @@
      <item row="13" column="0" colspan="2">
       <widget class="QPushButton" name="pushButtonLicense">
        <property name="text">
-        <string>XMA Lab license</string>
+        <string>XMALab license</string>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
