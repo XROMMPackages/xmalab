@@ -1176,14 +1176,6 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString fi
 		markerID = coords_list.at(3).toInt();
 	}
 
-	fin.open(filenamePointRef2.toAscii().data());
-	littleHelper::safeGetline(fin, line);
-	littleHelper::safeGetline(fin, line);
-	fin.close();
-	tmp_coords = QString::fromStdString(line);
-	coords_list = tmp_coords.split(",");
-	dummypoints2.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
-
 	dummyRBIndex.push_back(markerID);
 
 	if (markerID == -1)
@@ -1222,6 +1214,16 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString fi
 		dummypointsCoordsSet.push_back(tmpDef);
 		fin.close();
 	}
+	else
+	{
+		fin.open(filenamePointRef2.toAscii().data());
+		littleHelper::safeGetline(fin, line);
+		littleHelper::safeGetline(fin, line);
+		fin.close();
+		tmp_coords = QString::fromStdString(line);
+		coords_list = tmp_coords.split(",");
+		dummypoints2.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
+	}
 }
 
 void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenamePointRef2, QString filenamePointCoords)
@@ -1231,17 +1233,11 @@ void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenameP
 	outfileRef << "x,y,z" << std::endl;
 	outfileRef << dummypoints[count].x << "," << dummypoints[count].y << "," << dummypoints[count].z << "," << dummyRBIndex[count] << std::endl;
 	outfileRef.close();
-
-	std::ofstream outfileRef2(filenamePointRef2.toAscii().data());
-	outfileRef2.precision(12);
-	outfileRef2 << "x,y,z" << std::endl;
-	outfileRef2 << dummypoints2[count].x << "," << dummypoints2[count].y << "," << dummypoints2[count].z << std::endl;
-	outfileRef2.close();
-
-	std::ofstream outfileCoords(filenamePointCoords.toAscii().data());
-	outfileCoords.precision(12);
-	outfileCoords << "x,y,z" << std::endl;
+	
 	if(dummyRBIndex[count] < 0){
+		std::ofstream outfileCoords(filenamePointCoords.toAscii().data());
+		outfileCoords.precision(12);
+		outfileCoords << "x,y,z" << std::endl;
 		for (unsigned int i = 0; i < dummypointsCoords[count].size(); i++)
 		{
 			if (dummypointsCoordsSet[count][i])
@@ -1253,6 +1249,14 @@ void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenameP
 				outfileCoords << "NaN,NaN,NaN" << std::endl;
 			}
 		}
+	}
+	else
+	{
+		std::ofstream outfileRef2(filenamePointRef2.toAscii().data());
+		outfileRef2.precision(12);
+		outfileRef2 << "x,y,z" << std::endl;
+		outfileRef2 << dummypoints2[count].x << "," << dummypoints2[count].y << "," << dummypoints2[count].z << std::endl;
+		outfileRef2.close();
 	}
 	outfileRef.close();
 }

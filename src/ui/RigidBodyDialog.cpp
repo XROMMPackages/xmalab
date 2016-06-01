@@ -382,7 +382,8 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 					{
 						Settings::getInstance()->setLastUsedDirectory(filenameRef2);
 					}
-				} else
+				} 
+				else
 				{
 					filenameRef2 = filenameRef;
 				}
@@ -401,11 +402,6 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 				return;
 			}
 		} 
-		else
-		{
-			
-
-		}
 	}
 	else
 	{
