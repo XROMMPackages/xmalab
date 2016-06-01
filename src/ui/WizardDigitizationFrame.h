@@ -64,6 +64,7 @@ namespace xma
 		int trackType; //1 point, 2 rb, 2 all
 		int trackDirection; // -2 back -1 prev, 0 none , 1 next, 2 forward
 		bool singleTrack;
+		bool isTracking;
 
 		void trackSinglePoint();
 		void trackRB();

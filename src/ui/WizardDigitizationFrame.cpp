@@ -93,6 +93,7 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 	trackType = 0;
 	trackDirection = 0;
 	singleTrack = false;
+	isTracking = false;
 }
 
 void WizardDigitizationFrame::addDigitizationPoint(int camera, double x, double y)
@@ -610,7 +611,9 @@ void WizardDigitizationFrame::trackSelectedPointToPrevFrame()
 
 void WizardDigitizationFrame::on_pushButton_PointNext_clicked()
 {
+	if (isTracking) return;
 	uncheckTrackButtons();
+	isTracking = true;
 
 	trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
 	trackType = 1;
@@ -621,7 +624,9 @@ void WizardDigitizationFrame::on_pushButton_PointNext_clicked()
 
 void WizardDigitizationFrame::on_pushButton_PointPrev_clicked()
 {
+	if (isTracking) return;
 	uncheckTrackButtons();
+	isTracking = true;
 
 	trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
 	trackType = 1;
@@ -714,7 +719,9 @@ void WizardDigitizationFrame::on_pushButton_RBBack_clicked(bool checked)
 
 void WizardDigitizationFrame::on_pushButton_AllNext_clicked()
 {
+	if (isTracking) return;
 	uncheckTrackButtons();
+	isTracking = true;
 
 	trackID = -1;
 	trackType = 3;
@@ -725,7 +732,9 @@ void WizardDigitizationFrame::on_pushButton_AllNext_clicked()
 
 void WizardDigitizationFrame::on_pushButton_AllPrev_clicked()
 {
+	if (isTracking) return;
 	uncheckTrackButtons();
+	isTracking = true;
 
 	trackID = -1;
 	trackType = 3;
@@ -776,6 +785,7 @@ void WizardDigitizationFrame::uncheckTrackButtons()
 	trackType = 0;
 	trackDirection = 0;
 	singleTrack = false;
+	isTracking = false;
 	setDialog();
 }
 
