@@ -1021,7 +1021,7 @@ void RigidBody::makeRotationsContinous()
 
 void RigidBody::filterData(std::vector<int> idx)
 {
-	if (idx.size() <= 10)
+	if (idx.size() <= 12)
 	{
 		for (unsigned int i = 0; i < idx.size(); i++)
 		{
