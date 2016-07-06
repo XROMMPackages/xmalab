@@ -767,7 +767,7 @@ void PlotWindow::plotRigidBody(int idx)
 			{
 				if (dock->comboBoxRigidBodyTransType->currentIndex() > 0)
 				{
-					dock->plotWidget->xAxis->setLabel("Time in seconds - Cutoff Frequency " + QString::number(cutoff) + "Hz");
+					dock->plotWidget->xAxis->setLabel("Time in seconds\nCutoff Frequency: " + QString::number(cutoff) + "Hz");
 				}
 				else
 				{
@@ -778,7 +778,7 @@ void PlotWindow::plotRigidBody(int idx)
 			{
 				if (dock->comboBoxRigidBodyTransType->currentIndex() > 0)
 				{
-					dock->plotWidget->xAxis->setLabel("Frame - Cutoff Frequency " + QString::number(cutoff) + "Hz");
+					dock->plotWidget->xAxis->setLabel("Frame\nCutoff Frequency: " + QString::number(cutoff) + "Hz");
 				}
 				else
 				{
@@ -1215,14 +1215,16 @@ void PlotWindow::plotRigidBodyError(int idx)
 			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center - range * 0.5);
 			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center + range * 0.5);
 
+			meanString = meanString + "\n";
+
 			if (drawUnfiltered)
 			{
-				meanString = meanString + " - Mean unfiltered : " + QString::number(UnfilteredMean) + " +/- " + QString::number(UnfilteredSD);
+				meanString = meanString + " Mean error unfiltered: " + QString::number(UnfilteredMean) + " +/- " + QString::number(UnfilteredSD);
 			}
 
 			if (drawFiltered)
 			{
-				meanString = meanString + " - mean filtered : " + QString::number(FilteredMean) + " +/- " + QString::number(FilteredSD);
+				meanString = meanString + " Mean error filtered: " + QString::number(FilteredMean) + " +/- " + QString::number(FilteredSD);
 			}
 		}
 
@@ -1231,7 +1233,7 @@ void PlotWindow::plotRigidBodyError(int idx)
 		{
 			if (dock->comboBoxRigidBodyTransType->currentIndex() > 0)
 			{
-				dock->plotWidget->xAxis->setLabel("Time in seconds - Cutoff Frequency " + QString::number(cutoff) + "Hz" + meanString);
+				dock->plotWidget->xAxis->setLabel("Time in seconds\nCutoff Frequency: " + QString::number(cutoff) + "Hz" + meanString);
 			}
 			else
 			{
@@ -1242,7 +1244,7 @@ void PlotWindow::plotRigidBodyError(int idx)
 		{
 			if (dock->comboBoxRigidBodyTransType->currentIndex() > 0)
 			{
-				dock->plotWidget->xAxis->setLabel("Frame - Cutoff Frequency " + QString::number(cutoff) + "Hz" + meanString);
+				dock->plotWidget->xAxis->setLabel("Frame\nCutoff Frequency: " + QString::number(cutoff) + "Hz" + meanString);
 			}
 			else
 			{
@@ -1355,11 +1357,11 @@ void PlotWindow::plotDistance(int idx1, int idx2)
 		}
 		if (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
 		{
-			dock->plotWidget->xAxis->setLabel("Time in seconds - " + QString::number(mean) + " +/- " + QString::number(sd));
+			dock->plotWidget->xAxis->setLabel("Time in seconds\nMean intermarker distance: " + QString::number(mean) + " +/- " + QString::number(sd));
 		}
 		else
 		{
-			dock->plotWidget->xAxis->setLabel("Frame - " + QString::number(mean) + " +/- " + QString::number(sd));
+			dock->plotWidget->xAxis->setLabel("Frame\nMean intermarker distance: " + QString::number(mean) + " +/- " + QString::number(sd));
 		}
 
 		dock->plotWidget->yAxis->setLabel("Distance Marker " + QString::number(idx1 + 1) + " to Marker " + QString::number(idx2 + 1));
@@ -1489,11 +1491,11 @@ void PlotWindow::plotReprojectionError(int idx1)
 
 		if (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
 		{
-			dock->plotWidget->xAxis->setLabel("Time in seconds - " + QString::number(mean) + " +/- " + QString::number(sd));
+			dock->plotWidget->xAxis->setLabel("Time in seconds\nMean reprojection error" + QString::number(mean) + " +/- " + QString::number(sd));
 		}
 		else
 		{
-			dock->plotWidget->xAxis->setLabel("Frame - " + QString::number(mean) + " +/- " + QString::number(sd));
+			dock->plotWidget->xAxis->setLabel("Frame\nMean reprojection error: " + QString::number(mean) + " +/- " + QString::number(sd));
 		}
 
 
