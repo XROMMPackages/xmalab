@@ -1150,16 +1150,22 @@ void MainWindow::activeTrialChanged(int activeTrial)
 //File Menu Slots
 void MainWindow::on_actionNew_Project_triggered(bool checked)
 {
+	if (project && !ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to close your dataset. Please make sure your data have been saved. \nAre you sure you want to close current dataset and create a new dataset?"))
+		return;
 	newProject();
 }
 
 void MainWindow::on_actionLoad_Project_triggered(bool checked)
 {
+	if (project && !ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to close your dataset. Please make sure your data have been saved. \nAre you sure you want to close current dataset and load an existing dataset?"))
+		return;
 	loadProject();
 }
 
 void MainWindow::on_actionClose_Project_triggered(bool checked)
 {
+	if (project && !ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to close your dataset. Please make sure your data have been saved. \nAre you sure you want to close current dataset?"))
+		return;
 	closeProject();
 }
 
