@@ -1334,14 +1334,24 @@ void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 
 void MainWindow::on_actionMarkertoMarkerDistances_triggered(bool checked)
 {
-	QString fileName = QFileDialog::getSaveFileName(this,
-	                                                tr("Save distances as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+	FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame()
+		, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame()
+		, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages()
+		, false, this);
 
-
-	if (fileName.isNull() == false)
+	bool ok = fromTo->exec();
+	if (ok)
 	{
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveMarkerToMarkerDistances(fileName);
+		QString fileName = QFileDialog::getSaveFileName(this,
+			tr("Save distances as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+
+
+		if (fileName.isNull() == false)
+		{
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveMarkerToMarkerDistances(fileName,fromTo->getFrom(), fromTo->getTo());
+		}
 	}
+	delete fromTo;
 }
 
 void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(bool checked)

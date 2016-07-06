@@ -956,7 +956,7 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 	}
 }
 
-void Trial::saveMarkerToMarkerDistances(QString filename)
+void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 {
 	std::ofstream outfile(filename.toAscii().data());
 	outfile.precision(12);
@@ -976,7 +976,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename)
 			double sd = 0;
 			double mean = 0;
 			std::vector<double> value;
-			for (int frame = 0; frame < nbImages; frame++)
+			for (int frame = from-1; frame < to; frame++)
 			{
 				if (markers[i]->getStatus3D()[frame] > UNDEFINED && markers[j]->getStatus3D()[frame] > UNDEFINED)
 				{
@@ -999,8 +999,6 @@ void Trial::saveMarkerToMarkerDistances(QString filename)
 
 	outfile << std::endl;
 
-	outfile << std::endl;
-
 	outfile << "SD";
 	for (unsigned int i = 0; i < markers.size(); i++)
 	{
@@ -1017,7 +1015,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename)
 			double sd = 0;
 			double mean = 0;
 			std::vector<double> value;
-			for (int frame = 0; frame < nbImages; frame++)
+			for (int frame = from - 1; frame < to; frame++)
 			{
 				if (markers[i]->getStatus3D()[frame] > UNDEFINED && markers[j]->getStatus3D()[frame] > UNDEFINED)
 				{
@@ -1042,6 +1040,97 @@ void Trial::saveMarkerToMarkerDistances(QString filename)
 			if (j != markers.size() - 1) outfile << " , ";
 		}
 		outfile << std::endl;
+	}
+
+
+
+	for (unsigned int body = 0; body < rigidBodies.size(); body++)
+	{
+		outfile << std::endl;
+		outfile << std::endl;
+
+		outfile << rigidBodies[body]->getDescription().toAscii().data() << " Mean";
+		
+		for (unsigned int i = 0; i < rigidBodies[body]->getPointsIdx().size(); i++)
+		{
+			outfile << " , " << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toAscii().data();
+		}
+		outfile << std::endl;
+
+		for (unsigned int i = 0; i < rigidBodies[body]->getPointsIdx().size(); i++)
+		{
+			outfile << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toAscii().data() << " , ";
+
+			for (unsigned int j = 0; j < rigidBodies[body]->getPointsIdx().size(); j++)
+			{
+				double sd = 0;
+				double mean = 0;
+				std::vector<double> value;
+				for (int frame = from - 1; frame < to; frame++)
+				{
+					if (markers[rigidBodies[body]->getPointsIdx()[i]]->getStatus3D()[frame] > UNDEFINED && markers[rigidBodies[body]->getPointsIdx()[j]]->getStatus3D()[frame] > UNDEFINED)
+					{
+						cv::Point3d diff = markers[rigidBodies[body]->getPointsIdx()[i]]->getPoints3D()[frame] - markers[rigidBodies[body]->getPointsIdx()[j]]->getPoints3D()[frame];
+						value.push_back(cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z));
+					}
+				}
+
+				for (unsigned int k = 0; k < value.size(); k++)
+				{
+					mean += value[k];
+				}
+				if (value.size() > 0) mean = mean / value.size();
+
+				outfile << mean;
+				if (j != rigidBodies[body]->getPointsIdx().size() - 1) outfile << " , ";
+			}
+			outfile << std::endl;
+		}
+
+		outfile << std::endl;
+
+		outfile << rigidBodies[body]->getDescription().toAscii().data() << " SD";
+		for (unsigned int i = 0; i < rigidBodies[body]->getPointsIdx().size(); i++)
+		{
+			outfile << " , " << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toAscii().data();
+		}
+		outfile << std::endl;
+
+		for (unsigned int i = 0; i < rigidBodies[body]->getPointsIdx().size(); i++)
+		{
+			outfile << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toAscii().data() << " , ";
+
+			for (unsigned int j = 0; j < rigidBodies[body]->getPointsIdx().size(); j++)
+			{
+				double sd = 0;
+				double mean = 0;
+				std::vector<double> value;
+				for (int frame = from - 1; frame < to; frame++)
+				{
+					if (markers[rigidBodies[body]->getPointsIdx()[i]]->getStatus3D()[frame] > UNDEFINED && markers[rigidBodies[body]->getPointsIdx()[j]]->getStatus3D()[frame] > UNDEFINED)
+					{
+						cv::Point3d diff = markers[rigidBodies[body]->getPointsIdx()[i]]->getPoints3D()[frame] - markers[rigidBodies[body]->getPointsIdx()[j]]->getPoints3D()[frame];
+						value.push_back(cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z));
+					}
+				}
+
+				for (unsigned int k = 0; k < value.size(); k++)
+				{
+					mean += value[k];
+				}
+				if (value.size() > 0) mean = mean / value.size();
+
+				for (unsigned int k = 0; k < value.size(); k++)
+				{
+					sd += pow(value[k] - mean, 2);
+				}
+				if (value.size() > 1)sd = sqrt(sd / (value.size() - 1));
+
+				outfile << sd;
+				if (j != rigidBodies[body]->getPointsIdx().size() - 1) outfile << " , ";
+			}
+			outfile << std::endl;
+		}
 	}
 }
 
