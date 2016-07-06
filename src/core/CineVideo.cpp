@@ -98,7 +98,7 @@ void CineVideo::loadCineInfo()
 		is.read(header, 44);
 
 		readAndAdvance(&Type[0], counter, 2);
-		if (printHeader) SHOWSTRING(Type);
+		//if (printHeader) SHOWSTRING(Type);
 		readAndAdvance(Headersize, counter);
 		if (printHeader) SHOW(Headersize);
 		readAndAdvance(Compression, counter);
@@ -194,7 +194,7 @@ void CineVideo::loadCineInfo()
 		readAndAdvance(&DescriptionOld[0], counter, MAXLENDESCRIPTION_OLD);
 		if (printHeader) SHOWSTRING(DescriptionOld);
 		readAndAdvance(&Mark[0], counter, 2);
-		if (printHeader) SHOWSTRING(Mark);
+		//if (printHeader) SHOWSTRING(Mark);
 		readAndAdvance(Length, counter);
 		if (printHeader) SHOW(Length);
 		readAndAdvance(Binning, counter);
@@ -531,9 +531,18 @@ void CineVideo::loadCineInfo()
 			is.read((char*)&annotationSize, sizeof(DWORD));
 
 			is.seekg(image_addresses[0] + annotationSize);
+			cv::Mat imageWithData;
 			char* imageData = new char[biSizeImage];
 			is.read(imageData, biSizeImage);
-			cv::Mat imageWithData = cv::Mat(biHeight, biWidth, CV_8U, imageData).clone();
+			if (biBitCount == 16) 
+			{
+				double mod = 1.0f / pow(2, (RealBPP - 8));
+				cv::Mat(biHeight, biWidth, CV_16U, imageData).convertTo(imageWithData, CV_8U, mod);
+			}
+			else
+			{
+				imageWithData = cv::Mat(biHeight, biWidth, CV_8U, imageData).clone();
+			}
 			delete[]imageData;
 			cv::flip(imageWithData, imageWithData, 0);
 			image->setImage(imageWithData);
@@ -558,12 +567,21 @@ void CineVideo::setActiveFrame(int _activeFrame)
 		is.seekg(image_addresses[_activeFrame]);
 		DWORD annotationSize;
 		is.read((char*)&annotationSize, sizeof(DWORD));
-
 		is.seekg(image_addresses[_activeFrame] + annotationSize);
+		cv::Mat imageWithData;
 		char* imageData = new char[biSizeImage];
 		is.read(imageData, biSizeImage);
-		cv::Mat imageWithData = cv::Mat(biHeight, biWidth, CV_8U, imageData).clone();
+		if (biBitCount == 16)
+		{
+			double mod = 1.0f / pow(2,(RealBPP - 8));
+			cv::Mat(biHeight, biWidth, CV_16U, imageData).convertTo(imageWithData, CV_8U, mod);
+		}
+		else
+		{
+			imageWithData = cv::Mat(biHeight, biWidth, CV_8U, imageData).clone();
+		}
 		delete[]imageData;
+		
 		cv::flip(imageWithData, imageWithData, 0);
 		image->setImage(imageWithData, false);
 		imageWithData.release();
