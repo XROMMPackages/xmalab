@@ -114,6 +114,7 @@ namespace xma
 
 		bool getRequiresRecomputation();
 		void setRequiresRecomputation(bool value);
+		bool filterMarker(double cutoffFrequency, std::vector <cv::Point3d> &marker, std::vector <markerStatus>& status);
 
 	private:
 		void init(int nbCameras, int size);
@@ -121,6 +122,7 @@ namespace xma
 		void clear();
 		void reprojectPoint(int frame);
 		void updateError(int frame);
+		void filterData(std::vector<int> idx, double cutoffFrequency, std::vector<cv::Point3d>& marker, std::vector<markerStatus>& status);
 
 		Trial* trial;
 

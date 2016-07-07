@@ -34,6 +34,8 @@
 #include "core/Trial.h"
 #include "core/HelperFunctions.h"
 
+#include "processing/ButterworthLowPassFilter.h" //should move this dependency
+
 #include <fstream>
 #include "Settings.h"
 
@@ -1006,6 +1008,109 @@ bool Marker::getRequiresRecomputation()
 void Marker::setRequiresRecomputation(bool value)
 {
 	requiresRecomputation = value;
+}
+
+bool Marker::filterMarker(double cutoffFrequency, std::vector<cv::Point3d>& marker, std::vector<markerStatus>& status)
+{
+	for (int i = 0; i < status3D.size(); i++)
+	{
+		cv::Point3d p3(-1000, -1000, -1000);
+		marker.push_back(p3);
+		status.push_back(UNDEFINED);
+	}
+
+	if (cutoffFrequency > 0 && trial->getRecordingSpeed() > 0 &&
+		0 < (cutoffFrequency / (trial->getRecordingSpeed() * 0.5)) &&
+		(cutoffFrequency / (trial->getRecordingSpeed() * 0.5)) < 1)
+	{
+		std::vector<int> idx;
+		for (int i = 0; i < trial->getNbImages(); i++)
+		{
+			if (status3D[i] > 0)
+			{
+				idx.push_back(i);
+			}
+			else
+			{
+				if (idx.size() >= 1)
+				{
+					filterData(idx, cutoffFrequency,marker, status);
+				}
+				idx.clear();
+			}
+
+			if (i == trial->getNbImages() - 1)
+			{
+				if (idx.size() >= 1)
+				{
+					filterData(idx, cutoffFrequency, marker, status);
+				}
+				idx.clear();
+			}
+		}
+
+		return true;
+	} 
+	else
+	{
+		return false;
+	}
+}
+
+void Marker::filterData(std::vector<int> idx, double cutoffFrequency, std::vector<cv::Point3d>& marker, std::vector<markerStatus>& status)
+{
+	if (idx.size() <= 12)
+	{
+		for (unsigned int i = 0; i < idx.size(); i++)
+		{
+			marker[idx[i]].x = points3D[idx[i]].x;
+			marker[idx[i]].y = points3D[idx[i]].y;
+			marker[idx[i]].z = points3D[idx[i]].z;
+
+			status[idx[i]]= status3D[idx[i]];
+		}
+	}
+	else
+	{
+		std::vector<double> x;
+		std::vector<double> y;
+		std::vector<double> z;
+
+		for (unsigned int i = 0; i < idx.size(); i++)
+		{
+			x.push_back(points3D[idx[i]].x);
+			y.push_back(points3D[idx[i]].y);
+			z.push_back(points3D[idx[i]].z);
+		}
+
+		std::vector<double> x_out;
+		std::vector<double> y_out;
+		std::vector<double> z_out;
+
+		ButterworthLowPassFilter* filter = new ButterworthLowPassFilter(4, cutoffFrequency, trial->getRecordingSpeed());
+
+		filter->filter(x, x_out);
+		filter->filter(y, y_out);
+		filter->filter(z, z_out);
+
+		for (unsigned int i = 0; i < idx.size(); i++)
+		{
+			marker[idx[i]].x = x_out[i];
+			marker[idx[i]].y = y_out[i];
+			marker[idx[i]].z = z_out[i];
+
+			status[idx[i]] = status3D[idx[i]];
+		}
+
+		delete filter;
+
+		x_out.clear();
+		y_out.clear();
+		z_out.clear();
+		x.clear();
+		y.clear();
+		z.clear();
+	}
 }
 
 void Marker::reprojectPoint(int frame)

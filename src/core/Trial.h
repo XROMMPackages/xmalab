@@ -111,7 +111,7 @@ namespace xma
 		void changeImagePath(int camera, QString newfoldeFr, QString oldfolder);
 		void updateAfterChangeImagePath();
 
-		void save3dPoints(QString outputfolder, bool onefile, bool headerRow);
+		bool save3dPoints(QString outputfolder, bool onefile, bool headerRow, double filterFrequency = -1);
 		void save2dPoints(QString outputfolder, bool onefile, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols);
 		int load2dPoints(QString outputfolder, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols);
 

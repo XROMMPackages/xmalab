@@ -1213,9 +1213,17 @@ void MainWindow::on_actionExport3D_Points_triggered(bool checked)
 	PointImportExportDialog* diag = new PointImportExportDialog(EXPORT3D, this);
 
 	diag->exec();
-
 	if (diag->result())
 	{
+		bool saved;
+		bool filterData = ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to filter 3D Points?", true);
+		double filter_frequency = -1;
+		if (filterData)
+		{
+			filter_frequency = QInputDialog::getDouble(this, "Enter cutoff frequency (Hz)", "", project->getTrials()[State::getInstance()->getActiveTrial()]->getCutoffFrequency(), 0.0, project->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed()*0.5);
+		}
+
+
 		if (Settings::getInstance()->getBoolSetting("Export3DSingle"))
 		{
 			QString outputPath = QFileDialog::getExistingDirectory(this,
@@ -1223,9 +1231,10 @@ void MainWindow::on_actionExport3D_Points_triggered(bool checked)
 
 			if (outputPath.isNull() == false)
 			{
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(outputPath + OS_SEP
+				saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(outputPath + OS_SEP
 				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DMulti")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DHeader"));
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DHeader")
+																										  ,filter_frequency);
 				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 			}
 		}
@@ -1236,12 +1245,14 @@ void MainWindow::on_actionExport3D_Points_triggered(bool checked)
 
 			if (fileName.isNull() == false)
 			{
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(fileName
+				saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(fileName
 				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DMulti")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DHeader"));
+				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DHeader"),
+																										  filter_frequency);
 				Settings::getInstance()->setLastUsedDirectory(fileName);
 			}
 		}
+		if (!saved) ErrorDialog::getInstance()->showErrorDialog("There has been a problem saving. Please ensure that the cutoff and framerate are valid in case you exported filtered data.");
 	}
 
 	delete diag;

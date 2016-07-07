@@ -1149,8 +1149,36 @@ void Trial::resetRigidBodyByMarker(Marker* marker, int frame)
 	}
 }
 
-void Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow)
+bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, double filterFrequency)
 {
+	//create TmpData
+	std::vector<std::vector <cv::Point3d> > points3D;
+	std::vector<std::vector <markerStatus> > status3D;
+	for (unsigned int i = 0; i < getMarkers().size(); i++)
+	{
+		std::vector <cv::Point3d> marker;
+		std::vector <markerStatus> status;
+		//filter Data
+		if (filterFrequency > 0.0)
+		{
+			if (!getMarkers()[i]->filterMarker(filterFrequency, marker, status))
+			{
+				return false;
+			}
+		}
+		//Copy Data
+		else{
+			for (int f = 0; f < nbImages; f++)
+			{
+				marker.push_back(cv::Point3d(getMarkers()[i]->getPoints3D()[f]));
+				status.push_back(getMarkers()[i]->getStatus3D()[f]);
+			}
+		}
+		points3D.push_back(marker);
+		status3D.push_back(status);
+	}
+
+	//Write to File
 	if (onefile)
 	{
 		std::ofstream outfile(outputfolder.toAscii().data());
@@ -1169,9 +1197,14 @@ void Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow)
 					name = getMarkers()[i]->getDescription();
 				}
 
+				if (filterFrequency > 0.0)
+				{
+					name = name + "_" + QString::number(filterFrequency) + "Hz";
+				}
+
 				outfile << name.toAscii().data() << "_X" << " , " << name.toAscii().data() << "_Y" << " , " << name.toAscii().data() << "_Z";
 
-				if (i != getMarkers().size() - 1)
+				if (i != markers.size() - 1)
 				{
 					outfile << " , ";
 				}
@@ -1184,18 +1217,18 @@ void Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow)
 
 		for (int f = 0; f < nbImages; f++)
 		{
-			for (unsigned int i = 0; i < getMarkers().size(); i++)
+			for (unsigned int i = 0; i < points3D.size(); i++)
 			{
-				if (getMarkers()[i]->getStatus3D()[f] <= 0)
+				if (status3D[i][f] <= 0)
 				{
 					outfile << "NaN" << " , " << "NaN" << " , " << "NaN";
 				}
 				else
 				{
-					outfile << getMarkers()[i]->getPoints3D()[f].x << " , " << getMarkers()[i]->getPoints3D()[f].y << " , " << getMarkers()[i]->getPoints3D()[f].z ;
+					outfile << points3D[i][f].x << " , " << points3D[i][f].y << " , " << points3D[i][f].z;
 				}
 
-				if (i != getMarkers().size() - 1)
+				if (i != points3D.size() - 1)
 				{
 					outfile << " , ";
 				}
@@ -1211,7 +1244,13 @@ void Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow)
 	{
 		for (unsigned int i = 0; i < getMarkers().size(); i++)
 		{
-			QString filename = outputfolder + "Marker" + QString().sprintf("%03d", i + 1) + "_" + getMarkers()[i]->getDescription() + "_points3d.csv";
+			QString filename = outputfolder + "Marker" + QString().sprintf("%03d", i + 1) + "_" + getMarkers()[i]->getDescription() + "_points3d";
+			if (filterFrequency > 0.0)
+			{
+				filename = filename + "_" + QString::number(filterFrequency) + "Hz";
+			}
+			filename = filename + ".csv";
+
 			std::ofstream outfile(filename.toAscii().data());
 			if (headerRow)
 			{
@@ -1224,20 +1263,23 @@ void Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow)
 				{
 					name = getMarkers()[i]->getDescription();
 				}
-
+				if (filterFrequency > 0.0)
+				{
+					name = name + "_" + QString::number(filterFrequency) + "Hz";
+				}
 				outfile << name.toAscii().data() << "_X" << " , " << name.toAscii().data() << "_Y" << " , " << name.toAscii().data() << "_Z";
 
 				outfile << std::endl;
 			}
 			for (int f = 0; f < nbImages; f++)
 			{
-				if (getMarkers()[i]->getStatus3D()[f] <= 0)
+				if (status3D[i][f] <= 0)
 				{
 					outfile << "NaN" << " , " << "NaN" << " , " << "NaN";
 				}
 				else
 				{
-					outfile << getMarkers()[i]->getPoints3D()[f].x << " , " << getMarkers()[i]->getPoints3D()[f].y << " , " << getMarkers()[i]->getPoints3D()[f].z ;
+					outfile << points3D[i][f].x << " , " << points3D[i][f].y << " , " << points3D[i][f].z;
 				}
 
 				outfile << std::endl;
@@ -1245,6 +1287,17 @@ void Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow)
 			outfile.close();
 		}
 	}
+
+	//clear tmpData
+	for (unsigned int i = 0; i < points3D.size(); i++)
+	{
+		points3D[i].clear();
+		status3D[i].clear();
+	}
+	points3D.clear();
+	status3D.clear();
+
+	return true;
 }
 
 void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols)
