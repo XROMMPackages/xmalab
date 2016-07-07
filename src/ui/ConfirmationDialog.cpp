@@ -57,8 +57,17 @@ ConfirmationDialog* ConfirmationDialog::getInstance()
 	return instance;
 }
 
-bool ConfirmationDialog::showConfirmationDialog(QString message)
+bool ConfirmationDialog::showConfirmationDialog(QString message, bool NoButton)
 {
+	if (NoButton) {
+		diag->pushButton_Cancel->setText("No");
+		diag->pushButton_OK->setText("Yes");
+	}
+	else
+	{
+		diag->pushButton_Cancel->setText("Cancel");
+		diag->pushButton_OK->setText("OK");
+	}
 	diag->message->setText(message);
 	this->exec();
 

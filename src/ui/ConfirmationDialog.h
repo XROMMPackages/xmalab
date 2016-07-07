@@ -52,7 +52,7 @@ namespace xma
 		virtual ~ConfirmationDialog();
 		static ConfirmationDialog* getInstance();
 
-		bool showConfirmationDialog(QString message);
+		bool showConfirmationDialog(QString message, bool NoButton = false);
 
 	public slots:
 		void on_pushButton_OK_clicked();

@@ -188,7 +188,7 @@ void NewTrialDialog::on_pushButton_LoadXMA_clicked()
 		tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xmatrial  *.zip)"));
 	if (xmaTrial_filename.isNull() == false)
 	{
-		deleteAfterLoad = ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to delete the .xmatrial file after the import? Click Yes if you want to delete it. Cancel if you do not want to delete it.");
+		deleteAfterLoad = ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to delete the .xmatrial file after the import? Click Yes if you want to delete it. No if you do not want to delete it.", true);
 
 		m_FutureWatcher = new QFutureWatcher<void>();
 		connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(LoadXMAFinished()));

@@ -355,7 +355,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 			return;
 		}
 
-		if (ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to animate the virtual point by using a Rigid Body? Click cancel if you want to import a csv of tracked data instead."))
+		if (ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to animate the virtual point by using a Rigid Body? Click No if you want to import a csv of tracked data instead.", true))
 		{
 			QStringList trialnames;
 			for (unsigned int i = 0; i < m_body->getTrial()->getRigidBodies().size(); i++)
@@ -375,7 +375,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 
 			if (markerID != -1)
 			{
-				if (ConfirmationDialog::getInstance()->showConfirmationDialog("Do need to use different CT coordinates for the animated point (Point in the reference of RB" + QString::number(markerID + 1) + ") ?"" Click cancel if both rigid bodies use the same point."))
+				if (ConfirmationDialog::getInstance()->showConfirmationDialog("Do need to use different CT coordinates for the animated point (Point in the reference of RB" + QString::number(markerID + 1) + ") ?"" Click No if both rigid bodies use the same point.", true))
 				{
 					filenameRef2 = QFileDialog::getOpenFileName(this, "Open CT coordinate file. (Point in the reference of RB" + QString::number(markerID + 1) + ")", Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
 					if (!filenameRef2.isEmpty())
