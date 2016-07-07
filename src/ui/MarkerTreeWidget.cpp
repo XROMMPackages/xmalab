@@ -90,6 +90,9 @@ MarkerTreeWidget::MarkerTreeWidget(QWidget* parent): QTreeWidget(parent)
 	action_RefinePointsPolynomialFit = new QAction(tr("&Refine center of selected Points by polynomial fit"), this);
 	connect(action_RefinePointsPolynomialFit, SIGNAL(triggered()), this, SLOT(action_RefinePointsPolynomialFit_triggered()));
 
+	action_ChangePoint = new QAction(tr("&Change tracked data with data from another point"), this);
+	connect(action_ChangePoint, SIGNAL(triggered()), this, SLOT(action_ChangePoint_triggered()));
+
 
 	headerItem()->setText(2, "");
 	//headerItem()->setText(3, "");
@@ -127,6 +130,7 @@ void MarkerTreeWidget::showContextMenu(QTreeWidgetItem* item_contextMenu, const 
 		menu.addAction(action_DeletePoints);
 		menu.addAction(action_ChangeDetectionMethod);
 		menu.addAction(action_RefinePointsPolynomialFit);
+		menu.addAction(action_ChangePoint);
 		break;
 
 	case RIGID_BODY:
@@ -302,6 +306,98 @@ void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 			xma::State::getInstance()->changeActiveFrameTrial(frame);
 		}
 		delete fromTo;
+	}
+}
+
+void MarkerTreeWidget::action_ChangePoint_triggered()
+{
+	if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers().size() < 2) 
+		return;
+	
+	int idx = item_contextMenu->text(0).toInt() - 1;
+	bool ok;
+	QStringList idx2Names;
+	for (int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers().size(); i++)
+	{
+		if (i != idx)
+		{
+			idx2Names << QString::number(i + 1);
+		}
+	}
+
+	QString idx2string = QInputDialog::getItem(this, tr("Choose marker with which to exchange tracked data"),
+		tr("Marker:"), idx2Names, 0, false, &ok);
+
+	if (ok)
+	{
+		int idx2 = idx2string.toInt() - 1;
+
+		bool ok2;
+		QStringList cameraNames;
+		cameraNames << "All";
+		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+			cameraNames << QString::number(i+1);
+			
+		if (ok2)
+		{
+			QString cameraString = QInputDialog::getItem(this, tr("Which camera"),
+				tr("Camera:"), cameraNames, 0, false, &ok);
+
+			FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
+				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
+				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
+				, false, this);
+
+			bool ok3 = fromTo->exec();
+			if (ok3)
+			{
+				int startFrame = fromTo->getFrom() - 1;
+				int endFrame = fromTo->getTo() - 1;
+				int startCamera = (cameraString == "All") ? 0 : cameraString.toInt() - 1;
+				int endCamera = (cameraString == "All") ? Project::getInstance()->getCameras().size() - 1 : cameraString.toInt() - 1;
+				std::cerr << startCamera << " " << endCamera;
+				std::vector<RigidBody * > bodiesToUpdate;
+				for (std::vector<RigidBody *>::const_iterator it = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies().begin();
+					it != Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies().end(); ++it)
+				{
+					if ((std::find((*it)->getPointsIdx().begin(),
+						(*it)->getPointsIdx().end(), idx)
+						!= (*it)->getPointsIdx().end())
+						||
+						(std::find((*it)->getPointsIdx().begin(),
+						(*it)->getPointsIdx().end(), idx2)
+						!= (*it)->getPointsIdx().end()))
+					{
+						bodiesToUpdate.push_back((*it));
+					}
+				}
+				for (int c = startCamera; c <= endCamera; c++)
+				{
+					for (int f = startFrame; f <= endFrame; f++)
+					{
+						double tmpx = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[idx]->getPoints2D()[c][f].x;
+						double tmpy = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[idx]->getPoints2D()[c][f].y;
+						markerStatus tmpStatus = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[idx]->getStatus2D()[c][f];
+						
+						Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[idx]->setPoint(c, f,
+							Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getPoints2D()[c][f].x,
+							Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getPoints2D()[c][f].y,
+							Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getStatus2D()[c][f]);
+						
+						Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->setPoint(c, f,tmpx,tmpy,tmpStatus);
+					}
+				}
+
+				for (std::vector<RigidBody*>::iterator it = bodiesToUpdate.begin(); it != bodiesToUpdate.end(); ++it)
+				{
+					(*it)->recomputeTransformations();
+					(*it)->filterTransformations();
+				}
+				bodiesToUpdate.clear();
+				MainWindow::getInstance()->redrawGL();
+			}
+			delete fromTo;
+		}
 	}
 }
 
