@@ -81,6 +81,8 @@ namespace xma
 		std::vector<QLabel *> manualReferencesLabel;
 		std::vector<QRadioButton *> manualReferencesRadioButton;
 
+		bool checkerboardManual;
+
 	public slots:
 		void activeCameraChanged(int activeCamera);
 		void activeFrameCalibrationChanged(int activeFrame);

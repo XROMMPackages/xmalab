@@ -51,6 +51,24 @@ CheckerboardDetection::CheckerboardDetection(int camera, int image) : QObject()
 	m_camera = camera;
 	m_image = image;
 	nbInstances++;
+
+	viaHomography = false;
+}
+
+CheckerboardDetection::CheckerboardDetection(int camera, int image, cv::Point2d references[4])
+{
+	m_camera = camera;
+	m_image = image;
+	nbInstances++;
+	for (int i = 0; i < 4; i++)
+	{
+		selectedPoints.push_back(cv::Point2f(references[i].x, references[i].y));
+	}
+	gridPoints.push_back(cv::Point2f(0, 0));
+	gridPoints.push_back(cv::Point2f((CalibrationObject::getInstance()->getNbHorizontalSquares()-1) * CalibrationObject::getInstance()->getSquareSize(), 0));
+	gridPoints.push_back(cv::Point2f((CalibrationObject::getInstance()->getNbHorizontalSquares()-1) * CalibrationObject::getInstance()->getSquareSize(), (CalibrationObject::getInstance()->getNbVerticalSquares()-1) * CalibrationObject::getInstance()->getSquareSize()));
+	gridPoints.push_back(cv::Point2f(0,(CalibrationObject::getInstance()->getNbVerticalSquares()-1) * CalibrationObject::getInstance()->getSquareSize()));
+	viaHomography = true;
 }
 
 CheckerboardDetection::~CheckerboardDetection()
@@ -75,9 +93,42 @@ void CheckerboardDetection::detectCorner_thread()
 
 	Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[m_image]->getImage()->getImage(image);
 
-	findChessboardCorners(image, cv::Size(CalibrationObject::getInstance()->getNbHorizontalSquares(), CalibrationObject::getInstance()->getNbVerticalSquares()), tmpPoints,
-	                      cv::CALIB_CB_ADAPTIVE_THRESH);
+	if (!viaHomography){
+		cv::vector<cv::Point2f> tmpPoints2;
+		bool pattern_found = findChessboardCorners(image, cv::Size(CalibrationObject::getInstance()->getNbHorizontalSquares(), CalibrationObject::getInstance()->getNbVerticalSquares()), tmpPoints2,
+			cv::CALIB_CB_ADAPTIVE_THRESH);
 
+		if (pattern_found) cv::cornerSubPix(image, tmpPoints2, cv::Size(11, 11), cv::Size(-1, -1),
+			cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
+
+		for (int i = 0; i < tmpPoints2.size(); i++)
+		{
+			tmpPoints.push_back(cv::Point2d(tmpPoints2[i].x, tmpPoints2[i].y));
+		}
+		tmpPoints2.clear();
+	}
+	else
+	{
+		cv::Mat homo = cv::findHomography(gridPoints, selectedPoints);
+		cv::vector<cv::Point2f> tmpPoints2;
+		for (int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); i++)
+		{
+			cv::Point2d pt;
+			double denom = CalibrationObject::getInstance()->getFrameSpecifications()[i].x * homo.at<double>(2, 0) + CalibrationObject::getInstance()->getFrameSpecifications()[i].y * homo.at<double>(2, 1) + homo.at<double>(2, 2);
+			pt.x = (CalibrationObject::getInstance()->getFrameSpecifications()[i].x * homo.at<double>(0, 0) + CalibrationObject::getInstance()->getFrameSpecifications()[i].y * homo.at<double>(0, 1) + homo.at<double>(0, 2)) / denom;
+			pt.y = (CalibrationObject::getInstance()->getFrameSpecifications()[i].x * homo.at<double>(1, 0) + CalibrationObject::getInstance()->getFrameSpecifications()[i].y * homo.at<double>(1, 1) + homo.at<double>(1, 2)) / denom;
+			tmpPoints2.push_back(pt);
+		}
+
+		cv::cornerSubPix(image, tmpPoints2, cv::Size(11, 11), cv::Size(-1, -1),
+			cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
+
+		for (int i = 0; i < tmpPoints2.size(); i++)
+		{
+			tmpPoints.push_back(cv::Point2d(tmpPoints2[i].x, tmpPoints2[i].y));
+		}
+		tmpPoints2.clear();
+	}
 	image.release();
 }
 

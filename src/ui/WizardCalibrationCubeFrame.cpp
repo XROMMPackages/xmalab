@@ -86,6 +86,7 @@ WizardCalibrationCubeFrame::WizardCalibrationCubeFrame(QWidget* parent) :
 #ifndef WIN32
 	frame->label_5->setText("Add a correspondance by using COMMAND+click.");
 #endif
+	checkerboardManual = false;
 }
 
 void WizardCalibrationCubeFrame::loadCalibrationSettings()
@@ -165,11 +166,13 @@ WizardCalibrationCubeFrame::~WizardCalibrationCubeFrame()
 
 void WizardCalibrationCubeFrame::activeCameraChanged(int activeCamera)
 {
+	checkerboardManual = false;
 	setDialog();
 }
 
 void WizardCalibrationCubeFrame::activeFrameCalibrationChanged(int activeFrame)
 {
+	checkerboardManual = false;
 	setDialog();
 }
 
@@ -177,6 +180,7 @@ void WizardCalibrationCubeFrame::workspaceChanged(work_state workspace)
 {
 	if (workspace == CALIBRATION)
 	{
+		checkerboardManual = false;
 		setDialog();
 	}
 }
@@ -349,8 +353,9 @@ void WizardCalibrationCubeFrame::addCalibrationReference(double x, double y)
 	{
 		if (State::getInstance()->getUndistortion() == UNDISTORTED)
 		{
-			if (CalibrationObject::getInstance()->isCheckerboard())
+			if (CalibrationObject::getInstance()->isCheckerboard() && !checkerboardManual)
 			{
+				
 				selectedReferencePoints[0].x = x;
 				selectedReferencePoints[0].y = y;
 				if (Settings::getInstance()->getBoolSetting("AutoCalibAfterReference")) on_pushButton_clicked();
@@ -449,8 +454,15 @@ void WizardCalibrationCubeFrame::setDialog()
 				}
 				else
 				{
-					frame->label->setText("Click in the interior upper left corner of the chessboard");
-					frame->frameReferences->hide();
+					if (checkerboardManual)
+					{
+						frame->label->setText("Click on the four interior corners of the checkerboard. Start with the upper left corner of the chessboard");
+						frame->frameReferences->show();
+					}
+					else{
+						frame->label->setText("Click on the interior upper left corner of the chessboard");		
+						frame->frameReferences->hide();
+					}
 				}
 				frame->frameManual->hide();
 			}
@@ -540,7 +552,13 @@ void WizardCalibrationCubeFrame::on_pushButton_clicked()
 				}
 				else
 				{
-					CheckerboardDetection* checkerdetection = new CheckerboardDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveFrameCalibration());
+					CheckerboardDetection* checkerdetection;
+					if (!checkerboardManual){
+						checkerdetection = new CheckerboardDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveFrameCalibration());			
+					} else
+					{
+						checkerdetection = new CheckerboardDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveFrameCalibration(),selectedReferencePoints);
+					}
 					connect(checkerdetection, SIGNAL(detectCorner_finished()), this, SLOT(runCalibration()));
 					checkerdetection->detectCorner();
 				}
@@ -620,7 +638,9 @@ void WizardCalibrationCubeFrame::runCalibration()
 		}
 		else
 		{
-			ErrorDialog::getInstance()->showErrorDialog("Could not detect chessboard");
+			ErrorDialog::getInstance()->showErrorDialog("Could not detect chessboard. Please try the manual mode");
+			checkerboardManual = true;
+			setDialog();
 		}
 		return;
 	}

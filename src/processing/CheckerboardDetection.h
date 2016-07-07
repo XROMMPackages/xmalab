@@ -40,6 +40,7 @@ namespace xma
 
 	public:
 		CheckerboardDetection(int camera, int image);
+		CheckerboardDetection(int camera, int image, cv::Point2d references[4]);
 		virtual ~CheckerboardDetection();
 		void detectCorner();
 
@@ -47,6 +48,10 @@ namespace xma
 		//if -1 undistortion;
 		int m_image;
 		cv::vector<cv::Point2d> tmpPoints;
+		cv::vector<cv::Point2f> selectedPoints;
+		cv::vector<cv::Point2f> gridPoints;
+
+		bool viaHomography;
 
 		static bool isRunning()
 		{
