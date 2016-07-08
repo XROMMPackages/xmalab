@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="images">
+    <file>resource-files/icons/XMALab-Banner.png</file>
     <file>resource-files/icons/Images.png</file>
     <file>resource-files/icons/shape_3d_setMarker.png</file>
     <file>resource-files/icons/video.png</file>
