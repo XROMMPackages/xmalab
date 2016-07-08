@@ -74,7 +74,7 @@ namespace xma
 		void loadProject();
 		void closeProject();
 		void saveProject();
-		void saveProjectAs();
+		void saveProjectAs(bool subset = false);
 
 		//Trial functions
 		void newTrial();
@@ -113,6 +113,7 @@ namespace xma
 		void on_actionClose_Project_triggered(bool checked);
 		void on_actionSave_Project_triggered(bool checked);
 		void on_actionSave_Project_as_triggered(bool checked);
+		void on_actionSave_subdataset_as_triggered(bool checked);
 
 		//File->Export Menu Slots
 		void on_actionExportAll_triggered(bool checked);

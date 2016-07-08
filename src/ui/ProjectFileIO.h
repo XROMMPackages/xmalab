@@ -28,6 +28,7 @@
 #define PROJECTFILEIO_H
 
 #include <QString>
+#include <vector>
 class QDir;
 class QStringList;
 
@@ -44,7 +45,7 @@ namespace xma
 		static ProjectFileIO* getInstance();
 		virtual ~ProjectFileIO();
 
-		int saveProject(QString filename);
+		int saveProject(QString filename, std::vector <Trial*> trials, bool subset = false);
 		int loadProject(QString filename);
 
 		QStringList readTrials(QString filename);
@@ -60,7 +61,7 @@ namespace xma
 		ProjectFileIO();
 		static ProjectFileIO* instance;
 
-		bool writeProjectFile(QString filename);
+		bool writeProjectFile(QString filename,std::vector <Trial*> trials);
 		bool readProjectFile(QString filename);
 
 		bool zipFromFolderToFile(const QString& filePath, const QDir& dir, const QString& comment = QString(""));

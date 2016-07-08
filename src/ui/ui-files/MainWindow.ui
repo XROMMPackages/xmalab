@@ -334,6 +334,7 @@
     <addaction name="separator"/>
     <addaction name="actionSave_Project"/>
     <addaction name="actionSave_Project_as"/>
+    <addaction name="actionSave_subdataset_as"/>
     <addaction name="separator"/>
     <addaction name="menuExport"/>
     <addaction name="menuImport"/>
@@ -820,6 +821,11 @@
   <action name="actionProject_Metadata">
    <property name="text">
     <string>Project Metadata</string>
+   </property>
+  </action>
+  <action name="actionSave_subdataset_as">
+   <property name="text">
+    <string>Save subdataset as</string>
    </property>
   </action>
  </widget>

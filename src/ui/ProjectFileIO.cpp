@@ -114,11 +114,12 @@ bool ProjectFileIO::removeDir(QString folder)
 	return result;
 }
 
-int ProjectFileIO::saveProject(QString filename)
+int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bool subset)
 {
 	bool success = true;
-	Project::getInstance()->projectFilename = filename;
-
+	if (!subset)
+		Project::getInstance()->projectFilename = filename;
+	
 	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp" + OS_SEP;
 	if (!QDir().mkpath(tmpDir_path))
 	{
@@ -130,7 +131,7 @@ int ProjectFileIO::saveProject(QString filename)
 
 	if (success)
 	{
-		success = writeProjectFile(tmpDir_path + "project.xml");
+		success = writeProjectFile(tmpDir_path + "project.xml", trials);
 	}
 
 	if (success)
@@ -188,9 +189,9 @@ int ProjectFileIO::saveProject(QString filename)
 
 	if (success)
 	{
-		for (unsigned int i = 0; i < Project::getInstance()->getTrials().size(); i++)
+		for (std::vector<Trial*>::const_iterator trial_it = trials.begin(); trial_it != trials.end(); ++trial_it)
 		{
-			QString path = tmpDir_path + OS_SEP + Project::getInstance()->getTrials()[i]->getName() + OS_SEP;
+			QString path = tmpDir_path + OS_SEP + (*trial_it)->getName() + OS_SEP;
 			if (!QDir().mkpath(path))
 			{
 				ErrorDialog::getInstance()->showErrorDialog("Can not create tmp folder " + path);
@@ -199,41 +200,41 @@ int ProjectFileIO::saveProject(QString filename)
 			else
 			{
 
-				if (Project::getInstance()->getTrials()[i]->getHasStudyData()){
-					Project::getInstance()->getTrials()[i]->saveXMLData(path + OS_SEP + "metadata.xml");
+				if ((*trial_it)->getHasStudyData()){
+					(*trial_it)->saveXMLData(path + OS_SEP + "metadata.xml");
 				}
 
-				Project::getInstance()->getTrials()[i]->save(path);
+				(*trial_it)->save(path);
 				QDir().mkpath(path + OS_SEP + "data");
-				Project::getInstance()->getTrials()[i]->saveMarkers(path + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
-				Project::getInstance()->getTrials()[i]->saveRigidBodies(path + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
-				for (unsigned int k = 0; k < Project::getInstance()->getTrials()[i]->getMarkers().size(); k++)
+				(*trial_it)->saveMarkers(path + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
+				(*trial_it)->saveRigidBodies(path + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
+				for (unsigned int k = 0; k < (*trial_it)->getMarkers().size(); k++)
 				{
-					Project::getInstance()->getTrials()[i]->getMarkers()[k]->save(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv",
+					(*trial_it)->getMarkers()[k]->save(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv",
 					                                                              path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status2d.csv",
 					                                                              path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
-					Project::getInstance()->getTrials()[i]->getMarkers()[k]->save3DPoints(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points3d.csv",
+					(*trial_it)->getMarkers()[k]->save3DPoints(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points3d.csv",
 					                                                                      path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status3d.csv");
 
-					if (Project::getInstance()->getTrials()[i]->getMarkers()[k]->Reference3DPointSet())
+					if ((*trial_it)->getMarkers()[k]->Reference3DPointSet())
 					{
-						Project::getInstance()->getTrials()[i]->getMarkers()[k]->saveReference3DPoint(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "reference3Dpoint.csv");
+						(*trial_it)->getMarkers()[k]->saveReference3DPoint(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "reference3Dpoint.csv");
 					}
 				}
-				for (unsigned int k = 0; k < Project::getInstance()->getTrials()[i]->getRigidBodies().size(); k++)
+				for (unsigned int k = 0; k < (*trial_it)->getRigidBodies().size(); k++)
 				{
-					if (Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->isReferencesSet() == 2)
+					if ((*trial_it)->getRigidBodies()[k]->isReferencesSet() == 2)
 					{
-						Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->save(
+						(*trial_it)->getRigidBodies()[k]->save(
 							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferenceNames.csv",
 							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d.csv");
 					}
-					for (unsigned int p = 0; p < Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getDummyNames().size(); p++)
+					for (unsigned int p = 0; p < (*trial_it)->getRigidBodies()[k]->getDummyNames().size(); p++)
 					{
-						Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->saveDummy(p,
-						                                                                       path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences.csv",
-																							   path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences2.csv",
-						                                                                       path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointCoordinates.csv");
+						(*trial_it)->getRigidBodies()[k]->saveDummy(p,
+						                                            path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences.csv",
+																	path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences2.csv",
+						                                            path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointCoordinates.csv");
 					}
 				}
 			}
@@ -919,7 +920,7 @@ void ProjectFileIO::removeTmpDir()
 	removeDir(tmpDir_path);
 }
 
-bool ProjectFileIO::writeProjectFile(QString filename)
+bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trials)
 {
 	QString xml_filename = filename;
 	if (!xml_filename.isNull())
@@ -1041,65 +1042,65 @@ bool ProjectFileIO::writeProjectFile(QString filename)
 			xmlWriter.writeEndElement();
 			//Trials
 
-			for (unsigned int i = 0; i < Project::getInstance()->getTrials().size(); i++)
+			for (std::vector<Trial*>::const_iterator trial_it = trials.begin(); trial_it != trials.end(); ++trial_it)
 			{
 				xmlWriter.writeStartElement("Trial");
-				xmlWriter.writeAttribute("Name", Project::getInstance()->getTrials()[i]->getName());
-				xmlWriter.writeAttribute("startFrame", QString::number(Project::getInstance()->getTrials()[i]->getStartFrame()));
-				xmlWriter.writeAttribute("endFrame", QString::number(Project::getInstance()->getTrials()[i]->getEndFrame()));
-				xmlWriter.writeAttribute("referenceCalibration", QString::number(Project::getInstance()->getTrials()[i]->getReferenceCalibrationImage()));
-				xmlWriter.writeAttribute("recordingSpeed", QString::number(Project::getInstance()->getTrials()[i]->getRecordingSpeed()));
-				xmlWriter.writeAttribute("cutOffFrequency", QString::number(Project::getInstance()->getTrials()[i]->getCutoffFrequency()));
-				xmlWriter.writeAttribute("interpolateMissingFrames", QString::number(Project::getInstance()->getTrials()[i]->getInterpolateMissingFrames()));
-				if (Project::getInstance()->getTrials()[i]->getHasStudyData()){
-					xmlWriter.writeAttribute("MetaData", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + QString("metadata.xml"));
+				xmlWriter.writeAttribute("Name", (*trial_it)->getName());
+				xmlWriter.writeAttribute("startFrame", QString::number((*trial_it)->getStartFrame()));
+				xmlWriter.writeAttribute("endFrame", QString::number((*trial_it)->getEndFrame()));
+				xmlWriter.writeAttribute("referenceCalibration", QString::number((*trial_it)->getReferenceCalibrationImage()));
+				xmlWriter.writeAttribute("recordingSpeed", QString::number((*trial_it)->getRecordingSpeed()));
+				xmlWriter.writeAttribute("cutOffFrequency", QString::number((*trial_it)->getCutoffFrequency()));
+				xmlWriter.writeAttribute("interpolateMissingFrames", QString::number((*trial_it)->getInterpolateMissingFrames()));
+				if ((*trial_it)->getHasStudyData()){
+					xmlWriter.writeAttribute("MetaData", (*trial_it)->getName() + OS_SEP + QString("metadata.xml"));
 				}
-				for (unsigned int k = 0; k < Project::getInstance()->getTrials()[i]->getMarkers().size(); k++)
+				for (unsigned int k = 0; k < (*trial_it)->getMarkers().size(); k++)
 				{
 					xmlWriter.writeStartElement("Marker");
-					xmlWriter.writeAttribute("Description", Project::getInstance()->getTrials()[i]->getMarkers()[k]->getDescription());
+					xmlWriter.writeAttribute("Description", (*trial_it)->getMarkers()[k]->getDescription());
 					xmlWriter.writeAttribute("ID", QString::number(k));
-					xmlWriter.writeAttribute("TrackingPenalty", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getMaxPenalty()));
-					xmlWriter.writeAttribute("DetectionMethod", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getMethod()));
-					xmlWriter.writeAttribute("SizeOverride", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getSizeOverride()));
-					xmlWriter.writeAttribute("ThresholdOffset", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getThresholdOffset()));
-					xmlWriter.writeAttribute("RequiresRecomputation", QString::number(Project::getInstance()->getTrials()[i]->getMarkers()[k]->getRequiresRecomputation()));
+					xmlWriter.writeAttribute("TrackingPenalty", QString::number((*trial_it)->getMarkers()[k]->getMaxPenalty()));
+					xmlWriter.writeAttribute("DetectionMethod", QString::number((*trial_it)->getMarkers()[k]->getMethod()));
+					xmlWriter.writeAttribute("SizeOverride", QString::number((*trial_it)->getMarkers()[k]->getSizeOverride()));
+					xmlWriter.writeAttribute("ThresholdOffset", QString::number((*trial_it)->getMarkers()[k]->getThresholdOffset()));
+					xmlWriter.writeAttribute("RequiresRecomputation", QString::number((*trial_it)->getMarkers()[k]->getRequiresRecomputation()));
 
-					if (Project::getInstance()->getTrials()[i]->getMarkers()[k]->Reference3DPointSet())
+					if ((*trial_it)->getMarkers()[k]->Reference3DPointSet())
 					{
-						xmlWriter.writeAttribute("Reference3DPoint", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "reference3Dpoint.csv");
+						xmlWriter.writeAttribute("Reference3DPoint", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "reference3Dpoint.csv");
 					}
 
-					xmlWriter.writeAttribute("FilenamePoints2D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv");
-					xmlWriter.writeAttribute("FilenameStatus2D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status2d.csv");
-					xmlWriter.writeAttribute("FilenameSize", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
-					xmlWriter.writeAttribute("FilenamePoints3D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points3d.csv");
-					xmlWriter.writeAttribute("FilenameStatus3D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status3d.csv");
+					xmlWriter.writeAttribute("FilenamePoints2D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv");
+					xmlWriter.writeAttribute("FilenameStatus2D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status2d.csv");
+					xmlWriter.writeAttribute("FilenameSize", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
+					xmlWriter.writeAttribute("FilenamePoints3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points3d.csv");
+					xmlWriter.writeAttribute("FilenameStatus3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status3d.csv");
 
 					xmlWriter.writeEndElement();
 				}
 
-				for (unsigned int k = 0; k < Project::getInstance()->getTrials()[i]->getRigidBodies().size(); k++)
+				for (unsigned int k = 0; k < (*trial_it)->getRigidBodies().size(); k++)
 				{
 					xmlWriter.writeStartElement("RigidBody");
-					xmlWriter.writeAttribute("Description", Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getDescription());
+					xmlWriter.writeAttribute("Description", (*trial_it)->getRigidBodies()[k]->getDescription());
 					xmlWriter.writeAttribute("ID", QString::number(k));
-					if (Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->isReferencesSet() == 2)
+					if ((*trial_it)->getRigidBodies()[k]->isReferencesSet() == 2)
 					{
-						xmlWriter.writeAttribute("ReferenceNames", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferenceNames.csv");
-						xmlWriter.writeAttribute("ReferencePoints3D", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d.csv");
+						xmlWriter.writeAttribute("ReferenceNames", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferenceNames.csv");
+						xmlWriter.writeAttribute("ReferencePoints3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d.csv");
 					}
-					xmlWriter.writeAttribute("Visible", QString::number(Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getVisible()));
-					xmlWriter.writeAttribute("Color", Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getColor().name());
-					xmlWriter.writeAttribute("OverrideCutOffFrequency", QString::number(Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getOverrideCutoffFrequency()));
-					xmlWriter.writeAttribute("CutOffFrequency", QString::number(Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getCutoffFrequency()));
-					for (unsigned int p = 0; p < Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getDummyNames().size(); p++)
+					xmlWriter.writeAttribute("Visible", QString::number((*trial_it)->getRigidBodies()[k]->getVisible()));
+					xmlWriter.writeAttribute("Color", (*trial_it)->getRigidBodies()[k]->getColor().name());
+					xmlWriter.writeAttribute("OverrideCutOffFrequency", QString::number((*trial_it)->getRigidBodies()[k]->getOverrideCutoffFrequency()));
+					xmlWriter.writeAttribute("CutOffFrequency", QString::number((*trial_it)->getRigidBodies()[k]->getCutoffFrequency()));
+					for (unsigned int p = 0; p < (*trial_it)->getRigidBodies()[k]->getDummyNames().size(); p++)
 					{
 						xmlWriter.writeStartElement("DummyMarker");
-						xmlWriter.writeAttribute("Name", Project::getInstance()->getTrials()[i]->getRigidBodies()[k]->getDummyNames()[p]);
-						xmlWriter.writeAttribute("PointReferences", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences.csv");
-						xmlWriter.writeAttribute("PointReferences2", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences2.csv");
-						xmlWriter.writeAttribute("PointCoordinates", Project::getInstance()->getTrials()[i]->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointCoordinates.csv");
+						xmlWriter.writeAttribute("Name", (*trial_it)->getRigidBodies()[k]->getDummyNames()[p]);
+						xmlWriter.writeAttribute("PointReferences", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences.csv");
+						xmlWriter.writeAttribute("PointReferences2", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences2.csv");
+						xmlWriter.writeAttribute("PointCoordinates", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointCoordinates.csv");
 						xmlWriter.writeEndElement();
 					}
 

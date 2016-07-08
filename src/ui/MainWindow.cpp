@@ -55,6 +55,7 @@
 #include "ui/PointImportExportDialog.h"
 #include "ui/FromToDialog.h"
 #include "ui/MetaDataInfo.h"
+#include "ui/TrialSelectorDialog.h"
 
 #include "core/Project.h"
 #include "core/Camera.h"
@@ -721,14 +722,14 @@ void MainWindow::saveProject()
 		m_FutureWatcher = new QFutureWatcher<int>();
 		connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( saveProjectFinished() ));
 
-		QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, project->getProjectFilename());
+		QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, project->getProjectFilename(), project->getTrials(), false);
 		m_FutureWatcher->setFuture(future);
 
 		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + project->getProjectFilename()).toAscii().data());
 	}
 }
 
-void MainWindow::saveProjectAs()
+void MainWindow::saveProjectAs(bool subset)
 {
 	if (WizardDockWidget::getInstance()->checkForPendingChanges())
 	{
@@ -741,13 +742,31 @@ void MainWindow::saveProjectAs()
 		{
 			Settings::getInstance()->setLastUsedDirectory(fileName);
 
-			m_FutureWatcher = new QFutureWatcher<int>();
-			connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( saveProjectFinished() ));
+			if (!subset){
+				m_FutureWatcher = new QFutureWatcher<int>();
+				connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(saveProjectFinished()));
 
-			QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, fileName);
-			m_FutureWatcher->setFuture(future);
+				QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, fileName, project->getTrials(), false);
+				m_FutureWatcher->setFuture(future);
 
-			ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + fileName).toAscii().data());
+				ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + fileName).toAscii().data());
+			}
+			else
+			{
+				TrialSelectorDialog *diag = new TrialSelectorDialog(project->getTrials(),this);
+				bool ok = diag->exec();
+				if (ok)
+				{
+					m_FutureWatcher = new QFutureWatcher<int>();
+					connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(saveProjectFinished()));
+
+					QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, fileName, diag->getTrials(), true);
+					m_FutureWatcher->setFuture(future);
+
+					ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + fileName).toAscii().data());
+				}
+				delete diag;
+			}
 		}
 	}
 }
@@ -1173,7 +1192,7 @@ void MainWindow::on_actionSave_Project_triggered(bool checked)
 {
 	if (project->getProjectFilename().isEmpty())
 	{
-		saveProjectAs();
+		saveProjectAs(false);
 	}
 	else
 	{
@@ -1183,7 +1202,12 @@ void MainWindow::on_actionSave_Project_triggered(bool checked)
 
 void MainWindow::on_actionSave_Project_as_triggered(bool checked)
 {
-	saveProjectAs();
+	saveProjectAs(false);
+}
+
+void MainWindow::on_actionSave_subdataset_as_triggered(bool checked)
+{
+	saveProjectAs(true);
 }
 
 //File->Export Menu Slots
