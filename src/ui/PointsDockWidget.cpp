@@ -130,7 +130,7 @@ void PointsDockWidget::reloadListFromObject()
 					QTreeWidgetItem* qtreewidgetitem2 = dock->treeWidgetPoints->takeTopLevelItem(ind);
 					dock->treeWidgetPoints->removeItemWidget(qtreewidgetitem2, 2);
 					qtreewidgetitem->addChild(qtreewidgetitem2);
-					dock->treeWidgetPoints->setItemWidget(qtreewidgetitem2, 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 2, i));
+					dock->treeWidgetPoints->setItemWidget(qtreewidgetitem2, 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 2, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx()[k]));
 				}
 			}
 			if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->isExpanded())dock->treeWidgetPoints->expandItem(qtreewidgetitem);

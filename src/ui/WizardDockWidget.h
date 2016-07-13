@@ -77,6 +77,8 @@ namespace xma
 		void trackSelectedPointBackward();
 		void goToLastTrackedFrame();
 		void goToFirstTrackedFrame();
+		void interpolateActive();
+		void interpolateAll();
 	};
 }
 

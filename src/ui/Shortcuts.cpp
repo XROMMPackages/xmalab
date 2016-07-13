@@ -83,6 +83,12 @@ void Shortcuts::bindApplicationShortcuts()
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_W), SequenceNavigationFrame::getInstance(), SLOT(on_toolButtonNext_clicked()));
 	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_I), WizardDockWidget::getInstance(), SLOT(interpolateActive()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I), WizardDockWidget::getInstance(), SLOT(interpolateAll()));
+	shortcut->setContext(Qt::ApplicationShortcut);
 }
 
 void Shortcuts::installEventFilterToChildren(QObject* object)

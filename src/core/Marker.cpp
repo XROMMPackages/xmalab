@@ -35,6 +35,7 @@
 #include "core/HelperFunctions.h"
 
 #include "processing/ButterworthLowPassFilter.h" //should move this dependency
+#include "processing/cubic.h" //should move this dependency
 
 #include <fstream>
 #include "Settings.h"
@@ -51,6 +52,7 @@ Marker::Marker(int nbCameras, int size, Trial* _trial)
 	maxPenalty = 125;
 	point3D_ref_set = false;
 	method = 0;
+	interpolation = 0;
 	requiresRecomputation = true;
 }
 
@@ -239,7 +241,7 @@ void Marker::reconstruct3DPointZisserman(int frame)
 
 	if (count >= 2)
 	{
-		markerStatus status = MANUAL_REFINED;
+		markerStatus status = MANUAL_AND_OPTIMIZED;
 		cv::Mat f;
 		f.create(4, 1, CV_64F);
 
@@ -294,7 +296,7 @@ void Marker::reconstruct3DPointZissermanIncremental(int frame)
 
 	if (count >= 2)
 	{
-		markerStatus status = MANUAL_REFINED;
+		markerStatus status = MANUAL_AND_OPTIMIZED;
 		cv::Mat f;
 		f.create(3, 1, CV_64F);
 
@@ -383,7 +385,7 @@ void Marker::reconstruct3DPointZissermanMatlab(int frame)
 
 	if (count >= 2)
 	{
-		markerStatus status = MANUAL_REFINED;
+		markerStatus status = MANUAL_AND_OPTIMIZED;
 		cv::Mat f;
 		f.create(3, 1, CV_64F);
 
@@ -442,7 +444,7 @@ void Marker::reconstruct3DPointZissermanIncrementalMatlab(int frame)
 
 	if (count >= 2)
 	{
-		markerStatus status = MANUAL_REFINED;
+		markerStatus status = MANUAL_AND_OPTIMIZED;
 		cv::Mat f;
 		f.create(3, 1, CV_64F);
 
@@ -528,7 +530,7 @@ void Marker::reconstruct3DPointRayIntersection(int frame)
 
 	if (count >= 2)
 	{
-		markerStatus status = MANUAL_REFINED;
+		markerStatus status = MANUAL_AND_OPTIMIZED;
 		cv::Mat f;
 		f.create(3, 1, CV_64F);
 
@@ -1055,6 +1057,171 @@ bool Marker::filterMarker(double cutoffFrequency, std::vector<cv::Point3d>& mark
 	{
 		return false;
 	}
+}
+
+markerStatus Marker::updateStatus12(int statusOld)
+{
+	switch (statusOld)
+	{
+		case -2:
+			return DELETED;
+		case -1:
+			return LOST;
+		case 0:
+			return UNDEFINED;
+		case 1:
+			return PREDICTED;
+		case 2:
+			return PREDICTED;
+		case 3:
+			return PREDICTED;
+		case 4:
+			return TRACKED;
+		case 5:
+			return SET;
+		case 6:
+			return MANUAL;
+		default:
+			return UNDEFINED;
+	}
+}
+
+void Marker::updateToProject12()
+{
+	for (unsigned int i = 0; i < status3D.size(); i++)
+	{
+		status3D[i] = updateStatus12(status3D[i]);
+		for (unsigned int c = 0; c < status2D.size(); c++)
+			status2D[c][i] = updateStatus12(status2D[c][i]);
+	}
+
+	if (method == 4) method = 0;
+	if (method == 5) method = 2;
+}
+
+void Marker::interpolate()
+{
+	//no interpolation
+	if (interpolation == 0)
+	{
+		for (unsigned int c = 0; c < status2D.size(); c++){
+			for (unsigned int i = 0; i < status2D[c].size(); i++){
+				if (status2D[c][i] == INTERPOLATED)
+				{
+					setPoint(c,i,-2,-2,UNDEFINED);
+				}
+			}
+		}
+	}
+	//Repeat
+	else if (interpolation == 2 || interpolation == 1)
+	{
+		for (unsigned int c = 0; c < status2D.size(); c++){
+			int idxStart = -1;
+			int idxEnd = -1;
+			for (unsigned int f = 0; f < status2D[c].size(); f++){
+				//we have to replace this one;
+				if (status2D[c][f] < TRACKED)
+				{
+					if (idxEnd == -1)
+					{
+						//findNewEnd
+						for (unsigned int f2 = f; f2 < status2D[c].size(); f2++)
+						{
+							if (status2D[c][f2] >= TRACKED)
+							{
+								idxEnd = f2;
+								break;
+							}
+						}
+						//Still no End found
+						if (idxEnd == -1)
+						{
+							idxEnd = status2D[c].size();
+						}
+					}
+					
+					if (idxEnd != status2D[c].size() && idxStart != -1)
+					{
+						if (interpolation == 2){
+							double p = (((double)(f - idxStart)) / (idxEnd - idxStart));
+							double x = points2D[c][idxStart].x + p *(points2D[c][idxEnd].x - points2D[c][idxStart].x);
+							double y = points2D[c][idxStart].y + p *(points2D[c][idxEnd].y - points2D[c][idxStart].y);
+							setPoint(c, f, x, y, INTERPOLATED);
+						}
+						else
+						{
+							setPoint(c, f, points2D[c][idxStart].x, points2D[c][idxStart].y, INTERPOLATED);
+						}
+				
+					}
+				}
+				//Point was tracked so we set it as a new start;
+				else
+				{
+					idxStart = f;
+					idxEnd = -1;
+				}
+			}
+		}
+	}
+	//cubic spline
+	else if (interpolation == 3)
+	{
+		for (unsigned int c = 0; c < status2D.size(); c++){
+			int idxStart = -1;
+			int idxEnd = -1;
+			int count = 0;
+			for (unsigned int f = 0; f < status2D[c].size(); f++){
+				if (status2D[c][f] >= TRACKED)
+				{
+					count++;
+				}
+			}
+
+			double* samplesX = new double[count];
+			double* samplesY = new double[count];
+			double* pos = new double[count];
+			count = 0;
+			for (unsigned int f = 0; f < status2D[c].size(); f++){
+				if (status2D[c][f] >= TRACKED)
+				{
+					samplesX[count] = points2D[c][f].x;
+					samplesY[count] = points2D[c][f].y;
+					pos[count] = f;
+					count++;
+				}
+			}
+
+			Maths::Interpolation::Cubic X(count, pos, samplesX);
+			Maths::Interpolation::Cubic Y(count, pos, samplesY);
+
+			for (unsigned int f = pos[0]; f < pos[count-1]; f++){
+				if (status2D[c][f] < TRACKED)
+				{
+					double x = X.getValue(f);
+					double y = Y.getValue(f);
+					setPoint(c, f, x, y, INTERPOLATED);
+				}
+			}
+			delete[] samplesX;
+			delete[] samplesY;
+			delete[] pos;
+
+		}
+	}
+}
+
+
+int Marker::getInterpolation()
+{
+	return interpolation;
+}
+
+void Marker::setInterpolation(int value)
+{
+	interpolation = value;
+	interpolate();
 }
 
 void Marker::filterData(std::vector<int> idx, double cutoffFrequency, std::vector<cv::Point3d>& marker, std::vector<markerStatus>& status)

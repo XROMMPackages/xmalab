@@ -76,6 +76,7 @@ Settings::Settings()
 	addBoolSetting("ShowEpiLineDetailView", true);
 	addIntSetting("TriangulationMethod", 1);
 	addFloatSetting("MaximumReprojectionError", 5.0);
+	addBoolSetting("RetrackOptimizedTrackedPoints", true);
 
 	//BlobDetector
 	addFloatSetting("BlobDetectorThresholdStep", 10.0);

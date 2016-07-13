@@ -211,3 +211,18 @@ void WizardDockWidget::goToFirstTrackedFrame()
 	}
 }
 
+void WizardDockWidget::interpolateActive()
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		digitizationFrame->on_pushButton_InterpolateActive_clicked(true);
+	}
+}
+
+void WizardDockWidget::interpolateAll()
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		digitizationFrame->on_pushButton_InterpolateAll_clicked(true);
+	}
+}

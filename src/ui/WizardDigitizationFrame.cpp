@@ -105,7 +105,7 @@ void WizardDigitizationFrame::addDigitizationPoint(int camera, double x, double 
 
 	if (marker != NULL)
 	{
-		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, MANUAL_REFINED);
+		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, MANUAL);
 
 		PointsDockWidget::getInstance()->reloadListFromObject();
 		MainWindow::getInstance()->redrawGL();
@@ -145,7 +145,7 @@ void WizardDigitizationFrame::moveDigitizationPoint(int camera, double x, double
 
 	if (marker != NULL)
 	{
-		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, MANUAL_REFINED);
+		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, MANUAL);
 
 		if (!noDetection)
 		{
@@ -208,7 +208,7 @@ void WizardDigitizationFrame::trackSinglePoint()
 		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 		{
 			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][startFrame] > UNDEFINED &&
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][endFrame] <= TRACKED)
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][endFrame] <= Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
 			{
 				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, trackID, trackDirection > 0);
 				connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(trackSinglePointFinished()));
@@ -295,7 +295,7 @@ void WizardDigitizationFrame::trackAll()
 		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 		{
 			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][startFrame] > UNDEFINED &&
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][endFrame] <= TRACKED)
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][endFrame] <= Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
 			{
 				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, j, trackDirection > 0);
 				connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(trackAllFinished()));
@@ -360,7 +360,7 @@ void WizardDigitizationFrame::checkIfValid()
 		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 		{
 			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED &&
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getMethod() != 6)
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getMethod() != 4)
 			{
 				valid = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->isValid(i, State::getInstance()->getActiveFrameTrial()) && valid;
 			}
@@ -373,7 +373,7 @@ void WizardDigitizationFrame::checkIfValid()
 			for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 			{
 				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED &&
-					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getMethod() != 6)
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getMethod() != 4)
 				{
 					valid = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->isValid(i, State::getInstance()->getActiveFrameTrial()) && valid;
 				}
@@ -771,6 +771,22 @@ void WizardDigitizationFrame::on_pushButton_AllBack_clicked(bool checked)
 
 		track();
 	}
+}
+
+void WizardDigitizationFrame::on_pushButton_InterpolateActive_clicked(bool checked)
+{
+	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker()->interpolate();
+
+	MainWindow::getInstance()->redrawGL();
+}
+
+void WizardDigitizationFrame::on_pushButton_InterpolateAll_clicked(bool checked)
+{
+	for (std::vector<Marker *>::const_iterator it = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().begin();
+		it < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().end(); ++it)
+		(*it)->interpolate();
+
+	MainWindow::getInstance()->redrawGL();
 }
 
 void WizardDigitizationFrame::uncheckTrackButtons()

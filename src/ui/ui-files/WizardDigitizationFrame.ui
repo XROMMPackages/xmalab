@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>369</width>
-    <height>335</height>
+    <width>559</width>
+    <height>632</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,16 +20,36 @@
    <enum>QFrame::Raised</enum>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="6" column="0" colspan="2">
+    <widget class="QPushButton" name="pushButton">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
    <item row="3" column="0" colspan="2">
     <widget class="QGroupBox" name="groupBox_RB">
      <property name="title">
       <string>Rigid Body</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="1" column="1">
-       <widget class="QPushButton" name="pushButton_RBBack">
+      <item row="1" column="0">
+       <widget class="QPushButton" name="pushButton_RBForw">
         <property name="text">
-         <string>Track rigid body forward</string>
+         <string>Track rigid body backward</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -46,10 +66,10 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QPushButton" name="pushButton_RBForw">
+      <item row="1" column="1">
+       <widget class="QPushButton" name="pushButton_RBBack">
         <property name="text">
-         <string>Track rigid body backward</string>
+         <string>Track rigid body forward</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -67,59 +87,6 @@
        </widget>
       </item>
      </layout>
-    </widget>
-   </item>
-   <item row="4" column="0" colspan="2">
-    <widget class="QGroupBox" name="groupBox_All">
-     <property name="title">
-      <string>All</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_4">
-      <item row="0" column="0">
-       <widget class="QPushButton" name="pushButton_AllPrev">
-        <property name="text">
-         <string>Track all to previous frame</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="pushButton_AllNext">
-        <property name="text">
-         <string>Track all to next frame</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QPushButton" name="pushButton_AllBack">
-        <property name="text">
-         <string>Track all backward</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="pushButton_AllForw">
-        <property name="text">
-         <string>Track all forward</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-     <zorder>pushButton_AllForw</zorder>
-     <zorder>pushButton_AllPrev</zorder>
-     <zorder>pushButton_AllNext</zorder>
-     <zorder>pushButton_AllBack</zorder>
     </widget>
    </item>
    <item row="2" column="0" colspan="2">
@@ -171,24 +138,80 @@
      </layout>
     </widget>
    </item>
-   <item row="5" column="0" colspan="2">
-    <widget class="QPushButton" name="pushButton">
-     <property name="text">
-      <string/>
+   <item row="4" column="0" colspan="2">
+    <widget class="QGroupBox" name="groupBox_All">
+     <property name="title">
+      <string>All</string>
      </property>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="1">
+       <widget class="QPushButton" name="pushButton_AllNext">
+        <property name="text">
+         <string>Track all to next frame</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="pushButton_AllPrev">
+        <property name="text">
+         <string>Track all to previous frame</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QPushButton" name="pushButton_AllBack">
+        <property name="text">
+         <string>Track all backward</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="pushButton_AllForw">
+        <property name="text">
+         <string>Track all forward</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+     <zorder>pushButton_AllForw</zorder>
+     <zorder>pushButton_AllPrev</zorder>
+     <zorder>pushButton_AllNext</zorder>
+     <zorder>pushButton_AllBack</zorder>
     </widget>
    </item>
-   <item row="0" column="0" colspan="2">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string/>
+   <item row="5" column="0" colspan="2">
+    <widget class="QGroupBox" name="groupBox_Interpolation">
+     <property name="title">
+      <string>Interpolation</string>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
+     <layout class="QGridLayout" name="gridLayout_6">
+      <item row="0" column="0">
+       <widget class="QPushButton" name="pushButton_InterpolateActive">
+        <property name="text">
+         <string>Update interpolation active</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="pushButton_InterpolateAll">
+        <property name="text">
+         <string>Update interpolation all</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>

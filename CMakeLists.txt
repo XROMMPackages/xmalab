@@ -146,6 +146,7 @@ SET(Processing_HEADERS
 	src/processing/CheckerboardDetection.h
 	src/processing/MultiCameraCalibration.h
 	src/processing/UpdateTrialFrame.h
+	src/processing/cubic.h
 )
 
 SET(Processing_SOURCES

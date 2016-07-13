@@ -56,6 +56,8 @@ namespace xma
 		void loadXMALabProject(QString filename, NewProjectDialog* dialog);
 		void removeTmpDir();
 		void loadProjectMetaData(QString xml_filename);
+		void upgradeTo12(Trial *trial);
+
 	private:
 
 		ProjectFileIO();

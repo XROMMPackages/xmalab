@@ -87,6 +87,9 @@ MarkerTreeWidget::MarkerTreeWidget(QWidget* parent): QTreeWidget(parent)
 	action_ChangeDetectionMethod = new QAction(tr("&Change Detectionmethod of selected Points"), this);
 	connect(action_ChangeDetectionMethod, SIGNAL(triggered()), this, SLOT(action_ChangeDetectionMethod_triggered()));
 
+	action_ChangeInterpolationMethod = new QAction(tr("&Change Interpolation method of selected Points"), this);
+	connect(action_ChangeInterpolationMethod, SIGNAL(triggered()), this, SLOT(action_ChangeInterpolationMethod_triggered()));
+
 	action_RefinePointsPolynomialFit = new QAction(tr("&Refine center of selected Points by polynomial fit"), this);
 	connect(action_RefinePointsPolynomialFit, SIGNAL(triggered()), this, SLOT(action_RefinePointsPolynomialFit_triggered()));
 
@@ -129,8 +132,10 @@ void MarkerTreeWidget::showContextMenu(QTreeWidgetItem* item_contextMenu, const 
 		menu.addAction(action_ResetPoints);
 		menu.addAction(action_DeletePoints);
 		menu.addAction(action_ChangeDetectionMethod);
+		menu.addAction(action_ChangeInterpolationMethod);
 		menu.addAction(action_RefinePointsPolynomialFit);
 		menu.addAction(action_ChangePoint);
+
 		break;
 
 	case RIGID_BODY:
@@ -201,7 +206,7 @@ void MarkerTreeWidget::action_ChangeDetectionMethod_triggered()
 {
 	bool ok;
 	QStringList methodnames;
-	methodnames << "default Xray marker" << "Blobdetection" << "white marker" << "corner detection" << "default + polyomial fitting" << "white marker + polynomial fitting" << "no detection";
+	methodnames << "default Xray marker" << "Blobdetection" << "white marker" << "corner detection" << "no detection";
 
 	QString methodName = QInputDialog::getItem(this, tr("Choose method"),
 	                                           tr("Method:"), methodnames, 0, false, &ok);
@@ -220,6 +225,29 @@ void MarkerTreeWidget::action_ChangeDetectionMethod_triggered()
 	}
 }
 
+void MarkerTreeWidget::action_ChangeInterpolationMethod_triggered()
+{
+	bool ok;
+	QStringList methodnames;
+	methodnames << "No Interpolation" << "Repeat Values" << "Linear Interpolation" << "Spline Interpolation";
+
+	QString methodName = QInputDialog::getItem(this, tr("Choose method"),
+		tr("Method:"), methodnames, 0, false, &ok);
+
+	if (ok && !methodName.isEmpty())
+	{
+		int method = methodnames.indexOf(methodName);
+		QList<QTreeWidgetItem *> items = this->selectedItems();
+		for (int i = 0; i < items.size(); i++)
+		{
+			if (items.at(i)->type() == MARKER)
+			{
+				Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(i)->text(0).toInt() - 1]->setInterpolation(method);
+			}
+		}
+	}
+	MainWindow::getInstance()->redrawGL();
+}
 
 void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 {
@@ -250,15 +278,15 @@ void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 
 			if (method == 0)
 			{
-				max_marker_status = SET;
+				max_marker_status = SET_AND_OPTIMIZED;
 			}
 			else if (method == 1)
 			{
-				max_marker_status = TRACKED;
+				max_marker_status = TRACKED_AND_OPTIMIZED;
 			}
 			else
 			{
-				max_marker_status = MANUAL_REFINED;
+				max_marker_status = MANUAL_AND_OPTIMIZED;
 			}
 
 			QList<QTreeWidgetItem *> items = this->selectedItems();
@@ -276,7 +304,7 @@ void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 					{
 						if (items.at(it)->type() == MARKER)
 						{
-							if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getStatus2D()[c][i] > 0 &&
+							if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getStatus2D()[c][i] >= TRACKED &&
 								Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getStatus2D()[c][i] <= max_marker_status)
 							{
 								cv::Point2d pt(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getPoints2D()[c][i]);
@@ -288,10 +316,17 @@ void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 									size = 5;
 								}
 
-								MarkerDetection::refinePointPolynomialFit(pt, size, (marker_method != 5 && marker_method != 2), c, xma::State::getInstance()->getActiveTrial());
+								bool success = MarkerDetection::refinePointPolynomialFit(pt, size, marker_method != 2, c, xma::State::getInstance()->getActiveTrial());
 
-								Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->setPoint(c, i, pt.x, pt.y, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getStatus2D()[c][i]);
-								Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->setSize(c, i, size);
+								if (success){
+									markerStatus status = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getStatus2D()[c][i];
+									if (status == TRACKED) status = TRACKED_AND_OPTIMIZED;
+									else if (status == SET) status = SET_AND_OPTIMIZED;
+									else if (status == MANUAL) status = MANUAL_AND_OPTIMIZED;
+
+									Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->setPoint(c, i, pt.x, pt.y, status);
+									Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->setSize(c, i, size);
+								}
 							}
 						}
 					}

@@ -72,6 +72,8 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 	diag->comboBox_TriangulationMethod->setCurrentIndex(Settings::getInstance()->getIntSetting("TriangulationMethod"));
 	diag->comboBox_DetectionMethodForCalibration->setCurrentIndex(Settings::getInstance()->getIntSetting("DetectionMethodForCalibration"));
 	diag->doubleSpinBox_MaxError->setValue(Settings::getInstance()->getFloatSetting("MaximumReprojectionError"));
+	diag->checkBox_RetrackOptimizedTrackedPoints->setChecked(Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints"));
+
 	initPhase = false;
 }
 
@@ -221,6 +223,11 @@ void SettingsDialog::on_checkBox_HideWarningsCalibration_stateChanged(int state)
 void SettingsDialog::on_spinBox_IdentificationThreshold_stateChanged(int value)
 {
 	Settings::getInstance()->set("IdentificationThresholdCalibration", diag->spinBox_IdentificationThreshold->value());
+}
+
+void SettingsDialog::on_checkBox_RetrackOptimizedTrackedPoints_stateChanged(int state)
+{
+	Settings::getInstance()->set("RetrackOptimizedTrackedPoints", diag->checkBox_RetrackOptimizedTrackedPoints->isChecked());
 }
 
 void SettingsDialog::on_spinBox_OutlierThreshold_valueChanged(int value)

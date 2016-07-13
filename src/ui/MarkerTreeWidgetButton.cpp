@@ -103,12 +103,17 @@ void MarkerTreeWidgetButton::settingsButtonClicked()
 		dialog->exec();
 		MainWindow::getInstance()->redrawGL();
 		setButtonIcon();
+		delete dialog;
 	}
 	else if (m_type == 2)
 	{
 		MarkerDialog* dialog = new MarkerDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[m_idx], MainWindow::getInstance());
 
 		dialog->exec();
+
+		MainWindow::getInstance()->redrawGL();
+
+		delete dialog;
 	}
 }
 

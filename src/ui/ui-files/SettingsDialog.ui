@@ -326,20 +326,20 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="2">
-           <widget class="QSpinBox" name="spinBoxEpiPrecision">
+          <item row="1" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_ShowAdvancedCrosshairDetailWindow">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="maximum">
-             <number>999</number>
+            <property name="text">
+             <string>Show an advanced crosshair in the detail window</string>
             </property>
            </widget>
           </item>
-          <item row="8" column="0" colspan="3">
+          <item row="9" column="0" colspan="3">
            <spacer name="verticalSpacer_4">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -352,16 +352,16 @@
             </property>
            </spacer>
           </item>
-          <item row="1" column="0" colspan="3">
-           <widget class="QCheckBox" name="checkBox_ShowAdvancedCrosshairDetailWindow">
+          <item row="5" column="2">
+           <widget class="QSpinBox" name="spinBoxEpiPrecision">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
-             <string>Show an advanced crosshair in the detail window</string>
+            <property name="maximum">
+             <number>999</number>
             </property>
            </widget>
           </item>
@@ -378,36 +378,10 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0" colspan="3">
-           <widget class="QCheckBox" name="checkBox_Show3DPointDetailWindow">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Show the 3d reconstructed point in the detail window</string>
-            </property>
-           </widget>
-          </item>
           <item row="5" column="0" colspan="2">
            <widget class="QLabel" name="labelEpiPrecision">
             <property name="text">
              <string>Precision for the drawing of an epipolar line</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0" colspan="3">
-           <widget class="QCheckBox" name="checkBox_ShowEpiLineDetailWindow">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Show the epipolar line in the detail view</string>
             </property>
            </widget>
           </item>
@@ -440,6 +414,32 @@
             </item>
            </widget>
           </item>
+          <item row="3" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_ShowEpiLineDetailWindow">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Show the epipolar line in the detail view</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_Show3DPointDetailWindow">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Show the 3d reconstructed point in the detail window</string>
+            </property>
+           </widget>
+          </item>
           <item row="7" column="0" colspan="2">
            <widget class="QLabel" name="labelEpiPrecision_2">
             <property name="text">
@@ -449,6 +449,19 @@
           </item>
           <item row="7" column="2">
            <widget class="QDoubleSpinBox" name="doubleSpinBox_MaxError"/>
+          </item>
+          <item row="8" column="0">
+           <widget class="QCheckBox" name="checkBox_RetrackOptimizedTrackedPoints">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Retrack tracked and optimized points</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

@@ -237,6 +237,9 @@ bool ImportExportPointsDialog::copyFromTrial()
 					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setMethod(
 						Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getMethod());
 
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setInterpolation(
+						Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getInterpolation());
+
 					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setSizeOverride(
 						Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getSizeOverride());
 

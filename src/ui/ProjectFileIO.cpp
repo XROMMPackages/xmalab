@@ -342,7 +342,7 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 {
 	Trial* trial;
 	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
-
+	double version;
 	unzipFromFileToFolder(filename, tmpDir_path);
 
 	if (QFile::exists(tmpDir_path + OS_SEP + "project.xml"))
@@ -371,6 +371,12 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 						}
 						if (token == QXmlStreamReader::StartElement)
 						{
+							if (xml.name() == "Project")
+							{
+								QXmlStreamAttributes attr = xml.attributes();
+								std::cout << "Load project file Version " << attr.value("Version").toString().toAscii().data() << std::endl;
+								version = attr.value("Version").toString().toDouble();
+							}
 							if (xml.name() == "Trial")
 							{
 								QXmlStreamAttributes attr = xml.attributes();
@@ -429,6 +435,9 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 
 												QString DetectionMethod = attr.value("DetectionMethod").toString();
 												if (!DetectionMethod.isEmpty())trial->getMarkers()[id]->setMethod(DetectionMethod.toInt());
+
+												QString InterpolationMethod = attr.value("InterpolationMethod").toString();
+												if (!InterpolationMethod.isEmpty())trial->getMarkers()[id]->setInterpolation(InterpolationMethod.toInt());
 
 												QString SizeOverride = attr.value("SizeOverride").toString();
 												if (!SizeOverride.isEmpty())trial->getMarkers()[id]->setSizeOverride(SizeOverride.toInt());
@@ -526,6 +535,11 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 
 	removeDir(tmpDir_path);
 	
+	if (version < 0.2)
+	{
+		upgradeTo12(trial);
+	}
+
 	return trial;
 }
 
@@ -589,6 +603,9 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 
 												QString DetectionMethod = attr.value("DetectionMethod").toString();
 												if (!DetectionMethod.isEmpty())trial->getMarkers()[id]->setMethod(DetectionMethod.toInt());
+
+												QString InterpolationMethod = attr.value("InterpolationMethod").toString();
+												if (!InterpolationMethod.isEmpty())trial->getMarkers()[id]->setInterpolation(InterpolationMethod.toInt());
 
 												QString SizeOverride = attr.value("SizeOverride").toString();
 												if (!SizeOverride.isEmpty())trial->getMarkers()[id]->setSizeOverride(SizeOverride.toInt());
@@ -914,6 +931,13 @@ void ProjectFileIO::loadProjectMetaData(QString xml_filename)
 	}
 }
 
+void ProjectFileIO::upgradeTo12(Trial *trial)
+{
+	for (std::vector<Marker*>::const_iterator it = trial->getMarkers().begin(); it < trial->getMarkers().end(); ++it){
+		(*it)->updateToProject12();
+	}
+}
+
 void ProjectFileIO::removeTmpDir()
 {
 	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp" + OS_SEP;
@@ -932,7 +956,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 			xmlWriter.writeStartDocument();
 			xmlWriter.setAutoFormatting(true);
 			xmlWriter.writeStartElement("Project");
-			xmlWriter.writeAttribute("Version", "0.1");
+			xmlWriter.writeAttribute("Version", "0.2");
 			xmlWriter.writeAttribute("ActiveTrial", QString::number(State::getInstance()->getActiveTrial()));
 			if (Project::getInstance()->getHasStudyData()){
 				xmlWriter.writeAttribute("MetaData", QString("projectMetaData") + OS_SEP + QString("metadata.xml"));
@@ -1062,6 +1086,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 					xmlWriter.writeAttribute("ID", QString::number(k));
 					xmlWriter.writeAttribute("TrackingPenalty", QString::number((*trial_it)->getMarkers()[k]->getMaxPenalty()));
 					xmlWriter.writeAttribute("DetectionMethod", QString::number((*trial_it)->getMarkers()[k]->getMethod()));
+					xmlWriter.writeAttribute("InterpolationMethod", QString::number((*trial_it)->getMarkers()[k]->getInterpolation()));
 					xmlWriter.writeAttribute("SizeOverride", QString::number((*trial_it)->getMarkers()[k]->getSizeOverride()));
 					xmlWriter.writeAttribute("ThresholdOffset", QString::number((*trial_it)->getMarkers()[k]->getThresholdOffset()));
 					xmlWriter.writeAttribute("RequiresRecomputation", QString::number((*trial_it)->getMarkers()[k]->getRequiresRecomputation()));
@@ -1119,7 +1144,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 bool ProjectFileIO::readProjectFile(QString filename)
 {
 	int activeTrial = -1;
-
+	double version;
 	if (filename.isNull() == false)
 	{
 		QFileInfo info(filename);
@@ -1148,7 +1173,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 						{
 							QXmlStreamAttributes attr = xml.attributes();
 							std::cout << "Load project file Version " << attr.value("Version").toString().toAscii().data() << std::endl;
-
+							version = attr.value("Version").toString().toDouble();
 							QString activeTrialString = attr.value("ActiveTrial").toString();
 							if (!activeTrialString.isEmpty())activeTrial = activeTrialString.toInt();
 
@@ -1394,6 +1419,9 @@ bool ProjectFileIO::readProjectFile(QString filename)
 										QString DetectionMethod = attr.value("DetectionMethod").toString();
 										if (!DetectionMethod.isEmpty())trial->getMarkers()[id]->setMethod(DetectionMethod.toInt());
 
+										QString InterpolationMethod = attr.value("InterpolationMethod").toString();
+										if (!InterpolationMethod.isEmpty())trial->getMarkers()[id]->setInterpolation(InterpolationMethod.toInt());
+
 										QString SizeOverride = attr.value("SizeOverride").toString();
 										if (!SizeOverride.isEmpty())trial->getMarkers()[id]->setSizeOverride(SizeOverride.toInt());
 
@@ -1510,6 +1538,12 @@ bool ProjectFileIO::readProjectFile(QString filename)
 				}
 			}
 		}
+	}
+
+	if (version < 0.2)
+	{
+		for (std::vector<Trial*>::const_iterator it = Project::getInstance()->getTrials().begin(); it < Project::getInstance()->getTrials().end(); ++it)
+		upgradeTo12(*it);
 	}
 
 	return true;

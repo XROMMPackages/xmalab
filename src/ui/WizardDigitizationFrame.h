@@ -93,6 +93,9 @@ namespace xma
 		void on_pushButton_AllForw_clicked(bool checked);
 		void on_pushButton_AllBack_clicked(bool checked);
 
+		void on_pushButton_InterpolateActive_clicked(bool checked);
+		void on_pushButton_InterpolateAll_clicked(bool checked);
+
 		void trackSinglePointFinished();
 		void trackRBFinished();
 		void trackAllFinished();

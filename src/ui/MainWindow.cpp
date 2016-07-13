@@ -782,6 +782,7 @@ void MainWindow::newTrial()
 		State::getInstance()->changeActiveTrial(project->getTrials().size() - 1);
 		State::getInstance()->changeActiveFrameTrial(project->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
 	}
+	delete newTriaLdialog;
 }
 
 QString listFiles(QDir directory, QString name)
@@ -1365,6 +1366,7 @@ void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 			}
 		}
 	}
+	delete diag;
 }
 
 void MainWindow::on_actionMarkertoMarkerDistances_triggered(bool checked)

@@ -1662,7 +1662,7 @@ void RigidBody::setMissingPoints(int Frame)
 			std::vector<cv::Point2d> image_points = projectToImage(Project::getInstance()->getCameras()[c], Frame, false);
 			for (unsigned int i = 0; i < image_points.size(); i++)
 			{
-				if (trial->getMarkers()[pointsIdx[i]]->getStatus2D()[Frame][c] <= PREDICTED_RIGIDBODY)
+				//if (trial->getMarkers()[pointsIdx[i]]->getStatus2D()[Frame][c] <= PREDICTED_RIGIDBODY)
 				{
 					//object->markers[pointsIdx[i]].pointsCam1[Frame].x = image_points[i].x;
 					//object->markers[pointsIdx[i]].pointsCam1[Frame].y = image_points[i].y;

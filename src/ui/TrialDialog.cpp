@@ -155,6 +155,7 @@ void TrialDialog::on_pushButton_ChangeTrialData_clicked()
 	{
 		newTriaLdialog->createTrial();
 	}
+	delete newTriaLdialog;
 	returnValue = TRIALDIALOGCHANGE;
 	this->reject();
 }

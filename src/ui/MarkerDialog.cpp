@@ -46,6 +46,7 @@ MarkerDialog::MarkerDialog(Marker* marker, QWidget* parent) :
 	diag->spinBox_ThresholdOffset->setValue(m_marker->getThresholdOffset());
 	diag->spinBox_Penalty->setValue(m_marker->getMaxPenalty());
 	diag->comboBox_Method->setCurrentIndex(m_marker->getMethod());
+	diag->comboBox_Interpolation->setCurrentIndex(m_marker->getInterpolation());
 }
 
 
@@ -58,6 +59,7 @@ bool MarkerDialog::isComplete()
 {
 	m_marker->setMaxPenalty(diag->spinBox_Penalty->value());
 	m_marker->setMethod(diag->comboBox_Method->currentIndex());
+	m_marker->setInterpolation(diag->comboBox_Interpolation->currentIndex());
 	m_marker->setSizeOverride(diag->spinBox_MarkerRadius->value());
 	m_marker->setThresholdOffset(diag->spinBox_ThresholdOffset->value());
 

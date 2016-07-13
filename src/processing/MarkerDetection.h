@@ -52,7 +52,7 @@ namespace xma
 
 		static cv::Point2d detectionPoint(Image* image, int method, cv::Point2d center, int searchArea, int masksize, double threshold = 8, double* size = NULL);
 
-		static void refinePointPolynomialFit(cv::Point2d& pt, double& radius, bool darkMarker, int camera, int trial);
+		static bool refinePointPolynomialFit(cv::Point2d& pt, double& radius, bool darkMarker, int camera, int trial);
 
 		signals:
 		void detectMarker_finished();

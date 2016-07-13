@@ -336,7 +336,7 @@ void MarkerDetection::detectMarker_thread()
 
 	cv::Point2d pt = detectionPoint(Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[m_camera]->getImage(), m_method, cv::Point2d(m_x, m_y), m_searchArea, m_input_size, m_thresholdOffset, &m_size);
 
-	if (m_method == 4 || m_method == 5) refinePointPolynomialFit(pt, m_size, (m_method == 4), m_camera, m_trial);
+	//if (m_method == 4 || m_method == 5) refinePointPolynomialFit(pt, m_size, (m_method == 4), m_camera, m_trial);
 
 	m_x = pt.x;
 	m_y = pt.y;
@@ -356,7 +356,7 @@ void MarkerDetection::detectMarker_threadFinished()
 	delete this;
 }
 
-void MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_out, bool darkMarker, int camera, int trial)
+bool MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_out, bool darkMarker, int camera, int trial)
 {
 	double limmult = 1.6; //multiplies size of box around particle for fitting -- not a sensitive parameter - should be slightly over one... say 1.6
 	double maskmult = 1; //multiplies fall - off of weighting exponential in fine fit  -- should be about 1.0
@@ -401,7 +401,7 @@ void MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_o
 		if (subimage.cols * subimage.rows < 15)
 		{
 			//std::cerr << "Too small" << std::endl;
-			return;
+			return false;
 		}
 
 		cv::Mat A;
@@ -576,17 +576,22 @@ void MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_o
 		A.release();
 	}
 
+#ifdef WRITEIMAGES
+	std::cerr << "radius " << radius_out << std::endl;
+	std::cerr << "Pt " << pt.x << " " << pt.y << std::endl;
+#endif
+
 	if (!isnan(radius) && !isnan(x) && !isnan(y))
 	{
 		pt.y = y;
 		pt.x = x;
 		radius_out = radius;
+		return true;
+	} else
+	{
+		return false;
 	}
 
-#ifdef WRITEIMAGES
-	std::cerr << "radius " << radius_out << std::endl;
-	std::cerr << "Pt " << pt.x << " " << pt.y << std::endl;
-#endif
 
 	//std::cerr << "J " << J << std::endl;
 	//std::cerr << "skewness " << skewness << std::endl;

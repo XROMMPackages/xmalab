@@ -36,18 +36,33 @@
 
 namespace xma
 {
-	enum markerStatus
-	{
-		DELETED = -2,
-		LOST = -1,
-		UNDEFINED = 0,
-		PREDICTED_PREVIOUS = 1,
-		PREDICTED_2FRAME = 2,
-		PREDICTED_RIGIDBODY = 3,
-		TRACKED = 4,
-		SET = 5,
-		MANUAL_REFINED = 6
-	};
+//	enum markerStatus
+//	{
+//		DELETED = -2,
+//		LOST = -1,
+//		UNDEFINED = 0,
+//		PREDICTED_PREVIOUS = 1,
+//		PREDICTED_2FRAME = 2,
+//		PREDICTED_RIGIDBODY = 3,
+//		TRACKED = 4,
+//		SET = 5,
+//		MANUAL_REFINED = 6
+//	};
+
+		enum markerStatus
+		{
+			DELETED = -20,
+			LOST = -10,
+			UNDEFINED = 0,
+			PREDICTED = 10,
+			INTERPOLATED = 20,
+			TRACKED = 40,
+			TRACKED_AND_OPTIMIZED = 45,
+			SET = 50,
+			SET_AND_OPTIMIZED = 55,
+			MANUAL = 60,
+			MANUAL_AND_OPTIMIZED = 65
+		};
 
 	class Trial;
 
@@ -116,6 +131,12 @@ namespace xma
 		void setRequiresRecomputation(bool value);
 		bool filterMarker(double cutoffFrequency, std::vector <cv::Point3d> &marker, std::vector <markerStatus>& status);
 
+		void updateToProject12();
+
+		void interpolate();
+		int getInterpolation();
+		void setInterpolation(int value);
+
 	private:
 		void init(int nbCameras, int size);
 		void addFrame();
@@ -123,6 +144,7 @@ namespace xma
 		void reprojectPoint(int frame);
 		void updateError(int frame);
 		void filterData(std::vector<int> idx, double cutoffFrequency, std::vector<cv::Point3d>& marker, std::vector<markerStatus>& status);
+		markerStatus updateStatus12(int statusOld);
 
 		Trial* trial;
 
@@ -142,6 +164,7 @@ namespace xma
 		int sizeOverride;
 		int maxPenalty;
 		int method;
+		int interpolation;
 
 		bool point3D_ref_set;
 		cv::Point3d point3D_ref;
@@ -150,6 +173,7 @@ namespace xma
 		std::vector<double> error3D;
 
 		bool requiresRecomputation;
+
 	};
 }
 
