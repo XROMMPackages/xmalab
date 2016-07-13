@@ -51,7 +51,6 @@ namespace xma
 	public:
 		static MainWindow* getInstance();
 		virtual ~MainWindow();
-		void redrawGL();
 		void recountFrames();
 
 	private:
@@ -93,7 +92,9 @@ namespace xma
 		QTimer resizeTimer;
 
 	public slots:
-		//Futures
+		void redrawGL();
+
+		//Futures1
 		void loadProjectFinished();
 		void UndistortionAfterloadProjectFinished();
 		void saveProjectFinished();

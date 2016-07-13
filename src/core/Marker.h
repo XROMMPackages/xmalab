@@ -32,6 +32,8 @@
 #include <opencv/cv.h>
 #include <opencv2/video/tracking.hpp>
 
+#include <QColor>
+
 #define MIN_marker(a,b) (((a)<(b))?(a):(b))
 
 namespace xma
@@ -136,6 +138,7 @@ namespace xma
 		void interpolate();
 		int getInterpolation();
 		void setInterpolation(int value);
+		QColor getStatusColor(int camera, int frame);
 
 	private:
 		void init(int nbCameras, int size);

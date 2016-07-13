@@ -74,15 +74,15 @@ namespace xma
 		PlotWindow(QWidget* parent = 0);
 		static PlotWindow* instance;
 		void deleteData();
-
+		void drawStatus(int idx);
 		Ui::PlotWindow* dock;
 
 		QCPItemLine* frameMarker;
 		QCPItemRect* selectionMarker;
 
+		std::vector<std::vector<QCPItemRect *>> marker_status;
 		int startFrame;
 		int endFrame;
-
 		bool updating;
 
 	public slots:
@@ -98,6 +98,7 @@ namespace xma
 		void on_comboBoxRigidBodyError_currentIndexChanged(int idx);
 		void on_comboBoxRigidBodyTransType_currentIndexChanged(int idx);
 		void on_checkBoxTime_clicked();
+		void on_checkBoxStatus_clicked();
 
 		void activeTrialChanged(int activeTrial);
 		void workspaceChanged(work_state workspace);

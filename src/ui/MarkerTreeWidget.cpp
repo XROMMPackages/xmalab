@@ -96,15 +96,42 @@ MarkerTreeWidget::MarkerTreeWidget(QWidget* parent): QTreeWidget(parent)
 	action_ChangePoint = new QAction(tr("&Change tracked data with data from another point"), this);
 	connect(action_ChangePoint, SIGNAL(triggered()), this, SLOT(action_ChangePoint_triggered()));
 
-
-	headerItem()->setText(2, "");
-	//headerItem()->setText(3, "");
-
 	header()->setResizeMode(0, QHeaderView::ResizeToContents);
+	headerItem()->setText(0, "");
+
+	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+	{
+		headerItem()->setText(2 + i, "");
+		header()->setResizeMode(2 + i, QHeaderView::ResizeToContents);
+	}
+	
+	headerItem()->setText(Project::getInstance()->getCameras().size() + 2, "");
+	header()->setResizeMode(Project::getInstance()->getCameras().size() + 2, QHeaderView::ResizeToContents);
+
+	headerItem()->setText(1, "");
 	header()->setResizeMode(1, QHeaderView::Stretch);
-	header()->setResizeMode(2, QHeaderView::ResizeToContents);
 
 	//setColumnWidth(2, 25);
+}
+
+void MarkerTreeWidget::reset()
+{
+	this->setColumnCount(3 + Project::getInstance()->getCameras().size());
+
+	header()->setResizeMode(0, QHeaderView::ResizeToContents);
+	headerItem()->setText(0, "");
+
+	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+	{
+		headerItem()->setText(2 + i, "");
+		header()->setResizeMode(2 + i, QHeaderView::ResizeToContents);
+	}
+
+	headerItem()->setText(Project::getInstance()->getCameras().size() + 2, "");
+	header()->setResizeMode(Project::getInstance()->getCameras().size() + 2, QHeaderView::ResizeToContents);
+
+	headerItem()->setText(1, "");
+	header()->setResizeMode(1, QHeaderView::Stretch);
 }
 
 void MarkerTreeWidget::onCustomContextMenuRequested(const QPoint& pos)
@@ -462,7 +489,6 @@ void MarkerTreeWidget::action_ResetPoints_triggered()
 	delete fromTo;
 }
 
-
 void MarkerTreeWidget::action_CreateRigidBody_triggered()
 {
 	QList<QTreeWidgetItem *> items = this->selectedItems();
@@ -540,7 +566,6 @@ void MarkerTreeWidget::action_AddToRigidBody_triggered()
 		}
 	}
 }
-
 
 void MarkerTreeWidget::dropEvent(QDropEvent* event)
 {

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>929</width>
+    <width>1369</width>
     <height>437</height>
    </rect>
   </property>
@@ -335,7 +335,7 @@
          </item>
         </widget>
        </item>
-       <item row="0" column="6" rowspan="2">
+       <item row="0" column="7" rowspan="2">
         <widget class="QPushButton" name="pushButton_Reset">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -387,10 +387,17 @@
          </property>
         </spacer>
        </item>
-       <item row="0" column="5" rowspan="2">
+       <item row="0" column="6" rowspan="2">
         <widget class="QCheckBox" name="checkBoxTime">
          <property name="text">
           <string>Display time </string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="5" rowspan="2">
+        <widget class="QCheckBox" name="checkBoxStatus">
+         <property name="text">
+          <string>Display status</string>
          </property>
         </widget>
        </item>

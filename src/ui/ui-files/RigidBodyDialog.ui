@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>471</width>
-    <height>262</height>
+    <width>692</width>
+    <height>383</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -166,7 +166,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../../../Undistortion/src/ui/ui-files/resources.qrc"/>
+  <include location="../calibrationtool_resources.qrc"/>
   <include location="../calibrationtool_resources.qrc"/>
  </resources>
  <connections/>

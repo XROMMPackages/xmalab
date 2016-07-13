@@ -212,6 +212,7 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/DigitizationInfoFrame.h
 	src/ui/MetaDataInfo.h
 	src/ui/TrialSelectorDialog.h
+	src/ui/StatusColorDialog.h
 )
 
 SET(XMALab_FORMS_SOURCES
@@ -260,6 +261,7 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/DigitizationInfoFrame.cpp
 		src/ui/MetaDataInfo.cpp
 		src/ui/TrialSelectorDialog.cpp
+		src/ui/StatusColorDialog.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
@@ -301,6 +303,7 @@ SET(XMALab_FORMS
 		src/ui/ui-files/DigitizationInfoFrame.ui
 		src/ui/ui-files/MetaDataInfo.ui
 		src/ui/ui-files/TrialSelectorDialog.ui
+		src/ui/ui-files/StatusColorDialog.ui
 	)
 
 SOURCE_GROUP(UI_Files FILES ${XMALab_FORMS})
@@ -343,6 +346,7 @@ SET(XMALab_FORMS_MOC
 		${CMAKE_CURRENT_BINARY_DIR}/ui_DigitizationInfoFrame.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_MetaDataInfo.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_TrialSelectorDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_StatusColorDialog.h
 )
 
 SOURCE_GROUP(UI_Generated FILES ${XMALab_FORMS_MOC})

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>850</width>
-    <height>1133</height>
+    <width>931</width>
+    <height>1309</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -88,8 +88,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>729</width>
-           <height>349</height>
+           <width>754</width>
+           <height>204</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
@@ -180,8 +180,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>729</width>
-           <height>350</height>
+           <width>754</width>
+           <height>482</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
@@ -314,8 +314,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>729</width>
-           <height>349</height>
+           <width>774</width>
+           <height>476</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
@@ -351,6 +351,19 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="3" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_ShowEpiLineDetailWindow">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Show the epipolar line in the detail view</string>
+            </property>
+           </widget>
           </item>
           <item row="5" column="2">
            <widget class="QSpinBox" name="spinBoxEpiPrecision">
@@ -414,8 +427,8 @@
             </item>
            </widget>
           </item>
-          <item row="3" column="0" colspan="3">
-           <widget class="QCheckBox" name="checkBox_ShowEpiLineDetailWindow">
+          <item row="8" column="0">
+           <widget class="QCheckBox" name="checkBox_RetrackOptimizedTrackedPoints">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
               <horstretch>0</horstretch>
@@ -423,9 +436,19 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Show the epipolar line in the detail view</string>
+             <string>Retrack tracked and optimized points</string>
             </property>
            </widget>
+          </item>
+          <item row="7" column="0" colspan="2">
+           <widget class="QLabel" name="labelEpiPrecision_2">
+            <property name="text">
+             <string>Maximum reprojection error before point is marked lost </string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="2">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_MaxError"/>
           </item>
           <item row="4" column="0" colspan="3">
            <widget class="QCheckBox" name="checkBox_Show3DPointDetailWindow">
@@ -440,26 +463,10 @@
             </property>
            </widget>
           </item>
-          <item row="7" column="0" colspan="2">
-           <widget class="QLabel" name="labelEpiPrecision_2">
+          <item row="10" column="0" colspan="3">
+           <widget class="QPushButton" name="pushButton_MarkerStatus">
             <property name="text">
-             <string>Maximum reprojection error before point is marked lost </string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="2">
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_MaxError"/>
-          </item>
-          <item row="8" column="0">
-           <widget class="QCheckBox" name="checkBox_RetrackOptimizedTrackedPoints">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Retrack tracked and optimized points</string>
+             <string>Set marker status colors</string>
             </property>
            </widget>
           </item>

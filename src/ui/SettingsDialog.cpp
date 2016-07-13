@@ -31,6 +31,7 @@
 #include "ui/SettingsDialog.h"
 #include "ui_SettingsDialog.h"
 
+#include "ui/StatusColorDialog.h"
 #include "core/Settings.h"
 #include "core/Project.h"
 #include "core/Trial.h"
@@ -228,6 +229,13 @@ void SettingsDialog::on_spinBox_IdentificationThreshold_stateChanged(int value)
 void SettingsDialog::on_checkBox_RetrackOptimizedTrackedPoints_stateChanged(int state)
 {
 	Settings::getInstance()->set("RetrackOptimizedTrackedPoints", diag->checkBox_RetrackOptimizedTrackedPoints->isChecked());
+}
+
+void SettingsDialog::on_pushButton_MarkerStatus_clicked()
+{
+	StatusColorDialog * diag = new StatusColorDialog(this);
+	diag->exec();
+	delete diag;
 }
 
 void SettingsDialog::on_spinBox_OutlierThreshold_valueChanged(int value)

@@ -32,6 +32,7 @@
 #include <QCoreApplication>
 #include <QSettings>
 #include <QFileInfo>
+#include <QColor>
 
 #include <assert.h>
 
@@ -77,6 +78,16 @@ Settings::Settings()
 	addIntSetting("TriangulationMethod", 1);
 	addFloatSetting("MaximumReprojectionError", 5.0);
 	addBoolSetting("RetrackOptimizedTrackedPoints", true);
+	//Colors
+
+	addQStringSetting("ColorInterpolated", QColor::fromRgb(255, 205, 50).name());
+	addQStringSetting("ColorManual", QColor::fromRgb(200, 0, 30).name());
+	addQStringSetting("ColorManualAndOpt", QColor::fromRgb(255, 0, 42).name());
+	addQStringSetting("ColorSet", QColor::fromRgb(0, 200, 100).name());
+	addQStringSetting("ColorSetAndOpt", QColor::fromRgb(0, 255, 128).name());
+	addQStringSetting("ColorTracked", QColor::fromRgb(0, 100, 200).name());
+	addQStringSetting("ColorTrackedAndOpt", QColor::fromRgb(0, 128, 255).name());
+	addQStringSetting("ColorUndefined", QColor::fromRgb(210, 210, 210).name());
 
 	//BlobDetector
 	addFloatSetting("BlobDetectorThresholdStep", 10.0);

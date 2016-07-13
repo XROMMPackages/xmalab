@@ -105,12 +105,13 @@ void WizardDigitizationFrame::addDigitizationPoint(int camera, double x, double 
 
 	if (marker != NULL)
 	{
-		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, MANUAL);
+		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, SET);
 
 		PointsDockWidget::getInstance()->reloadListFromObject();
 		MainWindow::getInstance()->redrawGL();
 
 		MarkerDetection* markerdetection = new MarkerDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
+		connect(markerdetection, SIGNAL(detectMarker_finished()), MainWindow::getInstance(), SLOT(redrawGL()));
 		markerdetection->detectMarker();
 	}
 }
@@ -145,11 +146,12 @@ void WizardDigitizationFrame::moveDigitizationPoint(int camera, double x, double
 
 	if (marker != NULL)
 	{
-		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, MANUAL);
+		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, SET);
 
 		if (!noDetection)
 		{
 			MarkerDetection* markerdetection = new MarkerDetection(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
+			connect(markerdetection, SIGNAL(detectMarker_finished()), MainWindow::getInstance(), SLOT(redrawGL()));
 			markerdetection->detectMarker();
 		}
 		else

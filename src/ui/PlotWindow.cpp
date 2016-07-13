@@ -71,7 +71,6 @@ PlotWindow::PlotWindow(QWidget* parent) : QDockWidget(parent), dock(new Ui::Plot
 	//dock->plotWidget->installEventFilter(this);
 	installEventFilterToChildren(this);
 
-
 	selectionMarker = new QCPItemRect(dock->plotWidget);
 	dock->plotWidget->addItem(selectionMarker);
 	selectionMarker->setPen(QPen(QColor(255, 255, 0, 50)));
@@ -173,6 +172,104 @@ void PlotWindow::deleteData()
 		on_pushButtonUpdate_clicked();
 	}
 	MainWindow::getInstance()->redrawGL();
+}
+
+void PlotWindow::drawStatus(int idx)
+{
+	if (dock->checkBoxStatus->isChecked()){
+		QBrush brush_Interpolated = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorInterpolated")));
+		QPen pen_Interpolated = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorInterpolated")));
+
+		QBrush brush_Manual = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorManual")));
+		QPen pen_Manual = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorManual")));
+
+		QBrush brush_ManualAndOpt = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorManualAndOpt")));
+		QPen pen_ManualAndOpt = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorManualAndOpt")));
+
+		QBrush brush_Set = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorSet")));
+		QPen pen_Set = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorSet")));
+
+		QBrush brush_SetAndOpt = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorSetAndOpt")));
+		QPen pen_SetAndOpt = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorSetAndOpt")));
+
+		QBrush brush_Tracked = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorTracked")));
+		QPen pen_Tracked = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorTracked")));
+
+		QBrush brush_TrackedAndOpt = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorTrackedAndOpt")));
+		QPen pen_TrackedAndOpt = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorTrackedAndOpt")));
+
+		QBrush brush_Undefined = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorUndefined")));
+		QPen pen_Undefined = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorUndefined")));
+
+		double y_max = dock->plotWidget->yAxis->range().upper;
+		double height = dock->plotWidget->yAxis->range().size() / (1.0 + (0.05 * (Project::getInstance()->getCameras().size() + 1))) * 0.05;
+
+		double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+		double posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 1 : 0;
+
+		Marker * marker = NULL;
+		if (idx >= 0 && idx < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
+		{
+			marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx];
+		}
+
+		for (int c = 0; c < Project::getInstance()->getCameras().size(); c++)
+		{
+			int count = 0;
+			for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
+			{
+				if (marker)
+				{
+					marker_status[c][count]->setVisible(true);
+					switch (marker->getStatus2D()[c][f - 1])
+					{
+						case UNDEFINED:
+							marker_status[c][count]->setBrush(brush_Undefined);
+							marker_status[c][count]->setPen(pen_Undefined);
+							break;
+						case INTERPOLATED:
+							marker_status[c][count]->setBrush(brush_Interpolated);
+							marker_status[c][count]->setPen(pen_Interpolated);
+							break;
+						case TRACKED:
+							marker_status[c][count]->setBrush(brush_Tracked);
+							marker_status[c][count]->setPen(pen_Tracked);
+							break;
+						case TRACKED_AND_OPTIMIZED:
+							marker_status[c][count]->setBrush(brush_TrackedAndOpt);
+							marker_status[c][count]->setPen(pen_TrackedAndOpt);
+							break;
+						case SET:
+							marker_status[c][count]->setBrush(brush_Set);
+							marker_status[c][count]->setPen(pen_Set);
+							break;
+						case SET_AND_OPTIMIZED:
+							marker_status[c][count]->setBrush(brush_SetAndOpt);
+							marker_status[c][count]->setPen(pen_SetAndOpt);
+							break;
+						case MANUAL:
+							marker_status[c][count]->setBrush(brush_Manual);
+							marker_status[c][count]->setPen(pen_Manual);
+							break;
+						case MANUAL_AND_OPTIMIZED:
+							marker_status[c][count]->setBrush(brush_ManualAndOpt);
+							marker_status[c][count]->setPen(pen_ManualAndOpt);
+							break;
+					}
+
+					marker_status[c][count]->topLeft->setCoords((((double) f) - 0.5 - posOffset) * posMultiplier, y_max - c*height);
+					marker_status[c][count]->bottomRight->setCoords((((double) f) + 0.5 - posOffset) * posMultiplier, y_max - (c + 1)*height);
+				}
+				else
+				{
+					marker_status[c][count]->setVisible(false);
+				}
+				count++;
+			}
+		}
+	}
 }
 
 bool PlotWindow::eventFilter(QObject* target, QEvent* event)
@@ -335,6 +432,16 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 
 void PlotWindow::resetRange()
 {
+	for (int c = 0; c < marker_status.size(); c++)
+	{
+		for (int f = 0; f < marker_status[c].size(); f++)
+		{
+			dock->plotWidget->removeItem(marker_status[c][f]);
+		}
+		marker_status[c].clear();
+	}
+	marker_status.clear();
+
 	if (State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
 	{
 		double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
@@ -345,6 +452,20 @@ void PlotWindow::resetRange()
 		dock->plotWidget->xAxis->setRange(
 			    (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1) * posMultiplier + posOffset,
 			    (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1) * posMultiplier + posOffset);
+		
+		if (dock->checkBoxStatus->isChecked()){
+			for (int c = 0; c < Project::getInstance()->getCameras().size(); c++)
+			{
+				std::vector<QCPItemRect *> rects;
+				for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
+				{
+					rects.push_back(new QCPItemRect(dock->plotWidget));
+					dock->plotWidget->addItem(rects.back());
+				}
+				marker_status.push_back(rects);
+			}
+		}
+
 		if (this->isVisible())dock->plotWidget->replot();
 	}
 }
@@ -638,17 +759,21 @@ void PlotWindow::plot2D(int idx1)
 			double range = 0.2;
 			double center = (max_val_x + min_val_x) * 0.5;
 			range = (max_val_x - min_val_x) > range ? (max_val_x - min_val_x) : range;
-			dock->plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5);
-
+			double offset = (dock->checkBoxStatus->isChecked()) ? range * (0.05 * (Project::getInstance()->getCameras().size() + 1)): 0; 
+			dock->plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5 + offset);
+			
 			selectionMarker->topLeft->setCoords(startFrame * posMultiplier + posOffset, center + range * 0.5);
 			selectionMarker->bottomRight->setCoords(endFrame * posMultiplier + posOffset, center - range * 0.5);
 
 			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center - range * 0.5);
 			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center + range * 0.5);
 
+			drawStatus(idx1);
+
 			center = (max_val_y + min_val_y) * 0.5;
 			range = (max_val_y - min_val_y) > range ? (max_val_y - min_val_y) : range;
-			dock->plotWidget->yAxis2->setRange(center - range * 0.5, center + range * 0.5);
+			offset = (dock->checkBoxStatus->isChecked()) ? range * (0.05 * (Project::getInstance()->getCameras().size() + 1)) : 0;
+			dock->plotWidget->yAxis2->setRange(center - range * 0.5, center + range * 0.5 + offset);
 		}
 		dock->plotWidget->replot();
 		dock->plotWidget->show();
@@ -727,13 +852,17 @@ void PlotWindow::plot3D(int idx1)
 			double range = 0.2;
 			double center = (max_val + min_val) * 0.5;
 			range = (max_val - min_val) > range ? (max_val - min_val) : range;
-			dock->plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5);
+			double offset = (dock->checkBoxStatus->isChecked()) ? range * (0.05 * (Project::getInstance()->getCameras().size() + 1)) : 0;
+			dock->plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5 + offset);
+
 
 			selectionMarker->topLeft->setCoords(startFrame * posMultiplier + posOffset, center + range * 0.5);
 			selectionMarker->bottomRight->setCoords(endFrame * posMultiplier + posOffset, center - range * 0.5);
 
 			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center - range * 0.5);
 			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center + range * 0.5);
+
+			drawStatus(idx1);
 		}
 		dock->plotWidget->replot();
 		dock->plotWidget->show();
@@ -1003,8 +1132,11 @@ void PlotWindow::plotRigidBody(int idx)
 
 			selectionMarker->topLeft->setCoords(startFrame * posMultiplier + posOffset, center + range * 0.55);
 			selectionMarker->bottomRight->setCoords(endFrame * posMultiplier + posOffset, center - range * 0.55);
+
 			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center - range * 0.55);
 			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center + range * 0.55);
+
+			drawStatus(-1);
 		}
 		dock->plotWidget->replot();
 		dock->plotWidget->show();
@@ -1214,6 +1346,8 @@ void PlotWindow::plotRigidBodyError(int idx)
 
 			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center - range * 0.5);
 			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center + range * 0.5);
+			
+			drawStatus(-1);
 
 			meanString = meanString + "\n";
 
@@ -1351,9 +1485,11 @@ void PlotWindow::plotDistance(int idx1, int idx2)
 
 			selectionMarker->topLeft->setCoords(startFrame * posMultiplier + posOffset, center + range * 0.5);
 			selectionMarker->bottomRight->setCoords(endFrame * posMultiplier + posOffset, center - range * 0.5);
-
+			
 			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center - range * 0.5);
 			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, center + range * 0.5);
+
+			drawStatus(-1);
 		}
 		if (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
 		{
@@ -1479,14 +1615,16 @@ void PlotWindow::plotReprojectionError(int idx1)
 
 			double range = 0.2;
 			range = (max_val) > range ? (max_val * 1.1) : range;
-
-			dock->plotWidget->yAxis->setRange(-0.5, range);
+			double offset = (dock->checkBoxStatus->isChecked()) ? (range + 0.5) * (0.05 * (Project::getInstance()->getCameras().size() + 1)) : 0;
+			dock->plotWidget->yAxis->setRange(-0.5, range + offset);
 
 			selectionMarker->topLeft->setCoords(startFrame * posMultiplier + posOffset, range);
 			selectionMarker->bottomRight->setCoords(endFrame * posMultiplier + posOffset, -0.5);
 
 			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, -0.5);
 			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, range);
+
+			drawStatus(idx1);
 		}
 
 		if (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
@@ -1535,6 +1673,8 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 		dock->frameMarkerPlot->show();
 		dock->frameRigidBodyPlot->hide();
 
+		dock->checkBoxStatus->show();
+
 		if (!updating && State::getInstance()->getActiveTrial() >= 0)
 		{
 			activePointChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
@@ -1553,6 +1693,8 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 
 		dock->frameMarkerPlot->show();
 		dock->frameRigidBodyPlot->hide();
+
+		dock->checkBoxStatus->show();
 
 		if (!updating && State::getInstance()->getActiveTrial() >= 0)
 		{
@@ -1573,6 +1715,8 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 		dock->frameMarkerPlot->show();
 		dock->frameRigidBodyPlot->hide();
 
+		dock->checkBoxStatus->hide();
+
 		if (!updating && State::getInstance()->getActiveTrial() >= 0)
 		{
 			activePointChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
@@ -1592,6 +1736,8 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 		dock->frameMarkerPlot->show();
 		dock->frameRigidBodyPlot->hide();
 
+		dock->checkBoxStatus->show();
+
 		if (!updating && State::getInstance()->getActiveTrial() >= 0)
 		{
 			activePointChanged(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx());
@@ -1604,6 +1750,8 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 		dock->comboBoxRigidBodyTransPart->show();
 		dock->comboBoxRigidBodyError->hide();
 
+		dock->checkBoxStatus->hide();
+
 		on_pushButtonUpdate_clicked();
 	}
 	else if (idx == 5)
@@ -1612,6 +1760,8 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 		dock->frameRigidBodyPlot->show();
 		dock->comboBoxRigidBodyTransPart->hide();
 		dock->comboBoxRigidBodyError->show();
+
+		dock->checkBoxStatus->hide();
 
 		on_pushButtonUpdate_clicked();
 	}
@@ -1655,6 +1805,7 @@ void PlotWindow::on_comboBoxMarker2_currentIndexChanged(int idx)
 void PlotWindow::on_pushButton_Reset_clicked()
 {
 	resetRange();
+	draw();
 }
 
 void PlotWindow::closeEvent(QCloseEvent* event)
@@ -1725,3 +1876,8 @@ void PlotWindow::on_checkBoxTime_clicked()
 	draw();
 }
 
+void PlotWindow::on_checkBoxStatus_clicked()
+{
+	resetRange();
+	draw();
+}

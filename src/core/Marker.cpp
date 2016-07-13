@@ -1224,6 +1224,36 @@ void Marker::setInterpolation(int value)
 	interpolate();
 }
 
+QColor Marker::getStatusColor(int camera, int frame)
+{
+	switch (status2D[camera][frame])
+	{
+		case DELETED:
+			return QColor(Settings::getInstance()->getQStringSetting("ColorUndefined"));
+		case LOST:
+			return QColor(Settings::getInstance()->getQStringSetting("ColorUndefined"));
+		case UNDEFINED:
+			return QColor(Settings::getInstance()->getQStringSetting("ColorUndefined"));
+		case PREDICTED:
+			return QColor(Settings::getInstance()->getQStringSetting("ColorUndefined"));
+		case INTERPOLATED:
+			return QColor(Settings::getInstance()->getQStringSetting("ColorInterpolated"));
+		case TRACKED:
+			return QColor(Settings::getInstance()->getQStringSetting("ColorTracked"));
+		case TRACKED_AND_OPTIMIZED:
+			return QColor(Settings::getInstance()->getQStringSetting("ColorTrackedAndOpt"));
+		case SET:
+			return QColor(Settings::getInstance()->getQStringSetting("ColorSet"));
+		case SET_AND_OPTIMIZED:
+			return QColor(Settings::getInstance()->getQStringSetting("ColorSetAndOpt"));
+		case  MANUAL:
+			return QColor(Settings::getInstance()->getQStringSetting("ColorManual"));
+		case MANUAL_AND_OPTIMIZED:
+			return QColor(Settings::getInstance()->getQStringSetting("ColorManualAndOpt"));
+	}
+	return QColor(Settings::getInstance()->getQStringSetting("ColorUndefined"));
+}
+
 void Marker::filterData(std::vector<int> idx, double cutoffFrequency, std::vector<cv::Point3d>& marker, std::vector<markerStatus>& status)
 {
 	if (idx.size() <= 12)

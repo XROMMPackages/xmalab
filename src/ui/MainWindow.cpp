@@ -912,6 +912,7 @@ void MainWindow::redrawGL()
 		}
 		DetailViewDockWidget::getInstance()->draw();
 		PlotWindow::getInstance()->draw();
+		PointsDockWidget::getInstance()->updateColor();
 		if (worldViewDockWidget)worldViewDockWidget->draw();
 	}
 }

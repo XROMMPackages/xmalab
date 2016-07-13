@@ -42,6 +42,7 @@ namespace xma
 		void bindApplicationShortcuts();
 
 		void installEventFilterToChildren(QObject* object);
+		void removeEventFilterToChildren(QObject* object);
 		bool checkShortcut(QObject* target, QEvent* event);
 
 	protected:

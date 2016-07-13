@@ -83,12 +83,50 @@ PointsDockWidget* PointsDockWidget::getInstance()
 	return instance;
 }
 
+void PointsDockWidget::reset()
+{
+	dock->treeWidgetPoints->reset();
+}
 void PointsDockWidget::addPointToList(int idx)
 {
 	QTreeWidgetItem* qtreewidgetitem = new QTreeWidgetItem(MARKER);
 	qtreewidgetitem->setFlags(qtreewidgetitem->flags() & ~Qt::ItemIsDropEnabled);
 	qtreewidgetitem->setText(0, QString::number(idx));
 	dock->treeWidgetPoints->addTopLevelItem(qtreewidgetitem);
+}
+
+void PointsDockWidget::updateColor()
+{
+	if (!this->isVisible() || State::getInstance()->getActiveFrameTrial() < 0 )
+		return;
+
+	std::vector<Marker *> markers = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers();
+	int topCount = dock->treeWidgetPoints->topLevelItemCount();
+	for (int i = 0; i < topCount; i++)
+	{
+		QTreeWidgetItem *item = dock->treeWidgetPoints->topLevelItem(i);
+		if (item->type() == MARKER)
+		{
+			int idx = item->text(0).toInt() - 1;
+			for (int c = 0; c < Project::getInstance()->getCameras().size(); c++){
+				item->setBackgroundColor(2 + c, markers[idx]->getStatusColor(c, State::getInstance()->getActiveFrameTrial()));
+			}
+		}
+		else
+		{
+			int childCount = item->childCount();
+			for (int j = 0; j < childCount; j++) {
+				QTreeWidgetItem *child = item->child(j);
+				if (child->type() == MARKER)
+				{
+					int idx = child->text(0).toInt() - 1;
+					for (int c = 0; c < Project::getInstance()->getCameras().size(); c++){
+						child->setBackgroundColor(2 + c, markers[idx]->getStatusColor(c, State::getInstance()->getActiveFrameTrial()));
+					}
+				}
+			}
+		}
+	}
 }
 
 void PointsDockWidget::reloadListFromObject()
@@ -104,11 +142,8 @@ void PointsDockWidget::reloadListFromObject()
 			dock->treeWidgetPoints->addTopLevelItem(qtreewidgetitem);
 			qtreewidgetitem->setFlags(qtreewidgetitem->flags() & ~Qt::ItemIsDropEnabled);
 			qtreewidgetitem->setText(0, QString::number(i + 1));
-
 			qtreewidgetitem->setText(1, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[i]->getDescription());
-			//dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints , 0,i));
-			//dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, 3, ); 
-			dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 2, i));
+			dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, Project::getInstance()->getCameras().size() + 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 2, i));
 		}
 
 		//Setup Rigid Body
@@ -119,7 +154,7 @@ void PointsDockWidget::reloadListFromObject()
 			dock->treeWidgetPoints->insertTopLevelItem(i, qtreewidgetitem);
 			qtreewidgetitem->setText(0, "RB" + QString::number(i + 1));
 			qtreewidgetitem->setText(1, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getDescription());
-			dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 1, i));
+			dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, Project::getInstance()->getCameras().size() + 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 1, i));
 
 			for (unsigned int k = 0; k < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx().size(); k++)
 			{
@@ -128,9 +163,9 @@ void PointsDockWidget::reloadListFromObject()
 				{
 					int ind = dock->treeWidgetPoints->indexOfTopLevelItem(items.at(0));
 					QTreeWidgetItem* qtreewidgetitem2 = dock->treeWidgetPoints->takeTopLevelItem(ind);
-					dock->treeWidgetPoints->removeItemWidget(qtreewidgetitem2, 2);
+					dock->treeWidgetPoints->removeItemWidget(qtreewidgetitem2, Project::getInstance()->getCameras().size() + 2);
 					qtreewidgetitem->addChild(qtreewidgetitem2);
-					dock->treeWidgetPoints->setItemWidget(qtreewidgetitem2, 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 2, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx()[k]));
+					dock->treeWidgetPoints->setItemWidget(qtreewidgetitem2, Project::getInstance()->getCameras().size() + 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 2, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx()[k]));
 				}
 			}
 			if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->isExpanded())dock->treeWidgetPoints->expandItem(qtreewidgetitem);
@@ -147,12 +182,13 @@ void PointsDockWidget::reloadListFromObject()
 			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveRBIdx(-1);
 		}
 	}
-
+	updateColor();
 	WizardDockWidget::getInstance()->updateDialog();
 }
 
 void PointsDockWidget::selectNextPoint()
 {
+	std::cerr << "Select Next" << std::endl;
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		if (Project::getInstance()->getTrials().size() > 0 && (int) Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
@@ -168,6 +204,7 @@ void PointsDockWidget::selectNextPoint()
 
 void PointsDockWidget::selectPrevPoint()
 {
+	std::cerr << "Select Prev" << std::endl;
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		if ((Project::getInstance()->getTrials().size() > 0 && (int) Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0))
@@ -323,6 +360,7 @@ void PointsDockWidget::activeTrialChanged(int activeTrial)
 {
 	if (activeTrial >= 0)
 	{
+		reset();
 		reloadListFromObject();
 	}
 }

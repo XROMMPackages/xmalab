@@ -102,6 +102,17 @@ void Shortcuts::installEventFilterToChildren(QObject* object)
 	object->installEventFilter(this);
 }
 
+void Shortcuts::removeEventFilterToChildren(QObject* object)
+{
+	QObjectList list = object->children();
+	for (int i = 0; i < list.size(); i++)
+	{
+		installEventFilterToChildren(list.at(i));
+	}
+
+	object->removeEventFilter(this);
+}
+
 bool Shortcuts::checkShortcut(QObject* target, QEvent* event)
 {
 	return eventFilter(target, event);

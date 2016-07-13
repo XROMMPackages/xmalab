@@ -20,66 +20,53 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file PointsDockWidget.h
+///\file StatusColorDialog.h
 ///\author Benjamin Knorlein
-///\date 11/20/2015
+///\date 8/12/2013
 
-#ifndef Points_dockwidget_H
-#define Points_dockwidget_H
+#ifndef STATUSCOLORDIALOG_H_
+#define STATUSCOLORDIALOG_H_
 
-#include <QDockWidget>
-#include <QTreeWidgetItem>
+#include <QDialog>
 #include <QString>
-#include <opencv/cv.h>
 
-//forward declarations
 namespace Ui
 {
-	class PointsDockWidget;
+	class StatusColorDialog;
 }
 
 namespace xma
 {
-	class PointsDockWidget : public QDockWidget
+	class StatusColorDialog : public QDialog
 	{
 		Q_OBJECT
 
-	public:
-
-		~PointsDockWidget();
-		static PointsDockWidget* getInstance();
-
-		Ui::PointsDockWidget* dock;
-
-		void addPointToList(int idx);
-
-		bool selectPoint(int idx);
-		bool selectBody(int idx);
-
-		void reloadListFromObject();
-		void updateColor();
-		void reset();
 	private:
-		explicit PointsDockWidget(QWidget* parent = 0);
-		static PointsDockWidget* instance;
+		Ui::StatusColorDialog* diag;
+		void updateColors();
+		void setColor(QString name);
 
 	protected:
+		
+
+	public:
+		StatusColorDialog(QWidget* parent = 0);
+		virtual ~StatusColorDialog();
+
+
+		
 	public slots:
 
-		void on_treeWidgetPoints_currentItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
-		void on_pushButtonSetNumberMarkers_clicked();
-		void on_pushButtonSetNumberRigidBodies_clicked();
-		void on_pushButtonImportExport_clicked();
-		void on_checkBoxDrawMarkerIds_clicked();
-		void activeTrialChanged(int activeCamera);
-		void selectNextPoint();
-		void selectPrevPoint();
-		signals:
-		void activePointChanged(int idx);
-		void activeRigidBodyChanged(int idx);
+	void on_toolButton_Interpolated_clicked();
+	void on_toolButton_Manual_clicked();
+	void on_toolButton_ManualAndOpt_clicked();
+	void on_toolButton_Set_clicked();
+	void on_toolButton_SetAndOpt_clicked();
+	void on_toolButton_Tracked_clicked();
+	void on_toolButton_TrackedAndOpt_clicked();
+	void on_toolButton_Undefined_clicked();
 	};
 }
 
-#endif // Points_dockwidget_H
-
+#endif /* STATUSCOLORDIALOG_H_ */
 
