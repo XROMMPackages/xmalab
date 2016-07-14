@@ -146,7 +146,7 @@ void WizardDigitizationFrame::moveDigitizationPoint(int camera, double x, double
 
 	if (marker != NULL)
 	{
-		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, SET);
+		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, noDetection ? MANUAL : SET);
 
 		if (!noDetection)
 		{
