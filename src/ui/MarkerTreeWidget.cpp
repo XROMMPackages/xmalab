@@ -114,21 +114,21 @@ MarkerTreeWidget::MarkerTreeWidget(QWidget* parent): QTreeWidget(parent)
 	//setColumnWidth(2, 25);
 }
 
-void MarkerTreeWidget::reset()
+void MarkerTreeWidget::reset(int markerStateColumns)
 {
-	this->setColumnCount(3 + Project::getInstance()->getCameras().size());
+	this->setColumnCount(3 + markerStateColumns);
 
 	header()->setResizeMode(0, QHeaderView::ResizeToContents);
 	headerItem()->setText(0, "");
 
-	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+	for (int i = 0; i < markerStateColumns; i++)
 	{
 		headerItem()->setText(2 + i, "");
 		header()->setResizeMode(2 + i, QHeaderView::ResizeToContents);
 	}
 
-	headerItem()->setText(Project::getInstance()->getCameras().size() + 2, "");
-	header()->setResizeMode(Project::getInstance()->getCameras().size() + 2, QHeaderView::ResizeToContents);
+	headerItem()->setText(markerStateColumns + 2, "");
+	header()->setResizeMode(markerStateColumns + 2, QHeaderView::ResizeToContents);
 
 	headerItem()->setText(1, "");
 	header()->setResizeMode(1, QHeaderView::Stretch);

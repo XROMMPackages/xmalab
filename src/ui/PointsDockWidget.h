@@ -71,6 +71,7 @@ namespace xma
 		void on_pushButtonSetNumberRigidBodies_clicked();
 		void on_pushButtonImportExport_clicked();
 		void on_checkBoxDrawMarkerIds_clicked();
+		void on_checkBoxShowMarkerStatus_clicked();
 		void activeTrialChanged(int activeCamera);
 		void selectNextPoint();
 		void selectPrevPoint();

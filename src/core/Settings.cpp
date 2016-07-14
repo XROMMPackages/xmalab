@@ -153,6 +153,7 @@ Settings::Settings()
 	addBoolSetting("ExportTransFiltered", true);
 
 	addBoolSetting("TrialDrawMarkerIds", false);
+	addBoolSetting("ShowMarkerStates", false);
 
 	addIntSetting("EpipolarLinePrecision", 5);
 }

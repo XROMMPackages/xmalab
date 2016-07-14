@@ -66,6 +66,7 @@ PointsDockWidget::PointsDockWidget(QWidget* parent) :
 
 	Shortcuts::getInstance()->installEventFilterToChildren(this);
 	dock->checkBoxDrawMarkerIds->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawMarkerIds"));
+	dock->checkBoxShowMarkerStatus->setChecked(Settings::getInstance()->getBoolSetting("ShowMarkerStates"));
 }
 
 PointsDockWidget::~PointsDockWidget()
@@ -85,7 +86,8 @@ PointsDockWidget* PointsDockWidget::getInstance()
 
 void PointsDockWidget::reset()
 {
-	dock->treeWidgetPoints->reset();
+	int status_columns = (Settings::getInstance()->getBoolSetting("ShowMarkerStates")) ? Project::getInstance()->getCameras().size() : 0;
+	dock->treeWidgetPoints->reset(status_columns);
 }
 void PointsDockWidget::addPointToList(int idx)
 {
@@ -97,7 +99,7 @@ void PointsDockWidget::addPointToList(int idx)
 
 void PointsDockWidget::updateColor()
 {
-	if (!this->isVisible() || State::getInstance()->getActiveFrameTrial() < 0 )
+	if (!this->isVisible() || State::getInstance()->getActiveFrameTrial() < 0 || !(Settings::getInstance()->getBoolSetting("ShowMarkerStates")))
 		return;
 
 	std::vector<Marker *> markers = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers();
@@ -135,7 +137,7 @@ void PointsDockWidget::reloadListFromObject()
 	{
 		dock->treeWidgetPoints->clear();
 		QTreeWidgetItem* qtreewidgetitem;
-
+		int status_columns = (Settings::getInstance()->getBoolSetting("ShowMarkerStates")) ? Project::getInstance()->getCameras().size() : 0;
 		for (unsigned int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers().size(); i++)
 		{
 			qtreewidgetitem = new QTreeWidgetItem(MARKER);
@@ -143,7 +145,7 @@ void PointsDockWidget::reloadListFromObject()
 			qtreewidgetitem->setFlags(qtreewidgetitem->flags() & ~Qt::ItemIsDropEnabled);
 			qtreewidgetitem->setText(0, QString::number(i + 1));
 			qtreewidgetitem->setText(1, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[i]->getDescription());
-			dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, Project::getInstance()->getCameras().size() + 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 2, i));
+			dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, status_columns + 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 2, i));
 		}
 
 		//Setup Rigid Body
@@ -154,7 +156,7 @@ void PointsDockWidget::reloadListFromObject()
 			dock->treeWidgetPoints->insertTopLevelItem(i, qtreewidgetitem);
 			qtreewidgetitem->setText(0, "RB" + QString::number(i + 1));
 			qtreewidgetitem->setText(1, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getDescription());
-			dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, Project::getInstance()->getCameras().size() + 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 1, i));
+			dock->treeWidgetPoints->setItemWidget(qtreewidgetitem, status_columns + 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 1, i));
 
 			for (unsigned int k = 0; k < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx().size(); k++)
 			{
@@ -163,9 +165,9 @@ void PointsDockWidget::reloadListFromObject()
 				{
 					int ind = dock->treeWidgetPoints->indexOfTopLevelItem(items.at(0));
 					QTreeWidgetItem* qtreewidgetitem2 = dock->treeWidgetPoints->takeTopLevelItem(ind);
-					dock->treeWidgetPoints->removeItemWidget(qtreewidgetitem2, Project::getInstance()->getCameras().size() + 2);
+					dock->treeWidgetPoints->removeItemWidget(qtreewidgetitem2, status_columns + 2);
 					qtreewidgetitem->addChild(qtreewidgetitem2);
-					dock->treeWidgetPoints->setItemWidget(qtreewidgetitem2, Project::getInstance()->getCameras().size() + 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 2, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx()[k]));
+					dock->treeWidgetPoints->setItemWidget(qtreewidgetitem2, status_columns + 2, new MarkerTreeWidgetButton(dock->treeWidgetPoints, 2, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->getPointsIdx()[k]));
 				}
 			}
 			if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]->isExpanded())dock->treeWidgetPoints->expandItem(qtreewidgetitem);
@@ -354,6 +356,13 @@ void PointsDockWidget::on_checkBoxDrawMarkerIds_clicked()
 {
 	Settings::getInstance()->set("TrialDrawMarkerIds", dock->checkBoxDrawMarkerIds->isChecked());
 	MainWindow::getInstance()->redrawGL();
+}
+
+void PointsDockWidget::on_checkBoxShowMarkerStatus_clicked()
+{
+	Settings::getInstance()->set("ShowMarkerStates", dock->checkBoxShowMarkerStatus->isChecked());
+	this->reset();
+	this->reloadListFromObject();
 }
 
 void PointsDockWidget::activeTrialChanged(int activeTrial)

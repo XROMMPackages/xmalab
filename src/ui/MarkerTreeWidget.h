@@ -42,7 +42,7 @@ namespace xma
 
 	public:
 		MarkerTreeWidget(QWidget* parent = 0);
-		void reset();
+		void reset(int markerStateColumns);
 	private:
 		QAction* action_ChangeDescription;
 		QAction* action_CreateRigidBody;
