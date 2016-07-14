@@ -80,8 +80,8 @@ PlotWindow::PlotWindow(QWidget* parent) : QDockWidget(parent), dock(new Ui::Plot
 
 	dock->plotWidget->setFocusPolicy(Qt::StrongFocus);
 	dock->plotWidget->setInteraction(QCP::iRangeDrag, true);
-	dock->plotWidget->axisRect()->setRangeDrag(Qt::Horizontal);
 	dock->plotWidget->setInteraction(QCP::iRangeZoom, true);
+	dock->plotWidget->axisRect()->setRangeDrag(Qt::Horizontal);
 	dock->plotWidget->axisRect()->setRangeZoom(Qt::Horizontal);
 
 	//Setup DockWidget
@@ -319,15 +319,56 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 
 	if (target == dock->plotWidget)
 	{
+		if (event->type() == QEvent::Wheel)
+		{
+			QWheelEvent* _wheelEvent = static_cast<QWheelEvent*>(event);
+			if (_wheelEvent->modifiers().testFlag(Qt::NoModifier))
+			{
+				dock->plotWidget->axisRect()->setRangeZoom(Qt::Horizontal);
+			}
+			else if (_wheelEvent->modifiers().testFlag(Qt::ShiftModifier))
+			{
+				dock->plotWidget->axisRect()->setRangeZoom(Qt::Vertical);
+				dock->plotWidget->axisRect()->setRangeZoomAxes(dock->plotWidget->xAxis, dock->plotWidget->yAxis);
+			}
+			else if (_wheelEvent->modifiers().testFlag(Qt::ControlModifier))
+			{
+				dock->plotWidget->axisRect()->setRangeZoom(Qt::Vertical);
+				dock->plotWidget->axisRect()->setRangeZoomAxes(dock->plotWidget->xAxis, dock->plotWidget->yAxis2);
+			}
+		}
+
 		if (event->type() == QEvent::MouseButtonPress)
 		{
 			QMouseEvent* _mouseEvent = static_cast<QMouseEvent*>(event);
 			if (_mouseEvent->buttons() == Qt::RightButton)
 			{
-				QMouseEvent* pEvent = new QMouseEvent(_mouseEvent->type(), dock->plotWidget->mapFromGlobal(mapToGlobal(_mouseEvent->pos())), Qt::NoButton, Qt::LeftButton, Qt::AltModifier);
-				QApplication::instance()->sendEvent(dock->plotWidget, pEvent);
+				if (_mouseEvent->modifiers().testFlag(Qt::NoModifier))
+				{
+					dock->plotWidget->axisRect()->setRangeDrag(Qt::Horizontal);
+					QMouseEvent* pEvent = new QMouseEvent(_mouseEvent->type(), dock->plotWidget->mapFromGlobal(mapToGlobal(_mouseEvent->pos())), Qt::NoButton, Qt::LeftButton, Qt::AltModifier);
+					QApplication::instance()->sendEvent(dock->plotWidget, pEvent);
+				} 
+				else if (_mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
+				{
+					dock->plotWidget->axisRect()->setRangeDrag(Qt::Vertical);
+					dock->plotWidget->axisRect()->setRangeDragAxes(dock->plotWidget->xAxis, dock->plotWidget->yAxis);
+					QMouseEvent* pEvent	 = new QMouseEvent(_mouseEvent->type(), dock->plotWidget->mapFromGlobal(mapToGlobal(_mouseEvent->pos())), Qt::NoButton, Qt::LeftButton, Qt::AltModifier);
+					QApplication::instance()->sendEvent(dock->plotWidget, pEvent);
+				}
+				else if (_mouseEvent->modifiers().testFlag(Qt::ControlModifier))
+				{
+					dock->plotWidget->axisRect()->setRangeDrag(Qt::Vertical);
+					dock->plotWidget->axisRect()->setRangeDragAxes(dock->plotWidget->xAxis, dock->plotWidget->yAxis2);
+					QMouseEvent* pEvent = new QMouseEvent(_mouseEvent->type(), dock->plotWidget->mapFromGlobal(mapToGlobal(_mouseEvent->pos())), Qt::NoButton, Qt::LeftButton, Qt::AltModifier);
+					QApplication::instance()->sendEvent(dock->plotWidget, pEvent);
+				}
 
 				return true;
+			}
+			else if (_mouseEvent->buttons() == Qt::XButton1 && _mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
+			{
+				
 			}
 			else if (_mouseEvent->buttons() == Qt::LeftButton)
 			{
@@ -450,9 +491,9 @@ void PlotWindow::resetRange()
 			                ? 0 : 1;
 
 		dock->plotWidget->xAxis->setRange(
-			    (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1) * posMultiplier + posOffset,
-			    (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1) * posMultiplier + posOffset);
-		
+			(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1) * posMultiplier + posOffset,
+			(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1) * posMultiplier + posOffset);
+
 		if (dock->checkBoxStatus->isChecked()){
 			for (int c = 0; c < Project::getInstance()->getCameras().size(); c++)
 			{
