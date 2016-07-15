@@ -156,6 +156,21 @@
           <string>Spline Interpolation</string>
          </property>
         </item>
+        <item>
+         <property name="text">
+          <string>Repeat Values (3D)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Linear Interpolation (3D)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Spline Interpolation (3D)</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
