@@ -400,11 +400,12 @@ void MarkerTreeWidget::action_ChangePoint_triggered()
 		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 			cameraNames << QString::number(i+1);
 			
+		QString cameraString = QInputDialog::getItem(this, tr("Which camera"),
+			tr("Camera:"), cameraNames, 0, false, &ok2);
+
 		if (ok2)
 		{
-			QString cameraString = QInputDialog::getItem(this, tr("Which camera"),
-				tr("Camera:"), cameraNames, 0, false, &ok);
-
+			
 			FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
 				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
 				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
