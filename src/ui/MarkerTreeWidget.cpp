@@ -256,7 +256,7 @@ void MarkerTreeWidget::action_ChangeInterpolationMethod_triggered()
 {
 	bool ok;
 	QStringList methodnames;
-	methodnames << "No Interpolation" << "Repeat Values" << "Linear Interpolation" << "Spline Interpolation";
+	methodnames << "No Interpolation" << "Repeat Values" << "Linear Interpolation" << "Spline Interpolation" << "Repeat Values (3D)" << "Linear Interpolation (3D)" << "Spline Interpolation (3D)";
 
 	QString methodName = QInputDialog::getItem(this, tr("Choose method"),
 		tr("Method:"), methodnames, 0, false, &ok);

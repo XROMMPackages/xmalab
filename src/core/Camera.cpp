@@ -105,6 +105,29 @@ void Camera::deleteFrame(int id)
 	calibrationImages.erase(calibrationImages.begin() + id);
 }
 
+cv::Point2d Camera::projectPoint(cv::Point3d pt3d, int referenceCalibration)
+{
+	cv::Point2d pt2d;
+	cv::Mat projMatrs = getProjectionMatrix(referenceCalibration);
+	cv::Mat pt;
+	pt.create(4, 1, CV_64F);
+	pt.at<double>(0, 0) = pt3d.x;
+	pt.at<double>(1, 0) = pt3d.y;
+	pt.at<double>(2, 0) = pt3d.z;
+	pt.at<double>(3, 0) = 1;
+	cv::Mat pt_out = projMatrs * pt;
+	double z = pt_out.at<double>(2, 0);
+	if (z != 0.0)
+	{
+		cv::Point2d pt_trans;
+		pt_trans.x = pt_out.at<double>(0, 0) / z;
+		pt_trans.y = pt_out.at<double>(1, 0) / z;
+
+		pt2d = undistortPoint(pt_trans, false);
+	}
+	return pt2d;
+}
+
 void Camera::loadImages(QStringList fileNames)
 {
 	for (QStringList::const_iterator constIterator = fileNames.constBegin(); constIterator != fileNames.constEnd(); ++constIterator)

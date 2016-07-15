@@ -1210,6 +1210,114 @@ void Marker::interpolate()
 
 		}
 	}
+	else if (interpolation == 4 || interpolation == 5)
+	{
+		int idxStart = -1;
+		int idxEnd = -1;
+
+		for (unsigned int f = 0; f < status3D.size(); f++){
+			//we have to replace this one;
+			if (status3D[f] < TRACKED)
+			{
+				if (idxEnd == -1)
+				{
+					//findNewEnd
+					for (unsigned int f2 = f; f2 < status3D.size(); f2++)
+					{
+						if (status3D[f2] >= TRACKED)
+						{
+							idxEnd = f2;
+							break;
+						}
+					}
+					//Still no End found
+					if (idxEnd == -1)
+					{
+						idxEnd = status3D.size();
+					}
+				}
+
+				if (idxEnd != status3D.size() && idxStart != -1)
+				{
+					cv::Point3d pt3d;
+
+					if (interpolation == 5){
+						double p = (((double)(f - idxStart)) / (idxEnd - idxStart));
+						pt3d.x = points3D[idxStart].x + p *(points3D[idxEnd].x - points3D[idxStart].x);
+						pt3d.y = points3D[idxStart].y + p *(points3D[idxEnd].y - points3D[idxStart].y);
+						pt3d.z = points3D[idxStart].z + p *(points3D[idxEnd].z - points3D[idxStart].z);
+						//setPoint(c, f, x, y, INTERPOLATED);
+					}
+					else
+					{
+						pt3d = points3D[idxStart];
+						//setPoint(c, f, points2D[c][idxStart].x, points2D[c][idxStart].y, INTERPOLATED);
+					}
+					for (unsigned int c = 0; c < status2D.size(); c++){
+						if (status2D[c][f] < TRACKED)
+						{
+							cv::Point2d pt2d = Project::getInstance()->getCameras()[c]->projectPoint(pt3d, trial->getReferenceCalibrationImage());
+							setPoint(c, f, pt2d.x, pt2d.y, INTERPOLATED);
+						}
+					}
+				}
+			}
+			//Point was tracked so we set it as a new start;
+			else
+			{
+				idxStart = f;
+				idxEnd = -1;
+			}
+		}
+	}
+	else if (interpolation == 6)
+	{
+		int idxStart = -1;
+		int idxEnd = -1;
+		int count = 0;
+		for (unsigned int f = 0; f < status3D.size(); f++){
+			if (status3D[f] >= TRACKED)
+			{
+				count++;
+			}
+		}
+
+		double* samplesX = new double[count];
+		double* samplesY = new double[count];
+		double* samplesZ = new double[count];
+		double* pos = new double[count];
+		count = 0;
+		for (unsigned int f = 0; f < status3D.size(); f++){
+			if (status3D[f] >= TRACKED)
+			{
+				samplesX[count] = points3D[f].x;
+				samplesY[count] = points3D[f].y;
+				samplesZ[count] = points3D[f].z;
+				pos[count] = f;
+				count++;
+			}
+		}
+
+		Maths::Interpolation::Cubic X(count, pos, samplesX);
+		Maths::Interpolation::Cubic Y(count, pos, samplesY);
+		Maths::Interpolation::Cubic Z(count, pos, samplesZ);
+		for (unsigned int c = 0; c < status2D.size(); c++){
+			for (unsigned int f = pos[0]; f < pos[count - 1]; f++){
+				cv::Point3d pt3d;
+				pt3d.x = X.getValue(f);
+				pt3d.y = Y.getValue(f);
+				pt3d.z = Z.getValue(f);
+				if (status2D[c][f] < TRACKED)
+				{
+					cv::Point2d pt2d = Project::getInstance()->getCameras()[c]->projectPoint(pt3d, trial->getReferenceCalibrationImage());
+					setPoint(c, f, pt2d.x, pt2d.y, INTERPOLATED);
+				}
+			}
+		}
+		delete[] samplesX;
+		delete[] samplesY;
+		delete[] pos;
+	}
 }
 
 
@@ -1310,27 +1418,14 @@ void Marker::filterData(std::vector<int> idx, double cutoffFrequency, std::vecto
 	}
 }
 
+
+
 void Marker::reprojectPoint(int frame)
 {
 	for (unsigned int i = 0; i < points2D.size(); i++)
 	{
-		cv::Mat projMatrs = Project::getInstance()->getCameras()[i]->getProjectionMatrix(trial->getReferenceCalibrationImage());
-		cv::Mat pt;
-		pt.create(4, 1, CV_64F);
-		pt.at<double>(0, 0) = points3D[frame].x;
-		pt.at<double>(1, 0) = points3D[frame].y;
-		pt.at<double>(2, 0) = points3D[frame].z;
-		pt.at<double>(3, 0) = 1;
-		cv::Mat pt_out = projMatrs * pt;
-		double z = pt_out.at<double>(2, 0);
-		if (z != 0.0)
-		{
-			cv::Point2d pt_trans;
-			pt_trans.x = pt_out.at<double>(0, 0) / z;
-			pt_trans.y = pt_out.at<double>(1, 0) / z;
 
-			points2D_projected[i][frame] = Project::getInstance()->getCameras()[i]->undistortPoint(pt_trans, false);
-		}
+		points2D_projected[i][frame] = Project::getInstance()->getCameras()[i]->projectPoint(points3D[frame], trial->getReferenceCalibrationImage());	
 	}
 
 	updateError(frame);

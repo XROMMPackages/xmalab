@@ -173,6 +173,8 @@ namespace xma
 		void reset();
 		void deleteFrame(int id);
 
+		cv::Point2d projectPoint(cv::Point3d, int referenceCalibration);
+
 	private:
 		//InputData
 		std::vector<CalibrationImage*> calibrationImages;
