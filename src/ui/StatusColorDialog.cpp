@@ -32,7 +32,7 @@
 #include "ui_StatusColorDialog.h"
 #include <QColorDialog>
 #include "core/Settings.h"
-#include "ui/MainWindow.h"
+
 
 using namespace xma;
 
@@ -96,8 +96,6 @@ void StatusColorDialog::setColor(QString name)
 	updateColors();
 
 	delete cdiag;
-
-	MainWindow::getInstance()->redrawGL();
 }
 
 void StatusColorDialog::on_toolButton_Interpolated_clicked()

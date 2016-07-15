@@ -31,6 +31,7 @@
 #include "ui/SettingsDialog.h"
 #include "ui_SettingsDialog.h"
 
+#include "ui/MainWindow.h"
 #include "ui/StatusColorDialog.h"
 #include "core/Settings.h"
 #include "core/Project.h"
@@ -90,6 +91,8 @@ void SettingsDialog::closeEvent(QCloseEvent* event)
 		ErrorDialog::getInstance()->showErrorDialog("You have to select a custom workspace or disable the custom workspace");
 		event->ignore();
 	}
+
+	MainWindow::getInstance()->redrawGL();
 }
 
 void SettingsDialog::on_pushButton_General_clicked()
