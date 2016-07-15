@@ -69,6 +69,9 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
     frame->pushButton_PointBack->setMinimumHeight(26);
     frame->pushButton_PointForw->setMinimumHeight(26);
 
+	frame->pushButton_InterpolateActive->setMinimumHeight(26);
+	frame->pushButton_InterpolateAll->setMinimumHeight(26);
+
 	frame->pushButton_RBBack->setFocusPolicy(Qt::StrongFocus);
 	frame->pushButton_RBPrev->setFocusPolicy(Qt::StrongFocus);
 	frame->pushButton_RBForw->setFocusPolicy(Qt::StrongFocus);
