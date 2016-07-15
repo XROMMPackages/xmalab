@@ -233,8 +233,9 @@ void SettingsDialog::on_checkBox_RetrackOptimizedTrackedPoints_stateChanged(int 
 
 void SettingsDialog::on_pushButton_MarkerStatus_clicked()
 {
-    this->close();
-	StatusColorDialog * diag = new StatusColorDialog(this);
+	this->close();
+
+	StatusColorDialog * diag = new StatusColorDialog(this->parentWidget());
 	diag->exec();
     delete diag;
 }
