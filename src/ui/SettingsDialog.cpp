@@ -31,7 +31,6 @@
 #include "ui/SettingsDialog.h"
 #include "ui_SettingsDialog.h"
 
-#include "ui/MainWindow.h"
 #include "ui/StatusColorDialog.h"
 #include "core/Settings.h"
 #include "core/Project.h"
@@ -91,8 +90,6 @@ void SettingsDialog::closeEvent(QCloseEvent* event)
 		ErrorDialog::getInstance()->showErrorDialog("You have to select a custom workspace or disable the custom workspace");
 		event->ignore();
 	}
-
-	MainWindow::getInstance()->redrawGL();
 }
 
 void SettingsDialog::on_pushButton_General_clicked()
@@ -224,7 +221,7 @@ void SettingsDialog::on_checkBox_HideWarningsCalibration_stateChanged(int state)
 	Settings::getInstance()->set("HideWarningsDuringCalibration", diag->checkBox_HideWarningsCalibration->isChecked());
 }
 
-void SettingsDialog::on_spinBox_IdentificationThreshold_stateChanged(int value)
+void SettingsDialog::on_spinBox_IdentificationThreshold_valueChanged(int value)
 {
 	Settings::getInstance()->set("IdentificationThresholdCalibration", diag->spinBox_IdentificationThreshold->value());
 }
@@ -236,9 +233,10 @@ void SettingsDialog::on_checkBox_RetrackOptimizedTrackedPoints_stateChanged(int 
 
 void SettingsDialog::on_pushButton_MarkerStatus_clicked()
 {
+    this->close();
 	StatusColorDialog * diag = new StatusColorDialog(this);
 	diag->exec();
-	delete diag;
+    delete diag;
 }
 
 void SettingsDialog::on_spinBox_OutlierThreshold_valueChanged(int value)

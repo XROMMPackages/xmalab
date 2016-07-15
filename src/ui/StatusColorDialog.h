@@ -29,11 +29,14 @@
 
 #include <QDialog>
 #include <QString>
+#include <QColorDialog>
 
 namespace Ui
 {
 	class StatusColorDialog;
 }
+
+
 
 namespace xma
 {
@@ -45,19 +48,17 @@ namespace xma
 		Ui::StatusColorDialog* diag;
 		void updateColors();
 		void setColor(QString name);
-
 	protected:
 		
 
 	public:
 		StatusColorDialog(QWidget* parent = 0);
 		virtual ~StatusColorDialog();
-
+        
 
 		
 	public slots:
-
-	void on_toolButton_Interpolated_clicked();
+    void on_toolButton_Interpolated_clicked();
 	void on_toolButton_Manual_clicked();
 	void on_toolButton_ManualAndOpt_clicked();
 	void on_toolButton_Set_clicked();

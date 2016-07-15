@@ -75,7 +75,7 @@ namespace xma
 		void on_comboBox_DetectionMethodForCalibration_currentIndexChanged(int value);
 		void on_checkBox_ConfirmQuitXMALab_stateChanged(int state);
 		void on_doubleSpinBox_MaxError_valueChanged(double value);
-		void on_spinBox_IdentificationThreshold_stateChanged(int state);
+		void on_spinBox_IdentificationThreshold_valueChanged(int value);
 		void on_spinBox_OutlierThreshold_valueChanged(int value);
 		void on_checkBox_RetrackOptimizedTrackedPoints_stateChanged(int state);
 		void on_pushButton_MarkerStatus_clicked();

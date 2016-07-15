@@ -30,9 +30,8 @@
 
 #include "ui/StatusColorDialog.h"
 #include "ui_StatusColorDialog.h"
-#include <QColorDialog>
 #include "core/Settings.h"
-
+#include "ui/MainWindow.h"
 
 using namespace xma;
 
@@ -41,7 +40,6 @@ StatusColorDialog::StatusColorDialog(QWidget* parent) :
 	diag(new Ui::StatusColorDialog)
 {
 	diag->setupUi(this);
-
 	updateColors();
 }
 
@@ -87,15 +85,13 @@ void StatusColorDialog::updateColors()
 
 void StatusColorDialog::setColor(QString name)
 {
-	QColorDialog* cdiag = new QColorDialog();
-	cdiag->setCurrentColor(QColor(Settings::getInstance()->getQStringSetting(name)));
-	cdiag->exec();
+    QColor color = QColorDialog::getColor(QColor(Settings::getInstance()->getQStringSetting(name)), this);
+    
+    Settings::getInstance()->set(name, color.name());
 
-	Settings::getInstance()->set(name, cdiag->currentColor().name());
-
-	updateColors();
-
-	delete cdiag;
+    updateColors();
+    
+    MainWindow::getInstance()->redrawGL();
 }
 
 void StatusColorDialog::on_toolButton_Interpolated_clicked()

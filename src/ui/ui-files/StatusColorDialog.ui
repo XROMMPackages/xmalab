@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>StatusColorDialog</class>
  <widget class="QDialog" name="StatusColorDialog">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>

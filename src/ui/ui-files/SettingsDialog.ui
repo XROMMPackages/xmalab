@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>SettingsDialog</class>
  <widget class="QDialog" name="SettingsDialog">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -88,8 +91,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>754</width>
-           <height>204</height>
+           <width>770</width>
+           <height>400</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
@@ -180,8 +183,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>754</width>
-           <height>482</height>
+           <width>770</width>
+           <height>399</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
@@ -314,8 +317,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>774</width>
-           <height>476</height>
+           <width>770</width>
+           <height>400</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
