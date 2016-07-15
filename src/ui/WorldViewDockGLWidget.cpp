@@ -367,24 +367,25 @@ void WorldViewDockGLWidget::drawMarkers(Trial* trial, int frame)
 
 	for (unsigned int i = 0; i < trial->getMarkers().size(); i++)
 	{
-		if (trial->getMarkers()[i]->getStatus3D()[frame] > 0)
+		if (trial->getMarkers()[i]->getStatus3D()[frame] > 0){
 			glPushMatrix();
-		if (i == trial->getActiveMarkerIdx())
-		{
-			glColor3f(1.0, 0.0, 0.0);
+			if (i == trial->getActiveMarkerIdx())
+			{
+				glColor3f(1.0, 0.0, 0.0);
+			}
+			else
+			{
+				glColor3f(0.0, 1.0, 0.0);
+			}
+
+			glTranslated(trial->getMarkers()[i]->getPoints3D()[frame].x,
+				trial->getMarkers()[i]->getPoints3D()[frame].y,
+				trial->getMarkers()[i]->getPoints3D()[frame].z);
+
+			gluSphere(sphere_quadric, 0.3f, 32, 32);
+
+			glPopMatrix();
 		}
-		else
-		{
-			glColor3f(0.0, 1.0, 0.0);
-		}
-
-		glTranslated(trial->getMarkers()[i]->getPoints3D()[frame].x,
-		             trial->getMarkers()[i]->getPoints3D()[frame].y,
-		             trial->getMarkers()[i]->getPoints3D()[frame].z);
-
-		gluSphere(sphere_quadric, 0.3f, 32, 32);
-
-		glPopMatrix();
 	}
 }
 
