@@ -69,6 +69,9 @@ namespace xma
 		void on_checkBox_ShowAdvancedCrosshairDetailWindow_stateChanged(int state);
 		void on_checkBox_Show3DPointDetailWindow_stateChanged(int state);
 		void on_checkBox_ShowEpiLineDetailWindow_stateChanged(int state);
+		void on_checkBox_ShowColoredMarkerCross_stateChanged(int state);
+		void on_checkBox_ShowColoredMarkerIDs_stateChanged(int state);
+
 
 		void on_spinBoxEpiPrecision_valueChanged(int value);
 		void on_comboBox_TriangulationMethod_currentIndexChanged(int value);

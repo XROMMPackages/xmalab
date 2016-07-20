@@ -50,6 +50,7 @@ namespace xma
 		void setScale(double value);
 		void setBias(double value);
 		void centerViewToPoint(bool resetZoom = false);
+		void UseStatusColors(bool value);
 
 	protected:
 		void paintGL();
@@ -77,6 +78,7 @@ namespace xma
 
 		double zoomRatio;
 		bool autozoom;
+		bool showStatusColors;
 
 		void setZoomRatio(double newZoomRation, bool autozoom = false);
 

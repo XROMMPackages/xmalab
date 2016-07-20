@@ -85,6 +85,7 @@ GLCameraView::GLCameraView(QWidget* parent)
 	detailedView = false;
 	bias = 0.0;
 	scale = 1.0;
+	showStatusColors = false;
 }
 
 void GLCameraView::setCamera(Camera* _camera)
@@ -421,13 +422,19 @@ void GLCameraView::renderPointText(bool calibration)
 		int active = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
 		for (unsigned int i = 0; i < x.size(); i++)
 		{
-			if (active == i)
+			if (Settings::getInstance()->getBoolSetting("ShowColoredMarkerIDs"))
 			{
-				qglColor(QColor(255, 0, 0));
+				qglColor(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->getStatusColor(this->camera->getID(), State::getInstance()->getActiveFrameTrial()));
 			}
-			else
-			{
-				qglColor(QColor(0, 255, 0));
+			else{
+				if (active == i)
+				{
+					qglColor(QColor(255, 0, 0));
+				}
+				else
+				{
+					qglColor(QColor(0, 255, 0));
+				}
 			}
 			renderText(x[i] + 3, y[i], 0.0, text[i]);
 		}
@@ -522,6 +529,10 @@ void GLCameraView::centerViewToPoint(bool resetZoom)
 	}
 }
 
+void GLCameraView::UseStatusColors(bool value)
+{
+	showStatusColors = value;
+}
 
 void GLCameraView::paintGL()
 {

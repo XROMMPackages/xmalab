@@ -88,6 +88,8 @@ Settings::Settings()
 	addQStringSetting("ColorTracked", QColor::fromRgb(0, 100, 200).name());
 	addQStringSetting("ColorTrackedAndOpt", QColor::fromRgb(0, 128, 255).name());
 	addQStringSetting("ColorUndefined", QColor::fromRgb(210, 210, 210).name());
+	addBoolSetting("ShowColoredMarkerIDs", false);
+	addBoolSetting("ShowColoredMarkerCross", false);
 
 	//BlobDetector
 	addFloatSetting("BlobDetectorThresholdStep", 10.0);

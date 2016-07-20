@@ -74,6 +74,8 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 	diag->comboBox_DetectionMethodForCalibration->setCurrentIndex(Settings::getInstance()->getIntSetting("DetectionMethodForCalibration"));
 	diag->doubleSpinBox_MaxError->setValue(Settings::getInstance()->getFloatSetting("MaximumReprojectionError"));
 	diag->checkBox_RetrackOptimizedTrackedPoints->setChecked(Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints"));
+	diag->checkBox_ShowColoredMarkerCross->setChecked(Settings::getInstance()->getBoolSetting("ShowColoredMarkerCross"));
+	diag->checkBox_ShowColoredMarkerIDs->setChecked(Settings::getInstance()->getBoolSetting("ShowColoredMarkerIDs"));
 
 	initPhase = false;
 }
@@ -188,6 +190,16 @@ void SettingsDialog::on_checkBox_Show3DPointDetailWindow_stateChanged(int state)
 void SettingsDialog::on_checkBox_ShowEpiLineDetailWindow_stateChanged(int state)
 {
 	Settings::getInstance()->set("ShowEpiLineDetailView", diag->checkBox_ShowEpiLineDetailWindow->isChecked());
+}
+
+void SettingsDialog::on_checkBox_ShowColoredMarkerCross_stateChanged(int state)
+{
+	Settings::getInstance()->set("ShowColoredMarkerCross", diag->checkBox_ShowColoredMarkerCross->isChecked());
+}
+
+void SettingsDialog::on_checkBox_ShowColoredMarkerIDs_stateChanged(int state)
+{
+	Settings::getInstance()->set("ShowColoredMarkerIDs", diag->checkBox_ShowColoredMarkerIDs->isChecked());
 }
 
 void SettingsDialog::on_spinBoxEpiPrecision_valueChanged(int value)

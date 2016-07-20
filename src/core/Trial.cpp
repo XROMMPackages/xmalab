@@ -451,13 +451,20 @@ void Trial::drawPoints(int cameraId, bool detailView)
 		{
 			if (((*it)->getStatus2D()[cameraId][activeFrame] > 0))
 			{
-				if (idx == activeMarkerIdx)
+				if (Settings::getInstance()->getBoolSetting("ShowColoredMarkerCross"))
 				{
-					glColor3f(1.0, 0.0, 0.0);
+					QColor color = (*it)->getStatusColor(cameraId, activeFrame);
+					glColor3f(color.redF(), color.greenF(), color.blueF());
 				}
-				else
-				{
-					glColor3f(0.0, 1.0, 0.0);
+				else{
+					if (idx == activeMarkerIdx)
+					{
+						glColor3f(1.0, 0.0, 0.0);
+					}
+					else
+					{
+						glColor3f(0.0, 1.0, 0.0);
+					}
 				}
 
 				glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x - 5, (*it)->getPoints2D()[cameraId][activeFrame].y);
