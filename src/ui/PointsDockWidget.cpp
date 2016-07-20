@@ -123,7 +123,7 @@ void PointsDockWidget::updateColor()
 				{
 					int idx = child->text(0).toInt() - 1;
 					for (int c = 0; c < Project::getInstance()->getCameras().size(); c++){
-						child->setBackgroundColor(2 + c, markers[idx]->getStatusColor(c, State::getInstance()->getActiveFrameTrial()));
+						child->setBackgroundColor(2 + c, markers[idx]->getStatusColor(c, State::getInstance()->getActiveFrameTrial()));			
 					}
 				}
 			}
@@ -271,6 +271,11 @@ void PointsDockWidget::on_treeWidgetPoints_currentItemChanged(QTreeWidgetItem* c
 			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveRBIdx(-1);
 			emit activePointChanged(current->text(0).toInt() - 1);
 			emit activeRigidBodyChanged(-1);
+
+			if (QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
+			{
+				
+			}
 		}
 		else if (current && current->type() == RIGID_BODY)
 		{

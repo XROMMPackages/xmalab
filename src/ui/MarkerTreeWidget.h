@@ -55,7 +55,7 @@ namespace xma
 		QAction* action_ChangePoint;
 
 		QTreeWidgetItem* item_contextMenu;
-
+		int statusSlots;
 	private slots:
 		void onCustomContextMenuRequested(const QPoint& pos);
 		void showContextMenu(QTreeWidgetItem* item, const QPoint& globalPos);
@@ -73,6 +73,7 @@ namespace xma
 	public slots:
 		void onItemCollapsed(QTreeWidgetItem* item);
 		void onItemExpanded(QTreeWidgetItem* item);
+		void selectionChanged();
 
 	protected:
 		void dropEvent(QDropEvent* event);

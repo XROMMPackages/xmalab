@@ -36,6 +36,7 @@
 #include "ui/ConfirmationDialog.h"
 #include "ui/ProgressDialog.h"
 #include "ui/FromToDialog.h"
+#include "ui/State.h"
 
 #include "core/Project.h"
 #include "core/Trial.h"
@@ -110,8 +111,72 @@ MarkerTreeWidget::MarkerTreeWidget(QWidget* parent): QTreeWidget(parent)
 
 	headerItem()->setText(1, "");
 	header()->setResizeMode(1, QHeaderView::Stretch);
-
+	statusSlots = Project::getInstance()->getCameras().size();
+	this->setFocusPolicy(Qt::NoFocus);
+	connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
 	//setColumnWidth(2, 25);
+}
+
+void MarkerTreeWidget::selectionChanged()
+{
+	QColor selection = QColor::fromRgb(255, 255, 170);
+	QColor noSelection = QColor::fromRgb(255, 255, 255);
+	QList <QTreeWidgetItem * > items = selectedItems();
+	if (items.isEmpty())
+	{
+		int idx = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
+		int idxRB = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveRBIdx();
+		if (idx >= 0){
+			items = findItems(QString::number(idx + 1), Qt::MatchContains | Qt::MatchRecursive, 0);
+		}
+		else if (idxRB >=0)
+		{
+			items = findItems("RB" + QString::number(idxRB + 1), Qt::MatchExactly | Qt::MatchRecursive, 0);
+		}
+
+		setCurrentItem(items.at(0));
+		return;
+	}
+
+	int topCount = this->topLevelItemCount();
+	for (int i = 0; i < topCount; i++)
+	{
+		QTreeWidgetItem *item = this->topLevelItem(i);
+		if (items.contains(item)){
+			for (int c = 0; c < 2; c++){
+				item->setBackgroundColor(c, selection);
+			}
+			item->setBackgroundColor(2 + statusSlots, selection);
+		}
+		else
+		{
+			for (int c = 0; c < 2; c++){
+				item->setBackgroundColor(c, noSelection);
+			}
+			item->setBackgroundColor(2 + statusSlots, noSelection);
+		}
+
+		int childCount = item->childCount();
+
+		for (int j = 0; j < childCount; j++) {
+			QTreeWidgetItem *child = item->child(j);
+			if (items.contains(child)){
+				for (int c = 0; c < 2; c++){
+					child->setBackgroundColor(c, selection);
+				}
+				child->setBackgroundColor(2 + statusSlots, selection);
+			}
+			else
+			{
+				for (int c = 0; c < 2; c++){
+					child->setBackgroundColor(c, noSelection);
+				}
+				child->setBackgroundColor(2 + statusSlots, noSelection);
+			}
+		}
+		
+	}
+
 }
 
 void MarkerTreeWidget::reset(int markerStateColumns)
@@ -120,7 +185,7 @@ void MarkerTreeWidget::reset(int markerStateColumns)
 
 	header()->setResizeMode(0, QHeaderView::ResizeToContents);
 	headerItem()->setText(0, "");
-
+	statusSlots = markerStateColumns;
 	for (int i = 0; i < markerStateColumns; i++)
 	{
 		headerItem()->setText(2 + i, "");
