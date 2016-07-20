@@ -73,7 +73,6 @@ namespace xma
 	public slots:
 		void onItemCollapsed(QTreeWidgetItem* item);
 		void onItemExpanded(QTreeWidgetItem* item);
-		void selectionChanged();
 
 	protected:
 		void dropEvent(QDropEvent* event);
