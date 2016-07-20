@@ -1179,6 +1179,8 @@ void Marker::interpolate()
 				}
 			}
 
+			if (count == 0) return;
+
 			double* samplesX = new double[count];
 			double* samplesY = new double[count];
 			double* pos = new double[count];
@@ -1281,6 +1283,7 @@ void Marker::interpolate()
 				count++;
 			}
 		}
+		if (count == 0) return;
 
 		double* samplesX = new double[count];
 		double* samplesY = new double[count];
