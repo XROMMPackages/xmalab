@@ -112,8 +112,10 @@ void PointsDockWidget::updateColor()
 			int idx = item->text(0).toInt() - 1;
 			for (int c = 0; c < Project::getInstance()->getCameras().size(); c++){
 				QPixmap pix(8, 16);
-				pix.fill(markers[idx]->getStatusColor(c, State::getInstance()->getActiveFrameTrial()));
-				item->setIcon(2 + c, pix);
+				if (idx < markers.size()){
+					pix.fill(markers[idx]->getStatusColor(c, State::getInstance()->getActiveFrameTrial()));
+					item->setIcon(2 + c, pix);
+				}
 			}
 		}
 		else
@@ -126,8 +128,10 @@ void PointsDockWidget::updateColor()
 					int idx = child->text(0).toInt() - 1;
 					for (int c = 0; c < Project::getInstance()->getCameras().size(); c++){
 						QPixmap pix(8,16);
-						pix.fill(markers[idx]->getStatusColor(c, State::getInstance()->getActiveFrameTrial()));
-						child->setIcon(2 + c, pix);
+						if (idx < markers.size()){
+							pix.fill(markers[idx]->getStatusColor(c, State::getInstance()->getActiveFrameTrial()));
+							child->setIcon(2 + c, pix);
+						}
 					}
 				}
 			}
