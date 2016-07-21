@@ -783,8 +783,8 @@ void RigidBody::updateError(int Frame, bool filtered)
 			if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[Frame] > 0)
 			{
 				cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
-				                 tmp_mat.at<double>(0, 1),
-				                 tmp_mat.at<double>(0, 2));
+				                 tmp_mat.at<double>(1, 0),
+				                 tmp_mat.at<double>(2, 0));
 
 				cv::Point3d diff = trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame] - pt3d;
 				dist.push_back(cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z));
