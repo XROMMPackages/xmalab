@@ -115,7 +115,7 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 	cv::cvtColor(subimage, orig2, CV_GRAY2RGB);
 	cv::imwrite("1_Det_original.png", orig2);
 #endif
-	if (method == 0 || method == 2 || method == 4 || method == 5)
+	if (method == 0 || method == 2 )
 	{
 		if (method == 2 || method == 5) subimage = cv::Scalar::all(255) - subimage;
 
