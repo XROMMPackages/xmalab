@@ -40,6 +40,7 @@ namespace xma
 		static GLSharedWidget* getInstance();
 		const QGLContext* getQGLContext();
 		void makeGLCurrent();
+		double getVersion();
 
 	public slots:
 
@@ -63,6 +64,7 @@ namespace xma
 
 		bool hasBlendSubtract;
 		bool hasBlendExt;
+		double version;
 	};
 }
 

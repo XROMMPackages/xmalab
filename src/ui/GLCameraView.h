@@ -32,7 +32,7 @@
 namespace xma
 {
 	class Camera;
-	class MultisampleFrameBuffer;
+	class FrameBuffer;
 	class DistortionShader;
 	class BlendShader;
 	class GLCameraView : public QGLWidget
@@ -100,7 +100,7 @@ namespace xma
 
 		BlendShader* blendShader;
 		DistortionShader * distortionShader;
-		MultisampleFrameBuffer * rigidbodyBufferUndistorted;
+		FrameBuffer * rigidbodyBufferUndistorted;
 		bool doDistortion;
 		bool renderMeshes;
 	public:

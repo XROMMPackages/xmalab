@@ -40,6 +40,8 @@ namespace xma
 		virtual void bindTexture();
 		virtual void unbindTexture();
 
+		virtual void blitFramebuffer(){}
+
 		virtual unsigned int getTextureID();
 		virtual unsigned int getDepthTextureID();
 

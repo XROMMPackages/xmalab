@@ -61,7 +61,7 @@ BlendShader::BlendShader() : Shader()
 		"		vec4 color = texture2D(texture, texture_coordinate.xy);\n"
 		"		if (useDepthTrans > 0.5){\n"
 		"			float d = texture2D(depth_tex, texture_coordinate.xy).x;\n"
-		"			color.a =  (d < 1.0f ) ? transparency : 0.0f ;\n"
+		"			color.a =  (d < 1.0 ) ? transparency : 0.0 ;\n"
 		"		}\n"
 		"		gl_FragColor = color; \n"
 		"}\n";

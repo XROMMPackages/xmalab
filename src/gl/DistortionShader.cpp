@@ -67,7 +67,7 @@ DistortionShader::DistortionShader(Camera * camera) : QObject(), FrameBuffer(cam
 			"{\n"
 			"		vec4 color = texture2D(texture, texture_coordinate.xy);\n"
 			"		float d = texture2D(depth_tex, texture_coordinate.xy).x;\n"
-			"		color.a =  (d < 1.0f ) ? transparency : 0.0f ;\n"
+			"		color.a =  (d < 1.0 ) ? transparency : 0.0 ;\n"
 			"		gl_FragColor = color; \n"
 			"}\n";
 	stopped = false;

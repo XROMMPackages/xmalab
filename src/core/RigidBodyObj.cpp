@@ -99,14 +99,13 @@ void RigidBodyObj::render(int frame)
 		m[13] = m[1] * -m_body->getTranslationVector(filtered)[frame][0] + m[5] * -m_body->getTranslationVector(filtered)[frame][1] + m[9] * -m_body->getTranslationVector(filtered)[frame][2];
 		m[14] = m[2] * -m_body->getTranslationVector(filtered)[frame][0] + m[6] * -m_body->getTranslationVector(filtered)[frame][1] + m[10] * -m_body->getTranslationVector(filtered)[frame][2];
 		m[15] = 1.0;
-		glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+		
 		glMultMatrixd(m);
 		glEnable(GL_NORMALIZE);
 		glScaled(m_body->getMeshScale(), m_body->getMeshScale(), m_body->getMeshScale());
 		if (m_vbo) m_vbo->render();
 
 		glDisable(GL_NORMALIZE);
-		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 		glPopMatrix();
 	}
 }

@@ -34,6 +34,7 @@
 #include "gl/GLMLoader.h"
 #include <iostream>
 #include <cassert>
+#include <math.h>
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>

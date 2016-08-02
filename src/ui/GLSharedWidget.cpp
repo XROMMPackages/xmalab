@@ -39,7 +39,7 @@ using namespace xma;
 GLSharedWidget* GLSharedWidget::instance = NULL;
 
 GLSharedWidget::GLSharedWidget(QWidget* parent)
-	: QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
+	: QGLWidget(QGLFormat(QGL::SampleBuffers), parent), version(0.0f)
 {
 	setAutoFillBackground(false);
 	makeCurrent();
@@ -70,11 +70,20 @@ void GLSharedWidget::makeGLCurrent()
 	((QGLContext*) this->context())->makeCurrent();
 }
 
+double GLSharedWidget::getVersion()
+{
+	return version;
+}
+
 void GLSharedWidget::initializeGL()
 {
-	std::cout << "Graphics Card Vendor" << glGetString(GL_VENDOR) << std::endl;
-	std::cout << "Renderer" << glGetString(GL_RENDERER) << std::endl;
-	std::cout << "Version" << glGetString(GL_VERSION) << std::endl;
+	std::cout << "Graphics Card Vendor " << glGetString(GL_VENDOR) << std::endl;
+	std::cout << "Renderer " << glGetString(GL_RENDERER) << std::endl;
+	std::cout << "Version " << glGetString(GL_VERSION)  << std::endl;
+	
+	QString version_string = QString::fromAscii(reinterpret_cast<const char*>(glGetString(GL_VERSION)), 3);
+	version = version_string.toDouble();
+	std::cerr << "Version " << version << std::endl;
 
 	GLenum err = glewInit();
 	if (GLEW_OK != err)

@@ -38,7 +38,7 @@ namespace xma
 
 		~MultisampleFrameBuffer();
 
-		void blitFramebuffer();
+		virtual void blitFramebuffer();
 
 		virtual void bindTexture();
 		virtual void unbindTexture();
