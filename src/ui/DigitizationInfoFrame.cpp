@@ -47,12 +47,17 @@ DigitizationInfoFrame::DigitizationInfoFrame(QWidget* parent) :
 
 void DigitizationInfoFrame::reset()
 {
+	frame->horizontalSliderTransparency->setValue(50.0);
 	frame->horizontalSliderBias->setValue(0.0);
 	frame->horizontalSliderScale->setValue(100.0);
+	frame->doubleSpinBoxTransparency->setValue(0.5);
 	frame->doubleSpinBoxBias->setValue(0.0);
 	frame->doubleSpinBoxScale->setValue(1.0);
+	frame->checkBoxTransparentModels->setChecked(true);
 	cameraWidget->setScale(1.0);
 	cameraWidget->setBias(0.0);
+	cameraWidget->setTransparency(0.5);
+	cameraWidget->setRenderTransparentModels(true);
 }
 
 DigitizationInfoFrame::~DigitizationInfoFrame()
@@ -95,6 +100,29 @@ void DigitizationInfoFrame::on_horizontalSliderScale_valueChanged(int value)
 		frame->doubleSpinBoxScale->setValue(0.01 * value);
 		cameraWidget->setScale(0.01 * value);
 	}
+}
+
+void DigitizationInfoFrame::on_doubleSpinBoxTransparency_valueChanged(double value)
+{
+	if (frame->horizontalSliderTransparency->value() != value * 100)
+	{
+		frame->horizontalSliderTransparency->setValue(value * 100);
+		cameraWidget->setTransparency(value);
+	}
+}
+
+void DigitizationInfoFrame::on_horizontalSliderTransparency_valueChanged(int value)
+{
+	if (frame->doubleSpinBoxTransparency->value() * 100 != value)
+	{
+		frame->doubleSpinBoxTransparency->setValue(0.01 * value);
+		cameraWidget->setTransparency(0.01 * value);
+	}
+}
+
+void DigitizationInfoFrame::on_checkBoxTransparentModels_clicked()
+{
+	cameraWidget->setRenderTransparentModels(frame->checkBoxTransparentModels->isChecked());
 }
 
 void DigitizationInfoFrame::on_pushButtonReset_clicked()

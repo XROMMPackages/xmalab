@@ -104,6 +104,18 @@ void CameraViewWidget::setScale(double value)
 		widget->glCameraView->setScale(value);
 }
 
+void CameraViewWidget::setTransparency(double value)
+{
+	if (widget != NULL && widget->glCameraView != NULL)
+		widget->glCameraView->setTransparency(value);
+}
+
+void CameraViewWidget::setRenderTransparentModels(bool value)
+{
+	if (widget != NULL && widget->glCameraView != NULL)
+		widget->glCameraView->setRenderTransparentModels(value);
+}
+
 void CameraViewWidget::setSharedGLContext(const QGLContext* sharedContext)
 {
 	QGLContext* context = new QGLContext(sharedContext->format(), widget->glCameraView);

@@ -20,49 +20,58 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file DigitizationInfoFrame.h
+///\file DistortionShader.h
 ///\author Benjamin Knorlein
-///\date 01/08/2015
+///\date 7/28/2016
 
-#ifndef DIGITIZATIONINFOFRAME_H_
-#define DIGITIZATIONINFOFRAME_H_
+#ifndef DISTORTIONSHADER_H_
+#define DISTORTIONSHADER_H_
 
-#include <QFrame>
-
-namespace Ui
-{
-	class DigitizationInfoFrame;
-}
+#include "gl/Shader.h"
+#include "gl/FrameBuffer.h"
+#include <vector>
+#include <QObject>
+#include <QFutureWatcher>
 
 namespace xma
-{;
-	class CameraViewWidget;
+{
+	class Camera;
+	class VertexBuffer;
+	class DistortionShader : public QObject, public Shader, public FrameBuffer {
 
-	class DigitizationInfoFrame : public QFrame
-	{
-		Q_OBJECT
+		Q_OBJECT;
 
-	public:
-		virtual ~DigitizationInfoFrame();
-		DigitizationInfoFrame(QWidget* parent = 0);
+	public :
+		DistortionShader(Camera * camera);
+		virtual ~DistortionShader();
 
-		void reset();
+		void draw(unsigned int texture_id, unsigned depth_id, float transparency);
+		void setDistortionMap();
+		bool canRender();
 
 	private:
-		Ui::DigitizationInfoFrame* frame;
-		CameraViewWidget * cameraWidget;
+		VertexBuffer * m_vbo;
+		Camera * m_camera;
+		void intialiseVBO();
+
+		static int nbInstances;
+		static bool m_distortionComplete;
+		
+		bool m_distortionRunning;
+		int m_numpoints;
+		std::vector<float> m_vertices;
+		std::vector <float> m_texcoords;
+		std::vector <unsigned int> m_indices;
+
+		QFutureWatcher<void>* m_FutureWatcher;
+		bool stopped;
+		QMutex loading;
+
 	public slots:
-		void on_doubleSpinBoxBias_valueChanged(double value);
-		void on_horizontalSliderBias_valueChanged(int value);
-		void on_doubleSpinBoxScale_valueChanged(double value);
-		void on_horizontalSliderScale_valueChanged(int value);
-		void on_doubleSpinBoxTransparency_valueChanged(double value);
-		void on_horizontalSliderTransparency_valueChanged(int value);
-		void on_checkBoxTransparentModels_clicked();
-		void on_pushButtonReset_clicked();
+		void loadComplete();
 	};
 }
 
 
-#endif /* DIGITIZATIONINFOFRAME_H_ */
+#endif /* DISTORTIONSHADER_H_ */
 

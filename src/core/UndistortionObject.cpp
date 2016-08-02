@@ -375,7 +375,7 @@ cv::Point2d UndistortionObject::transformLWM(cv::Point2d& ptIn, cv::Mat& control
 	return pt_out;
 }
 
-cv::Point2d UndistortionObject::transformPoint(cv::Point2d pt, bool undistort)
+cv::Point2d UndistortionObject::transformPoint(cv::Point2d pt, bool undistort, bool withRefine)
 {
 	cv::Point2d pt_out;
 
@@ -395,7 +395,7 @@ cv::Point2d UndistortionObject::transformPoint(cv::Point2d pt, bool undistort)
 		return pt_out;
 	}
 
-	if (undistort)
+	if (undistort && withRefine)
 	{
 		cv::Point2d pt_test;
 		pt_test = transformLWM(pt_out, distortionPoints, distortionMatrixA, distortionMatrixB, distortionMatrixRadii);

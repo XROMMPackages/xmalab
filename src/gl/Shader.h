@@ -20,49 +20,38 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file DigitizationInfoFrame.h
+///\file Shader.h
 ///\author Benjamin Knorlein
-///\date 01/08/2015
+///\date 7/28/2016
 
-#ifndef DIGITIZATIONINFOFRAME_H_
-#define DIGITIZATIONINFOFRAME_H_
-
-#include <QFrame>
-
-namespace Ui
-{
-	class DigitizationInfoFrame;
-}
+#ifndef SHADER_H_
+#define SHADER_H_
 
 namespace xma
-{;
-	class CameraViewWidget;
+{
+	class Shader{
 
-	class DigitizationInfoFrame : public QFrame
-	{
-		Q_OBJECT
+	protected:
+		Shader();
+		virtual ~Shader();
+
+		unsigned int m_programID;
+		const char *m_shader;
+		const char *m_vertexShader;
+		const char *m_fragmentShader;
 
 	public:
-		virtual ~DigitizationInfoFrame();
-		DigitizationInfoFrame(QWidget* parent = 0);
+		void bindProgram();
 
-		void reset();
+		void unbindProgram();
 
-	private:
-		Ui::DigitizationInfoFrame* frame;
-		CameraViewWidget * cameraWidget;
-	public slots:
-		void on_doubleSpinBoxBias_valueChanged(double value);
-		void on_horizontalSliderBias_valueChanged(int value);
-		void on_doubleSpinBoxScale_valueChanged(double value);
-		void on_horizontalSliderScale_valueChanged(int value);
-		void on_doubleSpinBoxTransparency_valueChanged(double value);
-		void on_horizontalSliderTransparency_valueChanged(int value);
-		void on_checkBoxTransparentModels_clicked();
-		void on_pushButtonReset_clicked();
+		unsigned int getProgram();
+
+	private:	
+		unsigned int compileShader();
 	};
 }
 
 
-#endif /* DIGITIZATIONINFOFRAME_H_ */
+#endif /* DISTORTIONSHADER_H_ */
 

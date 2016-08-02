@@ -84,7 +84,7 @@ namespace xma
 
 		void undistortPoints();
 
-		cv::Point2d transformPoint(cv::Point2d pt, bool undistort);
+		cv::Point2d transformPoint(cv::Point2d pt, bool undistort, bool withRefine = true);
 
 		void toggleOutlier(int vispoints, double x, double y);
 		void setCenter(double x, double y);

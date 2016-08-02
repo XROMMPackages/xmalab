@@ -32,13 +32,16 @@
 namespace xma
 {
 	class Camera;
-
+	class MultisampleFrameBuffer;
+	class DistortionShader;
+	class BlendShader;
 	class GLCameraView : public QGLWidget
 	{
 		Q_OBJECT
 
 	public:
 		GLCameraView(QWidget* parent);
+		virtual ~GLCameraView();
 		void setCamera(Camera* _camera);
 
 		void setMinimumWidthGL(bool set);
@@ -49,6 +52,8 @@ namespace xma
 
 		void setScale(double value);
 		void setBias(double value);
+		void setTransparency(double value);
+		void setRenderTransparentModels(bool value);
 		void centerViewToPoint(bool resetZoom = false);
 		void UseStatusColors(bool value);
 
@@ -90,12 +95,24 @@ namespace xma
 		double x_test, y_test;
 		double bias;
 		double scale;
+		double transparency;
+		bool renderTransparentModels; 
 
+		BlendShader* blendShader;
+		DistortionShader * distortionShader;
+		MultisampleFrameBuffer * rigidbodyBufferUndistorted;
+		bool doDistortion;
+		bool renderMeshes;
 	public:
 		signals :
 
 		void autozoomChanged(bool on);
 		void zoomChanged(int zoom);
+	private:
+		GLfloat LightAmbient[4];
+		GLfloat LightDiffuse[4];
+		GLfloat LightPosition_front[4];
+		GLfloat LightPosition_back[4];
 	};
 }
 

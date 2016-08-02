@@ -441,6 +441,25 @@ void Trial::drawRigidBodies(Camera* cam)
 	}
 }
 
+void Trial::drawRigidBodiesMesh()
+{
+	for (std::vector<RigidBody *>::const_iterator it = rigidBodies.begin(); it != rigidBodies.end(); ++it)
+	{
+		if((*it)->getDrawMeshModel())
+			(*it)->drawMesh(activeFrame);
+	}
+}
+
+bool Trial::renderMeshes()
+{
+	bool render = false;
+	for (std::vector<RigidBody *>::const_iterator it = rigidBodies.begin(); it != rigidBodies.end(); ++it)
+	{
+		render = (*it)->getDrawMeshModel() || render;
+	}
+	return render;
+}
+
 void Trial::drawPoints(int cameraId, bool detailView)
 {
 	int idx = 0;

@@ -20,49 +20,44 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file DigitizationInfoFrame.h
+///\file VertexBuffer.h
 ///\author Benjamin Knorlein
-///\date 01/08/2015
+///\date 07/29/2016
 
-#ifndef DIGITIZATIONINFOFRAME_H_
-#define DIGITIZATIONINFOFRAME_H_
-
-#include <QFrame>
-
-namespace Ui
-{
-	class DigitizationInfoFrame;
-}
+#ifndef VERTEXBUFFER_H_
+#define VERTEXBUFFER_H_
 
 namespace xma
-{;
-	class CameraViewWidget;
+{
 
-	class DigitizationInfoFrame : public QFrame
+	class VertexBuffer
 	{
-		Q_OBJECT
-
 	public:
-		virtual ~DigitizationInfoFrame();
-		DigitizationInfoFrame(QWidget* parent = 0);
+		VertexBuffer();
 
-		void reset();
+		~VertexBuffer();
+
+		void setData(unsigned int numvertices, float* vertices, float* normals, float * texcoords, unsigned int* indices);
+
+		void render();
 
 	private:
-		Ui::DigitizationInfoFrame* frame;
-		CameraViewWidget * cameraWidget;
-	public slots:
-		void on_doubleSpinBoxBias_valueChanged(double value);
-		void on_horizontalSliderBias_valueChanged(int value);
-		void on_doubleSpinBoxScale_valueChanged(double value);
-		void on_horizontalSliderScale_valueChanged(int value);
-		void on_doubleSpinBoxTransparency_valueChanged(double value);
-		void on_horizontalSliderTransparency_valueChanged(int value);
-		void on_checkBoxTransparentModels_clicked();
-		void on_pushButtonReset_clicked();
+		bool m_initialised;
+
+		void setupVBO();
+		unsigned int vboId;
+		unsigned int nboId;
+		unsigned int tboId;
+		unsigned int iboId;
+
+		void deleteData();
+		bool m_dataReady;
+		unsigned int m_numvertices;
+		float* m_vertices;
+		float* m_normals;
+		float* m_texcoords;
+		unsigned int * m_indices;
 	};
 }
 
-
-#endif /* DIGITIZATIONINFOFRAME_H_ */
-
+#endif // FRAMEBUFFER_H_

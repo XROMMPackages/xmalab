@@ -29,7 +29,9 @@
 #endif
 
 #include <GL/glew.h>
-
+#include "gl/MultisampleFrameBuffer.h"
+#include "gl/DistortionShader.h"
+#include "gl/BlendShader.h"
 #include "ui/GLCameraView.h"
 #include "ui/State.h"
 #include "ui/ErrorDialog.h"
@@ -85,7 +87,36 @@ GLCameraView::GLCameraView(QWidget* parent)
 	detailedView = false;
 	bias = 0.0;
 	scale = 1.0;
+	transparency = 0.5;
+	renderTransparentModels = true;
 	showStatusColors = false;
+	distortionShader = 0;
+	blendShader = NULL; 
+	rigidbodyBufferUndistorted = NULL;
+
+	LightAmbient[0] = LightAmbient[1] = LightAmbient[2] = 0.1f;
+	LightAmbient[3] = 1.0f;
+
+	LightDiffuse[0] = LightDiffuse[1] = LightDiffuse[2] = 0.7f;
+	LightDiffuse[3] = 1.0f;
+
+	LightPosition_front[0] = LightPosition_front[1] = LightPosition_front[3] = 0.0f;
+	LightPosition_front[2] = 1.0f;
+
+	LightPosition_back[0] = LightPosition_back[1] = LightPosition_back[3] = 0.0f;
+	LightPosition_back[2] = -1.0f;
+}
+
+GLCameraView::~GLCameraView()
+{
+	if (blendShader)
+		delete blendShader;
+
+	if (rigidbodyBufferUndistorted)
+		delete rigidbodyBufferUndistorted;
+
+	if (distortionShader)
+		delete distortionShader;
 }
 
 void GLCameraView::setCamera(Camera* _camera)
@@ -94,6 +125,21 @@ void GLCameraView::setCamera(Camera* _camera)
 
 	camera_width = camera->getWidth();
 	camera_height = camera->getHeight();
+
+	if (!detailedView){
+		if (rigidbodyBufferUndistorted)
+			delete rigidbodyBufferUndistorted;
+
+		rigidbodyBufferUndistorted = new MultisampleFrameBuffer(camera_width, camera_height, 4);
+
+		if (distortionShader)
+			delete distortionShader;
+		distortionShader = new DistortionShader(camera);
+
+		if (blendShader)
+			delete blendShader;
+		blendShader = new BlendShader(); 
+	}
 }
 
 
@@ -325,6 +371,18 @@ void GLCameraView::setBias(double value)
 	update();
 }
 
+void GLCameraView::setTransparency(double value)
+{
+	transparency = value;
+	update();
+}
+
+void GLCameraView::setRenderTransparentModels(bool value)
+{
+	renderTransparentModels = value;
+	update();
+}
+
 void GLCameraView::setZoomToFit()
 {
 	setZoomRatio((((double) camera_width) / window_width > ((double) camera_height) / window_height) ? ((double) camera_width) / window_width : ((double) camera_height) / window_height, autozoom);
@@ -534,8 +592,91 @@ void GLCameraView::UseStatusColors(bool value)
 	showStatusColors = value;
 }
 
+
 void GLCameraView::paintGL()
 {
+	doDistortion = false;
+	renderMeshes = false;
+
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
+		{
+			if (!detailedView)
+			{
+				renderMeshes = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->renderMeshes();
+			}
+		}
+		if (renderMeshes){
+			if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
+			{
+				if (!detailedView)
+				{
+					if (rigidbodyBufferUndistorted)
+					{
+						rigidbodyBufferUndistorted->bindFrameBuffer();
+
+						glClearColor(1.0, 1.0, 1.0, 0.0);
+						glClearDepth(1.0f);
+						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+						glEnable(GL_DEPTH_TEST); // Enables Depth Testing
+						glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective Calculations
+						if (renderTransparentModels){
+							glDepthFunc(GL_ALWAYS); // The Type Of Depth Testing To Do
+							glEnable(GL_BLEND);
+							glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+						}
+						else
+						{
+							glDepthFunc(GL_LEQUAL);
+						}
+						glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient); // Setup The Ambient Light
+						glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse); // Setup The Diffuse Light
+						glLightfv(GL_LIGHT1, GL_POSITION, LightPosition_front); // Position The Light
+						glEnable(GL_LIGHT1);
+						glLightfv(GL_LIGHT2, GL_AMBIENT, LightAmbient); // Setup The Ambient Light
+						glLightfv(GL_LIGHT2, GL_DIFFUSE, LightDiffuse); // Setup The Diffuse Light
+						glLightfv(GL_LIGHT2, GL_POSITION, LightPosition_back); // Position The Light
+						glEnable(GL_LIGHT2);
+
+						glEnable(GL_LIGHTING);
+
+						glEnable(GL_COLOR_MATERIAL);
+						glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+
+						glViewport(0, 0, rigidbodyBufferUndistorted->getWidth(), rigidbodyBufferUndistorted->getHeight());
+						double proj[16];
+						double model[16];
+
+						camera->getGLTransformations(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getReferenceCalibrationImage(), &proj[0], &model[0]);
+
+						glMatrixMode(GL_PROJECTION);
+						glLoadMatrixd(&proj[0]);
+
+						glMatrixMode(GL_MODELVIEW);
+						glLoadMatrixd(&model[0]);
+
+						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodiesMesh();
+						glDisable(GL_BLEND);
+						glDisable(GL_LIGHTING);
+						glDisable(GL_DEPTH_TEST);
+						rigidbodyBufferUndistorted->unbindFrameBuffer();
+					}
+
+					rigidbodyBufferUndistorted->blitFramebuffer();
+
+					distortionShader->draw(rigidbodyBufferUndistorted->getTextureID(), rigidbodyBufferUndistorted->getDepthTextureID(), transparency);
+					doDistortion = distortionShader->canRender();
+				}
+			}
+		}
+	}
+
+	glViewport(0, 0, window_width, window_height);
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClearDepth(1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	glDisable(GL_DEPTH_TEST);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -549,13 +690,31 @@ void GLCameraView::paintGL()
 	        -1000, 1000);
 
 	gluLookAt(0, 0, 1, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	glColor3f(1.0, 1.0, 1.0);
 	drawTexture();
+
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		if (renderMeshes){
+			if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
+			{
+				if (!detailedView)
+				{
+					if (!doDistortion){
+						blendShader->draw(camera_width, camera_height, transparency, rigidbodyBufferUndistorted->getTextureID(), rigidbodyBufferUndistorted->getDepthTextureID(), true);
+					}
+					else
+					{
+						blendShader->draw(camera_width, camera_height, transparency, distortionShader->getTextureID(), distortionShader->getDepthTextureID(), false);
+					}
+				}
+			}
+		}
+	}
 
 	if ((bias != 0.0 || scale != 1.0) && GLSharedWidget::getInstance()->getHasBlendSubtract())
 	{

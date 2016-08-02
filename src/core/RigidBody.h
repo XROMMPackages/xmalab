@@ -39,6 +39,8 @@ namespace xma
 	class Trial;
 	class Camera;
 	class Marker;
+	class RigidBodyObj;
+
 
 	class RigidBody
 	{
@@ -125,7 +127,18 @@ namespace xma
 		const std::vector<QString>& getDummyNames();
 		bool allReferenceMarkerReferencesSet();
 
-		bool transformPoint(cv::Point3d in, cv::Point3d& out, int frame);
+		bool transformPoint(cv::Point3d in, cv::Point3d& out, int frame, bool filtered = false);
+
+		bool addMeshModel(QString filename);
+		bool hasMeshModel();
+		QString getMeshModelname();
+		bool getDrawMeshModel();
+		void setDrawMeshModel(bool value);
+		void drawMesh(int frame);
+		void setUseFilteredTransformations(bool value);
+		bool getUseFilteredTransformations();
+		double getMeshScale();
+		void setMeshScale(double value);
 
 	private:
 		void init(int size);
@@ -179,6 +192,11 @@ namespace xma
 		std::vector<double> errorSd2D_filtered;
 		std::vector<double> errorMean3D_filtered;
 		std::vector<double> errorSd3D_filtered;
+
+		RigidBodyObj * meshmodel;
+		bool m_drawMeshModel;
+		bool useFilteredTransformations;
+		double meshScale;
 	};
 }
 

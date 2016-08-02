@@ -87,6 +87,11 @@ namespace xma
 		void on_pushButton_AddDummy_clicked();
 		void on_pushButton_DeleteDummy_clicked();
 		void on_pushButton_Reset_clicked();
+
+		void on_checkbox_DrawMesh_clicked();
+		void on_toolButton_Mesh_clicked();
+		void on_checkBox_DrawFiltered_clicked();
+		void on_doubleSpinBoxMeshScale_valueChanged(double value);
 	};
 }
 

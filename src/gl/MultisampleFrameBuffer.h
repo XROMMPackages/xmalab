@@ -20,49 +20,38 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file DigitizationInfoFrame.h
+///\file MultisampleFrameBuffer.h
 ///\author Benjamin Knorlein
-///\date 01/08/2015
+///\date 08/01/2016
 
-#ifndef DIGITIZATIONINFOFRAME_H_
-#define DIGITIZATIONINFOFRAME_H_
+#ifndef MULTISAMPLEFRAMEBUFFER_H_
+#define MULTISAMPLEFRAMEBUFFER_H_
 
-#include <QFrame>
-
-namespace Ui
-{
-	class DigitizationInfoFrame;
-}
-
+#include "gl/FrameBuffer.h"
 namespace xma
-{;
-	class CameraViewWidget;
+{
 
-	class DigitizationInfoFrame : public QFrame
+	class MultisampleFrameBuffer : public FrameBuffer
 	{
-		Q_OBJECT
-
 	public:
-		virtual ~DigitizationInfoFrame();
-		DigitizationInfoFrame(QWidget* parent = 0);
+		MultisampleFrameBuffer(int width, int height, int samples = 0);
 
-		void reset();
+		~MultisampleFrameBuffer();
+
+		void blitFramebuffer();
+
+		virtual void bindTexture();
+		virtual void unbindTexture();
+
+		virtual unsigned int getTextureID();
+		virtual unsigned int getDepthTextureID();
 
 	private:
-		Ui::DigitizationInfoFrame* frame;
-		CameraViewWidget * cameraWidget;
-	public slots:
-		void on_doubleSpinBoxBias_valueChanged(double value);
-		void on_horizontalSliderBias_valueChanged(int value);
-		void on_doubleSpinBoxScale_valueChanged(double value);
-		void on_horizontalSliderScale_valueChanged(int value);
-		void on_doubleSpinBoxTransparency_valueChanged(double value);
-		void on_horizontalSliderTransparency_valueChanged(int value);
-		void on_checkBoxTransparentModels_clicked();
-		void on_pushButtonReset_clicked();
+		
+		FrameBuffer * outbuffer;
+
+
 	};
 }
 
-
-#endif /* DIGITIZATIONINFOFRAME_H_ */
-
+#endif // MULTISAMPLEFRAMEBUFFER_H_

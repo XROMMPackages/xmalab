@@ -150,12 +150,13 @@ void WorldViewDockGLWidget::paintGL()
 	double e_x = eyedistance * sin(polar * _PI / 180.0) * sin(azimuth * _PI / 180.0);
 	double e_y = eyedistance * cos(azimuth * _PI / 180.0);
 
-	gluLookAt(e_x, e_y, e_z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	glRotated(-90.0, 1.0, 0.0, 0.0);
-	glRotated(180.0, 0.0, 0.0, 1.0);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	gluLookAt(e_x, e_y, e_z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	glRotated(-90.0, 1.0, 0.0, 0.0);
+	glRotated(180.0, 0.0, 0.0, 1.0);
 
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -232,7 +233,7 @@ void WorldViewDockGLWidget::drawCameras()
 
 			//adjust y - inversion
 			transTmp.at<double>(0, 0) = -transTmp.at<double>(0, 0);
-			transTmp.at<double>(0, 2) = -transTmp.at<double>(0, 2);
+			transTmp.at<double>(2, 0) = -transTmp.at<double>(2, 0);
 			for (int i = 0; i < 3; i++)
 			{
 				rotTmp.at<double>(0, i) = -rotTmp.at<double>(0, i);
@@ -394,6 +395,9 @@ void WorldViewDockGLWidget::drawRigidBodies(Trial* trial, int frame)
 	for (unsigned int i = 0; i < trial->getRigidBodies().size(); i++)
 	{
 		trial->getRigidBodies()[i]->draw3D(frame);
+
+		if (trial->getRigidBodies()[i]->getDrawMeshModel())
+			trial->getRigidBodies()[i]->drawMesh(frame);
 	}
 }
 

@@ -90,6 +90,8 @@ namespace xma
 		void save(QString path);
 
 		void drawRigidBodies(Camera* cam);
+		void drawRigidBodiesMesh();
+		bool renderMeshes();
 		void drawPoints(int cameraId, bool detailView);
 
 		int getStartFrame();

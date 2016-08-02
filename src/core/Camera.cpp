@@ -105,6 +105,61 @@ void Camera::deleteFrame(int id)
 	calibrationImages.erase(calibrationImages.begin() + id);
 }
 
+void Camera::getGLTransformations(int referenceCalibration, double* projection, double* modelviewMatrix)
+{
+	double focal[2];
+	double center[2];
+	double image_size[2];
+	double near_plane = 1.05;
+	double far_plane = 1000.0;
+
+	focal[0] = cameramatrix.at<double>(0, 0);
+	focal[1] = cameramatrix.at<double>(1, 1);
+
+	image_size[0] = getWidth();
+	image_size[1] = getHeight();
+
+	center[0] = cameramatrix.at<double>(0, 2) + 0.5; //for opengl center is in the middle of the pixel
+	center[1] = cameramatrix.at<double>(1, 2) + 0.5; //for opengl center is in the middle of the pixel
+
+	projection[0] = 2.0 * focal[0] / image_size[0];
+	projection[4] = 0;
+	projection[8] = 2.0 * center[0] / image_size[0] - 1.0;
+	projection[12] = 0;
+
+	projection[1] = 0;
+	projection[5] = 2.0 * focal[1] / image_size[1];
+	projection[9] = 2.0 * center[1] / image_size[1] - 1.0;
+	projection[13] = 0;
+
+	projection[2] = 0;
+	projection[6] = 0;
+	projection[10] = (far_plane + near_plane) / (far_plane - near_plane);
+	projection[14] = -2.0 * far_plane * near_plane / (far_plane - near_plane);
+
+	projection[3] = 0;
+	projection[7] = 0;
+	projection[11] = 1;
+	projection[15] = 0;
+
+	cv::Mat rotationmatrix;
+	rotationmatrix.create(3, 3, CV_64F);
+	cv::Rodrigues(getCalibrationImages()[referenceCalibration]->getRotationVector(), rotationmatrix);
+
+	for (int y = 0; y <3; y++)
+	{
+		modelviewMatrix[y] = rotationmatrix.at<double>(y, 0);
+		modelviewMatrix[y + 4] = rotationmatrix.at<double>(y, 1);
+		modelviewMatrix[y + 8] = rotationmatrix.at<double>(y, 2);
+		modelviewMatrix[y + 12] = getCalibrationImages()[referenceCalibration]->getTranslationVector().at<double>(y, 0);
+	}
+
+	modelviewMatrix[3] = 0;
+	modelviewMatrix[7] = 0;
+	modelviewMatrix[11] = 0;
+	modelviewMatrix[15] = 1.0;
+}
+
 cv::Point2d Camera::projectPoint(cv::Point3d pt3d, int referenceCalibration)
 {
 	cv::Point2d pt2d;
@@ -560,12 +615,12 @@ void Camera::getDLT(double* out, int frame)
 	}
 }
 
-cv::Point2d Camera::undistortPoint(cv::Point2d pt, bool undistort, bool withModel)
+cv::Point2d Camera::undistortPoint(cv::Point2d pt, bool undistort, bool withModel, bool withRefine)
 {
 	cv::Point2d pt_out = pt;
 	if (undistortionObject && undistortionObject->isComputed())
 	{
-		pt_out = undistortionObject->transformPoint(pt_out, undistort);
+		pt_out = undistortionObject->transformPoint(pt_out, undistort, withRefine);
 	}
 	if (hasModelDistortion() && withModel)
 	{

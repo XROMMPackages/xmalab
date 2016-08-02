@@ -36,7 +36,7 @@
 #include "core/UndistortionObject.h"
 #include "core/CalibrationImage.h"
 #include "core/HelperFunctions.h"
-
+#include "core/RigidBodyObj.h"
 #include "processing/ButterworthLowPassFilter.h" //should move this dependency
 
 
@@ -67,10 +67,12 @@ RigidBody::RigidBody(int size, Trial* _trial)
 	referencesSet = false;
 	color.setRgb(255, 0, 0);
 	visible = false;
-
+	meshmodel = NULL;
+	m_drawMeshModel = false;
 	cutoffFrequency = 0;
 	overrideCutoffFrequency = false;
-
+	useFilteredTransformations = false;
+	meshScale = 1.0;
 	init(size);
 }
 
@@ -100,6 +102,16 @@ void RigidBody::copyData(RigidBody* rb)
 
 		updateCenter();
 	}
+	bool modelLoaded = addMeshModel(rb->getMeshModelname());
+	if (modelLoaded) {
+		m_drawMeshModel = rb->getDrawMeshModel();
+		meshScale = rb->getMeshScale();
+	}
+	overrideCutoffFrequency = rb->getOverrideCutoffFrequency();
+	cutoffFrequency = rb->getOverrideCutoffFrequency();
+	color = rb->getColor();
+	useFilteredTransformations = rb->getUseFilteredTransformations();
+	meshScale = rb->getMeshScale();
 }
 
 RigidBody::~RigidBody()
@@ -107,6 +119,11 @@ RigidBody::~RigidBody()
 	pointsIdx.clear();
 	points3D.clear();
 	referenceNames.clear();
+
+	if (meshmodel != NULL)
+	{
+		delete meshmodel;
+	}
 
 	clear();
 }
@@ -204,17 +221,17 @@ bool RigidBody::allReferenceMarkerReferencesSet()
 	return allset;
 }
 
-bool RigidBody::transformPoint(cv::Point3d in, cv::Point3d& out, int frame)
+bool RigidBody::transformPoint(cv::Point3d in, cv::Point3d& out, int frame, bool filtered)
 {
-	if (poseComputed[frame])
+	if (poseComputed[frame] || (filtered && poseFiltered[frame]))
 	{
 		cv::Mat rotationMatrix;
-		cv::Rodrigues(rotationvectors[frame], rotationMatrix);
+		cv::Rodrigues(getRotationVector(filtered)[frame], rotationMatrix);
 
 		cv::Mat xmat = cv::Mat(in, true);
 		cv::Mat tmp_mat;
 
-		tmp_mat = rotationMatrix.t() * ((xmat) - cv::Mat(translationvectors[frame]));
+		tmp_mat = rotationMatrix.t() * ((xmat) - cv::Mat(getTranslationVector(filtered)[frame]));
 
 		out.x = tmp_mat.at<double>(0, 0) ,
 			out.y = tmp_mat.at<double>(0, 1) ,
@@ -222,6 +239,70 @@ bool RigidBody::transformPoint(cv::Point3d in, cv::Point3d& out, int frame)
 		return true;
 	}
 	return false;
+}
+
+bool RigidBody::addMeshModel(QString filename)
+{
+	if (meshmodel != NULL)
+	{
+		delete meshmodel;
+	}
+	RigidBodyObj* tmp = new RigidBodyObj(filename, this);
+	if (tmp->vboSet())
+	{
+		meshmodel = tmp;
+		return true;
+	}
+	else
+	{
+		delete tmp;
+		return false;
+	}
+}
+
+bool RigidBody::hasMeshModel()
+{
+	return meshmodel != NULL;
+}
+
+QString RigidBody::getMeshModelname()
+{
+	return meshmodel->getFilename();
+}
+
+bool RigidBody::getDrawMeshModel()
+{
+	return m_drawMeshModel;
+}
+
+void RigidBody::setDrawMeshModel(bool value)
+{
+	m_drawMeshModel = value;
+}
+
+void RigidBody::drawMesh(int frame)
+{
+	meshmodel->render(frame);
+}
+
+void RigidBody::setUseFilteredTransformations(bool value)
+{
+	useFilteredTransformations = value;
+}
+
+bool RigidBody::getUseFilteredTransformations()
+{
+	return useFilteredTransformations;
+}
+
+double RigidBody::getMeshScale()
+{
+	return meshScale;
+}
+
+void RigidBody::setMeshScale(double value)
+{
+	meshScale = value;
 }
 
 void RigidBody::setReferenceMarkerReferences()
@@ -1832,9 +1913,9 @@ void RigidBody::setColor(QColor value)
 
 void RigidBody::draw2D(Camera* cam, int frame)
 {
-	if (visible && (int) poseComputed.size() > frame && poseComputed[frame] && isReferencesSet())
+	if (visible && (int) poseComputed.size() > frame && (poseComputed[frame] || (useFilteredTransformations && poseFiltered[frame])) && isReferencesSet())
 	{
-		std::vector<cv::Point2d> points2D_projected = projectToImage(cam, frame, true);
+		std::vector<cv::Point2d> points2D_projected = projectToImage(cam, frame, true,false,false,useFilteredTransformations);
 
 		for (unsigned int i = 1; i < points2D_projected.size(); i++)
 		{
@@ -1856,7 +1937,7 @@ void RigidBody::draw2D(Camera* cam, int frame)
 				if (dummyRBIndex[i] >= 0)
 				{
 					cv::Point3d dummy_tmp;
-					if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints2[i], dummy_tmp, frame))
+					if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints2[i], dummy_tmp, frame, useFilteredTransformations))
 					{
 						count++;
 					}
@@ -1909,15 +1990,16 @@ void RigidBody::draw2D(Camera* cam, int frame)
 
 void RigidBody::draw3D(int frame)
 {
-	if (visible && poseComputed[frame] && isReferencesSet())
+	if (visible && (getPoseComputed()[frame] || (getUseFilteredTransformations() && getPoseFiltered()[frame])) && isReferencesSet())
 	{
+		bool filtered_trans = getUseFilteredTransformations();
 		glPushMatrix();
 		double m[16];
 		//inversere Rotation = transposed rotation
 		//and opengl requires transposed, so we set R
 
 		cv::Mat rotationMat;
-		cv::Rodrigues(rotationvectors[frame], rotationMat);
+		cv::Rodrigues(getRotationVector(filtered_trans)[frame], rotationMat);
 		for (unsigned int y = 0; y < 3; y++)
 		{
 			m[y * 4] = rotationMat.at<double>(y, 0);
@@ -1927,9 +2009,9 @@ void RigidBody::draw3D(int frame)
 		}
 		//inverse translation = translation rotated with inverse rotation/transposed rotation
 		//R-1 * -t = R^tr * -t
-		m[12] = m[0] * -translationvectors[frame][0] + m[4] * -translationvectors[frame][1] + m[8] * -translationvectors[frame][2];
-		m[13] = m[1] * -translationvectors[frame][0] + m[5] * -translationvectors[frame][1] + m[9] * -translationvectors[frame][2];
-		m[14] = m[2] * -translationvectors[frame][0] + m[6] * -translationvectors[frame][1] + m[10] * -translationvectors[frame][2];
+		m[12] = m[0] * -getTranslationVector(filtered_trans)[frame][0] + m[4] * -getTranslationVector(filtered_trans)[frame][1] + m[8] * -getTranslationVector(filtered_trans)[frame][2];
+		m[13] = m[1] * -getTranslationVector(filtered_trans)[frame][0] + m[5] * -getTranslationVector(filtered_trans)[frame][1] + m[9] * -getTranslationVector(filtered_trans)[frame][2];
+		m[14] = m[2] * -getTranslationVector(filtered_trans)[frame][0] + m[6] * -getTranslationVector(filtered_trans)[frame][1] + m[10] * -getTranslationVector(filtered_trans)[frame][2];
 		m[15] = 1.0;
 
 		glMultMatrixd(m);

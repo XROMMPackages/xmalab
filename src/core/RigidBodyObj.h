@@ -20,49 +20,41 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file DigitizationInfoFrame.h
+///\file RigidBodyObj.h
 ///\author Benjamin Knorlein
-///\date 01/08/2015
+///\date 07/23/2016
 
-#ifndef DIGITIZATIONINFOFRAME_H_
-#define DIGITIZATIONINFOFRAME_H_
+/// The contents on this file are based on the GLM Loader by Nate Robins
 
-#include <QFrame>
+#ifndef RIGIDBODYOBJ
+#define RIGIDBODYOBJ
 
-namespace Ui
-{
-	class DigitizationInfoFrame;
-}
+#include <QString.h>
+#include <vector>
 
 namespace xma
-{;
-	class CameraViewWidget;
+{
+	class RigidBody;
+	class VertexBuffer;
 
-	class DigitizationInfoFrame : public QFrame
+	class RigidBodyObj
 	{
-		Q_OBJECT
-
 	public:
-		virtual ~DigitizationInfoFrame();
-		DigitizationInfoFrame(QWidget* parent = 0);
+		RigidBodyObj(QString filename, RigidBody * body);
 
-		void reset();
+		~RigidBodyObj();
+		
+		QString getFilename();
+
+		void render(int frame);
+
+		bool vboSet();
 
 	private:
-		Ui::DigitizationInfoFrame* frame;
-		CameraViewWidget * cameraWidget;
-	public slots:
-		void on_doubleSpinBoxBias_valueChanged(double value);
-		void on_horizontalSliderBias_valueChanged(int value);
-		void on_doubleSpinBoxScale_valueChanged(double value);
-		void on_horizontalSliderScale_valueChanged(int value);
-		void on_doubleSpinBoxTransparency_valueChanged(double value);
-		void on_horizontalSliderTransparency_valueChanged(int value);
-		void on_checkBoxTransparentModels_clicked();
-		void on_pushButtonReset_clicked();
+		QString m_filename;
+		RigidBody * m_body;
+		VertexBuffer * m_vbo;
 	};
 }
 
-
-#endif /* DIGITIZATIONINFOFRAME_H_ */
-
+#endif // RIGIDBODYOBJ

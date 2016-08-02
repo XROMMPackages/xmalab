@@ -111,6 +111,7 @@ SET(XMALab_HEADERS
 	src/core/VideoStream.h
 	src/core/ImageSequence.h
 	src/core/HelperFunctions.h
+	src/core/RigidBodyObj.h
 )
 
 SET(XMALab_SOURCES
@@ -129,6 +130,7 @@ SET(XMALab_SOURCES
 	src/core/VideoStream.cpp
 	src/core/ImageSequence.cpp
 	src/core/HelperFunctions.cpp
+	src/core/RigidBodyObj.cpp
 )
 
 SOURCE_GROUP(_CORE FILES ${XMALab_HEADERS} ${XMALab_SOURCES})
@@ -165,6 +167,28 @@ SET(Processing_SOURCES
 )
 
 SOURCE_GROUP(_PROCESSING FILES ${Processing_HEADERS} ${Processing_SOURCES})
+
+SET(GL_HEADERS 
+	src/gl/Framebuffer.h
+	src/gl/VertexBuffer.h
+	src/gl/GLMLoader.h
+	src/gl/Shader.h
+	src/gl/DistortionShader.h
+	src/gl/MultisampleFramebuffer.h
+	src/gl/BlendShader.h
+)
+
+SET(GL_SOURCES
+	src/gl/Framebuffer.cpp
+	src/gl/VertexBuffer.cpp
+	src/gl/GLMLoader.cpp
+	src/gl/Shader.cpp
+	src/gl/DistortionShader.cpp
+	src/gl/MultisampleFramebuffer.cpp
+	src/gl/BlendShader.cpp
+)
+
+SOURCE_GROUP(_GL FILES ${GL_HEADERS} ${GL_SOURCES})
 
 #HEADER AND SOURCE FILES FOR UI
 SET(XMALab_FORMS_HEADERS 
@@ -379,6 +403,8 @@ ADD_EXECUTABLE(${PROJECT_NAME} ${GUI_TYPE}
 		${Processing_HEADERS}
 		${External_SOURCES} 
 		${External_HEADERS}
+		${GL_HEADERS} 
+		${GL_SOURCES}
 		${XMALab_FORMS_SOURCES} 
 		${XMALab_FORMS_HEADERS}
 		${XMALab_FORMS_HEADERS_GEN} 

@@ -64,6 +64,8 @@ namespace xma
 
 		void setBias(double value);
 		void setScale(double value);
+		void setTransparency(double value);
+		void setRenderTransparentModels(bool value);
 
 	protected:
 		bool eventFilter(QObject* obj, QEvent* event);

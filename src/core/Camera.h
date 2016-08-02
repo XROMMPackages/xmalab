@@ -107,7 +107,7 @@ namespace xma
 		void loadTextures();
 
 		void undistort();
-		cv::Point2d undistortPoint(cv::Point2d pt, bool undistort, bool withModel = true);
+		cv::Point2d undistortPoint(cv::Point2d pt, bool undistort, bool withModel = true, bool withRefine = true);
 		cv::Point2d applyModelDistortion(cv::Point2d pt, bool undistort);
 
 		void setCalibrated(bool value);
@@ -172,6 +172,8 @@ namespace xma
 
 		void reset();
 		void deleteFrame(int id);
+
+		void getGLTransformations(int referenceCalibration, double * projectionMatrix, double*  modelviewMatrix);
 
 		cv::Point2d projectPoint(cv::Point3d, int referenceCalibration);
 

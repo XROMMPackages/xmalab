@@ -113,6 +113,20 @@ RigidBodyDialog::RigidBodyDialog(RigidBody* body, QWidget* parent) :
 
 	if (!m_body->allReferenceMarkerReferencesSet())diag->pushButton_Reset->show();
 
+	if (m_body->hasMeshModel())
+	{
+		QFileInfo info(m_body->getMeshModelname());
+		diag->label_Mesh->setText(info.fileName());
+		diag->checkbox_DrawMesh->setChecked(m_body->getDrawMeshModel());
+	}
+	else
+	{
+		diag->checkbox_DrawMesh->setEnabled(false);
+		diag->doubleSpinBoxMeshScale->setEnabled(false);
+	}
+	diag->doubleSpinBoxMeshScale->setValue(m_body->getMeshScale());
+	diag->checkBox_DrawFiltered->setChecked(m_body->getUseFilteredTransformations());
+	
 	reloadDummyPoints();
 }
 
@@ -431,3 +445,35 @@ void RigidBodyDialog::on_pushButton_Reset_clicked()
 	updateLabels();
 }
 
+void RigidBodyDialog::on_checkbox_DrawMesh_clicked()
+{
+	m_body->setDrawMeshModel(diag->checkbox_DrawMesh->isChecked());
+}
+
+void RigidBodyDialog::on_toolButton_Mesh_clicked()
+{
+	QString filename = QFileDialog::getOpenFileName(this, tr("Open meshfile file"), Settings::getInstance()->getLastUsedDirectory(), ("OBJ Files (*.obj)"));
+	if (!filename.isEmpty())
+	{
+		if (!m_body->addMeshModel(filename)){
+			ErrorDialog::getInstance()->showErrorDialog("Could not load OBJ-file");
+			diag->checkbox_DrawMesh->setEnabled(false);
+			diag->doubleSpinBoxMeshScale->setEnabled(false);
+		}else{
+			QFileInfo info(filename);
+			diag->label_Mesh->setText(info.fileName());
+			diag->checkbox_DrawMesh->setEnabled(true);
+			diag->doubleSpinBoxMeshScale->setEnabled(true);
+		}
+	}
+}
+
+void RigidBodyDialog::on_checkBox_DrawFiltered_clicked()
+{
+	m_body->setUseFilteredTransformations(diag->checkBox_DrawFiltered->isChecked());
+}
+
+void RigidBodyDialog::on_doubleSpinBoxMeshScale_valueChanged(double value)
+{
+	m_body->setMeshScale(value);
+}

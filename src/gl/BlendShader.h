@@ -20,49 +20,29 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file DigitizationInfoFrame.h
+///\file DistortionShader.h
 ///\author Benjamin Knorlein
-///\date 01/08/2015
+///\date 7/28/2016
 
-#ifndef DIGITIZATIONINFOFRAME_H_
-#define DIGITIZATIONINFOFRAME_H_
+#ifndef BLENDSHADER_H_
+#define BLENDSHADER_H_
 
-#include <QFrame>
-
-namespace Ui
-{
-	class DigitizationInfoFrame;
-}
+#include "gl/Shader.h"
 
 namespace xma
-{;
-	class CameraViewWidget;
+{
+	class BlendShader : public Shader {
 
-	class DigitizationInfoFrame : public QFrame
-	{
-		Q_OBJECT
+	public :
+		BlendShader();
+		virtual ~BlendShader();
 
-	public:
-		virtual ~DigitizationInfoFrame();
-		DigitizationInfoFrame(QWidget* parent = 0);
-
-		void reset();
+		void draw(unsigned int width, unsigned int height, float transparency, unsigned int texture_id, unsigned int depth_texture_id, bool useDepthTrans);
 
 	private:
-		Ui::DigitizationInfoFrame* frame;
-		CameraViewWidget * cameraWidget;
-	public slots:
-		void on_doubleSpinBoxBias_valueChanged(double value);
-		void on_horizontalSliderBias_valueChanged(int value);
-		void on_doubleSpinBoxScale_valueChanged(double value);
-		void on_horizontalSliderScale_valueChanged(int value);
-		void on_doubleSpinBoxTransparency_valueChanged(double value);
-		void on_horizontalSliderTransparency_valueChanged(int value);
-		void on_checkBoxTransparentModels_clicked();
-		void on_pushButtonReset_clicked();
 	};
 }
 
 
-#endif /* DIGITIZATIONINFOFRAME_H_ */
+#endif /* DISTORTIONSHADER_H_ */
 
