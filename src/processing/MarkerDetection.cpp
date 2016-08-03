@@ -70,7 +70,7 @@ MarkerDetection::MarkerDetection(int camera, int trial, int frame, int marker, d
 	m_y = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame].y;
 	m_searchArea = (int)(searcharea + 0.5);
 
-	if (m_method == 1)
+	if (m_method == 1 || m_method == 6)
 	{
 		if (m_searchArea < 50) m_searchArea = 50;
 	}
@@ -115,9 +115,9 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 	cv::cvtColor(subimage, orig2, CV_GRAY2RGB);
 	cv::imwrite("1_Det_original.png", orig2);
 #endif
-	if (method == 0 || method == 2 )
+	if (method == 0 || method == 2 || method == 5)
 	{
-		if (method == 2 || method == 5) subimage = cv::Scalar::all(255) - subimage;
+		if (method == 2) subimage = cv::Scalar::all(255) - subimage;
 
 		//Convert To float
 		cv::Mat img_float;
@@ -179,11 +179,19 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		//Find closest contour
 		for (unsigned int i = 0; i < contours.size(); i++)
 		{
-			cv::Point2f circle_center;
-			float circle_radius;
-			cv::minEnclosingCircle(contours[i], circle_center, circle_radius);
+			cv::Point2f detected_center;
+			
+			if (method == 5)
+			{
+				cv::Moments mu = moments(contours[i], false);
+				detected_center = cv::Point2f(mu.m10 / mu.m00, mu.m01 / mu.m00);
+			}
+			else{
+				float circle_radius;
+				cv::minEnclosingCircle(contours[i], detected_center, circle_radius);
+			}
 
-			double distTmp = sqrt((center.x - circle_center.x) * (center.x - circle_center.x) + (center.y - circle_center.y) * (center.y - circle_center.y));
+			double distTmp = sqrt((center.x - detected_center.x) * (center.x - detected_center.x) + (center.y - detected_center.y) * (center.y - detected_center.y));
 			if (distTmp < dist)
 			{
 				bestIdx = i;
@@ -191,18 +199,25 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 			}
 		}
 
-
-
 		//set contour
 		if (bestIdx >= 0)
 		{
-			cv::Point2f circle_center;
+			cv::Point2f detected_center;
+
 			float circle_radius;
-			cv::minEnclosingCircle(contours[bestIdx], circle_center, circle_radius);
-			point_out.x = circle_center.x;
-			point_out.y = circle_center.y;
+			cv::minEnclosingCircle(contours[bestIdx], detected_center, circle_radius);
+
+			if (method == 5)
+			{
+				cv::Moments mu = moments(contours[bestIdx], false);
+				detected_center = cv::Point2f(mu.m10 / mu.m00, mu.m01 / mu.m00);
+			}
+
+			point_out.x = detected_center.x;
+			point_out.y = detected_center.y;
 			tmp_size = circle_radius;
 
+		
 #ifdef WRITEIMAGES
 			cv::Point2d cent = circle_center - cv::Point2f(off_x, off_y);
 			cv::circle(orig, cent, circle_radius, cv::Scalar(0, 0, 255, 50));
@@ -267,7 +282,6 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 	else if (method == 1 || method == 6)
 	{
 		cv::SimpleBlobDetector::Params paramsBlob;
-
 		paramsBlob.thresholdStep = Settings::getInstance()->getFloatSetting("BlobDetectorThresholdStep");
 		paramsBlob.minThreshold = Settings::getInstance()->getFloatSetting("BlobDetectorMinThreshold");
 		paramsBlob.maxThreshold = Settings::getInstance()->getFloatSetting("BlobDetectorMaxThreshold");
@@ -332,11 +346,9 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 
 void MarkerDetection::detectMarker_thread()
 {
-	if (m_method == 6) return;
+	if (m_method == 4) return;
 
 	cv::Point2d pt = detectionPoint(Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[m_camera]->getImage(), m_method, cv::Point2d(m_x, m_y), m_searchArea, m_input_size, m_thresholdOffset, &m_size);
-
-	//if (m_method == 4 || m_method == 5) refinePointPolynomialFit(pt, m_size, (m_method == 4), m_camera, m_trial);
 
 	m_x = pt.x;
 	m_y = pt.y;

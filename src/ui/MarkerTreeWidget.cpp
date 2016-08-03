@@ -233,7 +233,7 @@ void MarkerTreeWidget::action_ChangeDetectionMethod_triggered()
 {
 	bool ok;
 	QStringList methodnames;
-	methodnames << "default Xray marker" << "Blobdetection" << "white marker" << "corner detection" << "no detection";
+	methodnames << "default Xray marker" << "Blobdetection" << "white marker" << "corner detection" << "no detection" << "xray marker (center of mass)" << "white Blobdetection";
 
 	QString methodName = QInputDialog::getItem(this, tr("Choose method"),
 	                                           tr("Method:"), methodnames, 0, false, &ok);
@@ -343,7 +343,7 @@ void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 									size = 5;
 								}
 
-								bool success = MarkerDetection::refinePointPolynomialFit(pt, size, marker_method != 2, c, xma::State::getInstance()->getActiveTrial());
+								bool success = MarkerDetection::refinePointPolynomialFit(pt, size, marker_method != 2 && marker_method != 6, c, xma::State::getInstance()->getActiveTrial());
 
 								if (success){
 									markerStatus status = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(it)->text(0).toInt() - 1]->getStatus2D()[c][i];

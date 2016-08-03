@@ -1095,8 +1095,16 @@ void Marker::updateToProject12()
 			status2D[c][i] = updateStatus12(status2D[c][i]);
 	}
 
-	if (method == 4) method = 0;
-	if (method == 5) method = 2;
+	if (method == 4){
+		method = 0;
+	}
+	else if (method == 5)
+	{
+		method = 2;
+	}
+	else if (method == 6) {
+		method = 4;
+	}
 }
 
 void Marker::interpolate()
