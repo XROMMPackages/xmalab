@@ -75,15 +75,22 @@ double GLSharedWidget::getVersion()
 	return version;
 }
 
+QString GLSharedWidget::getInfo()
+{
+	return gl_VENDOR + "\n" + gl_RENDERER + "\n" + gl_VERSION + "\n" + gl_SHADING_LANGUAGE_VERSION + "\n" + gl_EXTENSIONS;
+}
+
+
 void GLSharedWidget::initializeGL()
 {
-	std::cout << "Graphics Card Vendor " << glGetString(GL_VENDOR) << std::endl;
-	std::cout << "Renderer " << glGetString(GL_RENDERER) << std::endl;
-	std::cout << "Version " << glGetString(GL_VERSION)  << std::endl;
-	
+	gl_VENDOR = QString::fromAscii(reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
+	gl_RENDERER = QString::fromAscii(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+	gl_VERSION = QString::fromAscii(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+	gl_SHADING_LANGUAGE_VERSION = QString::fromAscii(reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
+	gl_EXTENSIONS = QString::fromAscii(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
+
 	QString version_string = QString::fromAscii(reinterpret_cast<const char*>(glGetString(GL_VERSION)), 3);
 	version = version_string.toDouble();
-	std::cerr << "Version " << version << std::endl;
 
 	GLenum err = glewInit();
 	if (GLEW_OK != err)

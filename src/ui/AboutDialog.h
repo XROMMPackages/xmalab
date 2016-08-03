@@ -49,7 +49,8 @@ namespace xma
 
 	public slots:
 
-	void on_pushButtonLicense_clicked();
+		void on_pushButtonLicense_clicked();
+		void on_pushButtonOpenGLInfo_clicked();
 	};
 }
 

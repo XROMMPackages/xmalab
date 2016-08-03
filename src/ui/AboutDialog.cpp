@@ -30,6 +30,7 @@
 
 #include "ui/AboutDialog.h"
 #include "ui_AboutDialog.h"
+#include "ui/GLSharedWidget.h"
 
 #include <QMessageBox>
 
@@ -67,6 +68,17 @@ void AboutDialog::on_pushButtonLicense_clicked()
 	text += "\n\nBROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR ANY PARTICULAR PURPOSE.IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.";
 	msgBox.setText(text);
 
+	QGridLayout* layout = (QGridLayout*)msgBox.layout();
+	layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
+	msgBox.exec();
+}
+
+
+void xma::AboutDialog::on_pushButtonOpenGLInfo_clicked()
+{
+	QMessageBox msgBox;
+	QSpacerItem* horizontalSpacer = new QSpacerItem(800, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	msgBox.setText(GLSharedWidget::getInstance()->getInfo());
 	QGridLayout* layout = (QGridLayout*)msgBox.layout();
 	layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
 	msgBox.exec();

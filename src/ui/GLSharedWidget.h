@@ -41,7 +41,7 @@ namespace xma
 		const QGLContext* getQGLContext();
 		void makeGLCurrent();
 		double getVersion();
-
+		QString getInfo();
 	public slots:
 
 		bool getHasBlendExt();
@@ -65,6 +65,13 @@ namespace xma
 		bool hasBlendSubtract;
 		bool hasBlendExt;
 		double version;
+
+		QString gl_VENDOR;
+		QString gl_RENDERER;
+		QString gl_VERSION;
+		QString gl_SHADING_LANGUAGE_VERSION;
+		QString gl_EXTENSIONS;
+
 	};
 }
 
