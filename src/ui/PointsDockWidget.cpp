@@ -65,7 +65,6 @@ PointsDockWidget::PointsDockWidget(QWidget* parent) :
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 
 	Shortcuts::getInstance()->installEventFilterToChildren(this);
-	dock->checkBoxDrawMarkerIds->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawMarkerIds"));
 	dock->checkBoxShowMarkerStatus->setChecked(Settings::getInstance()->getBoolSetting("ShowMarkerStates"));
 }
 
@@ -363,12 +362,6 @@ void PointsDockWidget::on_pushButtonImportExport_clicked()
 	diag->exec();
 	delete diag;
 	reloadListFromObject();
-}
-
-void PointsDockWidget::on_checkBoxDrawMarkerIds_clicked()
-{
-	Settings::getInstance()->set("TrialDrawMarkerIds", dock->checkBoxDrawMarkerIds->isChecked());
-	MainWindow::getInstance()->redrawGL();
 }
 
 void PointsDockWidget::on_checkBoxShowMarkerStatus_clicked()

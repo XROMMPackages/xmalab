@@ -51,6 +51,11 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 	frame(new Ui::WizardDigitizationFrame)
 {
 	frame->setupUi(this);
+
+	frame->checkBoxMarkerIds->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawMarkerIds"));
+	frame->checkBoxRigidBodyConstellation->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyConstellation"));
+	frame->checkBoxRigidBodyMeshmodels->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyMeshmodels"));
+
 #ifdef __APPLE__
 	frame->pushButton->setMinimumHeight(26);
                                                     
@@ -72,6 +77,10 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 	frame->pushButton_InterpolateActive->setMinimumHeight(26);
 	frame->pushButton_InterpolateAll->setMinimumHeight(26);
 
+	frame->checkBoxMarkerIds->setMinimumHeight(26);
+	frame->checkBoxRigidBodyConstellation->setMinimumHeight(26);
+	frame->checkBoxRigidBodyMeshmodels->setMinimumHeight(26);
+
 	frame->pushButton_RBBack->setFocusPolicy(Qt::StrongFocus);
 	frame->pushButton_RBPrev->setFocusPolicy(Qt::StrongFocus);
 	frame->pushButton_RBForw->setFocusPolicy(Qt::StrongFocus);
@@ -86,6 +95,10 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 	frame->pushButton_PointPrev->setFocusPolicy(Qt::StrongFocus);
 	frame->pushButton_PointBack->setFocusPolicy(Qt::StrongFocus);
 	frame->pushButton_PointForw->setFocusPolicy(Qt::StrongFocus);
+
+	frame->checkBoxMarkerIds->setFocusPolicy(Qt::StrongFocus);
+	frame->checkBoxRigidBodyConstellation->setFocusPolicy(Qt::StrongFocus);
+	frame->checkBoxRigidBodyMeshmodels->setFocusPolicy(Qt::StrongFocus);
 
 #endif
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
@@ -810,3 +823,20 @@ void WizardDigitizationFrame::uncheckTrackButtons()
 	setDialog();
 }
 
+void WizardDigitizationFrame::on_checkBoxMarkerIds_clicked()
+{
+	Settings::getInstance()->set("TrialDrawMarkerIds", frame->checkBoxMarkerIds->isChecked());
+	MainWindow::getInstance()->redrawGL();
+}
+
+void WizardDigitizationFrame::on_checkBoxRigidBodyConstellation_clicked()
+{
+	Settings::getInstance()->set("TrialDrawRigidBodyConstellation", frame->checkBoxRigidBodyConstellation->isChecked());
+	MainWindow::getInstance()->redrawGL();
+}
+
+void WizardDigitizationFrame::on_checkBoxRigidBodyMeshmodels_clicked()
+{
+	Settings::getInstance()->set("TrialDrawRigidBodyMeshmodels", frame->checkBoxRigidBodyMeshmodels->isChecked());
+	MainWindow::getInstance()->redrawGL();
+}

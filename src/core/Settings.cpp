@@ -155,6 +155,9 @@ Settings::Settings()
 	addBoolSetting("ExportTransFiltered", true);
 
 	addBoolSetting("TrialDrawMarkerIds", false);
+	addBoolSetting("TrialDrawRigidBodyConstellation", true);
+	addBoolSetting("TrialDrawRigidBodyMeshmodels", true);
+
 	addBoolSetting("ShowMarkerStates", false);
 
 	addIntSetting("EpipolarLinePrecision", 5);

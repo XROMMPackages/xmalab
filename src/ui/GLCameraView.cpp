@@ -606,7 +606,7 @@ void GLCameraView::paintGL()
 	{
 		if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
 		{
-			if (!detailedView)
+			if (!detailedView && Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyMeshmodels"))
 			{
 				renderMeshes = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->renderMeshes();
 			}
@@ -719,6 +719,11 @@ void GLCameraView::paintGL()
 				if (!detailedView)
 				{
 					if (!doDistortion){
+						setFont(QFont(this->font().family(), 12));
+						qglColor(QColor(255, 0, 0));
+						QFontMetrics fm(this->font());
+						QString string("Rigid body models are not distorted! XMALab is currently computing the distortion!");
+						renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, -zoomRatio * (fm.height() - window_height)* 0.5 - y_offset, 0.0, string);
 						blendShader->draw(camera_width, camera_height, transparency, rigidbodyBufferUndistorted->getTextureID(), rigidbodyBufferUndistorted->getDepthTextureID(), true);
 					}
 					else
@@ -827,7 +832,8 @@ void GLCameraView::paintGL()
 
 			if (!detailedView)
 			{
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodies(this->camera);
+				if (Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyConstellation"))
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodies(this->camera);
 
 				if (Settings::getInstance()->getBoolSetting("TrialDrawMarkerIds"))
 				{

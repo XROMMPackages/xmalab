@@ -102,6 +102,10 @@ namespace xma
 
 		void checkIfValid();
 		void track();
+
+		void on_checkBoxMarkerIds_clicked();
+		void on_checkBoxRigidBodyConstellation_clicked();
+		void on_checkBoxRigidBodyMeshmodels_clicked();
 	};
 }
 
