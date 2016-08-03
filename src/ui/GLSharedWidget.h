@@ -48,7 +48,7 @@ namespace xma
 		bool getHasBlendSubtract();
 
 	protected:
-		GLSharedWidget(QWidget* parent = NULL);
+		GLSharedWidget(QGLFormat format, QWidget* parent = NULL);
 		void initializeGL();
 
 		void paintEvent(QPaintEvent* event)

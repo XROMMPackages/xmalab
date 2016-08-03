@@ -73,7 +73,7 @@
 using namespace xma;
 
 GLCameraView::GLCameraView(QWidget* parent)
-	: QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
+	: QGLWidget(GLSharedWidget::getInstance()->format(), parent)
 {
 	camera = NULL;
 	window_width = 50;

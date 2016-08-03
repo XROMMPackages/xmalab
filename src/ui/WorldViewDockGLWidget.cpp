@@ -43,6 +43,7 @@
 
 #include <QtGui/QApplication>
 #include <QMouseEvent>
+#include "GLSharedWidget.h"
 
 #ifndef _PI
 #define _PI 3.141592653
@@ -55,7 +56,7 @@ GLfloat LightDiffuse[] = {0.5f, 0.5f, 0.5f, 1.0f}; // Diffuse Light Values
 GLfloat LightPosition[] = {0.0f, 10.0f, 0.0f, 1.0f}; // Light Position
 
 WorldViewDockGLWidget::WorldViewDockGLWidget(QWidget* parent)
-	: QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
+	: QGLWidget(GLSharedWidget::getInstance()->format(), parent)
 {
 	eyedistance = 500.0;
 	azimuth = 45.0;

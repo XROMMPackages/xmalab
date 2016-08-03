@@ -38,8 +38,8 @@ using namespace xma;
 
 GLSharedWidget* GLSharedWidget::instance = NULL;
 
-GLSharedWidget::GLSharedWidget(QWidget* parent)
-	: QGLWidget(QGLFormat(QGL::SampleBuffers), parent), version(0.0f)
+GLSharedWidget::GLSharedWidget(QGLFormat format, QWidget* parent)
+	: QGLWidget(format, parent), version(0.0f)
 {
 	setAutoFillBackground(false);
 	makeCurrent();
@@ -55,7 +55,9 @@ GLSharedWidget* GLSharedWidget::getInstance()
 {
 	if (!instance)
 	{
-		instance = new GLSharedWidget();
+		QGLFormat fmt = QGLFormat(QGL::SampleBuffers);
+		//fmt.setProfile(QGLFormat::CoreProfile);
+		instance = new GLSharedWidget(fmt);
 	}
 	return instance;
 }
