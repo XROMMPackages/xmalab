@@ -134,6 +134,7 @@ namespace xma
 		bool filterMarker(double cutoffFrequency, std::vector <cv::Point3d> &marker, std::vector <markerStatus>& status);
 
 		void updateToProject12();
+		void updateToProject13();
 
 		void interpolate();
 		int getInterpolation();

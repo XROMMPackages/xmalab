@@ -1107,6 +1107,11 @@ void Marker::updateToProject12()
 	}
 }
 
+void Marker::updateToProject13()
+{
+	maxPenalty = maxPenalty / 125 * 50;
+}
+
 void Marker::interpolate()
 {
 	//no interpolation

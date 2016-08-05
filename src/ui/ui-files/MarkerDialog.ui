@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>417</width>
-    <height>338</height>
+    <height>237</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -222,7 +222,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Maximum penalty for prediction distance</string>
+         <string>Maximum penalty for prediction distance (in percent)</string>
         </property>
        </widget>
       </item>

@@ -564,6 +564,10 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 	{
 		upgradeTo12(trial);
 	}
+	if (version < 0.3)
+	{
+		upgradeTo13(trial);
+	}
 
 	return trial;
 }
@@ -989,6 +993,13 @@ void ProjectFileIO::upgradeTo12(Trial *trial)
 	}
 }
 
+void ProjectFileIO::upgradeTo13(Trial* trial)
+{
+	for (std::vector<Marker*>::const_iterator it = trial->getMarkers().begin(); it < trial->getMarkers().end(); ++it){
+		(*it)->updateToProject13();
+	}
+}
+
 void ProjectFileIO::removeTmpDir()
 {
 	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp" + OS_SEP;
@@ -1007,7 +1018,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 			xmlWriter.writeStartDocument();
 			xmlWriter.setAutoFormatting(true);
 			xmlWriter.writeStartElement("Project");
-			xmlWriter.writeAttribute("Version", "0.2");
+			xmlWriter.writeAttribute("Version", "0.3");
 			xmlWriter.writeAttribute("ActiveTrial", QString::number(State::getInstance()->getActiveTrial()));
 			if (Project::getInstance()->getHasStudyData()){
 				xmlWriter.writeAttribute("MetaData", QString("projectMetaData") + OS_SEP + QString("metadata.xml"));
@@ -1627,6 +1638,11 @@ bool ProjectFileIO::readProjectFile(QString filename)
 	{
 		for (std::vector<Trial*>::const_iterator it = Project::getInstance()->getTrials().begin(); it < Project::getInstance()->getTrials().end(); ++it)
 		upgradeTo12(*it);
+	}
+	if (version < 0.3)
+	{
+		for (std::vector<Trial*>::const_iterator it = Project::getInstance()->getTrials().begin(); it < Project::getInstance()->getTrials().end(); ++it)
+			upgradeTo13(*it);
 	}
 
 	return true;

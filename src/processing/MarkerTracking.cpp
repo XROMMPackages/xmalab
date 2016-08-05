@@ -103,7 +103,7 @@ void MarkerTracking::trackMarker_thread()
 	/// Do the Matching and Normalize
 
 	matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
-	normalize(result, result, 0, 125, cv::NORM_MINMAX, -1, cv::Mat());
+	normalize(result, result, 0, (100 - maxPenalty), cv::NORM_MINMAX, -1, cv::Mat());
 
 #ifdef WRITEIMAGES
 	cv::imwrite("Tra_Result.png", result);
@@ -111,7 +111,7 @@ void MarkerTracking::trackMarker_thread()
 	cv::Mat springforce;
 	springforce.create(result_cols, result_rows, CV_32FC1);
 	double halfcol = 0.5 * result_cols;
-	double sigma = halfcol * sqrt(2 * log(255)) - 1;
+	double sigma = halfcol * 3;
 	for (int i = 0; i < result_cols; i++)
 	{
 		for (int j = 0; j < result_cols; j++)
@@ -129,7 +129,7 @@ void MarkerTracking::trackMarker_thread()
 #endif
 
 	result = result - springforce;
-	normalize(result, result, 0, 255, cv::NORM_MINMAX, -1, cv::Mat());
+	//normalize(result, result, 0, 255, cv::NORM_MINMAX, -1, cv::Mat());
 
 #ifdef WRITEIMAGES
 	cv::imwrite("Tra_PenResult.png", result);

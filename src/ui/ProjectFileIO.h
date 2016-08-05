@@ -57,6 +57,7 @@ namespace xma
 		void removeTmpDir();
 		void loadProjectMetaData(QString xml_filename);
 		void upgradeTo12(Trial *trial);
+		void upgradeTo13(Trial *trial);
 
 	private:
 
