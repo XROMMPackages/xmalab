@@ -29,7 +29,7 @@
 #ifndef RIGIDBODYOBJ
 #define RIGIDBODYOBJ
 
-#include <QString.h>
+#include <QString>
 #include <vector>
 
 namespace xma

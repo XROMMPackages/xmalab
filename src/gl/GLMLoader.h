@@ -33,7 +33,7 @@
 #define GLMLOADER_H_
 
 #include "gl/VertexBuffer.h"
-#include <QString.h>
+#include <QString>
 
 namespace xma
 {
