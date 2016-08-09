@@ -660,14 +660,12 @@ void GLCameraView::paintGL()
 						glMatrixMode(GL_MODELVIEW);
 						glLoadMatrixd(&model[0]);
 						if (GLSharedWidget::getInstance()->getVersion() > 3.2){
-							glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 							glEnable(GL_MULTISAMPLE);
 						}
 
 						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodiesMesh();
 
 						if (GLSharedWidget::getInstance()->getVersion() > 3.2){
-							glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 							glDisable(GL_MULTISAMPLE);
 						}
 
