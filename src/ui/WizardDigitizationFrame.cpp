@@ -112,7 +112,6 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 	trackType = 0;
 	trackDirection = 0;
 	singleTrack = false;
-	//isTracking = false;
 }
 
 void WizardDigitizationFrame::addDigitizationPoint(int camera, double x, double y)
@@ -248,7 +247,7 @@ void WizardDigitizationFrame::trackSinglePoint()
 			}
 			trackers.clear();
 		}
-		else if (abs(trackDirection) > 1)
+		else
 		{
 			checkIfValid();
 		}
@@ -335,7 +334,7 @@ void WizardDigitizationFrame::trackAll()
 		}
 		trackers.clear();
 	}
-	else if (abs(trackDirection) > 1)
+	else
 	{
 		checkIfValid();
 	}
