@@ -131,6 +131,8 @@ void PointImportExportDialog::on_radioButton_Single_toggled(bool value)
 	case EXPORTTRANS:
 		Settings::getInstance()->set("ExportTransSingle", value);
 		break;
+    default:
+        break;
 	}
 }
 
@@ -147,6 +149,8 @@ void PointImportExportDialog::on_radioButton_Multi_toggled(bool value)
 	case EXPORTTRANS:
 		Settings::getInstance()->set("ExportTransMulti", value);
 		break;
+    default:
+        break;
 	}
 }
 
@@ -160,7 +164,9 @@ void PointImportExportDialog::on_radioButton_Count0_toggled(bool value)
 	case EXPORT2D:
 		Settings::getInstance()->set("Export2DCount0", value);
 		break;
-	}
+    default:
+        break;
+    }
 }
 
 void PointImportExportDialog::on_radioButton_Count1_toggled(bool value)
@@ -172,7 +178,9 @@ void PointImportExportDialog::on_radioButton_Count1_toggled(bool value)
 		break;
 	case EXPORT2D:
 		Settings::getInstance()->set("Export2DCount1", value);
-		break;
+            break;
+    default:
+        break;
 	}
 }
 
@@ -192,6 +200,8 @@ void PointImportExportDialog::on_radioButton_Header_toggled(bool value)
 	case EXPORTTRANS:
 		Settings::getInstance()->set("ExportTransHeader", value);
 		break;
+    default:
+        break;
 	}
 }
 
@@ -211,7 +221,8 @@ void PointImportExportDialog::on_radioButton_NoHeader_toggled(bool value)
 	case EXPORTTRANS:
 		Settings::getInstance()->set("ExportTransNoHeader", value);
 		break;
-	}
+    default:
+        break;	}
 }
 
 void PointImportExportDialog::on_radioButton_YDown_toggled(bool value)
@@ -224,6 +235,8 @@ void PointImportExportDialog::on_radioButton_YDown_toggled(bool value)
 	case EXPORT2D:
 		Settings::getInstance()->set("Export2DYDown", value);
 		break;
+    default:
+        break;
 	}
 }
 
@@ -237,6 +250,8 @@ void PointImportExportDialog::on_radioButton_YUp_toggled(bool value)
 	case EXPORT2D:
 		Settings::getInstance()->set("Export2DYUp", value);
 		break;
+    default:
+        break;
 	}
 }
 
@@ -250,6 +265,8 @@ void PointImportExportDialog::on_radioButton_Distorted_toggled(bool value)
 	case EXPORT2D:
 		Settings::getInstance()->set("Export2DDistorted", value);
 		break;
+    default:
+        break;
 	}
 }
 
@@ -263,7 +280,8 @@ void PointImportExportDialog::on_radioButton_Undistorted_toggled(bool value)
 	case EXPORT2D:
 		Settings::getInstance()->set("Export2DUndistorted", value);
 		break;
-	}
+    default:
+        break;	}
 }
 
 void PointImportExportDialog::on_radioButton_NoCols_toggled(bool value)
@@ -276,6 +294,8 @@ void PointImportExportDialog::on_radioButton_NoCols_toggled(bool value)
 	case EXPORT2D:
 		Settings::getInstance()->set("Export2DNoCols", value);
 		break;
+    default:
+        break;
 	}
 }
 
@@ -289,6 +309,8 @@ void PointImportExportDialog::on_radioButton_OffsetCols_toggled(bool value)
 	case EXPORT2D:
 		Settings::getInstance()->set("Export2DOffsetCols", value);
 		break;
+    default:
+        break;
 	}
 }
 

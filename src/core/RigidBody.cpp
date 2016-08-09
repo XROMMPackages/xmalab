@@ -804,7 +804,7 @@ void RigidBody::updateError(int Frame, bool filtered)
 
 	int count = 0;
 
-	if (points3D.size() > 0 && (poseComputed[Frame] && !filtered) || (filtered && poseFiltered[Frame]))
+	if ((points3D.size() > 0) && ((poseComputed[Frame] && !filtered) || (filtered && poseFiltered[Frame])))
 	{
 		count = 0;
 

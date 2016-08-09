@@ -778,7 +778,7 @@ void CalibrationImage::sortGridByReference(double x, double y)
 
 	int idx = 0;
 	double dist = 10000000;
-	for (unsigned int i = 0; i < detectedPoints_ALL.size(); i += detectedPoints_ALL.size() - 1)
+	for (unsigned int i = 0; i < detectedPoints_ALL.size(); i += (detectedPoints_ALL.size() - 1))
 	{
 		double tmp = (x - detectedPoints_ALL[i].x) * (x - detectedPoints_ALL[i].x) + (y - detectedPoints_ALL[i].y) * (y - detectedPoints_ALL[i].y);
 		if (tmp < dist)
@@ -801,10 +801,10 @@ void CalibrationImage::sortGridByReference(double x, double y)
 			Inlier.push_back(1);
 		}
 	}
-	else if (idx = detectedPoints_ALL.size() - 1)
+	else if (idx == (detectedPoints_ALL.size() - 1))
 	{
 		//invert
-		for (int i = detectedPoints_ALL.size() - 1; i >= 0; i--)
+		for (int i = (detectedPoints_ALL.size() - 1); i >= 0; i--)
 		{
 			detectedPoints.push_back(cv::Point2d(detectedPoints_ALL[i].x, detectedPoints_ALL[i].y));
 			detectedPointsUndistorted.push_back(cv::Point2d(detectedPoints_ALL[i].x, detectedPoints_ALL[i].y));

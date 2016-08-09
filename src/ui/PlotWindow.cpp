@@ -257,6 +257,10 @@ void PlotWindow::drawStatus(int idx)
 							marker_status[c][count]->setBrush(brush_ManualAndOpt);
 							marker_status[c][count]->setPen(pen_ManualAndOpt);
 							break;
+                        default:
+                            marker_status[c][count]->setBrush(brush_Undefined);
+							marker_status[c][count]->setPen(pen_Undefined);
+                            break;
 					}
 
 					marker_status[c][count]->topLeft->setCoords((((double) f) - 0.5 - posOffset) * posMultiplier, y_max - c*height);
