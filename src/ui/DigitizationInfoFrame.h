@@ -47,6 +47,7 @@ namespace xma
 		DigitizationInfoFrame(QWidget* parent = 0);
 
 		void reset();
+		void setTransparency(double value);
 
 	private:
 		Ui::DigitizationInfoFrame* frame;

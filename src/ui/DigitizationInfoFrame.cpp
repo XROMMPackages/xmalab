@@ -60,6 +60,12 @@ void DigitizationInfoFrame::reset()
 	cameraWidget->setRenderTransparentModels(true);
 }
 
+void DigitizationInfoFrame::setTransparency(double value)
+{
+	frame->horizontalSliderTransparency->setValue(value * 100);
+	frame->doubleSpinBoxTransparency->setValue(value);
+}
+
 DigitizationInfoFrame::~DigitizationInfoFrame()
 {
 	delete frame;

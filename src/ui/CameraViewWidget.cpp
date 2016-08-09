@@ -59,6 +59,7 @@ CameraViewWidget::CameraViewWidget(Camera* _camera, QWidget* parent) :
 
 	connect(widget->glCameraView, SIGNAL(autozoomChanged(bool)), this, SLOT(autozoomChanged(bool)));
 	connect(widget->glCameraView, SIGNAL(zoomChanged(int)), this, SLOT(zoomChanged(int)));
+	connect(widget->glCameraView, SIGNAL(transparencyChanged(double)), this, SLOT(transparencyChanged(double)));
 
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(State::getInstance(), SIGNAL(activeFrameCalibrationChanged(int)), this, SLOT(activeFrameCalibrationChanged(int)));
@@ -174,6 +175,14 @@ void CameraViewWidget::zoomChanged(int zoom)
 {
 	if (zoom != widget->spinBoxZoom->value())
 		widget->spinBoxZoom->setValue(zoom);
+}
+
+void CameraViewWidget::transparencyChanged(double value)
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		digitizationFrame->setTransparency(value);
+	}
 }
 
 void CameraViewWidget::workspaceChanged(work_state workspace)

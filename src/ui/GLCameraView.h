@@ -108,6 +108,8 @@ namespace xma
 
 		void autozoomChanged(bool on);
 		void zoomChanged(int zoom);
+		void transparencyChanged(double zoom);
+
 	private:
 		GLfloat LightAmbient[4];
 		GLfloat LightDiffuse[4];

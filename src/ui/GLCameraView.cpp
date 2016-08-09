@@ -316,18 +316,27 @@ void GLCameraView::wheelEvent(QWheelEvent* e)
 {
 	if (!detailedView || !Settings::getInstance()->getBoolSetting("CenterDetailView"))
 	{
-		State::getInstance()->changeActiveCamera(this->camera->getID());
-		double zoom_prev = zoomRatio;
+		if (e->modifiers().testFlag(Qt::ControlModifier))
+		{
+			if (State::getInstance()->getWorkspace() == DIGITIZATION){
+				setTransparency(transparency + 1.0 / 2400.0 * e->delta());
+				emit transparencyChanged(transparency);
+			}
+		}
+		else{
+			State::getInstance()->changeActiveCamera(this->camera->getID());
+			double zoom_prev = zoomRatio;
 
-		setZoomRatio(zoomRatio * 1 + e->delta() / 1000.0, false);
+			setZoomRatio(zoomRatio * 1 + e->delta() / 1000.0, false);
 
-		QPoint coordinatesGlobal = e->globalPos();
-		QPoint coordinates = this->mapFromGlobal(coordinatesGlobal);
+			QPoint coordinatesGlobal = e->globalPos();
+			QPoint coordinates = this->mapFromGlobal(coordinatesGlobal);
 
-		y_offset += (zoom_prev - zoomRatio) * (0.5 * window_height - coordinates.y());
-		x_offset += (zoom_prev - zoomRatio) * (0.5 * window_width - coordinates.x());
+			y_offset += (zoom_prev - zoomRatio) * (0.5 * window_height - coordinates.y());
+			x_offset += (zoom_prev - zoomRatio) * (0.5 * window_width - coordinates.x());
 
-		updateGL();
+			updateGL();
+		}
 	}
 }
 
@@ -377,7 +386,13 @@ void GLCameraView::setBias(double value)
 
 void GLCameraView::setTransparency(double value)
 {
+	
 	transparency = value;
+
+	if (transparency < 0.0)  transparency = 0.0;
+
+	if (transparency > 1.0)  transparency = 1.0;
+
 	update();
 }
 

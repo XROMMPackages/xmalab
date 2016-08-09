@@ -77,6 +77,7 @@ namespace xma
 
 		void autozoomChanged(bool on);
 		void zoomChanged(int zoom);
+		void transparencyChanged(double value);
 
 		void workspaceChanged(work_state workspace);
 		void activeFrameCalibrationChanged(int activeFrame);
