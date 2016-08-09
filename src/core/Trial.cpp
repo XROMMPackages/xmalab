@@ -742,23 +742,6 @@ void Trial::saveRigidBodies(QString filename)
 	outfile.close();
 }
 
-void Trial::update()
-{
-	if (requiresRecomputation)
-	{
-		for (unsigned int i = 0; i < getMarkers().size(); i++)
-		{
-			getMarkers()[i]->update(true);
-		}
-
-		for (unsigned int i = 0; i < getRigidBodies().size(); i++)
-		{
-			getRigidBodies()[i]->recomputeTransformations();
-		}
-		requiresRecomputation = false;
-	}
-}
-
 void Trial::changeImagePath(int camera, QString newfolder, QString oldfolder)
 {
 	videos[camera]->changeImagePath(newfolder, oldfolder);

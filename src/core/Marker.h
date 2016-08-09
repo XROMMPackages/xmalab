@@ -140,12 +140,12 @@ namespace xma
 		int getInterpolation();
 		void setInterpolation(int value);
 		QColor getStatusColor(int camera, int frame);
+		void reprojectPoint(int frame);
 
 	private:
 		void init(int nbCameras, int size);
 		void addFrame();
 		void clear();
-		void reprojectPoint(int frame);
 		void updateError(int frame);
 		void filterData(std::vector<int> idx, double cutoffFrequency, std::vector<cv::Point3d>& marker, std::vector<markerStatus>& status);
 		markerStatus updateStatus12(int statusOld);

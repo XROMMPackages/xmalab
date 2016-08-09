@@ -369,8 +369,6 @@ void Marker::reconstruct3DPointZissermanIncremental(int frame)
 
 			reprojectPoint(frame);
 		}
-
-		reprojectPoint(frame);
 	}
 }
 
@@ -906,6 +904,13 @@ void Marker::update(bool updateAll)
 			reconstruct3DPoint(i, updateAll);
 		}
 		requiresRecomputation = false;
+	}
+	else
+	{
+		for (unsigned int i = 0; i < points2D[0].size(); i++)
+		{
+			reprojectPoint(i);
+		}
 	}
 }
 

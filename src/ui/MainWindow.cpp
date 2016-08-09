@@ -624,61 +624,54 @@ void MainWindow::loadProjectFinished()
 
 void MainWindow::UndistortionAfterloadProjectFinished()
 {
-	bool allCamerasUndistorted = true;
+	if (!LocalUndistortion::isRunning()){
+		bool allCamerasUndistorted = true;
 
-	for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
-	{
-		if ((*it)->hasUndistortion())
+		for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
 		{
-			if (!(*it)->getUndistortionObject()->isComputed())
+			if ((*it)->hasUndistortion())
 			{
-				allCamerasUndistorted = false;
+				if (!(*it)->getUndistortionObject()->isComputed())
+				{
+					allCamerasUndistorted = false;
+				}
 			}
 		}
-	}
-	if (allCamerasUndistorted) State::getInstance()->changeUndistortion(UNDISTORTED);
+		if (allCamerasUndistorted) State::getInstance()->changeUndistortion(UNDISTORTED);
 
-	bool allCamerasCalibrated = true;
-	bool optimized = false;
-	for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
-	{
-		bool calibrated = false;
-		for (std::vector<CalibrationImage*>::const_iterator it2 = (*it)->getCalibrationImages().begin(); it2 != (*it)->getCalibrationImages().end(); ++it2)
+		bool allCamerasCalibrated = true;
+		for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
 		{
-			if ((*it2)->isCalibrated()) calibrated = true;
-		}
-		if (calibrated)
-		{
-			(*it)->setCalibrated(true);
-			if (!(*it)->isOptimized())
+			bool calibrated = false;
+			for (std::vector<CalibrationImage*>::const_iterator it2 = (*it)->getCalibrationImages().begin(); it2 != (*it)->getCalibrationImages().end(); ++it2)
 			{
-				(*it)->setRecalibrationRequired(1);
+				if ((*it2)->isCalibrated()) calibrated = true;
 			}
-			else
+			if (calibrated)
 			{
+				(*it)->setCalibrated(true);
 				(*it)->setRecalibrationRequired(0);
 				MultiCameraCalibration::reproject((*it)->getID());
 				Project::getInstance()->getCameras()[(*it)->getID()]->setUpdateInfoRequired(true);
-				optimized = true;
+			}
+			else
+			{
+				allCamerasCalibrated = false;
 			}
 		}
-		else
+		if (allCamerasCalibrated)
 		{
-			allCamerasCalibrated = false;
+			ui->actionImportTrial->setEnabled(true);
 		}
+
+		ConsoleDockWidget::getInstance()->afterLoad();
+
+		WizardDockWidget::getInstance()->update();
+
+		State::getInstance()->setLoading(false);
+
+		MainWindow::getInstance()->redrawGL();
 	}
-	if (allCamerasCalibrated)
-	{
-		ui->actionImportTrial->setEnabled(true);
-	}
-
-	ConsoleDockWidget::getInstance()->afterLoad();
-
-	WizardDockWidget::getInstance()->update();
-
-	State::getInstance()->setLoading(false);
-
-	MainWindow::getInstance()->redrawGL();
 }
 
 void MainWindow::closeProject()

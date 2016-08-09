@@ -51,8 +51,13 @@ void UpdateTrialFrame::process()
 {
 	for (unsigned int i = 0; i < m_trial->getMarkers().size(); i++)
 	{
-		if (m_trial->getMarkers()[i]->getRequiresRecomputation())
+		if (m_trial->getMarkers()[i]->getRequiresRecomputation()){
 			m_trial->getMarkers()[i]->reconstruct3DPoint(m_frame, true);
+		}
+		else
+		{
+			m_trial->getMarkers()[i]->reprojectPoint(m_frame);
+		}
 	}
 
 	for (unsigned int i = 0; i < m_trial->getRigidBodies().size(); i++)

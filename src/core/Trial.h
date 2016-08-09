@@ -109,7 +109,6 @@ namespace xma
 		void saveMarkers(QString filename);
 		void saveRigidBodies(QString filename);
 
-		void update();
 		void changeImagePath(int camera, QString newfoldeFr, QString oldfolder);
 		void updateAfterChangeImagePath();
 
