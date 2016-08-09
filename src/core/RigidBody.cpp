@@ -33,6 +33,7 @@
 #include "core/Camera.h"
 #include "core/Marker.h"
 #include "core/Project.h"
+#include "core/Settings.h"
 #include "core/UndistortionObject.h"
 #include "core/CalibrationImage.h"
 #include "core/HelperFunctions.h"
@@ -71,7 +72,6 @@ RigidBody::RigidBody(int size, Trial* _trial)
 	m_drawMeshModel = false;
 	cutoffFrequency = 0;
 	overrideCutoffFrequency = false;
-	useFilteredTransformations = false;
 	meshScale = 1.0;
 	init(size);
 }
@@ -110,7 +110,6 @@ void RigidBody::copyData(RigidBody* rb)
 	overrideCutoffFrequency = rb->getOverrideCutoffFrequency();
 	cutoffFrequency = rb->getOverrideCutoffFrequency();
 	color = rb->getColor();
-	useFilteredTransformations = rb->getUseFilteredTransformations();
 	meshScale = rb->getMeshScale();
 }
 
@@ -283,16 +282,6 @@ void RigidBody::setDrawMeshModel(bool value)
 void RigidBody::drawMesh(int frame)
 {
 	meshmodel->render(frame);
-}
-
-void RigidBody::setUseFilteredTransformations(bool value)
-{
-	useFilteredTransformations = value;
-}
-
-bool RigidBody::getUseFilteredTransformations()
-{
-	return useFilteredTransformations;
 }
 
 double RigidBody::getMeshScale()
@@ -1913,9 +1902,9 @@ void RigidBody::setColor(QColor value)
 
 void RigidBody::draw2D(Camera* cam, int frame)
 {
-	if (visible && (int) poseComputed.size() > frame && (poseComputed[frame] || (useFilteredTransformations && poseFiltered[frame])) && isReferencesSet())
+	if (visible && (int) poseComputed.size() > frame && (poseComputed[frame] || (Settings::getInstance()->getBoolSetting("TrialDrawFiltered") && poseFiltered[frame])) && isReferencesSet())
 	{
-		std::vector<cv::Point2d> points2D_projected = projectToImage(cam, frame, true,false,false,useFilteredTransformations);
+		std::vector<cv::Point2d> points2D_projected = projectToImage(cam, frame, true, false, false, Settings::getInstance()->getBoolSetting("TrialDrawFiltered"));
 
 		for (unsigned int i = 1; i < points2D_projected.size(); i++)
 		{
@@ -1937,7 +1926,7 @@ void RigidBody::draw2D(Camera* cam, int frame)
 				if (dummyRBIndex[i] >= 0)
 				{
 					cv::Point3d dummy_tmp;
-					if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints2[i], dummy_tmp, frame, useFilteredTransformations))
+					if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints2[i], dummy_tmp, frame, Settings::getInstance()->getBoolSetting("TrialDrawFiltered")))
 					{
 						count++;
 					}
@@ -1990,9 +1979,9 @@ void RigidBody::draw2D(Camera* cam, int frame)
 
 void RigidBody::draw3D(int frame)
 {
-	if (visible && (getPoseComputed()[frame] || (getUseFilteredTransformations() && getPoseFiltered()[frame])) && isReferencesSet())
+	if (visible && (getPoseComputed()[frame] || (Settings::getInstance()->getBoolSetting("TrialDrawFiltered") && getPoseFiltered()[frame])) && isReferencesSet())
 	{
-		bool filtered_trans = getUseFilteredTransformations();
+		bool filtered_trans = Settings::getInstance()->getBoolSetting("TrialDrawFiltered");
 		glPushMatrix();
 		double m[16];
 		//inversere Rotation = transposed rotation

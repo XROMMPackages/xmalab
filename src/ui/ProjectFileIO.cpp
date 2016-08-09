@@ -509,12 +509,6 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 													}
 												}
 
-												QString drawFiltered = attr.value("DrawFiltered").toString();
-												if (!drawFiltered.isEmpty())
-												{
-													trial->getRigidBodies()[id]->setUseFilteredTransformations(drawFiltered.toInt());
-												}
-
 												while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "RigidBody"))
 												{
 													if (xml.tokenType() == QXmlStreamReader::StartElement)
@@ -704,12 +698,6 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 															trial->getRigidBodies()[id]->setMeshScale(meshScale.toDouble());
 														}
 													}
-												}
-
-												QString drawFiltered = attr.value("DrawFiltered").toString();
-												if (!drawFiltered.isEmpty())
-												{
-													trial->getRigidBodies()[id]->setUseFilteredTransformations(drawFiltered.toInt());
 												}
 											}
 										}
@@ -1186,8 +1174,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 						xmlWriter.writeAttribute("DrawMeshmodel", QString::number((*trial_it)->getRigidBodies()[k]->getDrawMeshModel()));
 						xmlWriter.writeAttribute("MeshScale", QString::number((*trial_it)->getRigidBodies()[k]->getMeshScale()));
 					}
-					xmlWriter.writeAttribute("DrawFiltered", QString::number((*trial_it)->getRigidBodies()[k]->getUseFilteredTransformations()));
-					
+		
 					for (unsigned int p = 0; p < (*trial_it)->getRigidBodies()[k]->getDummyNames().size(); p++)
 					{
 						xmlWriter.writeStartElement("DummyMarker");
@@ -1571,12 +1558,6 @@ bool ProjectFileIO::readProjectFile(QString filename)
 													trial->getRigidBodies()[id]->setMeshScale(meshScale.toDouble());
 												}
 											}
-										}
-
-										QString drawFiltered = attr.value("DrawFiltered").toString();
-										if (!drawFiltered.isEmpty())
-										{
-											trial->getRigidBodies()[id]->setUseFilteredTransformations(drawFiltered.toInt());
 										}
 
 										while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "RigidBody"))

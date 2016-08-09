@@ -30,7 +30,7 @@
 #include "gl/GLMLoader.h"
 #include "core/RigidBodyObj.h"
 #include "core/RigidBody.h"
-
+#include "core/Settings.h"
 #include <iostream>
 
 
@@ -73,8 +73,8 @@ bool RigidBodyObj::vboSet()
 
 void RigidBodyObj::render(int frame)
 {
-	if (m_body->getPoseComputed()[frame] || (m_body->getUseFilteredTransformations() && m_body->getPoseFiltered()[frame])){
-		bool filtered = m_body->getUseFilteredTransformations();
+	if (m_body->getPoseComputed()[frame] || (Settings::getInstance()->getBoolSetting("TrialDrawFiltered") && m_body->getPoseFiltered()[frame])){
+		bool filtered = Settings::getInstance()->getBoolSetting("TrialDrawFiltered");
 		
 		glPushMatrix();
 

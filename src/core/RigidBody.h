@@ -135,8 +135,6 @@ namespace xma
 		bool getDrawMeshModel();
 		void setDrawMeshModel(bool value);
 		void drawMesh(int frame);
-		void setUseFilteredTransformations(bool value);
-		bool getUseFilteredTransformations();
 		double getMeshScale();
 		void setMeshScale(double value);
 
@@ -195,7 +193,6 @@ namespace xma
 
 		RigidBodyObj * meshmodel;
 		bool m_drawMeshModel;
-		bool useFilteredTransformations;
 		double meshScale;
 	};
 }

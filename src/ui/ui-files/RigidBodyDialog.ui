@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>692</width>
-    <height>310</height>
+    <width>471</width>
+    <height>313</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -76,19 +76,6 @@
       <string>Visualization</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="2" column="3">
-       <widget class="QDoubleSpinBox" name="doubleSpinBoxMeshScale">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximum">
-         <double>10000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
        <widget class="QCheckBox" name="checkBox_Draw">
         <property name="text">
@@ -98,15 +85,11 @@
       </item>
       <item row="0" column="3">
        <widget class="QToolButton" name="toolButton_Color">
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
         <property name="text">
          <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3">
-       <widget class="QToolButton" name="toolButton_Mesh">
-        <property name="text">
-         <string>...</string>
         </property>
        </widget>
       </item>
@@ -124,10 +107,16 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QCheckBox" name="checkBox_DrawFiltered">
-        <property name="text">
-         <string>Use filtered transformations for drawing</string>
+      <item row="2" column="3">
+       <widget class="QDoubleSpinBox" name="doubleSpinBoxMeshScale">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximum">
+         <double>10000.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -138,6 +127,13 @@
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QToolButton" name="toolButton_Mesh">
+        <property name="text">
+         <string>load Obj-file</string>
         </property>
        </widget>
       </item>

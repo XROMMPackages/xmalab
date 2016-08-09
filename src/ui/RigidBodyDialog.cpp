@@ -125,7 +125,6 @@ RigidBodyDialog::RigidBodyDialog(RigidBody* body, QWidget* parent) :
 		diag->doubleSpinBoxMeshScale->setEnabled(false);
 	}
 	diag->doubleSpinBoxMeshScale->setValue(m_body->getMeshScale());
-	diag->checkBox_DrawFiltered->setChecked(m_body->getUseFilteredTransformations());
 	
 	reloadDummyPoints();
 }
@@ -466,11 +465,6 @@ void RigidBodyDialog::on_toolButton_Mesh_clicked()
 			diag->doubleSpinBoxMeshScale->setEnabled(true);
 		}
 	}
-}
-
-void RigidBodyDialog::on_checkBox_DrawFiltered_clicked()
-{
-	m_body->setUseFilteredTransformations(diag->checkBox_DrawFiltered->isChecked());
 }
 
 void RigidBodyDialog::on_doubleSpinBoxMeshScale_valueChanged(double value)

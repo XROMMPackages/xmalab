@@ -220,6 +220,13 @@
       <string>Drawing</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_7">
+      <item row="0" column="3">
+       <widget class="QCheckBox" name="checkBoxRigidBodyMeshmodels">
+        <property name="text">
+         <string>Meshmodels</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0">
        <widget class="QCheckBox" name="checkBoxMarkerIds">
         <property name="text">
@@ -234,10 +241,10 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="3">
-       <widget class="QCheckBox" name="checkBoxRigidBodyMeshmodels">
+      <item row="1" column="0" colspan="4">
+       <widget class="QCheckBox" name="checkBox_DrawFiltered">
         <property name="text">
-         <string>Meshmodels</string>
+         <string>Use filtered transformations for drawing</string>
         </property>
        </widget>
       </item>

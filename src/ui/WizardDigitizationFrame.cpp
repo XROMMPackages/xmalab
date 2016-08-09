@@ -55,6 +55,7 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 	frame->checkBoxMarkerIds->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawMarkerIds"));
 	frame->checkBoxRigidBodyConstellation->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyConstellation"));
 	frame->checkBoxRigidBodyMeshmodels->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyMeshmodels"));
+	frame->checkBox_DrawFiltered->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawFiltered"));
 
 #ifdef __APPLE__
 	frame->pushButton->setMinimumHeight(26);
@@ -80,6 +81,7 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 	frame->checkBoxMarkerIds->setMinimumHeight(26);
 	frame->checkBoxRigidBodyConstellation->setMinimumHeight(26);
 	frame->checkBoxRigidBodyMeshmodels->setMinimumHeight(26);
+	frame->checkBox_DrawFiltered->setMinimumHeight(26);
 
 	frame->pushButton_RBBack->setFocusPolicy(Qt::StrongFocus);
 	frame->pushButton_RBPrev->setFocusPolicy(Qt::StrongFocus);
@@ -99,6 +101,7 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 	frame->checkBoxMarkerIds->setFocusPolicy(Qt::StrongFocus);
 	frame->checkBoxRigidBodyConstellation->setFocusPolicy(Qt::StrongFocus);
 	frame->checkBoxRigidBodyMeshmodels->setFocusPolicy(Qt::StrongFocus);
+	frame->checkBox_DrawFiltered->setFocusPolicy(Qt::StrongFocus);
 
 #endif
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
@@ -838,5 +841,11 @@ void WizardDigitizationFrame::on_checkBoxRigidBodyConstellation_clicked()
 void WizardDigitizationFrame::on_checkBoxRigidBodyMeshmodels_clicked()
 {
 	Settings::getInstance()->set("TrialDrawRigidBodyMeshmodels", frame->checkBoxRigidBodyMeshmodels->isChecked());
+	MainWindow::getInstance()->redrawGL();
+}
+
+void WizardDigitizationFrame::on_checkBox_DrawFiltered_clicked()
+{
+	Settings::getInstance()->set("TrialDrawFiltered", frame->checkBox_DrawFiltered->isChecked());
 	MainWindow::getInstance()->redrawGL();
 }

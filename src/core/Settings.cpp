@@ -157,7 +157,7 @@ Settings::Settings()
 	addBoolSetting("TrialDrawMarkerIds", false);
 	addBoolSetting("TrialDrawRigidBodyConstellation", true);
 	addBoolSetting("TrialDrawRigidBodyMeshmodels", true);
-
+	addBoolSetting("TrialDrawFiltered", false);
 	addBoolSetting("ShowMarkerStates", false);
 
 	addIntSetting("EpipolarLinePrecision", 5);
