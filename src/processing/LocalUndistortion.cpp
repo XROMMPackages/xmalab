@@ -379,10 +379,10 @@ void LocalUndistortion::createLookupTable(cv::Mat& controlPts, cv::Mat& A, cv::M
 
 	//vector for holding points in a grid
 
-	cv::vector<cv::vector<cv::vector<int>>> grid_pts;
+	cv::vector<cv::vector<cv::vector<int> >> grid_pts;
 	for (int x = 0; x < gwidth; x ++)
 	{
-		cv::vector<cv::vector<int>> col_pts;
+		cv::vector<cv::vector<int> > col_pts;
 		grid_pts.push_back(col_pts);
 		for (int y = 0; y < gheight; y ++)
 		{

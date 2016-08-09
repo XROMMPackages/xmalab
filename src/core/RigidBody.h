@@ -172,8 +172,8 @@ namespace xma
 		std::vector<cv::Point3d> dummypoints;
 		std::vector<cv::Point3d> dummypoints2;
 		std::vector<int> dummyRBIndex;
-		std::vector<std::vector<cv::Point3d>> dummypointsCoords;
-		std::vector<std::vector<bool>> dummypointsCoordsSet;
+		std::vector<std::vector<cv::Point3d> > dummypointsCoords;
+		std::vector<std::vector<bool> > dummypointsCoordsSet;
 
 		//for each frame
 		std::vector<int> poseComputed;

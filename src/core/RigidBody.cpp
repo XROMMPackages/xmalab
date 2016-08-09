@@ -710,8 +710,8 @@ void RigidBody::computePose(int Frame)
 
 		if (dst.size() >= 3)
 		{
-			cv::vector<cv::vector<double>> y, x;
-			cv::vector<cv::vector<double>> Y, X;
+			cv::vector<cv::vector<double> > y, x;
+			cv::vector<cv::vector<double> > Y, X;
 			cv::vector<double> vnl_tmp(3), yg(3, 0), xg(3, 0);
 			cv::vector<double> tmp;
 			cv::Mat K = cv::Mat::zeros(3, 3, CV_64F);
@@ -915,8 +915,8 @@ double RigidBody::fitAndComputeError(std::vector<cv::Point3d> src, std::vector<c
 
 	if (src.size() >= 3)
 	{
-		cv::vector<cv::vector<double>> y, x;
-		cv::vector<cv::vector<double>> Y, X;
+		cv::vector<cv::vector<double> > y, x;
+		cv::vector<cv::vector<double> > Y, X;
 		cv::vector<double> vnl_tmp(3), yg(3, 0), xg(3, 0);
 		cv::vector<double> tmp;
 		cv::Mat K = cv::Mat::zeros(3, 3, CV_64F);

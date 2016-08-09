@@ -66,10 +66,10 @@ namespace xma
 		Settings();
 		static Settings* instance;
 
-		std::vector<std::pair<QString, bool>> booleanSettings;
-		std::vector<std::pair<QString, int>> intSettings;
-		std::vector<std::pair<QString, float>> floatSettings;
-		std::vector<std::pair<QString, QString>> qstringSettings;
+		std::vector<std::pair<QString, bool> > booleanSettings;
+		std::vector<std::pair<QString, int> > intSettings;
+		std::vector<std::pair<QString, float> > floatSettings;
+		std::vector<std::pair<QString, QString> > qstringSettings;
 
 		void addBoolSetting(QString name, bool defaultValue);
 		void addIntSetting(QString name, int defaultValue);

@@ -170,7 +170,7 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 #endif
 
 		//Find contours
-		cv::vector<cv::vector<cv::Point>> contours;
+		cv::vector<cv::vector<cv::Point> > contours;
 		cv::vector<cv::Vec4i> hierarchy;
 		cv::findContours(subimage, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cv::Point(off_x, off_y));
 		double dist = 1000;

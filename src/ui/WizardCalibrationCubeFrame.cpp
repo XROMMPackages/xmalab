@@ -731,8 +731,8 @@ bool WizardCalibrationCubeFrame::calibrateOtherFrames()
 	temporaryFrameIdx.clear();
 	std::vector<BlobDetection *> detectors;
 	bool isRunning = false;
-	cv::vector<cv::vector<cv::Mat>> CamJToCamKTransformation;
-	cv::vector<cv::vector<bool>> CamJToCamKTransformationSet;
+	cv::vector<cv::vector<cv::Mat> > CamJToCamKTransformation;
+	cv::vector<cv::vector<bool> > CamJToCamKTransformationSet;
 
 	for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j ++)
 	{

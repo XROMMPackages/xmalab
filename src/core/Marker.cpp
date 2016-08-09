@@ -71,22 +71,22 @@ QString Marker::getDescription()
 	return description;
 }
 
-const std::vector<std::vector<markerStatus>>& Marker::getStatus2D()
+const std::vector<std::vector<markerStatus> >& Marker::getStatus2D()
 {
 	return status2D;
 }
 
-std::vector<std::vector<cv::Point2d>>& Marker::getPoints2D()
+std::vector<std::vector<cv::Point2d> >& Marker::getPoints2D()
 {
 	return points2D;
 }
 
-std::vector<std::vector<cv::Point2d>>& Marker::getPoints2D_projected()
+std::vector<std::vector<cv::Point2d> >& Marker::getPoints2D_projected()
 {
 	return points2D_projected;
 }
 
-std::vector<std::vector<double>>& Marker::getError2D()
+std::vector<std::vector<double> >& Marker::getError2D()
 {
 	return error2D;
 }
@@ -1594,26 +1594,26 @@ std::vector<cv::Point2d> Marker::getEpipolarLine(int cameraOrigin, int CameraDes
 
 void Marker::clear()
 {
-	for (std::vector<std::vector<cv::Point2d>>::iterator pt_it = points2D.begin(); pt_it != points2D.end(); ++pt_it)
+	for (std::vector<std::vector<cv::Point2d> >::iterator pt_it = points2D.begin(); pt_it != points2D.end(); ++pt_it)
 	{
 		pt_it->clear();
 	}
 
-	for (std::vector<std::vector<cv::Point2d>>::iterator pt_it = points2D_projected.begin(); pt_it != points2D_projected.end(); ++pt_it)
+	for (std::vector<std::vector<cv::Point2d> >::iterator pt_it = points2D_projected.begin(); pt_it != points2D_projected.end(); ++pt_it)
 	{
 		pt_it->clear();
 	}
 
-	for (std::vector<std::vector<markerStatus>>::iterator status_it = status2D.begin(); status_it != status2D.end(); ++status_it)
+	for (std::vector<std::vector<markerStatus> >::iterator status_it = status2D.begin(); status_it != status2D.end(); ++status_it)
 	{
 		status_it->clear();
 	}
-	for (std::vector<std::vector<double>>::iterator error_it = error2D.begin(); error_it != error2D.end(); ++error_it)
+	for (std::vector<std::vector<double> >::iterator error_it = error2D.begin(); error_it != error2D.end(); ++error_it)
 	{
 		error_it->clear();
 	}
 
-	for (std::vector<std::vector<double>>::iterator size_it = markerSize.begin(); size_it != markerSize.end(); ++size_it)
+	for (std::vector<std::vector<double> >::iterator size_it = markerSize.begin(); size_it != markerSize.end(); ++size_it)
 	{
 		size_it->clear();
 	}

@@ -168,22 +168,22 @@ SET(Processing_SOURCES
 SOURCE_GROUP(_PROCESSING FILES ${Processing_HEADERS} ${Processing_SOURCES})
 
 SET(GL_HEADERS 
-	src/gl/Framebuffer.h
+	src/gl/FrameBuffer.h
 	src/gl/VertexBuffer.h
 	src/gl/GLMLoader.h
 	src/gl/Shader.h
 	src/gl/DistortionShader.h
-	src/gl/MultisampleFramebuffer.h
+	src/gl/MultisampleFrameBuffer.h
 	src/gl/BlendShader.h
 )
 
 SET(GL_SOURCES
-	src/gl/Framebuffer.cpp
+	src/gl/FrameBuffer.cpp
 	src/gl/VertexBuffer.cpp
 	src/gl/GLMLoader.cpp
 	src/gl/Shader.cpp
 	src/gl/DistortionShader.cpp
-	src/gl/MultisampleFramebuffer.cpp
+	src/gl/MultisampleFrameBuffer.cpp
 	src/gl/BlendShader.cpp
 )
 

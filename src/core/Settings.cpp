@@ -181,7 +181,7 @@ Settings* Settings::getInstance()
 }
 
 template <typename T>
-int findIdx(QString name, std::vector<std::pair<QString, T>>& vec)
+int findIdx(QString name, std::vector<std::pair<QString, T> >& vec)
 {
 	for (unsigned int i = 0; i < vec.size(); i++)
 	{

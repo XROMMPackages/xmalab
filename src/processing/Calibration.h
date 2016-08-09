@@ -60,8 +60,8 @@ namespace xma
 		cv::Mat distortion_coeffs;
 		cv::Mat intrinsic_matrix;
 
-		std::vector<std::vector<cv::Point3f>> object_points;
-		std::vector<std::vector<cv::Point2f>> image_points;
+		std::vector<std::vector<cv::Point3f> > object_points;
+		std::vector<std::vector<cv::Point2f> > image_points;
 
 		cv::Mat rotationvector;
 		cv::Mat translationvector;

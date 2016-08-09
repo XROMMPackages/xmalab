@@ -80,7 +80,7 @@ namespace xma
 		QCPItemLine* frameMarker;
 		QCPItemRect* selectionMarker;
 
-		std::vector<std::vector<QCPItemRect *>> marker_status;
+		std::vector<std::vector<QCPItemRect *> > marker_status;
 		int startFrame;
 		int endFrame;
 		bool updating;

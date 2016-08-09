@@ -903,7 +903,7 @@ void UndistortionObject::exportData(QString csvFileNameLUT, QString csvFileNameI
 
 void UndistortionObject::loadPoints(cv::vector<cv::Point2d>& points, QString filename)
 {
-	std::vector<std::vector<double>> values;
+	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
 	std::istringstream in;
 	std::string line;
@@ -951,7 +951,7 @@ void UndistortionObject::loadGridPointsReferences(QString filename)
 
 void UndistortionObject::loadGridPointsInlier(QString filename)
 {
-	std::vector<std::vector<double>> values;
+	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
 	std::istringstream in;
 	std::string line;

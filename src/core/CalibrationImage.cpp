@@ -626,7 +626,7 @@ void CalibrationImage::saveTranslationVector(QString filename)
 
 void CalibrationImage::loadPoints(cv::vector<cv::Point2d>& points, QString filename)
 {
-	std::vector<std::vector<double>> values;
+	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
 	std::istringstream in;
 	std::string line;
@@ -659,7 +659,7 @@ void CalibrationImage::loadPoints(cv::vector<cv::Point2d>& points, QString filen
 
 void CalibrationImage::loadPointsInlier(QString filename)
 {
-	std::vector<std::vector<double>> values;
+	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
 	std::istringstream in;
 	std::string line;
@@ -702,7 +702,7 @@ void CalibrationImage::loadPointsDetectedAll(QString filename)
 
 void CalibrationImage::loadRotationMatrix(QString filename)
 {
-	std::vector<std::vector<double>> values;
+	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
 	std::istringstream in;
 	std::string line;
@@ -739,7 +739,7 @@ void CalibrationImage::loadRotationMatrix(QString filename)
 
 void CalibrationImage::loadTranslationVector(QString filename)
 {
-	std::vector<std::vector<double>> values;
+	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
 	std::istringstream in;
 	std::string line;

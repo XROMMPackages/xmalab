@@ -391,7 +391,7 @@ void Camera::saveCameraMatrix(QString filename)
 
 void Camera::loadCameraMatrix(QString filename)
 {
-	std::vector<std::vector<double>> values;
+	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
 	std::istringstream in;
 	std::string line;
@@ -441,7 +441,7 @@ void Camera::saveUndistortionParam(QString filename)
 
 void Camera::loadUndistortionParam(QString filename)
 {
-	std::vector<std::vector<double>> values;
+	std::vector<std::vector<double> > values;
 	std::ifstream fin(filename.toAscii().data());
 	std::istringstream in;
 	std::string line;
