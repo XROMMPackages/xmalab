@@ -210,12 +210,12 @@ void PlotWindow::drawStatus(int idx)
 			? 1 : 0;
 
 		Marker * marker = NULL;
-		if (idx >= 0 && idx < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
+		if (idx >= 0 && idx < (int) Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
 		{
 			marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx];
 		}
 
-		for (int c = 0; c < Project::getInstance()->getCameras().size(); c++)
+		for (unsigned int c = 0; c < Project::getInstance()->getCameras().size(); c++)
 		{
 			int count = 0;
 			for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
@@ -473,9 +473,9 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 
 void PlotWindow::resetRange()
 {
-	for (int c = 0; c < marker_status.size(); c++)
+	for (unsigned int c = 0; c < marker_status.size(); c++)
 	{
-		for (int f = 0; f < marker_status[c].size(); f++)
+		for (unsigned int f = 0; f < marker_status[c].size(); f++)
 		{
 			dock->plotWidget->removeItem(marker_status[c][f]);
 		}
@@ -495,7 +495,7 @@ void PlotWindow::resetRange()
 			(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1) * posMultiplier + posOffset);
 
 		if (dock->checkBoxStatus->isChecked()){
-			for (int c = 0; c < Project::getInstance()->getCameras().size(); c++)
+			for (unsigned int c = 0; c < Project::getInstance()->getCameras().size(); c++)
 			{
 				std::vector<QCPItemRect *> rects;
 				for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)

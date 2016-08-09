@@ -61,7 +61,7 @@ MetaDataInfo::MetaDataInfo(QWidget* parent) :
 		item->addChild(new QTreeWidgetItem(QStringList() << "Timestamp" << Project::getInstance()->getTs()));
 		item->addChild(new QTreeWidgetItem(QStringList() << "TrialDate" << Project::getInstance()->getTrialDate()));
 	
-		for (int i = 0; i < Project::getInstance()->getInstance()->getTrials().size(); i++)
+		for (unsigned int i = 0; i < Project::getInstance()->getInstance()->getTrials().size(); i++)
 		{
 			QTreeWidgetItem * itemTrial = new QTreeWidgetItem(QStringList() << "Trial" << Project::getInstance()->getTrials()[i]->getName());
 			diag->treeWidget->addTopLevelItem(itemTrial);
@@ -76,7 +76,7 @@ MetaDataInfo::MetaDataInfo(QWidget* parent) :
 			itemTrial->addChild(new QTreeWidgetItem(QStringList() << "Comment" << Project::getInstance()->getTrials()[i]->getAttribcomment()));
 			itemTrial->addChild(new QTreeWidgetItem(QStringList() << "Timestamp" << Project::getInstance()->getTrials()[i]->getTs()));
 			itemTrial->addChild(new QTreeWidgetItem(QStringList() << "TrialDate" << Project::getInstance()->getTrials()[i]->getTrialDate()));
-			for (int j = 0; j < Project::getInstance()->getInstance()->getTrials()[i]->getVideoStreams().size(); j++)
+			for (unsigned int j = 0; j < Project::getInstance()->getInstance()->getTrials()[i]->getVideoStreams().size(); j++)
 			{
 				QTreeWidgetItem * itemVideo = new QTreeWidgetItem(QStringList() << "Camera" + QString::number(j+1) << "");
 				itemTrial->addChild(itemVideo);

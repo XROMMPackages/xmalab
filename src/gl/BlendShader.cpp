@@ -103,13 +103,13 @@ void BlendShader::draw(unsigned int width, unsigned int height, float transparen
 
 	glBegin(GL_QUADS);
 	glTexCoord2f(0, 0);
-	glVertex2f(-0.5, -0.5);
+	glVertex2d(-0.5, -0.5);
 	glTexCoord2f(0, 1);
-	glVertex2f(-0.5, height - 0.5);
+	glVertex2d(-0.5, height - 0.5);
 	glTexCoord2f(1, 1);
-	glVertex2f(width - 0.5, height - 0.5);
+	glVertex2d(width - 0.5, height - 0.5);
 	glTexCoord2f(1, 0);
-	glVertex2f(width - 0.5, -0.5);
+	glVertex2d( width - 0.5, -0.5);
 	glEnd();
 
 	glDisable(GL_BLEND);

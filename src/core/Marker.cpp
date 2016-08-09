@@ -1014,7 +1014,7 @@ void Marker::setRequiresRecomputation(bool value)
 
 bool Marker::filterMarker(double cutoffFrequency, std::vector<cv::Point3d>& marker, std::vector<markerStatus>& status)
 {
-	for (int i = 0; i < status3D.size(); i++)
+	for (unsigned int i = 0; i < status3D.size(); i++)
 	{
 		cv::Point3d p3(-1000, -1000, -1000);
 		marker.push_back(p3);

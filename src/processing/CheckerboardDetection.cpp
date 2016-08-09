@@ -101,7 +101,7 @@ void CheckerboardDetection::detectCorner_thread()
 		if (pattern_found) cv::cornerSubPix(image, tmpPoints2, cv::Size(11, 11), cv::Size(-1, -1),
 			cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
 
-		for (int i = 0; i < tmpPoints2.size(); i++)
+		for (unsigned int i = 0; i < tmpPoints2.size(); i++)
 		{
 			tmpPoints.push_back(cv::Point2d(tmpPoints2[i].x, tmpPoints2[i].y));
 		}
@@ -111,7 +111,7 @@ void CheckerboardDetection::detectCorner_thread()
 	{
 		cv::Mat homo = cv::findHomography(gridPoints, selectedPoints);
 		cv::vector<cv::Point2f> tmpPoints2;
-		for (int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); i++)
+		for (unsigned int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); i++)
 		{
 			cv::Point2d pt;
 			double denom = CalibrationObject::getInstance()->getFrameSpecifications()[i].x * homo.at<double>(2, 0) + CalibrationObject::getInstance()->getFrameSpecifications()[i].y * homo.at<double>(2, 1) + homo.at<double>(2, 2);
@@ -123,7 +123,7 @@ void CheckerboardDetection::detectCorner_thread()
 		cv::cornerSubPix(image, tmpPoints2, cv::Size(11, 11), cv::Size(-1, -1),
 			cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
 
-		for (int i = 0; i < tmpPoints2.size(); i++)
+		for (unsigned int i = 0; i < tmpPoints2.size(); i++)
 		{
 			tmpPoints.push_back(cv::Point2d(tmpPoints2[i].x, tmpPoints2[i].y));
 		}

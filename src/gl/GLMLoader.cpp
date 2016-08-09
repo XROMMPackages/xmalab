@@ -124,7 +124,7 @@ VertexBuffer* GLMLoader::load(QString filename)
 	FILE*     file;
 
 	/* open the file */
-	file = fopen(filename.toAscii().data(), "r");
+	fopen_s(&file, filename.toAscii().data(), "r");
 	if (!file)
 		return NULL;
 
@@ -140,7 +140,7 @@ VertexBuffer* GLMLoader::load(QString filename)
 	unsigned  v, n, t;
 
 	numvertices = numnormals = numtriangles = 0;
-	while (fscanf(file, "%s", buf) != EOF) {
+	while (fscanf_s(file, "%s", buf) != EOF) {
 		switch (buf[0]) {
 		case '#':				/* comment */
 			/* eat up rest of line */
@@ -165,42 +165,42 @@ VertexBuffer* GLMLoader::load(QString filename)
 			break;
 		case 'f':				/* face */
 			v = n = t = 0;
-			fscanf(file, "%s", buf);
+			fscanf_s(file, "%s", buf);
 			/* can be one of %d, %d//%d, %d/%d, %d/%d/%d %d//%d */
 			if (strstr(buf, "//")) {
 				/* v//n */
-				sscanf(buf, "%d//%d", &v, &n);
-				fscanf(file, "%d//%d", &v, &n);
-				fscanf(file, "%d//%d", &v, &n);
+				sscanf_s(buf, "%d//%d", &v, &n);
+				fscanf_s(file, "%d//%d", &v, &n);
+				fscanf_s(file, "%d//%d", &v, &n);
 				numtriangles++;
-				while (fscanf(file, "%d//%d", &v, &n) > 0) {
+				while (fscanf_s(file, "%d//%d", &v, &n) > 0) {
 					numtriangles++;
 				}
 			}
-			else if (sscanf(buf, "%d/%d/%d", &v, &t, &n) == 3) {
+			else if (sscanf_s(buf, "%d/%d/%d", &v, &t, &n) == 3) {
 				/* v/t/n */
-				fscanf(file, "%d/%d/%d", &v, &t, &n);
-				fscanf(file, "%d/%d/%d", &v, &t, &n);
+				fscanf_s(file, "%d/%d/%d", &v, &t, &n);
+				fscanf_s(file, "%d/%d/%d", &v, &t, &n);
 				numtriangles++;
-				while (fscanf(file, "%d/%d/%d", &v, &t, &n) > 0) {
+				while (fscanf_s(file, "%d/%d/%d", &v, &t, &n) > 0) {
 					numtriangles++;
 				}
 			}
-			else if (sscanf(buf, "%d/%d", &v, &t) == 2) {
+			else if (sscanf_s(buf, "%d/%d", &v, &t) == 2) {
 				/* v/t */
-				fscanf(file, "%d/%d", &v, &t);
-				fscanf(file, "%d/%d", &v, &t);
+				fscanf_s(file, "%d/%d", &v, &t);
+				fscanf_s(file, "%d/%d", &v, &t);
 				numtriangles++;
-				while (fscanf(file, "%d/%d", &v, &t) > 0) {
+				while (fscanf_s(file, "%d/%d", &v, &t) > 0) {
 					numtriangles++;
 				}
 			}
 			else {
 				/* v */
-				fscanf(file, "%d", &v);
-				fscanf(file, "%d", &v);
+				fscanf_s(file, "%d", &v);
+				fscanf_s(file, "%d", &v);
 				numtriangles++;
-				while (fscanf(file, "%d", &v) > 0) {
+				while (fscanf_s(file, "%d", &v) > 0) {
 					numtriangles++;
 				}
 			}
@@ -225,7 +225,7 @@ VertexBuffer* GLMLoader::load(QString filename)
 
 	numtriangles = numvertices = numnormals = 0;
 
-	while (fscanf(file, "%s", buf) != EOF) {
+	while (fscanf_s(file, "%s", buf) != EOF) {
 		switch (buf[0]) {
 		case '#':				/* comment */
 			/* eat up rest of line */
@@ -234,14 +234,14 @@ VertexBuffer* GLMLoader::load(QString filename)
 		case 'v':				/* v, vn, vt */
 			switch (buf[1]) {
 			case '\0':			/* vertex */
-				fscanf(file, "%f %f %f",
+				fscanf_s(file, "%f %f %f",
 					&vertices[3 * numvertices + 0],
 					&vertices[3 * numvertices + 1],
 					&vertices[3 * numvertices + 2]);
 				numvertices++;
 				break;
 			case 'n':				/* normal */
-				fscanf(file, "%f %f %f",
+				fscanf_s(file, "%f %f %f",
 					&normals[3 * numnormals + 0],
 					&normals[3 * numnormals + 1],
 					&normals[3 * numnormals + 2]);
@@ -254,21 +254,21 @@ VertexBuffer* GLMLoader::load(QString filename)
 			break;
 		case 'f':				/* face */
 			v = n = t = 0;
-			fscanf(file, "%s", buf);
+			fscanf_s(file, "%s", buf);
 			/* can be one of %d, %d//%d, %d/%d, %d/%d/%d %d//%d */
 			if (strstr(buf, "//")) {
 				/* v//n */
-				sscanf(buf, "%d//%d", &v, &n);
+				sscanf_s(buf, "%d//%d", &v, &n);
 				triangles[numtriangles].vindices[0] = v;
 				triangles[numtriangles].nindices[0] = n;
-				fscanf(file, "%d//%d", &v, &n);
+				fscanf_s(file, "%d//%d", &v, &n);
 				triangles[numtriangles].vindices[1] = v;
 				triangles[numtriangles].nindices[1] = n;
-				fscanf(file, "%d//%d", &v, &n);
+				fscanf_s(file, "%d//%d", &v, &n);
 				triangles[numtriangles].vindices[2] = v;
 				triangles[numtriangles].nindices[2] = n;
 				numtriangles++;
-				while (fscanf(file, "%d//%d", &v, &n) > 0) {
+				while (fscanf_s(file, "%d//%d", &v, &n) > 0) {
 					triangles[numtriangles].vindices[0] = triangles[numtriangles - 1].vindices[0];
 					triangles[numtriangles].nindices[0] = triangles[numtriangles - 1].nindices[0];
 					triangles[numtriangles].vindices[1] = triangles[numtriangles - 1].vindices[2];
@@ -278,18 +278,18 @@ VertexBuffer* GLMLoader::load(QString filename)
 					numtriangles++;
 				}
 			}
-			else if (sscanf(buf, "%d/%d/%d", &v, &t, &n) == 3) {
+			else if (sscanf_s(buf, "%d/%d/%d", &v, &t, &n) == 3) {
 				/* v/t/n */
 				triangles[numtriangles].vindices[0] = v;
 				triangles[numtriangles].nindices[0] = n;
-				fscanf(file, "%d/%d/%d", &v, &t, &n);
+				fscanf_s(file, "%d/%d/%d", &v, &t, &n);
 				triangles[numtriangles].vindices[1] = v;
 				triangles[numtriangles].nindices[1] = n;
-				fscanf(file, "%d/%d/%d", &v, &t, &n);
+				fscanf_s(file, "%d/%d/%d", &v, &t, &n);
 				triangles[numtriangles].vindices[2] = v;
 				triangles[numtriangles].nindices[2] = n;
 				numtriangles++;
-				while (fscanf(file, "%d/%d/%d", &v, &t, &n) > 0) {
+				while (fscanf_s(file, "%d/%d/%d", &v, &t, &n) > 0) {
 					triangles[numtriangles].vindices[0] = triangles[numtriangles - 1].vindices[0];
 					triangles[numtriangles].nindices[0] = triangles[numtriangles - 1].nindices[0];
 					triangles[numtriangles].vindices[1] = triangles[numtriangles - 1].vindices[2];
@@ -299,15 +299,15 @@ VertexBuffer* GLMLoader::load(QString filename)
 					numtriangles++;
 				}
 			}
-			else if (sscanf(buf, "%d/%d", &v, &t) == 2) {
+			else if (sscanf_s(buf, "%d/%d", &v, &t) == 2) {
 				/* v/t */
 				triangles[numtriangles].vindices[0] = v;
-				fscanf(file, "%d/%d", &v, &t);
+				fscanf_s(file, "%d/%d", &v, &t);
 				triangles[numtriangles].vindices[1] = v;
-				fscanf(file, "%d/%d", &v, &t);
+				fscanf_s(file, "%d/%d", &v, &t);
 				triangles[numtriangles].vindices[2] = v;
 				numtriangles++;
-				while (fscanf(file, "%d/%d", &v, &t) > 0) {
+				while (fscanf_s(file, "%d/%d", &v, &t) > 0) {
 					triangles[numtriangles].vindices[0] = triangles[numtriangles - 1].vindices[0];
 					triangles[numtriangles].vindices[1] = triangles[numtriangles - 1].vindices[2];
 					triangles[numtriangles].vindices[2] = v;
@@ -316,14 +316,14 @@ VertexBuffer* GLMLoader::load(QString filename)
 			}
 			else {
 				/* v */
-				sscanf(buf, "%d", &v);
+				sscanf_s(buf, "%d", &v);
 				triangles[numtriangles].vindices[0] = v;
-				fscanf(file, "%d", &v);
+				fscanf_s(file, "%d", &v);
 				triangles[numtriangles].vindices[1] = v;
-				fscanf(file, "%d", &v);
+				fscanf_s(file, "%d", &v);
 				triangles[numtriangles].vindices[2] = v;
 				numtriangles++;
-				while (fscanf(file, "%d", &v) > 0) {
+				while (fscanf_s(file, "%d", &v) > 0) {
 					triangles[numtriangles].vindices[0] = triangles[numtriangles - 1].vindices[0];
 					triangles[numtriangles].vindices[1] = triangles[numtriangles - 1].vindices[2];
 					triangles[numtriangles].vindices[2] = v;
@@ -349,7 +349,7 @@ VertexBuffer* GLMLoader::load(QString filename)
 		GLfloat u[3];
 		GLfloat v[3];
 
-		for (int i = 0; i < numtriangles; i++) {
+		for (unsigned int i = 0; i < numtriangles; i++) {
 			triangles[i].findex = i;
 
 			u[0] = vertices[3 * (triangles[i].vindices[1] - 1) + 0] -
@@ -385,12 +385,12 @@ VertexBuffer* GLMLoader::load(QString filename)
 		/* allocate a structure that will hold a linked list of triangle
 		indices for each vertex */
 		members = (GLMnode**)malloc(sizeof(GLMnode*) * (numvertices));
-		for (int i = 0; i < numvertices; i++)
+		for (unsigned int i = 0; i < numvertices; i++)
 			members[i] = NULL;
 
 
 		/* for every triangle, create a node for each vertex in it */
-		for (int i = 0; i < numtriangles; i++) {
+		for (unsigned int i = 0; i < numtriangles; i++) {
 			node = (GLMnode*)malloc(sizeof(GLMnode));
 			node->index = i;
 			node->next = members[triangles[i].vindices[0] - 1];
@@ -409,7 +409,7 @@ VertexBuffer* GLMLoader::load(QString filename)
 
 		/* calculate the average normal for each vertex */
 		numnormals = 0;
-		for (int i = 0; i < numvertices; i++) {
+		for (unsigned int i = 0; i < numvertices; i++) {
 			/* calculate an average normal for this vertex by averaging the
 			facet normal of every triangle this vertex is in */
 			node = members[i];
@@ -479,7 +479,7 @@ VertexBuffer* GLMLoader::load(QString filename)
 		}
 
 		/* free the member information */
-		for (int i = 0; i < numvertices; i++) {
+		for (unsigned int i = 0; i < numvertices; i++) {
 			node = members[i];
 			while (node) {
 				tail = node;
@@ -496,12 +496,12 @@ VertexBuffer* GLMLoader::load(QString filename)
 	m_indices = (GLuint *)malloc(sizeof(GLuint) * 3 * numtriangles);
 	m_numvertices = 3 * numtriangles;
 
-	for (int i = 0; i < 3 * numtriangles; i++)
+	for (unsigned int i = 0; i < 3 * numtriangles; i++)
 	{
 		m_indices[i] = i;
 	}
 
-	for (int i = 0; i < numtriangles; i++)
+	for (unsigned int i = 0; i < numtriangles; i++)
 	{
 		m_vertices[i * 9 + 0] = vertices[3 * (triangles[i].vindices[0] - 1) + 0];
 		m_vertices[i * 9 + 1] = vertices[3 * (triangles[i].vindices[0] - 1) + 1];

@@ -100,7 +100,7 @@ MarkerTreeWidget::MarkerTreeWidget(QWidget* parent): QTreeWidget(parent)
 	header()->setResizeMode(0, QHeaderView::ResizeToContents);
 	headerItem()->setText(0, "");
 
-	for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+	for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 	{
 		headerItem()->setText(2 + i, "");
 		header()->setResizeMode(2 + i, QHeaderView::ResizeToContents);
@@ -379,7 +379,7 @@ void MarkerTreeWidget::action_ChangePoint_triggered()
 	int idx = item_contextMenu->text(0).toInt() - 1;
 	bool ok;
 	QStringList idx2Names;
-	for (int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers().size(); i++)
+	for (unsigned int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers().size(); i++)
 	{
 		if (i != idx)
 		{
@@ -397,7 +397,7 @@ void MarkerTreeWidget::action_ChangePoint_triggered()
 		bool ok2;
 		QStringList cameraNames;
 		cameraNames << "All";
-		for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 			cameraNames << QString::number(i+1);
 			
 		QString cameraString = QInputDialog::getItem(this, tr("Which camera"),

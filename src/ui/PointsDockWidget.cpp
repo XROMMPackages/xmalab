@@ -108,8 +108,8 @@ void PointsDockWidget::updateColor()
 		QTreeWidgetItem *item = dock->treeWidgetPoints->topLevelItem(i);
 		if (item->type() == MARKER)
 		{
-			int idx = item->text(0).toInt() - 1;
-			for (int c = 0; c < Project::getInstance()->getCameras().size(); c++){
+			unsigned int idx = item->text(0).toInt() - 1;
+			for (unsigned int c = 0; c < Project::getInstance()->getCameras().size(); c++){
 				QPixmap pix(8, 16);
 				if (idx < markers.size()){
 					pix.fill(markers[idx]->getStatusColor(c, State::getInstance()->getActiveFrameTrial()));
@@ -119,13 +119,13 @@ void PointsDockWidget::updateColor()
 		}
 		else
 		{
-			int childCount = item->childCount();
-			for (int j = 0; j < childCount; j++) {
+			unsigned int childCount = item->childCount();
+			for (unsigned int j = 0; j < childCount; j++) {
 				QTreeWidgetItem *child = item->child(j);
 				if (child->type() == MARKER)
 				{
-					int idx = child->text(0).toInt() - 1;
-					for (int c = 0; c < Project::getInstance()->getCameras().size(); c++){
+					unsigned int idx = child->text(0).toInt() - 1;
+					for (unsigned int c = 0; c < Project::getInstance()->getCameras().size(); c++){
 						QPixmap pix(8,16);
 						if (idx < markers.size()){
 							pix.fill(markers[idx]->getStatusColor(c, State::getInstance()->getActiveFrameTrial()));

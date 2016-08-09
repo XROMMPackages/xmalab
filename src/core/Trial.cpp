@@ -1732,7 +1732,7 @@ bool Trial::setFrameRateFromXML()
 
 		double FrameRate = FrameRates[0];
 		bool equal = FrameRate > 0;
-		for (int i = 1; i < FrameRates.size(); i ++)
+		for (unsigned int i = 1; i < FrameRates.size(); i ++)
 		{
 			if (FrameRate != FrameRates[i]) equal = false;
 		}
@@ -1812,7 +1812,7 @@ void Trial::parseXMLData()
 				}
 			}
 		}
-		for (int i = 0; i < videos.size(); i++)
+		for (unsigned int i = 0; i < videos.size(); i++)
 		{
 			videos[i]->parseXMLData(i, xml_data.join(""));
 		}
