@@ -79,6 +79,7 @@ void xma::AboutDialog::on_pushButtonOpenGLInfo_clicked()
 	QMessageBox msgBox;
 	QSpacerItem* horizontalSpacer = new QSpacerItem(800, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
 	msgBox.setText(GLSharedWidget::getInstance()->getInfo());
+	msgBox.setStyleSheet("QMessageBox { messagebox-text-interaction-flags: 5; }");
 	QGridLayout* layout = (QGridLayout*)msgBox.layout();
 	layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
 	msgBox.exec();
