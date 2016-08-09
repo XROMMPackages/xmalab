@@ -106,6 +106,7 @@ void VertexBuffer::setData(unsigned int numvertices, float* vertices, float* nor
 
 void VertexBuffer::render()
 {
+	mutex.lock();
 	if (!m_initialised)
 	{
 		if (!m_dataReady) 
@@ -141,6 +142,7 @@ void VertexBuffer::render()
 	//unload
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	mutex.unlock();
 }
 
 void VertexBuffer::setupVBO()

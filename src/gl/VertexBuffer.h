@@ -26,6 +26,7 @@
 
 #ifndef VERTEXBUFFER_H_
 #define VERTEXBUFFER_H_
+#include <QtCore/QMutex>
 
 namespace xma
 {
@@ -57,6 +58,9 @@ namespace xma
 		float* m_normals;
 		float* m_texcoords;
 		unsigned int * m_indices;
+
+		QMutex mutex;
+
 	};
 }
 

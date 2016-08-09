@@ -65,7 +65,6 @@ namespace xma
 
 		QFutureWatcher<void>* m_FutureWatcher;
 		bool stopped;
-		QMutex loading;
 
 	public slots:
 		void loadComplete();

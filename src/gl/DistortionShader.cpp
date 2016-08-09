@@ -76,8 +76,8 @@ DistortionShader::DistortionShader(Camera * camera) : QObject(), FrameBuffer(cam
 DistortionShader::~DistortionShader()
 {
 	stopped = true;
-	loading.lock(); 
-	loading.unlock(); 
+	//loading.lock(); 
+	//loading.unlock(); 
 	if (m_vbo)
 	{
 		delete m_vbo;
@@ -157,7 +157,7 @@ void DistortionShader::draw(unsigned texture_id, unsigned depth_texture_id, floa
 void DistortionShader::setDistortionMap()
 {
 
-	loading.lock();
+	//loading.lock();
 	std::vector <GLfloat> vertices;
 	std::vector <GLfloat> texcoords;
 
@@ -184,7 +184,7 @@ void DistortionShader::setDistortionMap()
 				vertices.clear();
 				texcoords.clear();
 				nbInstances--;
-				loading.unlock();
+				//loading.unlock();
 				return;
 			}
 		}
@@ -255,14 +255,14 @@ void DistortionShader::setDistortionMap()
 				vertices.clear();
 				texcoords.clear();
 				nbInstances--;
-				loading.unlock();
+				//loading.unlock();
 				return;
 			}
 		}
 	}
 	vertices.clear();
 	texcoords.clear();
-	loading.unlock();
+	//loading.unlock();
 }
 
 bool DistortionShader::canRender()
