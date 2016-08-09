@@ -29,7 +29,7 @@
 
 #include <QDockWidget>
 #include "ui/State.h"
-#include "qcustomplot.h"
+#include "external/QCustomPlot/qcustomplot.h"
 #include "ui/PointsDockWidget.h"
 
 class QComboBox;
