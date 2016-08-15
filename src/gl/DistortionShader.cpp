@@ -52,7 +52,6 @@ bool DistortionShader::m_distortionComplete = false;
 
 DistortionShader::DistortionShader(Camera * camera) : QObject(), FrameBuffer(camera->getWidth(), camera->getHeight()), Shader(), m_tex(0), m_camera(camera), m_distortionRunning(false), m_numpoints(0), m_coords(NULL)
 {
-	std::cerr << "Create" << std::endl;
 	m_shader = "Distortion";
 	m_vertexShader = "varying vec2 texture_coordinate; \n"
 			"void main()\n"
@@ -88,7 +87,6 @@ void to2Char(double value, unsigned char * pt)
 
 DistortionShader::~DistortionShader()
 {
-	std::cerr << "delete" << std::endl;
 	stopped = true;
 	if (m_tex)
 	{
@@ -257,7 +255,7 @@ void DistortionShader::loadComplete()
 {
 	if (!stopped){
 		nbInstances--;
-		std::cerr << "nbInstances " << nbInstances << std::endl;
+
 		if (nbInstances == 0)
 		{
 			m_distortionComplete = true;
