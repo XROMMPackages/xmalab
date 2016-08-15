@@ -233,8 +233,8 @@ bool RigidBody::transformPoint(cv::Point3d in, cv::Point3d& out, int frame, bool
 		tmp_mat = rotationMatrix.t() * ((xmat) - cv::Mat(getTranslationVector(filtered)[frame]));
 
 		out.x = tmp_mat.at<double>(0, 0) ,
-			out.y = tmp_mat.at<double>(0, 1) ,
-			out.z = tmp_mat.at<double>(0, 2);
+			out.y = tmp_mat.at<double>(1, 0) ,
+			out.z = tmp_mat.at<double>(2, 0);
 		return true;
 	}
 	return false;
