@@ -50,8 +50,9 @@ using namespace xma;
 int DistortionShader::nbInstances = 0;
 bool DistortionShader::m_distortionComplete = false;
 
-DistortionShader::DistortionShader(Camera * camera) : QObject(), FrameBuffer(camera->getWidth(), camera->getHeight()), Shader(), m_vbo(0), m_camera(camera), m_distortionRunning(false), m_numpoints(0)
+DistortionShader::DistortionShader(Camera * camera) : QObject(), FrameBuffer(camera->getWidth(), camera->getHeight()), Shader(), m_tex(0), m_camera(camera), m_distortionRunning(false), m_numpoints(0), m_coords(NULL)
 {
+	std::cerr << "Create" << std::endl;
 	m_shader = "Distortion";
 	m_vertexShader = "varying vec2 texture_coordinate; \n"
 			"void main()\n"
@@ -60,30 +61,44 @@ DistortionShader::DistortionShader(Camera * camera) : QObject(), FrameBuffer(cam
 			"	texture_coordinate = vec2(gl_MultiTexCoord0); \n"
 			"}\n";
 	m_fragmentShader = "varying vec2 texture_coordinate;\n"
-			"uniform float transparency;\n"
-			"uniform sampler2D texture;\n"
-			"uniform sampler2D depth_tex;\n"
-			"void main()\n"
-			"{\n"
-			"		vec4 color = texture2D(texture, texture_coordinate.xy);\n"
-			"		float d = texture2D(depth_tex, texture_coordinate.xy).x;\n"
+		"uniform float transparency;\n"
+		"uniform sampler2D texture_coords;\n"
+		"uniform sampler2D texture;\n"
+		"uniform sampler2D depth_tex;\n"
+		"void main()\n"
+		"{\n"
+			"		vec4 coords4 = texture2D(texture_coords, texture_coordinate.xy);\n"
+			"		vec2 coords2;\n"
+			"		coords2.x = (coords4.x*255.0 + coords4.y*255.0/256.0)/256.0;\n"
+			"		coords2.y = (coords4.z*255.0 + coords4.w*255.0/256.0)/256.0;\n"
+			"		vec4 color = texture2D(texture, coords2.xy);\n"
+			"		float d = texture2D(depth_tex, coords2.xy).x;\n"
 			"		color.a =  (d < 1.0 ) ? transparency : 0.0 ;\n"
 			"		gl_FragColor = color; \n"
 			"}\n";
 	stopped = false;
 }
 
+void to2Char(double value, unsigned char * pt)
+{
+	unsigned int uivalue = value * 256 * 256 + 0.5;
+	pt[0] = uivalue / 256;
+	pt[1] = uivalue % 256;
+}
+
 DistortionShader::~DistortionShader()
 {
+	std::cerr << "delete" << std::endl;
 	stopped = true;
-	if (m_vbo)
+	if (m_tex)
 	{
-		delete m_vbo;
+		glDeleteTextures(1, &m_tex);
+		m_tex = 0;
 	}
 
-	m_vertices.clear();
-	m_texcoords.clear();
-	m_indices.clear();
+	if (m_coords) delete m_coords;
+	m_coords = NULL;
+
 	m_distortionComplete = false;
 }
 
@@ -93,20 +108,22 @@ void DistortionShader::draw(unsigned texture_id, unsigned depth_texture_id, floa
 	{
 		m_distortionRunning = true;
 		nbInstances++;
+
 		m_FutureWatcher = new QFutureWatcher<void>();
 		connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(loadComplete()));
 
 		QFuture<void> future = QtConcurrent::run(this, &DistortionShader::setDistortionMap);		
 		m_FutureWatcher->setFuture(future);
+		
 	}
 
 	
-	if (m_vbo == 0 && m_distortionComplete)
+	if (m_tex == 0 && m_distortionComplete && m_coords)
 	{
-		intialiseVBO();
+		intializeTexture();
 	}
 
-	if (m_vbo){
+	if (m_tex){
 		bindProgram();
 		GLint loc = glGetUniformLocation(m_programID, "transparency");
 		glUniform1f(loc, transparency);
@@ -115,6 +132,9 @@ void DistortionShader::draw(unsigned texture_id, unsigned depth_texture_id, floa
 		glUniform1i(texLoc, 0);
 		texLoc = glGetUniformLocation(m_programID, "depth_tex");
 		glUniform1i(texLoc, 1);
+		texLoc = glGetUniformLocation(m_programID, "texture_coords");
+		glUniform1i(texLoc, 2);
+
 
 		bindFrameBuffer();
 		glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -138,9 +158,26 @@ void DistortionShader::draw(unsigned texture_id, unsigned depth_texture_id, floa
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, depth_texture_id);
 
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, m_tex);
+
+
 		glColor3f(1.0, 1.0, 1.0);
-		m_vbo->render();
-		
+
+		glBegin(GL_QUADS);
+		glTexCoord2f(0, 0);
+		glVertex2d(-0.5, -0.5);
+		glTexCoord2f(0, 1);
+		glVertex2d(-0.5, getHeight() - 0.5);
+		glTexCoord2f(1, 1);
+		glVertex2d(getWidth() - 0.5, getHeight() - 0.5);
+		glTexCoord2f(1, 0);
+		glVertex2d(getWidth() - 0.5, -0.5);
+		glEnd();
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -154,129 +191,73 @@ void DistortionShader::draw(unsigned texture_id, unsigned depth_texture_id, floa
 
 void DistortionShader::setDistortionMap()
 {
-	std::vector <GLfloat> vertices;
-	std::vector <GLfloat> texcoords;
+	m_coords = new unsigned char[getWidth() * getHeight() * 4];
 
+	float x_dist, y_dist;
 	for (int y = 0; y < getHeight(); y++)
 	{
 		for (int x = 0; x < getWidth(); x++)
 		{
 			cv::Point2d pt = m_camera->undistortPoint(cv::Point2d(x, y), true, false, false);
-			vertices.push_back(x + 0.5);
-			vertices.push_back(y + 0.5);
-			vertices.push_back(1);
+			
 			if (pt.x < 0 || pt.y < 0)
 			{
-				texcoords.push_back(0.0);
-				texcoords.push_back(0.0);
+				x_dist = (0.0);
+				y_dist = (0.0);
 			}
 			else
 			{
-				texcoords.push_back((pt.x + 0.5) / getWidth());
-				texcoords.push_back((pt.y + 0.5) / getHeight());
+				x_dist = ((pt.x + 0.5) / getWidth());
+				y_dist  = ((pt.y + 0.5) / getHeight());
 			}
 
+			to2Char(x_dist, &m_coords[(y*getWidth() + x) * 4]);
+			to2Char(y_dist, &m_coords[(y*getWidth() + x) * 4 + 2]);
+
+			/*double t1, t2, t3, t4;
+			t1 = 1.0 / 255.0f * m_coords[(y*getWidth() + x) * 4];
+			t2 = 1.0 / 255.0f * m_coords[(y*getWidth() + x) * 4 + 1];
+			t3 = 1.0 / 255.0f * m_coords[(y*getWidth() + x) * 4 + 2];
+			t4 = 1.0 / 255.0f * m_coords[(y*getWidth() + x) * 4 + 3];
+
+
+			std::cerr << x_dist - (t1 * 255.0 + t2 * 255.0 / 256.0) / 256.0 << std::endl;
+			std::cerr << y_dist - (t3 * 255.0 + t4 * 255.0 / 256.0) / 256.0 << std::endl;
+
+			*/
 			if (stopped) {
-				vertices.clear();
-				texcoords.clear();
 				nbInstances--;
+				
 				return;
 			}
 		}
 	}
-	m_numpoints = 0;
-	int start;
-	for (int y = 0; y < getHeight() - 1; y++)
-	{
-		for (int x = 0; x < getWidth() - 1; x++)
-		{
-			//Triangle 1
-			start = y * getHeight() + x;
-			m_vertices.push_back(vertices[3 * start]);
-			m_vertices.push_back(vertices[3 * start + 1]);
-			m_vertices.push_back(vertices[3 * start + 2]);
-			m_texcoords.push_back(texcoords[2 * start]);
-			m_texcoords.push_back(texcoords[2 * start + 1]);
-			m_indices.push_back(m_numpoints);
-			m_numpoints++;
-
-			start = y * getHeight() + x + 1;
-			m_vertices.push_back(vertices[3 * start]);
-			m_vertices.push_back(vertices[3 * start + 1]);
-			m_vertices.push_back(vertices[3 * start + 2]);
-			m_texcoords.push_back(texcoords[2 * start]);
-			m_texcoords.push_back(texcoords[2 * start + 1]);
-			m_indices.push_back(m_numpoints);
-			m_numpoints++;
-
-			start = (y + 1) * getHeight() + 1 + x;
-			m_vertices.push_back(vertices[3 * start]);
-			m_vertices.push_back(vertices[3 * start + 1]);
-			m_vertices.push_back(vertices[3 * start + 2]);
-			m_texcoords.push_back(texcoords[2 * start]);
-			m_texcoords.push_back(texcoords[2 * start + 1]);
-			m_indices.push_back(m_numpoints);
-			m_numpoints++;
-
-			//Triangle 2
-			start = y * getHeight() + x + 1;
-			m_vertices.push_back(vertices[3 * start]);
-			m_vertices.push_back(vertices[3 * start + 1]);
-			m_vertices.push_back(vertices[3 * start + 2]);
-			m_texcoords.push_back(texcoords[2 * start]);
-			m_texcoords.push_back(texcoords[2 * start + 1]);
-			m_indices.push_back(m_numpoints);
-			m_numpoints++;
-
-			start = (y + 1) * getHeight() + x + 1;
-			m_vertices.push_back(vertices[3 * start]);
-			m_vertices.push_back(vertices[3 * start + 1]);
-			m_vertices.push_back(vertices[3 * start + 2]);
-			m_texcoords.push_back(texcoords[2 * start]);
-			m_texcoords.push_back(texcoords[2 * start + 1]);
-			m_indices.push_back(m_numpoints);
-			m_numpoints++;
-
-			start = (y + 1) * getHeight() + 1 + x;
-			m_vertices.push_back(vertices[3 * start]);
-			m_vertices.push_back(vertices[3 * start + 1]);
-			m_vertices.push_back(vertices[3 * start + 2]);
-			m_texcoords.push_back(texcoords[2 * start]);
-			m_texcoords.push_back(texcoords[2 * start + 1]);
-			m_indices.push_back(m_numpoints);
-			m_numpoints++;
-
-			if (stopped) {
-				vertices.clear();
-				texcoords.clear();
-				nbInstances--;
-				return;
-			}
-		}
-	}
-	vertices.clear();
-	texcoords.clear();
 }
 
 bool DistortionShader::canRender()
 {
-	return m_vbo != 0;
+	return m_tex != 0;
 }
 
-void DistortionShader::intialiseVBO()
+void DistortionShader::intializeTexture()
 {
-	m_vbo = new VertexBuffer();
-	m_vbo->setData(m_numpoints, &m_vertices[0], 0, &m_texcoords[0], &m_indices[0]);
+	glGenTextures(1, &m_tex);
+	glBindTexture(GL_TEXTURE_2D, m_tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_coords);
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
-	m_vertices.clear();
-	m_texcoords.clear();
-	m_indices.clear();
+	delete m_coords;
+	m_coords = NULL;
 }
 
 void DistortionShader::loadComplete()
 {
 	if (!stopped){
 		nbInstances--;
+		std::cerr << "nbInstances " << nbInstances << std::endl;
 		if (nbInstances == 0)
 		{
 			m_distortionComplete = true;

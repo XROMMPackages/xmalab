@@ -50,18 +50,16 @@ namespace xma
 		bool canRender();
 
 	private:
-		VertexBuffer * m_vbo;
 		Camera * m_camera;
-		void intialiseVBO();
+		void intializeTexture();
 
 		static int nbInstances;
 		static bool m_distortionComplete;
 		
 		bool m_distortionRunning;
 		int m_numpoints;
-		std::vector<float> m_vertices;
-		std::vector <float> m_texcoords;
-		std::vector <unsigned int> m_indices;
+		unsigned char* m_coords;
+		unsigned int m_tex;
 
 		QFutureWatcher<void>* m_FutureWatcher;
 		bool stopped;
