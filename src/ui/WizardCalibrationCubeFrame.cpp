@@ -105,8 +105,6 @@ void WizardCalibrationCubeFrame::loadCalibrationSettings()
 	}
 	else
 	{
-		State::getInstance()->changeCalibrationVisText(IDCALIBTEXT);
-		State::getInstance()->changeCalibrationVisPoints(DETCUBEDISTORTEDCALIBPOINTS);
 		setupManualPoints();
 	}
 }
@@ -353,9 +351,16 @@ void WizardCalibrationCubeFrame::addCalibrationReference(double x, double y)
 	{
 		if (State::getInstance()->getUndistortion() == UNDISTORTED)
 		{
+			if (CalibrationObject::getInstance()->isCheckerboard()){
+				if (Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() <= 0)
+				{
+					frame->comboBoxText->setCurrentIndex(1);
+					frame->comboBoxPoints->setCurrentIndex(2);
+				}
+			}
+
 			if (CalibrationObject::getInstance()->isCheckerboard() && !checkerboardManual)
 			{
-				
 				selectedReferencePoints[0].x = x;
 				selectedReferencePoints[0].y = y;
 				if (Settings::getInstance()->getBoolSetting("AutoCalibAfterReference")) on_pushButton_clicked();
