@@ -94,7 +94,7 @@ DistortionShader::~DistortionShader()
 		m_tex = 0;
 	}
 
-	if (m_coords) delete m_coords;
+	if (m_coords) delete[] m_coords;
 	m_coords = NULL;
 
 	m_distortionComplete = false;
@@ -247,7 +247,7 @@ void DistortionShader::intializeTexture()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	delete m_coords;
+	delete[] m_coords;
 	m_coords = NULL;
 }
 
