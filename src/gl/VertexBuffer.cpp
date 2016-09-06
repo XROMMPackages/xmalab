@@ -28,7 +28,6 @@
 
 #include "gl/VertexBuffer.h"
 #include <iostream>
-#include <cstring>
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
@@ -43,7 +42,7 @@
 
 using namespace xma;
 
-VertexBuffer::VertexBuffer() : m_initialised(false), vboId(0), nboId(0), tboId(0), iboId(), m_dataReady(false), m_vertices(0),  m_normals(0),m_texcoords(0), m_indices(0)
+VertexBuffer::VertexBuffer() : m_initialised(false), vboId(0), nboId(0), tboId(0), iboId(), m_dataReady(false), m_vertices(0), m_normals(0), m_texcoords(0), m_indices(0), m_numvertices(0)
 {
 
 }

@@ -35,7 +35,7 @@ namespace xma
 	public:
 		FrameBuffer(int width, int height, int samples = 0);
 
-		~FrameBuffer();
+		virtual ~FrameBuffer();
 
 		virtual void bindTexture();
 		virtual void unbindTexture();

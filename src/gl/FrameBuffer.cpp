@@ -42,7 +42,7 @@
 
 using namespace xma;
 
-FrameBuffer::FrameBuffer(int width, int height, int samples) : m_width(width), m_height(height), m_initialised(false), m_samples(samples)
+FrameBuffer::FrameBuffer(int width, int height, int samples) : m_width(width), m_height(height), m_initialised(false), m_samples(samples), m_texture_id(0), m_depth_id(0), m_fbo(0)
 {
 
 }

@@ -28,10 +28,7 @@
 #define UNDISTORTSEQUENCEDIALOG_H
 
 #include <QDialog>
-#include <QString>
 #include <QDir>
-
-#include <opencv/cv.h>
 
 namespace Ui
 {

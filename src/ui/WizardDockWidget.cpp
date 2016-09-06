@@ -37,7 +37,6 @@
 
 #include "ui/Shortcuts.h"
 
-#include <QLabel>
 
 using namespace xma;
 
@@ -80,7 +79,7 @@ bool WizardDockWidget::checkForPendingChanges()
 	return true;
 }
 
-void WizardDockWidget::update()
+void WizardDockWidget::updateWizard()
 {
 	calibrationFrame->runCalibrationCameraAllFrames();
 }

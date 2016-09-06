@@ -382,9 +382,9 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 								QXmlStreamAttributes attr = xml.attributes();
 								if (attr.value("Name").toString() == trialname)
 								{
-									QString trialname = attr.value("Name").toString();
-									QString trialfolder = basedir + OS_SEP + trialname + OS_SEP;
-									trial = new Trial(trialname, littleHelper::adjustPathToOS(trialfolder));
+									QString _trialname = attr.value("Name").toString();
+									QString trialfolder = basedir + OS_SEP + _trialname + OS_SEP;
+									trial = new Trial(_trialname, littleHelper::adjustPathToOS(trialfolder));
 
 									int startFrame = attr.value("startFrame").toString().toInt();
 									trial->setStartFrame(startFrame);
@@ -419,7 +419,7 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 										{
 											if (xml.name() == "Marker")
 											{
-												QXmlStreamAttributes attr = xml.attributes();
+												attr = xml.attributes();
 												QString filename_points2D = basedir + OS_SEP + attr.value("FilenamePoints2D").toString();
 												QString filename_status2D = basedir + OS_SEP + attr.value("FilenameStatus2D").toString();
 												QString filename_size = basedir + OS_SEP + attr.value("FilenameSize").toString();
@@ -448,7 +448,7 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 
 											if (xml.name() == "RigidBody")
 											{
-												QXmlStreamAttributes attr = xml.attributes();
+												attr = xml.attributes();
 
 												QString filename_referenceNames_attr = attr.value("ReferenceNames").toString();
 												QString filename_referencePoints3D_attr = attr.value("ReferencePoints3D").toString();
@@ -483,10 +483,10 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 													trial->getRigidBodies()[id]->setOverrideCutoffFrequency(overrideCutOffFrequency.toInt());
 												}
 
-												QString cutOffFrequency = attr.value("CutOffFrequency").toString();
-												if (!cutOffFrequency.isEmpty())
+												QString cutOffFrequencyBody = attr.value("CutOffFrequency").toString();
+												if (!cutOffFrequencyBody.isEmpty())
 												{
-													trial->getRigidBodies()[id]->setCutoffFrequency(cutOffFrequency.toDouble());
+													trial->getRigidBodies()[id]->setCutoffFrequency(cutOffFrequencyBody.toDouble());
 												}
 
 												QString meshmodel = attr.value("Meshmodel").toString();
@@ -515,7 +515,7 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 													{
 														if (xml.name() == "DummyMarker")
 														{
-															QXmlStreamAttributes attr = xml.attributes();
+															attr = xml.attributes();
 
 															QString dummyName = attr.value("Name").toString();
 															QString dummyPointReferences = basedir + OS_SEP + attr.value("PointReferences").toString();
@@ -603,8 +603,8 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 								QXmlStreamAttributes attr = xml.attributes();
 								if (attr.value("Name").toString() == trialname)
 								{
-									QString trialname = attr.value("Name").toString();
-									QString trialfolder = basedir + OS_SEP + trialname + OS_SEP;
+									QString _trialname = attr.value("Name").toString();
+									QString trialfolder = basedir + OS_SEP + _trialname + OS_SEP;
 
 									trial->loadMarkers(trialfolder + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
 									trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
@@ -615,7 +615,7 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 										{
 											if (xml.name() == "Marker")
 											{
-												QXmlStreamAttributes attr = xml.attributes();
+												attr = xml.attributes();
 												int id = attr.value("ID").toString().toInt();
 
 												QString Reference3DPoint = basedir + OS_SEP + attr.value("Reference3DPoint").toString();
@@ -639,7 +639,7 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 
 											if (xml.name() == "RigidBody")
 											{
-												QXmlStreamAttributes attr = xml.attributes();
+												attr = xml.attributes();
 
 												QString filename_referenceNames_attr = attr.value("ReferenceNames").toString();
 												QString filename_referencePoints3D_attr = attr.value("ReferencePoints3D").toString();
@@ -1253,7 +1253,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 
 							if (cam->isCalibrated())
 							{
-								QXmlStreamAttributes attr = xml.attributes();
+								attr = xml.attributes();
 								text = attr.value("CameraMatrix").toString();
 								text.replace("\\",OS_SEP);
 								text.replace("/",OS_SEP);
@@ -1275,7 +1275,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 								{
 									if (xml.name() == "UndistortionGrid")
 									{
-										QXmlStreamAttributes attr = xml.attributes();
+										attr = xml.attributes();
 										text = attr.value("Filename").toString();
 										text.replace("\\",OS_SEP);
 										text.replace("/",OS_SEP);
@@ -1287,12 +1287,12 @@ bool ProjectFileIO::readProjectFile(QString filename)
 											{
 												if (xml.name() == "Center")
 												{
-													QXmlStreamAttributes attr = xml.attributes();
+													attr = xml.attributes();
 													cam->getUndistortionObject()->setCenter(attr.value("x").toString().toDouble(), attr.value("y").toString().toDouble());
 												}
 												else if (xml.name() == "PointsDetected")
 												{
-													QXmlStreamAttributes attr = xml.attributes();
+													attr = xml.attributes();
 													text = attr.value("Filename").toString();
 													text.replace("\\",OS_SEP);
 													text.replace("/",OS_SEP);
@@ -1300,7 +1300,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 												}
 												else if (xml.name() == "GridPointsDistorted")
 												{
-													QXmlStreamAttributes attr = xml.attributes();
+													attr = xml.attributes();
 													text = attr.value("Filename").toString();
 													text.replace("\\",OS_SEP);
 													text.replace("/",OS_SEP);
@@ -1308,7 +1308,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 												}
 												else if (xml.name() == "GridPointsReferences")
 												{
-													QXmlStreamAttributes attr = xml.attributes();
+													attr = xml.attributes();
 													text = attr.value("Filename").toString();
 													text.replace("\\",OS_SEP);
 													text.replace("/",OS_SEP);
@@ -1316,7 +1316,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 												}
 												else if (xml.name() == "GridPointsInlier")
 												{
-													QXmlStreamAttributes attr = xml.attributes();
+													attr = xml.attributes();
 													text = attr.value("Filename").toString();
 													text.replace("\\",OS_SEP);
 													text.replace("/",OS_SEP);
@@ -1328,7 +1328,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 									}
 									else if (xml.name() == "CalibrationImage")
 									{
-										QXmlStreamAttributes attr = xml.attributes();
+										attr = xml.attributes();
 										text = attr.value("Filename").toString();
 										text.replace("\\",OS_SEP);
 										text.replace("/",OS_SEP);
@@ -1340,7 +1340,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 											{
 												if (xml.name() == "PointsDetectedAll")
 												{
-													QXmlStreamAttributes attr = xml.attributes();
+													attr = xml.attributes();
 													text = attr.value("Filename").toString();
 													text.replace("\\",OS_SEP);
 													text.replace("/",OS_SEP);
@@ -1348,7 +1348,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 												}
 												else if (xml.name() == "PointsDetected")
 												{
-													QXmlStreamAttributes attr = xml.attributes();
+													attr = xml.attributes();
 													text = attr.value("Filename").toString();
 													text.replace("\\",OS_SEP);
 													text.replace("/",OS_SEP);
@@ -1356,7 +1356,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 												}
 												else if (xml.name() == "Inlier")
 												{
-													QXmlStreamAttributes attr = xml.attributes();
+													attr = xml.attributes();
 													text = attr.value("Filename").toString();
 													text.replace("\\",OS_SEP);
 													text.replace("/",OS_SEP);
@@ -1364,7 +1364,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 												}
 												else if (xml.name() == "RotationMatrix")
 												{
-													QXmlStreamAttributes attr = xml.attributes();
+													attr = xml.attributes();
 													text = attr.value("Filename").toString();
 													text.replace("\\",OS_SEP);
 													text.replace("/",OS_SEP);
@@ -1372,7 +1372,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 												}
 												else if (xml.name() == "TranslationVector")
 												{
-													QXmlStreamAttributes attr = xml.attributes();
+													attr = xml.attributes();
 													text = attr.value("Filename").toString();
 													text.replace("\\",OS_SEP);
 													text.replace("/",OS_SEP);
@@ -1458,7 +1458,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 								{
 									if (xml.name() == "Marker")
 									{
-										QXmlStreamAttributes attr = xml.attributes();
+										attr = xml.attributes();
 										QString filename_points2D = basedir + OS_SEP + attr.value("FilenamePoints2D").toString();
 										QString filename_status2D = basedir + OS_SEP + attr.value("FilenameStatus2D").toString();
 										QString filename_size = basedir + OS_SEP + attr.value("FilenameSize").toString();
@@ -1499,7 +1499,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 
 									if (xml.name() == "RigidBody")
 									{
-										QXmlStreamAttributes attr = xml.attributes();
+										attr = xml.attributes();
 
 										QString filename_referenceNames_attr = attr.value("ReferenceNames").toString();
 										QString filename_referencePoints3D_attr = attr.value("ReferencePoints3D").toString();
@@ -1534,10 +1534,10 @@ bool ProjectFileIO::readProjectFile(QString filename)
 											trial->getRigidBodies()[id]->setOverrideCutoffFrequency(overrideCutOffFrequency.toInt());
 										}
 
-										QString cutOffFrequency = attr.value("CutOffFrequency").toString();
-										if (!cutOffFrequency.isEmpty())
+										QString cutOffFrequencyBody = attr.value("CutOffFrequency").toString();
+										if (!cutOffFrequencyBody.isEmpty())
 										{
-											trial->getRigidBodies()[id]->setCutoffFrequency(cutOffFrequency.toDouble());
+											trial->getRigidBodies()[id]->setCutoffFrequency(cutOffFrequencyBody.toDouble());
 										}
 
 										QString meshmodel = attr.value("Meshmodel").toString();
@@ -1566,7 +1566,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 											{
 												if (xml.name() == "DummyMarker")
 												{
-													QXmlStreamAttributes attr = xml.attributes();
+													attr = xml.attributes();
 
 													QString dummyName = attr.value("Name").toString();
 													QString dummyPointReferences = basedir + OS_SEP + attr.value("PointReferences").toString();
@@ -1794,8 +1794,8 @@ bool ProjectFileIO::unzipFromFileToFolder(const QString& filePath, const QString
 
 		//out.setFileName("out/" + name);
 		out.setFileName(name);
-		QFileInfo info(name);
-		QDir().mkpath(info.absolutePath());
+		QFileInfo fileinfo(name);
+		QDir().mkpath(fileinfo.absolutePath());
 
 		// this will fail if "name" contains subdirectories, but we don't mind that
 		out.open(QIODevice::WriteOnly);

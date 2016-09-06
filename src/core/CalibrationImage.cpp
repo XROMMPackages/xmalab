@@ -418,7 +418,7 @@ void CalibrationImage::toggleInlier(double x, double y, bool isDistortedView)
 {
 	int idx = -1;
 	double mindist = 20;
-	double dist = mindist;
+	double dist;
 	cv::Point2d diff;
 	cv::Point2d pt = cv::Point2d(x, y);
 	for (unsigned int i = 0; i < projectedPoints.size(); i ++)
@@ -431,6 +431,7 @@ void CalibrationImage::toggleInlier(double x, double y, bool isDistortedView)
 		{
 			diff = pt - projectedPointsUndistorted[i];
 		}
+
 		dist = cv::sqrt(diff.x * diff.x + diff.y * diff.y);
 
 		if (dist < mindist)
@@ -488,7 +489,7 @@ void CalibrationImage::setPointManual(double x, double y, bool isDistortedView)
 {
 	int idx = -1;
 	double mindist = 20;
-	double dist = mindist;
+	double dist;
 	cv::Point2d diff;
 	cv::Point2d pt = cv::Point2d(x, y);
 	for (unsigned int i = 0; i < projectedPoints.size(); i ++)
@@ -525,7 +526,6 @@ void CalibrationImage::setPointManual(double x, double y, bool isDistortedView)
 			detectedPoints[idx] = camera->undistortPoint(detectedPointsUndistorted[idx], false);
 		}
 
-		cv::Point2d diff;
 		diff = detectedPoints[idx] - projectedPoints[idx];
 		error[idx] = cv::sqrt(diff.x * diff.x + diff.y * diff.y);
 

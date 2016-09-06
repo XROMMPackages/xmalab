@@ -29,7 +29,6 @@
 #endif
 #include "ui/ImportExportPointsDialog.h"
 #include "ui_ImportExportPointsDialog.h"
-#include "ui/ErrorDialog.h"
 #include "ui/ConfirmationDialog.h"
 #include "ui/State.h"
 #include "ui/PlotWindow.h"
@@ -193,7 +192,6 @@ bool ImportExportPointsDialog::importXMA()
 		{
 			QStringList trialnames = ProjectFileIO::getInstance()->readTrials(diag->lineEditMarkersXMA->text());
 
-			bool ok;
 			QString item = QInputDialog::getItem(this, tr("Choose trial to import"),
 			                                     tr("Trial:"), trialnames, 0, false, &ok);
 

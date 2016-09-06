@@ -256,7 +256,7 @@ void Calibration::process()
 		cv::vector<cv::Mat> rvecs;
 		cv::vector<cv::Mat> tvecs;
 
-		double calib_error = cv::calibrateCamera(object_points, image_points, cv::Size(Project::getInstance()->getCameras()[m_camera]->getWidth(), Project::getInstance()->getCameras()[m_camera]->getHeight()), intrinsic_matrix, distortion_coeffs, rvecs, tvecs, flags);
+		cv::calibrateCamera(object_points, image_points, cv::Size(Project::getInstance()->getCameras()[m_camera]->getWidth(), Project::getInstance()->getCameras()[m_camera]->getHeight()), intrinsic_matrix, distortion_coeffs, rvecs, tvecs, flags);
 
 		Project::getInstance()->getCameras()[m_camera]->setCameraMatrix(intrinsic_matrix);
 		Project::getInstance()->getCameras()[m_camera]->setOptimized(false);

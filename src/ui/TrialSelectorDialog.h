@@ -28,7 +28,6 @@
 #define TRIALSELECTORDIALOG_H_
 
 #include <QDialog>
-#include <QString>
 
 namespace Ui
 {

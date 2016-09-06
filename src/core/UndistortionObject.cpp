@@ -400,7 +400,7 @@ cv::Point2d UndistortionObject::transformPoint(cv::Point2d pt, bool undistort, b
 		cv::Point2d pt_test;
 		pt_test = transformLWM(pt_out, distortionPoints, distortionMatrixA, distortionMatrixB, distortionMatrixRadii);
 		double dist = sqrt((pt.x - pt_test.x) * (pt.x - pt_test.x) + (pt.y - pt_test.y) * (pt.y - pt_test.y));
-		double distTMP = dist;
+		double distTMP;
 		cv::Point2d pt_outTMP;
 		double multiplier = 0.5;
 		int k = 0;

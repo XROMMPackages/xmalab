@@ -982,7 +982,6 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 
 		for (unsigned int j = 0; j < markers.size(); j++)
 		{
-			double sd = 0;
 			double mean = 0;
 			std::vector<double> value;
 			for (int frame = from-1; frame < to; frame++)
@@ -1072,7 +1071,6 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 
 			for (unsigned int j = 0; j < rigidBodies[body]->getPointsIdx().size(); j++)
 			{
-				double sd = 0;
 				double mean = 0;
 				std::vector<double> value;
 				for (int frame = from - 1; frame < to; frame++)

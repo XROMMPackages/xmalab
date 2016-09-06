@@ -30,9 +30,6 @@
 
 #include "processing/ThreadedProcessing.h"
 
-#include <QFutureWatcher>
-#include <QObject>
-
 namespace xma
 {
 	class Trial;

@@ -279,7 +279,7 @@ void WizardUndistortionFrame::undistortionFinished()
 	State::getInstance()->changeUndistortion(UNDISTORTED);
 	MainWindow::getInstance()->redrawGL();
 
-	WizardDockWidget::getInstance()->update();
+	WizardDockWidget::getInstance()->updateWizard();
 }
 
 void WizardUndistortionFrame::recomputeUndistortion()

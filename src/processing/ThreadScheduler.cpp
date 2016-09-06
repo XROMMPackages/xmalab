@@ -44,6 +44,7 @@ ThreadScheduler* ThreadScheduler::instance = NULL;
 
 ThreadScheduler::ThreadScheduler()
 {
+	data_ptr = NULL;
 }
 
 ThreadScheduler::~ThreadScheduler()

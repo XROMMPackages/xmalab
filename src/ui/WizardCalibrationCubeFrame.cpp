@@ -33,7 +33,6 @@
 #include "ui/MainWindow.h"
 #include "ui/ErrorDialog.h"
 #include "ui/ConfirmationDialog.h"
-#include "ui/WorkspaceNavigationFrame.h"
 #include "ui/OptimizationDialog.h"
 
 #include "core/Project.h"

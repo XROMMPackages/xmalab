@@ -36,10 +36,8 @@
 
 #include "core/Project.h"
 #include "core/Trial.h"
-#include "core/Camera.h"
 #include "core/Settings.h"
 #include "core/Marker.h"
-#include "core/RigidBody.h"
 #include <processing/MarkerDetection.h>
 #include <processing/MarkerTracking.h>
 

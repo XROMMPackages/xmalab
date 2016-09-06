@@ -62,6 +62,7 @@ Image::Image(QString _imageFileName)
 	textureLoaded = false;
 	image_reset = false;
 	imageTMP.release();
+	texture = 0;
 }
 
 Image::Image(Image* _image)
@@ -80,6 +81,8 @@ Image::Image(Image* _image)
 	height = image.rows;
 	textureLoaded = false;
 	image_reset = false;
+
+	texture = 0;
 }
 
 Image::Image(cv::Mat& _image)
@@ -91,6 +94,8 @@ Image::Image(cv::Mat& _image)
 	height = image.rows;
 	textureLoaded = false;
 	image_reset = false;
+
+	texture = 0;
 }
 
 Image::~Image()

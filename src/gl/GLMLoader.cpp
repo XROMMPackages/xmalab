@@ -348,27 +348,27 @@ VertexBuffer* GLMLoader::load(QString filename)
 		int numfacetnorms = numtriangles;
 		GLfloat* facetnorms = (GLfloat*)malloc(sizeof(GLfloat) * 3 * (numfacetnorms));
 
-		GLfloat u[3];
-		GLfloat v[3];
+		GLfloat u3[3];
+		GLfloat v3[3];
 
 		for (unsigned int i = 0; i < numtriangles; i++) {
 			triangles[i].findex = i;
 
-			u[0] = vertices[3 * (triangles[i].vindices[1] - 1) + 0] -
+			u3[0] = vertices[3 * (triangles[i].vindices[1] - 1) + 0] -
 				vertices[3 * (triangles[i].vindices[0] - 1) + 0];
-			u[1] = vertices[3 * (triangles[i].vindices[1] - 1) + 1] -
+			u3[1] = vertices[3 * (triangles[i].vindices[1] - 1) + 1] -
 				vertices[3 * (triangles[i].vindices[0] - 1) + 1];
-			u[2] = vertices[3 * (triangles[i].vindices[1] - 1) + 2] -
+			u3[2] = vertices[3 * (triangles[i].vindices[1] - 1) + 2] -
 				vertices[3 * (triangles[i].vindices[0] - 1) + 2];
 
-			v[0] = vertices[3 * (triangles[i].vindices[2] - 1) + 0] -
+			v3[0] = vertices[3 * (triangles[i].vindices[2] - 1) + 0] -
 				vertices[3 * (triangles[i].vindices[0] - 1) + 0];
-			v[1] = vertices[3 * (triangles[i].vindices[2] - 1) + 1] -
+			v3[1] = vertices[3 * (triangles[i].vindices[2] - 1) + 1] -
 				vertices[3 * (triangles[i].vindices[0] - 1) + 1];
-			v[2] = vertices[3 * (triangles[i].vindices[2] - 1) + 2] -
+			v3[2] = vertices[3 * (triangles[i].vindices[2] - 1) + 2] -
 				vertices[3 * (triangles[i].vindices[0] - 1) + 2];
 
-			glmCross(u, v, &facetnorms[3 * i]);
+			glmCross(u3, v3, &facetnorms[3 * i]);
 			glmNormalize(&facetnorms[3 * i]);
 		}
 

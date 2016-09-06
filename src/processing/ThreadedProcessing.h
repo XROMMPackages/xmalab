@@ -28,8 +28,6 @@
 #define THREADEDPROCESSING_H
 
 #include <QFutureWatcher>
-#include <QObject>
-#include <QString>
 
 namespace xma
 {

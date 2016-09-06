@@ -200,8 +200,6 @@ namespace xma
 
 		cv::Mat undistortionMapX;
 		cv::Mat undistortionMapY;
-
-		void paramsToMayaCam(double* out, cv::Mat _camera, cv::Mat _rotation, cv::Mat _translation);
 	};
 }
 

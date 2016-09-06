@@ -142,7 +142,7 @@ int* ccof_bwlp(int n)
 
 double sf_bwlp(int n, double fcf)
 {
-	int m, k; // loop variables
+	int k; // loop variables
 	double omega; // M_PI * fcf
 	double fomega; // function of omega
 	double parg0; // zeroth pole angle
@@ -152,7 +152,6 @@ double sf_bwlp(int n, double fcf)
 	fomega = sin(omega);
 	parg0 = M_PI / (double)(2 * n);
 
-	m = n / 2;
 	sf = 1.0;
 	for (k = 0; k < n / 2; ++k)
 		sf *= 1.0 + fomega * sin((double)(2 * k + 1) * parg0);

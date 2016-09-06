@@ -1187,8 +1187,6 @@ void Marker::interpolate()
 	else if (interpolation == 3)
 	{
 		for (unsigned int c = 0; c < status2D.size(); c++){
-			int idxStart = -1;
-			int idxEnd = -1;
 			int count = 0;
 			for (unsigned int f = 0; f < status2D[c].size(); f++){
 				if (status2D[c][f] >= TRACKED)
@@ -1292,8 +1290,6 @@ void Marker::interpolate()
 	}
 	else if (interpolation == 6)
 	{
-		int idxStart = -1;
-		int idxEnd = -1;
 		int count = 0;
 		for (unsigned int f = 0; f < status3D.size(); f++){
 			if (status3D[f] >= TRACKED)

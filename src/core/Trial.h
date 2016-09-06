@@ -56,7 +56,6 @@ namespace xma
 		double getRecordingSpeed();
 		void setRecordingSpeed(double value);
 
-
 		int getReferenceCalibrationImage();
 		void setReferenceCalibrationImage(int value);
 
@@ -128,8 +127,6 @@ namespace xma
 		void setXMLData(QString filename);
 		bool setFrameRateFromXML();
 		void parseXMLData();
-
-		const QString getXMLData() const;
 
 		const bool& getHasStudyData() const;
 		const QString& getStudyName() const;

@@ -50,7 +50,7 @@ namespace xma
 	public:
 		virtual ~WizardDockWidget();
 
-		void update();
+		void updateWizard();
 		static WizardDockWidget* getInstance();
 		bool manualCalibrationRunning();
 		void addCalibrationReference(double x, double y);

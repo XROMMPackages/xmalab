@@ -47,6 +47,8 @@ CalibrationObject::CalibrationObject()
 	scale.x = 1.0;
 	scale.y = 1.0;
 	scale.z = 1.0;
+	nbHorizontalSquares = 0;
+	nbVerticalSquares = 0;
 }
 
 CalibrationObject::~CalibrationObject()

@@ -112,7 +112,7 @@ void LocalUndistortion::localUndistortion_thread()
 	int gridSize = computeLWM(controlPts_inverse, controlPts, _A, _B, _radii);
 	createLookupTable(controlPts, _A, _B, _radii, map_x, map_y, gridSize);
 
-	gridSize = computeLWM(controlPts, controlPts_inverse, A_inverse, B_inverse, radii_inverse);
+	computeLWM(controlPts, controlPts_inverse, A_inverse, B_inverse, radii_inverse);
 
 	Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->setComputed(true);
 	if (!hasReferences)
@@ -404,12 +404,9 @@ void LocalUndistortion::createLookupTable(cv::Mat& controlPts, cv::Mat& A, cv::M
 	double u, v, w;
 	int i;
 	double xy, x2, y2, xg, yg;
-	double u_numerator = 0.0;
-	double v_numerator = 0.0;
-	double denominator = 0.0;
-
-	int allpixel = m_width * m_height;
-	int processedpixel = 0;
+	double u_numerator;
+	double v_numerator;
+	double denominator;
 
 	//for all pixel in output image compute the coordinates in the original image
 	//we take the shift of the center already into account
@@ -789,7 +786,6 @@ void LocalUndistortion::setupHexagonalGrid(cv::Point2d center, double dY)
 	tmpPoints_distorted.push_back(center);
 	tmpPoints_references.push_back(center);
 	dy_vec.push_back(dY);
-	bool test = true;
 
 	double dX = sin(M_PI / 3.0) * dY;
 	double dOffY = 0.5 * dY;

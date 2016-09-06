@@ -525,7 +525,6 @@ void GLCameraView::renderPointText(bool calibration)
 void GLCameraView::drawTexture()
 {
 	bool drawImage = true;
-	bool noDraw = false;
 	glEnable(GL_TEXTURE_2D);
 	if (State::getInstance()->getWorkspace() == UNDISTORTION)
 	{
@@ -585,8 +584,8 @@ void GLCameraView::centerViewToPoint(bool resetZoom)
 				double x, y;
 				if (activeMarker->getStatus2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()] > 0)
 				{
-					double x = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].x;
-					double y = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].y;
+					x = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].x;
+					y = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].y;
 					x_offset = -x;
 					y_offset = -y;
 				}

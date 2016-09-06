@@ -558,8 +558,6 @@ void RigidBody::computeCoordinateSystem(int Frame)
 {
 	if (!isReferencesSet())
 	{
-		int count = 0;
-
 		for (unsigned int i = 0; i < pointsIdx.size(); i++)
 		{
 			if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[Frame] <= UNDEFINED) return;
@@ -791,7 +789,7 @@ void RigidBody::updateError(int Frame, bool filtered)
 	double eSD2D = 0;
 	double eSD3D = 0;
 
-	int count = 0;
+	int count;
 
 	if ((points3D.size() > 0) && ((poseComputed[Frame] && !filtered) || (filtered && poseFiltered[Frame])))
 	{
@@ -1117,8 +1115,6 @@ void RigidBody::filterData(std::vector<int> idx)
 
 		for (unsigned int i = 0; i < idx.size(); i++)
 		{
-			double angle = cv::norm(rotationvectors[idx[i]]);
-
 			r1.push_back(rotationvectors[idx[i]][0]);
 			r2.push_back(rotationvectors[idx[i]][1]);
 			r3.push_back(rotationvectors[idx[i]][2]);
@@ -1710,7 +1706,6 @@ std::vector<cv::Point2d> RigidBody::projectToImage(Camera* cam, int Frame, bool 
 	{
 		std::cerr << description.toAscii().data() << " " << poseComputed[Frame] << " " << Frame << std::endl;
  	}
-	cv::Point2d pt0 = cv::Point2d(CV_MAT_ELEM(*image_points, double, 0, 0), CV_MAT_ELEM(*image_points, double, 0, 1));
 
 	std::vector<cv::Point2d> points2D_frame;
 	for (unsigned int i = 0; i < points3D_frame.size(); i++)
@@ -1908,9 +1903,6 @@ void RigidBody::draw2D(Camera* cam, int frame)
 
 		for (unsigned int i = 1; i < points2D_projected.size(); i++)
 		{
-			double x = points2D_projected[i].x;
-			double y = points2D_projected[i].y;
-
 			glBegin(GL_LINES);
 			glColor3ub(color.red(), color.green(), color.blue());
 			glVertex2f(points2D_projected[0].x, points2D_projected[0].y);
@@ -1946,9 +1938,6 @@ void RigidBody::draw2D(Camera* cam, int frame)
 			glEnable(GL_LINE_STIPPLE);
 			for (unsigned int i = 1; i < points2D_projected.size(); i++)
 			{
-				double x = points2D_projected[i].x;
-				double y = points2D_projected[i].y;
-
 				glBegin(GL_LINES);
 				glColor3ub(color.red(), color.green(), color.blue());
 				glVertex2f(points2D_projected[0].x, points2D_projected[0].y);

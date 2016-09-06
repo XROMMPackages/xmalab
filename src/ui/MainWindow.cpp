@@ -666,7 +666,7 @@ void MainWindow::UndistortionAfterloadProjectFinished()
 
 		ConsoleDockWidget::getInstance()->afterLoad();
 
-		WizardDockWidget::getInstance()->update();
+		WizardDockWidget::getInstance()->updateWizard();
 
 		State::getInstance()->setLoading(false);
 

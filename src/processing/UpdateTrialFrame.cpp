@@ -30,7 +30,6 @@
 
 #include "processing/UpdateTrialFrame.h" 
 
-#include "core/Project.h"
 #include "core/Trial.h"
 #include "core/Marker.h"
 #include "core/RigidBody.h"

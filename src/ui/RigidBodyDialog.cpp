@@ -376,7 +376,6 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 				trialnames << QString::number(i + 1);
 			}
 
-			bool ok;
 			QString item = QInputDialog::getItem(this, tr("Choose Rigid Body"),
 			                                     tr("RB:"), trialnames, 0, false, &ok);
 
