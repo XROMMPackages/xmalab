@@ -46,6 +46,8 @@ Settings::Settings()
 	QCoreApplication::setApplicationName("XMALab");
 	QSettings::setDefaultFormat(QSettings::IniFormat);
 
+	addQStringListSetting("RecentFiles", QStringList());
+
 	//UI
 	addBoolSetting("ShowDetailView", true);
 	addBoolSetting("ShowPlot", false);
@@ -238,6 +240,18 @@ void Settings::set(QString name, QString value)
 	assert(idx < 0);
 }
 
+void Settings::set(QString name, QStringList value)
+{
+	QSettings settings;
+	int idx = findIdx(name, qstringListSettings);
+	if (idx >= 0)
+	{
+		settings.setValue(name, value);
+		return;
+	}
+	assert(idx < 0);
+}
+
 void Settings::addBoolSetting(QString name, bool defaultValue)
 {
 	booleanSettings.push_back(std::make_pair(name, defaultValue));
@@ -256,6 +270,11 @@ void Settings::addFloatSetting(QString name, float defaultValue)
 void Settings::addQStringSetting(QString name, QString defaultValue)
 {
 	qstringSettings.push_back(std::make_pair(name, defaultValue));
+}
+
+void Settings::addQStringListSetting(QString name, QStringList defaultValue)
+{
+	qstringListSettings.push_back(std::make_pair(name, defaultValue));
 }
 
 bool Settings::getBoolSetting(QString name)
@@ -306,6 +325,18 @@ QString Settings::getQStringSetting(QString name)
 	return "";
 }
 
+QStringList Settings::getQStringListSetting(QString name)
+{
+	QSettings settings;
+	int idx = findIdx(name, qstringListSettings);
+	if (idx >= 0)
+	{
+		return settings.value(name, qstringListSettings[idx].second).toStringList();
+	}
+	assert(idx < 0);
+	return QStringList();
+}
+
 //Special Settings
 void Settings::setLastUsedDirectory(QString filename, bool directory)
 {
@@ -325,6 +356,18 @@ QString Settings::getLastUsedDirectory()
 {
 	QSettings settings;
 	return settings.value("lastDirectoryUsed").toString();
+}
+
+void Settings::addToRecentFiles(QString filename)
+{
+	QStringList previouslist = getQStringListSetting("RecentFiles");
+	previouslist.insert(0, filename);
+	previouslist.removeDuplicates();
+	if (previouslist.size() > 10)
+	{
+		previouslist.removeLast();
+	}
+	set("RecentFiles", previouslist);
 }
 
 void Settings::setUIGeometry(QString windowTitle, QByteArray geometry)

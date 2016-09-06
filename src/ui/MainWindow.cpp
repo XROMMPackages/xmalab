@@ -102,9 +102,16 @@ MainWindow::MainWindow(QWidget* parent) :
 {
 	//To prevent endless looping when accesing MainWindow::getInstance in constructors
 	worldViewDockWidget = NULL;
+	
 	if (!instance) instance = this;
 
 	ui->setupUi(this);
+
+	mapper = new QSignalMapper(this);
+	connect(mapper, SIGNAL(mapped(QString)), this, SLOT(loadRecentFile(QString)));
+	updateRecentFiles();
+
+
 	this->statusBar()->hide();
 
 	ui->imageMainFrame->setVisible(false);
@@ -217,6 +224,7 @@ MainWindow::~MainWindow()
 	delete GLSharedWidget::getInstance();
 	delete WizardDockWidget::getInstance();
 	delete worldViewDockWidget;
+	delete mapper;
 	instance = NULL;
 }
 
@@ -535,27 +543,34 @@ void MainWindow::newProjectFromXMALab(QString filename)
 
 void MainWindow::loadProject()
 {
+	QString fileName = QFileDialog::getOpenFileName(this,
+	                                                tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xma  *.zip)"));
+	if (fileName.isNull() == false)
+	{
+		loadProject(fileName);
+	}
+}
+
+void MainWindow::loadProject(QString fileName)
+{
 	if (project)
 		closeProject();
 
 	project = Project::getInstance();
 
-	QString fileName = QFileDialog::getOpenFileName(this,
-	                                                tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xma  *.zip)"));
-	if (fileName.isNull() == false)
-	{
-		State::getInstance()->setLoading(true);
+	State::getInstance()->setLoading(true);
 
-		Settings::getInstance()->setLastUsedDirectory(fileName);
+	Settings::getInstance()->setLastUsedDirectory(fileName);
+	Settings::getInstance()->addToRecentFiles(fileName);
+	updateRecentFiles();
 
-		m_FutureWatcher = new QFutureWatcher<int>();
-		connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( loadProjectFinished() ));
+	m_FutureWatcher = new QFutureWatcher<int>();
+	connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(loadProjectFinished()));
 
-		QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::loadProject, fileName);
-		m_FutureWatcher->setFuture(future);
+	QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::loadProject, fileName);
+	m_FutureWatcher->setFuture(future);
 
-		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load dataset " + fileName).toAscii().data());
-	}
+	ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load dataset " + fileName).toAscii().data());
 }
 
 void MainWindow::loadProjectFinished()
@@ -738,6 +753,8 @@ void MainWindow::saveProjectAs(bool subset)
 		if (fileName.isNull() == false)
 		{
 			Settings::getInstance()->setLastUsedDirectory(fileName);
+			Settings::getInstance()->addToRecentFiles(fileName);
+			updateRecentFiles();
 
 			if (!subset){
 				m_FutureWatcher = new QFutureWatcher<int>();
@@ -765,6 +782,37 @@ void MainWindow::saveProjectAs(bool subset)
 				delete diag;
 			}
 		}
+	}
+}
+
+void MainWindow::updateRecentFiles()
+{
+	ui->menuRecent_Files->clear();
+
+	QStringList recentFiles = Settings::getInstance()->getQStringListSetting("RecentFiles");
+
+	for (QStringList::const_iterator iter = recentFiles.constBegin(); iter != recentFiles.constEnd(); ++iter)
+	{
+		QAction * action = ui->menuRecent_Files->addAction(*iter);
+		connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
+		mapper->setMapping(action, *iter);
+	}
+	
+	QLayoutItem* item;
+	while ((item = ui->gridLayout->takeAt(0)) != NULL)
+	{
+		delete item->widget();
+		delete item;
+	}
+
+	int count = 0;
+	for (QStringList::const_iterator iter = recentFiles.constBegin(); iter != recentFiles.constEnd(); ++iter)
+	{
+		QPushButton * button = new QPushButton(*iter, this);
+		connect(button, SIGNAL(clicked()), mapper, SLOT(map()));
+		mapper->setMapping(button, *iter);
+		ui->gridLayout->addWidget(button, count, 0, 1, 1);
+		count++;
 	}
 }
 
@@ -1207,6 +1255,13 @@ void MainWindow::on_actionSave_Project_as_triggered(bool checked)
 void MainWindow::on_actionSave_subdataset_as_triggered(bool checked)
 {
 	saveProjectAs(true);
+}
+
+void MainWindow::loadRecentFile(QString filename)
+{
+	if (project && !ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to close your dataset. Please make sure your data have been saved. \nAre you sure you want to close current dataset and load an existing dataset?"))
+		return;
+	loadProject(filename);
 }
 
 //File->Export Menu Slots

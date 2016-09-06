@@ -30,6 +30,7 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QFuture>
+#include <QSignalMapper>
 
 #include "ui/State.h"
 
@@ -71,9 +72,12 @@ namespace xma
 		void newProject();
 		void newProjectFromXMALab(QString filename);
 		void loadProject();
+		void loadProject(QString filename);
 		void closeProject();
 		void saveProject();
 		void saveProjectAs(bool subset = false);
+
+		void updateRecentFiles();
 
 		//Trial functions
 		void newTrial();
@@ -83,6 +87,8 @@ namespace xma
 		QFutureWatcher<int>* m_FutureWatcher;
 		NewProjectDialog* newProjectdialog;
 		WorldViewDockWidget* worldViewDockWidget;
+
+		QSignalMapper * mapper;
 
 	protected:
 		MainWindow(QWidget* parent = 0);
@@ -115,6 +121,7 @@ namespace xma
 		void on_actionSave_Project_triggered(bool checked);
 		void on_actionSave_Project_as_triggered(bool checked);
 		void on_actionSave_subdataset_as_triggered(bool checked);
+		void loadRecentFile(QString filename);
 
 		//File->Export Menu Slots
 		void on_actionExportAll_triggered(bool checked);

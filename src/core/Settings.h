@@ -45,16 +45,20 @@ namespace xma
 		int getIntSetting(QString name);
 		float getFloatSetting(QString name);
 		QString getQStringSetting(QString name);
+		QStringList Settings::getQStringListSetting(QString name);
 
 		void set(QString name, bool value);
 		void set(QString name, int value);
 		void set(QString name, float value);
 		void set(QString name, QString value);
+		void set(QString name, QStringList value);
 
 		//Special Settings
 		//Filename
 		void setLastUsedDirectory(QString Filename, bool directory = false);
 		QString getLastUsedDirectory();
+
+		void addToRecentFiles(QString filename);
 
 		//UI QByteArray
 		void setUIGeometry(QString windowTitle, QByteArray geometry);
@@ -70,11 +74,13 @@ namespace xma
 		std::vector<std::pair<QString, int> > intSettings;
 		std::vector<std::pair<QString, float> > floatSettings;
 		std::vector<std::pair<QString, QString> > qstringSettings;
+		std::vector<std::pair<QString, QStringList> > qstringListSettings;
 
 		void addBoolSetting(QString name, bool defaultValue);
 		void addIntSetting(QString name, int defaultValue);
 		void addFloatSetting(QString name, float defaultValue);
 		void addQStringSetting(QString name, QString defaultValue);
+		void addQStringListSetting(QString name, QStringList defaultValue);
 	};
 }
 

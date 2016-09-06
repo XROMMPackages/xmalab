@@ -22,7 +22,7 @@
 //  
 ///\file PointImportExportDialog.cpp
 ///\author Benjamin Knorlein
-///\date 11/20/2015
+///\date 11/2groupBoxRecentFiles0/2015
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
