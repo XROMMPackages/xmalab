@@ -662,6 +662,10 @@ void MainWindow::UndistortionAfterloadProjectFinished()
 		if (allCamerasCalibrated)
 		{
 			ui->actionImportTrial->setEnabled(true);
+			State::getInstance()->changeWorkspace(DIGITIZATION, true);
+		}
+		else if (State::getInstance()->getUndistortion() == UNDISTORTED){
+			State::getInstance()->changeWorkspace(CALIBRATION, true);
 		}
 
 		ConsoleDockWidget::getInstance()->afterLoad();
