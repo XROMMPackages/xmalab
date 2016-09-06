@@ -126,6 +126,7 @@ void SequenceNavigationFrame::setStartEndSequence(int start, int end)
 	if (frame->horizontalSlider->value() == endFrame - 1) frame->toolButtonNext->setEnabled(false);
 
 	PlotWindow::getInstance()->resetRange();
+	PlotWindow::getInstance()->draw();
 }
 
 void SequenceNavigationFrame::activeFrameChanged(int activeFrame)

@@ -475,17 +475,19 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 	return false;
 }
 
-void PlotWindow::resetRange()
+void PlotWindow::resetRange(bool recreateStatus)
 {
-	for (unsigned int c = 0; c < marker_status.size(); c++)
-	{
-		for (unsigned int f = 0; f < marker_status[c].size(); f++)
+	if (recreateStatus){
+		for (unsigned int c = 0; c < marker_status.size(); c++)
 		{
-			dock->plotWidget->removeItem(marker_status[c][f]);
+			for (unsigned int f = 0; f < marker_status[c].size(); f++)
+			{
+				dock->plotWidget->removeItem(marker_status[c][f]);
+			}
+			marker_status[c].clear();
 		}
-		marker_status[c].clear();
+		marker_status.clear();
 	}
-	marker_status.clear();
 
 	if (State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
 	{
@@ -498,20 +500,22 @@ void PlotWindow::resetRange()
 			(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1) * posMultiplier + posOffset,
 			(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1) * posMultiplier + posOffset);
 
-		if (dock->checkBoxStatus->isChecked()){
-			for (unsigned int c = 0; c < Project::getInstance()->getCameras().size(); c++)
-			{
-				std::vector<QCPItemRect *> rects;
-				for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
+		if (recreateStatus){
+			if (dock->checkBoxStatus->isChecked()){
+				for (unsigned int c = 0; c < Project::getInstance()->getCameras().size(); c++)
 				{
-					rects.push_back(new QCPItemRect(dock->plotWidget));
-					dock->plotWidget->addItem(rects.back());
+					std::vector<QCPItemRect *> rects;
+					for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
+					{
+						rects.push_back(new QCPItemRect(dock->plotWidget));
+						dock->plotWidget->addItem(rects.back());
+					}
+					marker_status.push_back(rects);
 				}
-				marker_status.push_back(rects);
 			}
 		}
 
-		if (this->isVisible())dock->plotWidget->replot();
+		if (this->isVisible()) dock->plotWidget->replot();
 	}
 }
 
@@ -1849,7 +1853,7 @@ void PlotWindow::on_comboBoxMarker2_currentIndexChanged(int idx)
 
 void PlotWindow::on_pushButton_Reset_clicked()
 {
-	resetRange();
+	resetRange(false);
 	draw();
 }
 
@@ -1917,7 +1921,7 @@ void PlotWindow::on_comboBoxRigidBodyTransType_currentIndexChanged(int idx)
 
 void PlotWindow::on_checkBoxTime_clicked()
 {
-	resetRange();
+	resetRange(false);
 	draw();
 }
 

@@ -54,7 +54,7 @@ namespace xma
 
 		void updateMarkers(bool rememberSelection);
 		void draw();
-		void resetRange();
+		void resetRange(bool recreateStatus = true);
 		void updateTimeCheckBox();
 
 	private:
