@@ -1707,7 +1707,16 @@ bool ProjectFileIO::zipFromFolderToFile(const QString& filePath, const QDir& dir
 				return false;
 			}
 
-			while (inFile.getChar(&c) && outFile.putChar(c));
+			while (inFile.getChar(&c)){
+				if (!outFile.putChar(c))
+				{
+					ErrorDialog::getInstance()->showErrorDialog("Could not write file. Please check your diskspace and restart XMALab!");
+					inFile.close();
+					outFile.close();
+					zip.close();
+					return false;
+				};
+			}
 
 			if (outFile.getZipError() != UNZ_OK)
 			{
@@ -1796,14 +1805,21 @@ bool ProjectFileIO::unzipFromFileToFolder(const QString& filePath, const QString
 		out.setFileName(name);
 		QFileInfo fileinfo(name);
 		QDir().mkpath(fileinfo.absolutePath());
-
 		// this will fail if "name" contains subdirectories, but we don't mind that
 		out.open(QIODevice::WriteOnly);
 		// Slow like hell (on GNU/Linux at least), but it is not my fault.
 		// Not ZIP/UNZIP package's fault either.
 		// The slowest thing here is out.putChar(c).
-		while (file.getChar(&c)) out.putChar(c);
-
+		while (file.getChar(&c)){
+			if (!out.putChar(c))
+			{
+				ErrorDialog::getInstance()->showErrorDialog("Could not write file. Please check your diskspace and restart XMALab!");
+				out.close();
+				file.close();
+				zip.close();
+				return false;
+			};
+		}
 		out.close();
 
 		if (file.getZipError() != UNZ_OK)
