@@ -65,6 +65,7 @@ namespace xma
 		void plotRigidBody(int idx);
 		void plotRigidBodyError(int idx);
 		void installEventFilterToChildren(QObject* widget);
+		void saveData();
 
 	protected:
 		bool eventFilter(QObject* target, QEvent* event) override;
@@ -92,6 +93,7 @@ namespace xma
 		void on_comboBoxMarker2_currentIndexChanged(int idx);
 		void on_pushButton_Reset_clicked();
 		void on_pushButtonUpdate_clicked();
+		void on_pushButtonSave_clicked();
 
 		void on_comboBoxRigidBody_currentIndexChanged(int idx);
 		void on_comboBoxRigidBodyTransPart_currentIndexChanged(int idx);

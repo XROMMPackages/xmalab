@@ -26,6 +26,7 @@
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
+#define NOMINMAX
 #endif
 
 #include "ui/PlotWindow.h"
@@ -111,6 +112,386 @@ void PlotWindow::installEventFilterToChildren(QObject* object)
 	object->installEventFilter(this);
 }
 
+void PlotWindow::saveData()
+{
+	QString text = "Save PlotData";
+	QString fileName = QFileDialog::getSaveFileName(this,
+		text, Settings::getInstance()->getLastUsedDirectory() + OS_SEP + "PlotData.csv", tr("Comma seperated data (*.csv)"));
+	if (fileName.isNull() == false)
+	{
+		std::ofstream outfile(fileName.toAscii().data());
+		outfile.precision(12);
+		
+		if (dock->comboBoxPlotType->currentIndex() == 0)
+		{
+			int cam_start = (dock->comboBoxCamera->currentIndex() == 0) ? 0 : dock->comboBoxCamera->currentIndex() - 1;
+			int cam_end = (dock->comboBoxCamera->currentIndex() == 0) ? Project::getInstance()->getCameras().size() - 1 : dock->comboBoxCamera->currentIndex() - 1;
+			int marker_id = dock->comboBoxMarker1->currentIndex();
+
+			//Header
+			for (int c = cam_start; c <= cam_end; c++)
+			{
+				outfile << "Cam" + std::to_string(c) + "_Marker_" + std::to_string(marker_id + 1) + "_x , Cam" + std::to_string(c+1) + "_Marker_" + std::to_string(marker_id + 1) + "_y";
+				if (c != cam_end)
+				{
+					outfile << " , ";
+				}
+			}
+			outfile << std::endl;
+
+			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
+			{
+				for (int c = cam_start; c <= cam_end; c++)
+				{
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getStatus2D()[c][i] > UNDEFINED)
+					{
+						outfile << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints2D()[c][i].x << " , " <<
+						 Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints2D()[c][i].y;
+					}
+					else
+					{
+						outfile << "NaN , NaN" << std::endl;
+					}
+					if (c != cam_end)
+					{
+						outfile << " , ";
+					}
+				}
+				outfile << std::endl;
+			}
+		}
+		else if (dock->comboBoxPlotType->currentIndex() == 1)
+		{
+			int cam_start = (dock->comboBoxCamera->currentIndex() == 0) ? 0 : dock->comboBoxCamera->currentIndex() - 1;
+			int cam_end = (dock->comboBoxCamera->currentIndex() == 0) ? Project::getInstance()->getCameras().size() - 1 : dock->comboBoxCamera->currentIndex() - 1;
+			int marker_id = dock->comboBoxMarker1->currentIndex();
+			
+			//Header
+			outfile << "Marker_" + std::to_string(marker_id + 1) + "_x , Marker_" + std::to_string(marker_id + 1) + "_y , Marker_" + std::to_string(marker_id + 1) + "_z" << std::endl;
+
+			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
+			{
+
+				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getStatus3D()[i] > UNDEFINED)
+				{
+					outfile << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints3D()[i].x
+						<< " , " << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints3D()[i].y
+						<< " , " << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints3D()[i].z;
+				} else
+				{
+					outfile << "NaN , NaN , NaN" << std::endl;
+				}
+				
+				outfile << std::endl;
+			}
+		}
+		else if (dock->comboBoxPlotType->currentIndex() == 2)
+		{
+			//Header
+			outfile << "Marker_" + std::to_string(dock->comboBoxMarker1->currentIndex() + 1) + "_to_Marker_" + std::to_string(dock->comboBoxMarker2->currentIndex() + 1) << std::endl;
+
+			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++, count++)
+			{
+				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getStatus3D()[i] > UNDEFINED)
+				{
+					cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getPoints3D()[i] - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getPoints3D()[i];
+					outfile << cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z) << std::endl;
+				}
+				else
+				{
+					outfile << "NaN" << std::endl;
+				}
+			}
+		}
+		else if (dock->comboBoxPlotType->currentIndex() == 3)
+		{
+			int cam_start = (dock->comboBoxCamera->currentIndex() == 0) ? 0 : dock->comboBoxCamera->currentIndex() - 1;
+			int cam_end = (dock->comboBoxCamera->currentIndex() == 0) ? Project::getInstance()->getCameras().size() - 1 : dock->comboBoxCamera->currentIndex() - 1;
+			int marker_id = dock->comboBoxMarker1->currentIndex();
+			
+			//Header
+			outfile << "ReprojectionError_Marker_" + std::to_string(dock->comboBoxMarker1->currentIndex() + 1) << "_" << dock->comboBoxCamera->currentText().toAscii().data() << std::endl;
+
+			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
+			{
+				bool set = false;
+				double error_val = 0;
+				int count = 0;
+				for (int c = cam_start; c <= cam_end; c++)
+				{
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getStatus2D()[c][i] > UNDEFINED &&
+						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getStatus3D()[i] > UNDEFINED)
+					{
+						count++;
+						error_val += Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getError2D()[c][i];
+						set = true;
+					}
+				}
+
+				if (set)
+				{
+					outfile << error_val / count;
+				}
+				else
+				{
+					outfile << "NaN" << std::endl;
+				}
+				outfile << std::endl;
+			}
+		}
+		else if (dock->comboBoxPlotType->currentIndex() == 4)
+		{
+			int filtered = dock->comboBoxRigidBodyTransType->currentIndex();
+			int body = dock->comboBoxRigidBody->currentIndex();
+			int type = dock->comboBoxRigidBodyTransPart->currentIndex();
+
+			QStringList data = QStringList();
+
+			//Header 
+			if (type == 0 || type == 1 || type == 3)
+			{
+				if (filtered != 1) data << "Unfiltered_Yaw_RB" + QString::number(body + 1);
+				if (filtered != 0) data << "Filtered_Yaw_RB" + QString::number(body + 1);
+			}
+			if (type == 0 || type == 1 || type == 4)
+			{
+				if (filtered != 1) data << "Unfiltered_Pitch_RB" + QString::number(body + 1);
+				if (filtered != 0) data << "Filtered_Pitch_RB" + QString::number(body + 1);
+			}
+			if (type == 0 || type == 1 || type == 5)
+			{
+				if (filtered != 1) data << "Unfiltered_Roll_RB" + QString::number(body + 1);
+				if (filtered != 0) data << "Filtered_Roll_RB" + QString::number(body + 1);
+			}
+			if (type == 0 || type == 2 || type == 6)
+			{
+				if (filtered != 1) data << "Unfiltered_X_RB" + QString::number(body + 1);
+				if (filtered != 0) data << "Filtered_X_RB" + QString::number(body + 1);
+			}
+			if (type == 0 || type == 2 || type == 7)
+			{
+				if (filtered != 1) data << "Unfiltered_Y_RB" + QString::number(body + 1);
+				if (filtered != 0) data << "Filtered_Y_RB" + QString::number(body + 1);
+			}
+			if (type == 0 || type == 2 || type == 8)
+			{
+				if (filtered != 1) data << "Unfiltered_Z_RB" + QString::number(body + 1);
+				if (filtered != 0) data << "Filtered_Z_RB" + QString::number(body + 1);
+			}
+			//write Header
+
+			for (int i = 0; i < data.size(); i++)
+			{
+				outfile << data[i].toAscii().data();
+
+				if (i != data.size() - 1)
+				{
+					outfile << " , ";
+				}
+			}
+			outfile << std::endl;
+
+			std::vector<std::vector<double>> data_vec;
+			double min_value = std::numeric_limits<double>::min();
+			//Set Rotations
+			for (int z = 0; z < 3; z++)
+			{
+				for (int k = 0; k < 2; k++){
+					std::vector<double> val;
+					bool filt = k == 1;
+					for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
+					{
+						if ((!filt && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[body]->getPoseComputed()[i] > 0) ||
+							(filt && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[body]->getPoseFiltered()[i] > 0))
+						{
+							val.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[body]->getRotationEulerAngle(filt, i, z));
+						} else
+						{
+							val.push_back(min_value);
+						}
+					}
+
+					double lastval = val[0];
+					for (int i = 1; i < val.size(); i++)
+					{
+						if (lastval != min_value && fabs(lastval - val[i]) > 270)
+						{
+							if (val[i] < lastval)
+							{
+								val[i] = 360 + val[i];
+							}
+							else
+							{
+								val[i] = val[i] - 360;
+							}
+						}
+
+						if (val[i] != min_value) lastval = val[i];
+
+					}
+					data_vec.push_back(val);
+				}
+			}
+			//Set Translations
+			for (int z = 0; z < 3; z++)
+			{
+				for (int k = 0; k < 2; k++){
+					std::vector<double> val;
+					bool filt = k == 1;
+					for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
+					{
+						if ((!filt && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[body]->getPoseComputed()[i] > 0) ||
+							(filt && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[body]->getPoseFiltered()[i] > 0))
+						{
+							val.push_back(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[body]->getTranslationVector(filt)[i][z]);
+						} 
+						else
+						{
+							val.push_back(min_value);
+						}
+					}
+					data_vec.push_back(val);
+				}
+			}
+
+
+			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
+			{
+				data.clear();
+				if (type == 0 || type == 1 || type == 3)
+				{
+					if (filtered != 1) data << ((data_vec[0][i] != min_value) ? QString::number(data_vec[0][i],'f', 12) : QString("NaN"));
+					if (filtered != 0) data << ((data_vec[1][i] != min_value) ? QString::number(data_vec[1][i], 'f', 12) : QString("NaN"));
+				}
+				if (type == 0 || type == 1 || type == 4)
+				{
+					if (filtered != 1) data << ((data_vec[2][i] != min_value) ? QString::number(data_vec[2][i], 'f', 12) : QString("NaN"));
+					if (filtered != 0) data << ((data_vec[3][i] != min_value) ? QString::number(data_vec[3][i], 'f', 12) : QString("NaN"));
+				}
+				if (type == 0 || type == 1 || type == 5)
+				{
+					if (filtered != 1) data << ((data_vec[4][i] != min_value) ? QString::number(data_vec[4][i], 'f', 12) : QString("NaN"));
+					if (filtered != 0) data << ((data_vec[5][i] != min_value) ? QString::number(data_vec[5][i], 'f', 12) : QString("NaN"));
+				}
+				if (type == 0 || type == 2 || type == 6)
+				{
+					if (filtered != 1) data << ((data_vec[6][i] != min_value) ? QString::number(data_vec[6][i], 'f', 12) : QString("NaN"));
+					if (filtered != 0) data << ((data_vec[7][i] != min_value) ? QString::number(data_vec[7][i], 'f', 12) : QString("NaN"));
+				}
+				if (type == 0 || type == 2 || type == 7)
+				{
+					if (filtered != 1) data << ((data_vec[8][i] != min_value) ? QString::number(data_vec[8][i], 'f', 12) : QString("NaN"));
+					if (filtered != 0) data << ((data_vec[9][i] != min_value) ? QString::number(data_vec[9][i], 'f', 12) : QString("NaN"));
+				}
+				if (type == 0 || type == 2 || type == 8)
+				{
+					if (filtered != 1) data << ((data_vec[10][i] != min_value) ? QString::number(data_vec[10][i], 'f', 12) : QString("NaN"));
+					if (filtered != 0) data << ((data_vec[11][i] != min_value) ? QString::number(data_vec[11][i], 'f', 12) : QString("NaN"));
+				}
+
+				//write DataOut
+				for (int i = 0; i < data.size(); i++)
+				{
+					outfile << data[i].toAscii().data();
+
+					if (i != data.size() - 1)
+					{
+						outfile << " , ";
+					}
+				}
+				outfile << std::endl;
+			}
+
+		}
+		else if (dock->comboBoxPlotType->currentIndex() == 5)
+		{
+			int filtered = dock->comboBoxRigidBodyTransType->currentIndex();
+			int bodyIdx = dock->comboBoxRigidBody->currentIndex();
+			bool draw3D = dock->comboBoxRigidBodyError->currentIndex() == 0;
+
+			RigidBody * body = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[bodyIdx];
+			
+			QStringList data = QStringList();
+
+			if (filtered != 1){
+				data << "Unfiltered_RigidBodyError" + QString(draw3D ? "3D" : "2D") + "_RB" + QString::number(bodyIdx + 1) + "_Mean";
+				data << "Unfiltered_RigidBodyError" + QString(draw3D ? "3D" : "2D") + "_RB" + QString::number(bodyIdx + 1) + "_SD";
+			}
+			if (filtered != 0){
+				data << "Filtered_RigidBodyError" + QString(draw3D ? "3D" : "2D") + "_RB" + QString::number(bodyIdx + 1) + "_Mean";
+				data << "Filtered_RigidBodyError" + QString(draw3D ? "3D" : "2D") + "_RB" + QString::number(bodyIdx + 1) + "_SD";
+			}
+			for (int i = 0; i < data.size(); i++)
+			{
+				outfile << data[i].toAscii().data();
+
+				if (i != data.size() - 1)
+				{
+					outfile << " , ";
+				}
+			}
+			outfile << std::endl;
+
+			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
+			{
+				data.clear();
+
+				if (filtered != 1){
+					if (body->getPoseComputed()[i])
+					{
+						if (draw3D)
+						{
+							data << QString::number(body->getErrorMean3D()[i], 'f', 12);
+							data << QString::number(body->getErrorSd3D()[i], 'f', 12);
+						}
+						else
+						{
+							data << QString::number(body->getErrorMean2D()[i], 'f', 12);
+							data << QString::number(body->getErrorSd2D()[i], 'f', 12);
+						}
+					} else
+					{
+						data << "NaN";
+						data << "NaN";
+					}
+				}
+				if (filtered != 0){
+					if (body->getPoseFiltered()[i])
+					{
+						if (draw3D)
+						{
+							data << QString::number(body->getErrorMean3D_filtered()[i], 'f', 12);
+							data << QString::number(body->getErrorSd3D_filtered()[i], 'f', 12);
+						}
+						else
+						{
+							data << QString::number(body->getErrorMean2D_filtered()[i], 'f', 12);
+							data << QString::number(body->getErrorSd2D_filtered()[i], 'f', 12);
+						}
+					}
+					else
+					{
+						data << "NaN";
+						data << "NaN";
+					}
+				}
+
+				for (int i = 0; i < data.size(); i++)
+				{
+					outfile << data[i].toAscii().data();
+
+					if (i != data.size() - 1)
+					{
+						outfile << " , ";
+					}
+				}
+				outfile << std::endl;
+			}
+		}
+	outfile.close();
+	}
+}
+
 PlotWindow::~PlotWindow()
 {
 	instance = NULL;
@@ -133,6 +514,9 @@ void PlotWindow::deleteData()
 	int frameEnd;
 	frameStart = (endFrame > startFrame) ? startFrame : endFrame;
 	frameEnd = (endFrame > startFrame) ? endFrame : startFrame;
+	frameStart = (frameStart < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1 : frameStart;
+	frameEnd = (frameEnd > Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1 : frameEnd;
+
 	QString cameras;
 	if (dock->comboBoxPlotType->currentIndex() == 0 || dock->comboBoxPlotType->currentIndex() == 3)
 	{
@@ -160,7 +544,7 @@ void PlotWindow::deleteData()
 		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd);
 		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd);
 	}
-	else if (dock->comboBoxPlotType->currentIndex() == 4)
+	else if (dock->comboBoxPlotType->currentIndex() == 4 || dock->comboBoxPlotType->currentIndex() == 5)
 	{
 		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete your data for " + cameras + " for all marker of Rigid Body " + dock->comboBoxRigidBody->currentText() + " from Frame " + QString::number(frameStart + 1) + " to " + QString::number(frameEnd + 1))) return;
 		for (unsigned int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[dock->comboBoxRigidBody->currentIndex()]->getPointsIdx().size(); i++)
@@ -290,34 +674,6 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 		{
 			deleteData();
 			return true;
-		}
-		if (_keyEvent->key() == Qt::Key_S && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
-		{
-			if (dock->comboBoxPlotType->currentIndex() == 2)
-			{
-				QString text = "Save intermarker distance between Marker " + dock->comboBoxMarker1->currentText() + " and Marker " + dock->comboBoxMarker2->currentText();
-				QString fileName = QFileDialog::getSaveFileName(this,
-				                                                text, Settings::getInstance()->getLastUsedDirectory() + OS_SEP + "Distance" + dock->comboBoxMarker1->currentText() + "To" + dock->comboBoxMarker2->currentText() + ".csv", tr("Comma seperated data (*.csv)"));
-				if (fileName.isNull() == false)
-				{
-					std::ofstream outfile(fileName.toAscii().data());
-					outfile.precision(12);
-					for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++ , count++)
-					{
-						if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getStatus3D()[i] > UNDEFINED)
-						{
-							cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getPoints3D()[i] - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getPoints3D()[i];
-							outfile << cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z) << std::endl;
-						}
-						else
-						{
-							outfile << "NaN" << std::endl;
-						}
-					}
-					outfile.close();
-				}
-				return true;
-			}
 		}
 	}
 
@@ -1861,6 +2217,11 @@ void PlotWindow::closeEvent(QCloseEvent* event)
 {
 	event->ignore();
 	MainWindow::getInstance()->on_actionPlot_triggered(false);
+}
+
+void PlotWindow::on_pushButtonSave_clicked()
+{
+	saveData();
 }
 
 void PlotWindow::on_pushButtonUpdate_clicked()
