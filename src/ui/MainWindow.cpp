@@ -1406,7 +1406,7 @@ void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 		else if (Settings::getInstance()->getBoolSetting("ExportTransMulti"))
 		{
 			QString fileName = QFileDialog::getSaveFileName(this,
-			                                                tr("Save 2D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+			                                                tr("Save Rigid Bodies as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
 
 
 			if (fileName.isNull() == false)
