@@ -92,7 +92,7 @@
              </size>
             </property>
             <property name="text">
-             <string>Load .xma file</string>
+             <string>Open .xma file</string>
             </property>
            </widget>
           </item>
@@ -698,20 +698,35 @@
    <property name="text">
     <string>New dataset</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
   </action>
   <action name="actionLoad_Project">
    <property name="text">
-    <string>Load dataset</string>
+    <string>Open dataset</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="actionSave_Project">
    <property name="text">
     <string>Save dataset</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
   <action name="actionSave_Project_as">
    <property name="text">
     <string>Save dataset as</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
   <action name="actionExportDLT">
@@ -732,6 +747,9 @@
   <action name="actionClose_Project">
    <property name="text">
     <string>Close dataset</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
    </property>
   </action>
   <action name="action3D_world_view">

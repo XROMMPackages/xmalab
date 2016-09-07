@@ -227,6 +227,10 @@ void PointsDockWidget::selectPrevPoint()
 	}
 }
 
+void PointsDockWidget::selectAllPoints()
+{
+	dock->treeWidgetPoints->selectAll();
+}
 
 bool PointsDockWidget::selectPoint(int idx)
 {

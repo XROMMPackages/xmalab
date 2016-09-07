@@ -89,6 +89,9 @@ void Shortcuts::bindApplicationShortcuts()
 
 	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I), WizardDockWidget::getInstance(), SLOT(interpolateAll()));
 	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), PointsDockWidget::getInstance(), SLOT(selectAllPoints()));
+	shortcut->setContext(Qt::ApplicationShortcut);
 }
 
 void Shortcuts::installEventFilterToChildren(QObject* object)
@@ -176,6 +179,11 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 		if (_keyEvent->key() == Qt::Key_W)
 		{
 			SequenceNavigationFrame::getInstance()->on_toolButtonNext_clicked();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_A && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
+		{
+			PointsDockWidget::getInstance()->selectAllPoints();
 			return true;
 		}
 	}

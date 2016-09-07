@@ -75,6 +75,8 @@ namespace xma
 		void activeTrialChanged(int activeCamera);
 		void selectNextPoint();
 		void selectPrevPoint();
+		void selectAllPoints();
+
 		signals:
 		void activePointChanged(int idx);
 		void activeRigidBodyChanged(int idx);
