@@ -53,6 +53,8 @@ namespace xma
 		QAction* action_ChangeInterpolationMethod;
 		QAction* action_RefinePointsPolynomialFit;
 		QAction* action_ChangePoint;
+		QAction* action_Save3D;
+		QAction* action_SaveTransformations;
 
 		QTreeWidgetItem* item_contextMenu;
 		int statusSlots;
@@ -69,6 +71,8 @@ namespace xma
 		void action_ChangeInterpolationMethod_triggered();
 		void action_RefinePointsPolynomialFit_triggered();
 		void action_ChangePoint_triggered();
+		void action_Save3D_triggered();
+		void action_SaveTransformations_triggered();
 
 	public slots:
 		void onItemCollapsed(QTreeWidgetItem* item);

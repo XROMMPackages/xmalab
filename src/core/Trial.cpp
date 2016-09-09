@@ -769,12 +769,12 @@ void Trial::recomputeAndFilterRigidBodyTransformations()
 	}
 }
 
-void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, bool headerRow, bool filtered, bool saveColumn, int start, int stop)
+void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outputfolder, bool onefile, bool headerRow, bool filtered, bool saveColumn, int start, int stop)
 {
-	for (unsigned int i = 0; i < getRigidBodies().size(); i++)
+	for (std::vector<int>::const_iterator it = _bodies.begin(); it < _bodies.end(); ++it)
 	{
-		getRigidBodies()[i]->recomputeTransformations();
-		if (filtered)getRigidBodies()[i]->filterTransformations();
+		getRigidBodies()[*it]->recomputeTransformations();
+		if (filtered)getRigidBodies()[*it]->filterTransformations();
 	}
 
 	if (onefile)
@@ -787,22 +787,22 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 			{
 				outfile << "Frame" << " , ";
 			}
-			for (unsigned int i = 0; i < getRigidBodies().size(); i++)
+			for (std::vector<int>::const_iterator it = _bodies.begin(); it < _bodies.end(); ++it)
 			{
 				QString name;
 				QString filterRate = "";
-				if (getRigidBodies()[i]->getDescription().isEmpty())
+				if (getRigidBodies()[*it]->getDescription().isEmpty())
 				{
-					name = "RigidBody" + QString().sprintf("%03d", i + 1);
+					name = "RigidBody" + QString().sprintf("%03d", *it + 1);
 				}
 				else
 				{
-					name = getRigidBodies()[i]->getDescription();
+					name = getRigidBodies()[*it]->getDescription();
 				}
 
 				if (filtered)
 				{
-					filterRate = "_" + QString::number(getRigidBodies()[i]->getOverrideCutoffFrequency() ? getRigidBodies()[i]->getCutoffFrequency() : getCutoffFrequency()) + "Hz";
+					filterRate = "_" + QString::number(getRigidBodies()[*it]->getOverrideCutoffFrequency() ? getRigidBodies()[*it]->getCutoffFrequency() : getCutoffFrequency()) + "Hz";
 				}
 
 				outfile << name.toAscii().data() << "_R11" << filterRate.toAscii().data() << " , "
@@ -822,7 +822,7 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
 					<< name.toAscii().data() << "_1" << filterRate.toAscii().data();
 
-				if (i != getRigidBodies().size() - 1)
+				if (it != _bodies.end() - 1)
 				{
 					outfile << " , ";
 				}
@@ -844,9 +844,9 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 			{
 				outfile << f + 1 << " , ";
 			}
-			for (unsigned int i = 0; i < getRigidBodies().size(); i++)
+			for (std::vector<int>::const_iterator it = _bodies.begin(); it < _bodies.end(); ++it)
 			{
-				if (getRigidBodies()[i]->getTransformationMatrix(f, filtered, &trans[0]))
+				if (getRigidBodies()[*it]->getTransformationMatrix(f, filtered, &trans[0]))
 				{
 					outfile << trans[0] << " , " << trans[1] << " , " << trans[2] << " , " << trans[3] << " , ";
 					outfile << trans[4] << " , " << trans[5] << " , " << trans[6] << " , " << trans[7] << " , ";
@@ -861,7 +861,7 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 					outfile << "NaN , NaN , NaN , NaN";
 				}
 
-				if (i != getRigidBodies().size() - 1)
+				if (it != _bodies.end() - 1)
 				{
 					outfile << " , ";
 				}
@@ -876,16 +876,16 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 	}
 	else
 	{
-		for (unsigned int i = 0; i < getRigidBodies().size(); i++)
+		for (std::vector<int>::const_iterator it = _bodies.begin(); it < _bodies.end(); ++it)
 		{
 			QString filename;
 			if (filtered)
 			{
-				filename = outputfolder + "RigidBody" + QString().sprintf("%03d", i + 1) + "_" + getRigidBodies()[i]->getDescription() + "_transformationFiltered_" + QString::number(getRigidBodies()[i]->getOverrideCutoffFrequency() ? getRigidBodies()[i]->getCutoffFrequency() : getCutoffFrequency()) + "Hz.csv";
+				filename = outputfolder + "RigidBody" + QString().sprintf("%03d", *it + 1) + "_" + getRigidBodies()[*it]->getDescription() + "_transformationFiltered_" + QString::number(getRigidBodies()[*it]->getOverrideCutoffFrequency() ? getRigidBodies()[*it]->getCutoffFrequency() : getCutoffFrequency()) + "Hz.csv";
 			}
 			else
 			{
-				filename = outputfolder + "RigidBody" + QString().sprintf("%03d", i + 1) + "_" + getRigidBodies()[i]->getDescription() + "_transformation.csv";
+				filename = outputfolder + "RigidBody" + QString().sprintf("%03d", *it + 1) + "_" + getRigidBodies()[*it]->getDescription() + "_transformation.csv";
 			}
 
 			std::ofstream outfile(filename.toAscii().data());
@@ -898,18 +898,18 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 				}
 				QString name;
 				QString filterRate = "";
-				if (getRigidBodies()[i]->getDescription().isEmpty())
+				if (getRigidBodies()[*it]->getDescription().isEmpty())
 				{
-					name = "RigidBody" + QString().sprintf("%03d", i + 1);
+					name = "RigidBody" + QString().sprintf("%03d", *it + 1);
 				}
 				else
 				{
-					name = getRigidBodies()[i]->getDescription();
+					name = getRigidBodies()[*it]->getDescription();
 				}
 
 				if (filtered)
 				{
-					filterRate = "_" + QString::number(getRigidBodies()[i]->getOverrideCutoffFrequency() ? getRigidBodies()[i]->getCutoffFrequency() : getCutoffFrequency()) + "Hz";
+					filterRate = "_" + QString::number(getRigidBodies()[*it]->getOverrideCutoffFrequency() ? getRigidBodies()[*it]->getCutoffFrequency() : getCutoffFrequency()) + "Hz";
 				}
 
 				outfile << name.toAscii().data() << "_R11" << filterRate.toAscii().data() << " , "
@@ -944,7 +944,7 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 				{
 					outfile << f + 1 << " , ";
 				}
-				if (getRigidBodies()[i]->getTransformationMatrix(f, filtered, &trans[0]))
+				if (getRigidBodies()[*it]->getTransformationMatrix(f, filtered, &trans[0]))
 				{
 					outfile << trans[0] << " , " << trans[1] << " , " << trans[2] << " , " << trans[3] << " , ";
 					outfile << trans[4] << " , " << trans[5] << " , " << trans[6] << " , " << trans[7] << " , ";
@@ -1189,19 +1189,19 @@ void Trial::resetRigidBodyByMarker(Marker* marker, int frame)
 	}
 }
 
-bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, double filterFrequency, bool saveColumn,int start, int stop)
+bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool onefile, bool headerRow, double filterFrequency, bool saveColumn, int start, int stop)
 {
 	//create TmpData
 	std::vector<std::vector <cv::Point3d> > points3D;
 	std::vector<std::vector <markerStatus> > status3D;
-	for (unsigned int i = 0; i < getMarkers().size(); i++)
+	for (std::vector<int>::const_iterator it = _markers.begin(); it < _markers.end(); ++it)
 	{
 		std::vector <cv::Point3d> marker;
 		std::vector <markerStatus> status;
 		//filter Data
 		if (filterFrequency > 0.0)
 		{
-			if (!getMarkers()[i]->filterMarker(filterFrequency, marker, status))
+			if (!getMarkers()[*it]->filterMarker(filterFrequency, marker, status))
 			{
 				return false;
 			}
@@ -1210,8 +1210,8 @@ bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, dou
 		else{
 			for (int f = 0; f < nbImages; f++)
 			{
-				marker.push_back(cv::Point3d(getMarkers()[i]->getPoints3D()[f]));
-				status.push_back(getMarkers()[i]->getStatus3D()[f]);
+				marker.push_back(cv::Point3d(getMarkers()[*it]->getPoints3D()[f]));
+				status.push_back(getMarkers()[*it]->getStatus3D()[f]);
 			}
 		}
 		points3D.push_back(marker);
@@ -1229,16 +1229,16 @@ bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, dou
 			{
 				outfile << "Frame" << " , ";
 			}
-			for (unsigned int i = 0; i < getMarkers().size(); i++)
+			for (std::vector<int>::const_iterator it = _markers.begin(); it < _markers.end(); ++it)
 			{
 				QString name;
-				if (getMarkers()[i]->getDescription().isEmpty())
+				if (getMarkers()[*it]->getDescription().isEmpty())
 				{
-					name = "marker" + QString().sprintf("%03d", i + 1);
+					name = "marker" + QString().sprintf("%03d", *it + 1);
 				}
 				else
 				{
-					name = getMarkers()[i]->getDescription();
+					name = getMarkers()[*it]->getDescription();
 				}
 
 				if (filterFrequency > 0.0)
@@ -1248,7 +1248,7 @@ bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, dou
 
 				outfile << name.toAscii().data() << "_X" << " , " << name.toAscii().data() << "_Y" << " , " << name.toAscii().data() << "_Z";
 
-				if (i != markers.size() - 1)
+				if (it != _markers.end() - 1)
 				{
 					outfile << " , ";
 				}
@@ -1294,9 +1294,10 @@ bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, dou
 	}
 	else
 	{
-		for (unsigned int i = 0; i < getMarkers().size(); i++)
+		int count = 0;
+		for (std::vector<int>::const_iterator it = _markers.begin(); it < _markers.end(); ++it)
 		{
-			QString filename = outputfolder + "Marker" + QString().sprintf("%03d", i + 1) + "_" + getMarkers()[i]->getDescription() + "_points3d";
+			QString filename = outputfolder + "Marker" + QString().sprintf("%03d", *it + 1) + "_" + getMarkers()[*it]->getDescription() + "_points3d";
 			if (filterFrequency > 0.0)
 			{
 				filename = filename + "_" + QString::number(filterFrequency) + "Hz";
@@ -1311,13 +1312,13 @@ bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, dou
 					outfile << "Frame" << " , ";
 				}
 				QString name;
-				if (getMarkers()[i]->getDescription().isEmpty())
+				if (getMarkers()[*it]->getDescription().isEmpty())
 				{
-					name = "marker" + QString().sprintf("%03d", i + 1);
+					name = "marker" + QString().sprintf("%03d", *it + 1);
 				}
 				else
 				{
-					name = getMarkers()[i]->getDescription();
+					name = getMarkers()[*it]->getDescription();
 				}
 				if (filterFrequency > 0.0)
 				{
@@ -1338,17 +1339,18 @@ bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, dou
 				{
 					outfile << f + 1 << " , ";
 				}
-				if (status3D[i][f] <= 0)
+				if (status3D[count][f] <= 0)
 				{
 					outfile << "NaN" << " , " << "NaN" << " , " << "NaN";
 				}
 				else
 				{
-					outfile << points3D[i][f].x << " , " << points3D[i][f].y << " , " << points3D[i][f].z;
+					outfile << points3D[count][f].x << " , " << points3D[count][f].y << " , " << points3D[count][f].z;
 				}
 
 				outfile << std::endl;
 			}
+			count++;
 			outfile.close();
 		}
 	}

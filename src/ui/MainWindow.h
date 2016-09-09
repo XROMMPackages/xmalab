@@ -54,6 +54,9 @@ namespace xma
 		virtual ~MainWindow();
 		void recountFrames();
 
+		void save3DPoints(std::vector<int> markers);
+		void saveRigidBodies(std::vector<int> bodies);
+
 	private:
 		Ui::MainWindow* ui;
 		static MainWindow* instance;

@@ -96,6 +96,12 @@ MarkerTreeWidget::MarkerTreeWidget(QWidget* parent): QTreeWidget(parent)
 
 	action_ChangePoint = new QAction(tr("&Change tracked data with data from another point"), this);
 	connect(action_ChangePoint, SIGNAL(triggered()), this, SLOT(action_ChangePoint_triggered()));
+	
+	action_Save3D = new QAction(tr("&Save the 3D data of selected points"), this);
+	connect(action_Save3D, SIGNAL(triggered()), this, SLOT(action_Save3D_triggered()));
+	
+	action_SaveTransformations = new QAction(tr("&Save the transformation of selected rigid bodies"), this);
+	connect(action_SaveTransformations, SIGNAL(triggered()), this, SLOT(action_SaveTransformations_triggered()));
 
 	header()->setResizeMode(0, QHeaderView::ResizeToContents);
 	headerItem()->setText(0, "");
@@ -162,11 +168,13 @@ void MarkerTreeWidget::showContextMenu(QTreeWidgetItem* item_contextMenu, const 
 		menu.addAction(action_ChangeInterpolationMethod);
 		menu.addAction(action_RefinePointsPolynomialFit);
 		menu.addAction(action_ChangePoint);
+		menu.addAction(action_Save3D);
 
 		break;
 
 	case RIGID_BODY:
 		menu.addAction(action_ChangeDescription);
+		menu.addAction(action_SaveTransformations);
 		break;
 	}
 
@@ -462,6 +470,37 @@ void MarkerTreeWidget::action_ChangePoint_triggered()
 			delete fromTo;
 		}
 	}
+}
+
+void MarkerTreeWidget::action_Save3D_triggered()
+{
+	QList<QTreeWidgetItem *> items = this->selectedItems();
+	std::vector<int> markers;
+	for (int i = 0; i < items.size(); i++)
+	{
+		if (items.at(i)->type() == MARKER)
+		{
+			markers.push_back(items.at(i)->text(0).toInt() - 1);
+		}
+	}
+	std::sort(markers.begin(), markers.end());
+	MainWindow::getInstance()->save3DPoints(markers);
+}
+
+void MarkerTreeWidget::action_SaveTransformations_triggered()
+{
+	QList<QTreeWidgetItem *> items = this->selectedItems();
+	std::vector<int> bodies;
+	for (int i = 0; i < items.size(); i++)
+	{
+		if (items.at(i)->type() == RIGID_BODY)
+		{
+			bodies.push_back(items.at(i)->text(0).remove(0, 2).toInt() - 1);
+		}
+	}
+	std::cerr << bodies[0] << std::endl;
+	std::sort(bodies.begin(), bodies.end());
+	MainWindow::getInstance()->saveRigidBodies(bodies);
 }
 
 void MarkerTreeWidget::action_ResetPoints_triggered()

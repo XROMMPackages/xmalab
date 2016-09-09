@@ -96,6 +96,7 @@ using namespace xma;
 
 MainWindow* MainWindow::instance = NULL;
 
+
 MainWindow::MainWindow(QWidget* parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
@@ -1288,7 +1289,7 @@ void MainWindow::on_actionExportAll_triggered(bool checked)
 	}
 }
 
-void MainWindow::on_actionExport3D_Points_triggered(bool checked)
+void MainWindow::save3DPoints(std::vector<int> markers)
 {
 	PointImportExportDialog* diag = new PointImportExportDialog(EXPORT3D, this);
 
@@ -1321,30 +1322,30 @@ void MainWindow::on_actionExport3D_Points_triggered(bool checked)
 		if (Settings::getInstance()->getBoolSetting("Export3DSingle"))
 		{
 			QString outputPath = QFileDialog::getExistingDirectory(this,
-			                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+				tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 			if (outputPath.isNull() == false)
 			{
-				saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(outputPath + OS_SEP
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DMulti")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DHeader")
-																										  , filter_frequency
-																										  , Settings::getInstance()->getBoolSetting("Export3DOffsetCols"),start,stop);
+				saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(markers, outputPath + OS_SEP
+					, Settings::getInstance()->getBoolSetting("Export3DMulti")
+					, Settings::getInstance()->getBoolSetting("Export3DHeader")
+					, filter_frequency
+					, Settings::getInstance()->getBoolSetting("Export3DOffsetCols"), start, stop);
 				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 			}
 		}
 		else if (Settings::getInstance()->getBoolSetting("Export3DMulti"))
 		{
 			QString fileName = QFileDialog::getSaveFileName(this,
-			                                                tr("Save 3D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+				tr("Save 3D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
 
 			if (fileName.isNull() == false)
 			{
-				saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(fileName
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DMulti")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DHeader"),
-																										  filter_frequency
-																										  , Settings::getInstance()->getBoolSetting("Export3DOffsetCols"), start, stop);
+				saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(markers, fileName
+					, Settings::getInstance()->getBoolSetting("Export3DMulti")
+					, Settings::getInstance()->getBoolSetting("Export3DHeader"),
+					filter_frequency
+					, Settings::getInstance()->getBoolSetting("Export3DOffsetCols"), start, stop);
 				Settings::getInstance()->setLastUsedDirectory(fileName);
 			}
 		}
@@ -1352,6 +1353,16 @@ void MainWindow::on_actionExport3D_Points_triggered(bool checked)
 	}
 
 	delete diag;
+}
+
+
+
+void MainWindow::on_actionExport3D_Points_triggered(bool checked)
+{
+	std::vector<int> markers;
+	for (int i = 0; i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(); i++)
+		markers.push_back(i);
+	save3DPoints(markers);
 }
 
 void MainWindow::on_actionExport2D_Points_triggered(bool checked)
@@ -1401,7 +1412,7 @@ void MainWindow::on_actionExport2D_Points_triggered(bool checked)
 	delete diag;
 }
 
-void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
+void MainWindow::saveRigidBodies(std::vector<int> bodies)
 {
 	PointImportExportDialog* diag = new PointImportExportDialog(EXPORTTRANS, this);
 
@@ -1430,32 +1441,40 @@ void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 
 			if (outputPath.isNull() == false)
 			{
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(outputPath + OS_SEP
-				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransMulti")
-				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransHeader")
-				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransFiltered")
-																														  , Settings::getInstance()->getBoolSetting("ExportTransOffsetCols"), start, stop);
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(bodies, outputPath + OS_SEP
+					, Settings::getInstance()->getBoolSetting("ExportTransMulti")
+					, Settings::getInstance()->getBoolSetting("ExportTransHeader")
+					, Settings::getInstance()->getBoolSetting("ExportTransFiltered")
+					, Settings::getInstance()->getBoolSetting("ExportTransOffsetCols"), start, stop);
 				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 			}
 		}
 		else if (Settings::getInstance()->getBoolSetting("ExportTransMulti"))
 		{
 			QString fileName = QFileDialog::getSaveFileName(this,
-			                                                tr("Save Rigid Bodies as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+				tr("Save Rigid Bodies as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
 
 
 			if (fileName.isNull() == false)
 			{
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(fileName
-				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransMulti")
-				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransHeader")
-				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransFiltered")
-																														  , Settings::getInstance()->getBoolSetting("ExportTransOffsetCols"), start, stop);
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(bodies, fileName
+					, Settings::getInstance()->getBoolSetting("ExportTransMulti")
+					, Settings::getInstance()->getBoolSetting("ExportTransHeader")
+					, Settings::getInstance()->getBoolSetting("ExportTransFiltered")
+					, Settings::getInstance()->getBoolSetting("ExportTransOffsetCols"), start, stop);
 				Settings::getInstance()->setLastUsedDirectory(fileName);
 			}
 		}
 	}
 	delete diag;
+}
+
+void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
+{
+	std::vector<int> bodies;
+	for (int i = 0; i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size(); i++)
+		bodies.push_back(i);
+	saveRigidBodies(bodies);
 }
 
 void MainWindow::on_actionMarkertoMarkerDistances_triggered(bool checked)
