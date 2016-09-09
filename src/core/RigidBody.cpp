@@ -187,10 +187,31 @@ void RigidBody::addPointIdx(int idx)
 void RigidBody::removePointIdx(int idx)
 {
 	int pos = std::find(pointsIdx.begin(), pointsIdx.end(), idx) - pointsIdx.begin();
-	points3D.erase(std::remove(points3D.begin(), points3D.end(), points3D[pos]), points3D.end());
-	referenceNames.erase(std::remove(referenceNames.begin(), referenceNames.end(), referenceNames[pos]), referenceNames.end());
-	pointsIdx.erase(std::remove(pointsIdx.begin(), pointsIdx.end(), idx), pointsIdx.end());
-	resetReferences();
+	if (pos < pointsIdx.size()){
+		points3D.erase(std::remove(points3D.begin(), points3D.end(), points3D[pos]), points3D.end());
+		referenceNames.erase(std::remove(referenceNames.begin(), referenceNames.end(), referenceNames[pos]), referenceNames.end());
+		pointsIdx.erase(std::remove(pointsIdx.begin(), pointsIdx.end(), idx), pointsIdx.end());
+		resetReferences();
+		recomputeTransformations();
+		filterTransformations();
+	}
+}
+
+void RigidBody::updatePointIdx(int idx)
+{
+	bool requiresUpdate = false;
+	for (std::vector<int>::iterator it = pointsIdx.begin(); it < pointsIdx.end(); ++it)
+	{
+		if (*it > idx)
+		{
+			*it = *it - 1;
+			requiresUpdate = true;
+		}
+	}
+	if (requiresUpdate){
+		recomputeTransformations();
+		filterTransformations();
+	}
 }
 
 void RigidBody::resetReferences()
@@ -2131,5 +2152,6 @@ void RigidBody::draw3D(int frame)
 //		points3D_frame.clear();
 //	}
 //}
+
 
 

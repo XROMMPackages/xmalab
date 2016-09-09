@@ -76,6 +76,7 @@ namespace xma
 		void clearPointIdx();
 		void addPointIdx(int idx);
 		void removePointIdx(int idx);
+		void updatePointIdx(int idx);
 		void setPointIdx(int idx, int markerIdx);
 
 		void setExpanded(bool _expanded);

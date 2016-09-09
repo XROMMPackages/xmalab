@@ -356,6 +356,13 @@ void Trial::removeMarker(int idx)
 	delete markers[idx];
 	markers.erase(std::remove(markers.begin(), markers.end(), markers[idx]), markers.end());
 	if (activeMarkerIdx >= (int) markers.size())setActiveMarkerIdx(markers.size() - 1);
+
+	//Update RigidBodies
+	for (std::vector<RigidBody*>::const_iterator it = rigidBodies.begin(); it < rigidBodies.end(); ++it)
+	{
+		(*it)->removePointIdx(idx);
+		(*it)->updatePointIdx(idx);
+	}
 }
 
 int Trial::getActiveMarkerIdx()
