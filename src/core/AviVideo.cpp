@@ -31,6 +31,7 @@
 #include "core/AviVideo.h"
 #include <QtCore/QFileInfo>
 #include <opencv/highgui.h>
+#include "Project.h"
 using namespace xma;
 
 AviVideo::AviVideo(QStringList _filenames) : VideoStream(_filenames)
@@ -55,11 +56,15 @@ void AviVideo::setActiveFrame(int _activeFrame)
 		{
 			cv::Mat grayimage;
 			cv::cvtColor(frame, grayimage, CV_BGR2GRAY);
+			if (Project::getInstance()->getFlipImages())
+				cv::flip(grayimage, grayimage, 1);
 			image->setImage(grayimage);
 			grayimage.release();
 		}
 		else
 		{
+			if (Project::getInstance()->getFlipImages())
+				cv::flip(frame, frame, 1);
 			image->setImage(frame);
 		}
 		frame.release();
@@ -90,11 +95,15 @@ void AviVideo::reloadFile()
 		{
 			cv::Mat grayimage;
 			cv::cvtColor(frame, grayimage, CV_BGR2GRAY);
+			if (Project::getInstance()->getFlipImages())
+				cv::flip(grayimage, grayimage, 1);
 			image->setImage(grayimage);
 			grayimage.release();
 		}
 		else
 		{
+			if (Project::getInstance()->getFlipImages())
+				cv::flip(frame, frame, 1);
 			image->setImage(frame);
 		}
 		frame.release();

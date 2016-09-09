@@ -1011,6 +1011,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 			if (Project::getInstance()->getHasStudyData()){
 				xmlWriter.writeAttribute("MetaData", QString("projectMetaData") + OS_SEP + QString("metadata.xml"));
 			}
+			xmlWriter.writeAttribute("FlipImages", QString::number(Project::getInstance()->getFlipImages()));
 			
 			//Cameras
 			for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
@@ -1237,6 +1238,12 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							if (!xml_file.isEmpty())
 							{
 								loadProjectMetaData(littleHelper::adjustPathToOS(basedir + OS_SEP + xml_file));
+							}
+
+							QString flipImages = attr.value("FlipImages").toString();
+							if (!flipImages.isEmpty())
+							{
+								Project::getInstance()->setFlipImages(flipImages.toInt());
 							}
 						}
 						if (xml.name() == "Camera")

@@ -35,6 +35,7 @@
 #include <opencv/highgui.h>
 
 #include <QFileInfo>
+#include "Project.h"
 
 #ifndef GL_BGR
 #define GL_BGR 0x80E0
@@ -56,7 +57,8 @@ Image::Image(QString _imageFileName)
 	{
 		image = imageTMP.clone();
 	}
-
+	if (Project::getInstance()->getFlipImages())
+		cv::flip(image, image, 1);
 	width = image.cols;
 	height = image.rows;
 	textureLoaded = false;
@@ -146,6 +148,8 @@ void Image::setImage(QString imageFileName)
 	{
 		image = imageTMP.clone();
 	}
+	if (Project::getInstance()->getFlipImages())
+		cv::flip(image, image, 1);
 	image_reset = true;
 }
 

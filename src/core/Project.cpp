@@ -71,6 +71,7 @@ Project::Project()
 	attribcomment = "";;
 	ts = "";;
 	trialDate = "";;
+	flipImages = false;
 
 	xml_data = QStringList();;
 }
@@ -134,6 +135,16 @@ const QString& Project::getTs() const
 const QString& Project::getTrialDate() const
 {
 	return trialDate;
+}
+
+void Project::setFlipImages(bool value)
+{
+	flipImages = value;
+}
+
+bool Project::getFlipImages()
+{
+	return flipImages;
 }
 
 Project::~Project()

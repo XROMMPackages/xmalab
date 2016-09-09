@@ -105,6 +105,8 @@ void NewProjectDialog::setCalibrationCubeREF(QString filename)
 
 int NewProjectDialog::createProject()
 {
+	Project::getInstance()->setFlipImages(diag->checkBoxFlip->isChecked());
+
 	for (std::vector<CameraBox*>::const_iterator it = getCameras().begin(); it != getCameras().end(); ++it)
 	{
 		Camera* cam = new Camera((*it)->getCameraName(), Project::getInstance()->getCameras().size());

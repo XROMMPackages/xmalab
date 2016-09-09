@@ -44,8 +44,6 @@ namespace xma
 		static Project* getInstance();
 		virtual ~Project();
 
-		bool createNew();
-
 		const std::vector<Camera *>& getCameras();
 		const std::vector<Trial *>& getTrials();
 		Trial* getTrialByName(QString Name);
@@ -84,6 +82,9 @@ namespace xma
 		const QString& getTs() const;
 		const QString& getTrialDate() const;
 
+		void setFlipImages(bool value);
+		bool getFlipImages();
+
 	private:
 		Project();
 		static Project* instance;
@@ -92,6 +93,7 @@ namespace xma
 
 		int nbImagesCalibration;
 		bool calibrated;
+		bool flipImages;
 
 		std::vector<Camera *> cameras;
 		std::vector<Trial *> trials;
