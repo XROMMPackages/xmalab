@@ -288,10 +288,79 @@ void WizardDigitizationFrame::trackSinglePointFinished()
 
 void WizardDigitizationFrame::trackRB()
 {
+	int startFrame = State::getInstance()->getActiveFrameTrial();
+	int endFrame;
+
+	if (trackDirection > 0)
+	{
+		endFrame = startFrame + 1;
+	}
+	else
+	{
+		endFrame = startFrame - 1;
+	}
+	std::vector<int> markers = PointsDockWidget::getInstance()->getSelectedPoints();
+	std::vector<MarkerTracking *> trackers;
+	for (std::vector<int>::const_iterator it = markers.begin(); it < markers.end();++it)
+	{
+		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+		{
+			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][startFrame] > UNDEFINED &&
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][endFrame] <= (Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED))
+			{
+				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, *it, trackDirection > 0);
+				connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(trackAllFinished()));
+				trackers.push_back(markertracking);
+			}
+		}
+	}
+	State::getInstance()->setDisableDraw(true);
+	State::getInstance()->changeActiveFrameTrial(endFrame);
+
+	if (trackers.size() > 0)
+	{
+		for (unsigned int i = 0; i < trackers.size(); i++)
+		{
+			trackers[i]->trackMarker();
+		}
+		trackers.clear();
+	}
+	else
+	{
+		checkIfValid();
+	}
 }
 
 void WizardDigitizationFrame::trackRBFinished()
 {
+	std::vector<MarkerDetection *> detectors;
+	std::vector<int> markers = PointsDockWidget::getInstance()->getSelectedPoints();
+	for (std::vector<int>::const_iterator it = markers.begin(); it < markers.end(); ++it)
+	{
+		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+		{
+			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED)
+			{
+				MarkerDetection* markerdetection = new MarkerDetection(i, State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), *it,
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getSize() * 2, true);
+				detectors.push_back(markerdetection);
+				connect(markerdetection, SIGNAL(detectMarker_finished()), this, SLOT(checkIfValid()));
+			}
+		}
+	}
+
+	if (detectors.size() > 0)
+	{
+		for (unsigned int i = 0; i < detectors.size(); i++)
+		{
+			detectors[i]->detectMarker();
+		}
+		detectors.clear();
+	}
+	else
+	{
+		checkIfValid();
+	}
 }
 
 void WizardDigitizationFrame::trackAll()
@@ -381,6 +450,21 @@ void WizardDigitizationFrame::checkIfValid()
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getMethod() != 4)
 			{
 				valid = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->isValid(i, State::getInstance()->getActiveFrameTrial()) && valid;
+			}
+		}
+	}
+	else if (trackType == 2)
+	{
+		std::vector<int> markers = PointsDockWidget::getInstance()->getSelectedPoints();
+		for (std::vector<int>::const_iterator it = markers.begin(); it < markers.end(); ++it)
+		{
+			for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+			{
+				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED &&
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getMethod() != 4)
+				{
+					valid = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->isValid(i, State::getInstance()->getActiveFrameTrial()) && valid;
+				}
 			}
 		}
 	}
@@ -514,7 +598,7 @@ void WizardDigitizationFrame::setDialog()
 					//}
 					//else
 					//{
-					frame->groupBox_RB->hide();
+					//frame->groupBox_RB->hide();
 					//}
 				}
 			}

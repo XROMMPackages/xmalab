@@ -52,7 +52,7 @@ namespace xma
 		Ui::PointsDockWidget* dock;
 
 		void addPointToList(int idx);
-
+		std::vector<int> getSelectedPoints();
 		bool selectPoint(int idx);
 		bool selectBody(int idx);
 

@@ -96,6 +96,20 @@ void PointsDockWidget::addPointToList(int idx)
 	dock->treeWidgetPoints->addTopLevelItem(qtreewidgetitem);
 }
 
+std::vector<int> PointsDockWidget::getSelectedPoints()
+{
+	std::vector<int> markers;
+	QList<QTreeWidgetItem *> items = dock->treeWidgetPoints->selectedItems();
+	for (int i = 0; i < items.size(); i++)
+	{
+		if (items.at(i)->type() == MARKER)
+		{
+			markers.push_back(items.at(i)->text(0).toInt() - 1);
+		}
+	}
+	return markers;
+}
+
 void PointsDockWidget::updateColor()
 {
 	if (!this->isVisible() || State::getInstance()->getActiveFrameTrial() < 0 || !(Settings::getInstance()->getBoolSetting("ShowMarkerStates")))

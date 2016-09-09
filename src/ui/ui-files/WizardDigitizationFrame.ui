@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>369</width>
-    <height>453</height>
+    <height>476</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,9 +27,9 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="1" column="0">
-       <widget class="QPushButton" name="pushButton_RBForw">
+       <widget class="QPushButton" name="pushButton_RBBack">
         <property name="text">
-         <string>Track rigid body backward</string>
+         <string>Track selected backward</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -42,14 +42,14 @@
       <item row="0" column="0">
        <widget class="QPushButton" name="pushButton_RBPrev">
         <property name="text">
-         <string>Track rigid body to previous frame</string>
+         <string>Track selected to previous frame</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QPushButton" name="pushButton_RBBack">
+       <widget class="QPushButton" name="pushButton_RBForw">
         <property name="text">
-         <string>Track rigid body forward</string>
+         <string>Track selected forward</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -62,7 +62,7 @@
       <item row="0" column="1">
        <widget class="QPushButton" name="pushButton_RBNext">
         <property name="text">
-         <string>Track rigid body to next frame</string>
+         <string>Track selected to next frame</string>
         </property>
        </widget>
       </item>
