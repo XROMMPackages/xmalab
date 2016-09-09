@@ -45,7 +45,7 @@ namespace xma
 		int getIntSetting(QString name);
 		float getFloatSetting(QString name);
 		QString getQStringSetting(QString name);
-		QStringList Settings::getQStringListSetting(QString name);
+		QStringList getQStringListSetting(QString name);
 
 		void set(QString name, bool value);
 		void set(QString name, int value);
