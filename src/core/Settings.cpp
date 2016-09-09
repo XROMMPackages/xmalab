@@ -148,6 +148,8 @@ Settings::Settings()
 	addBoolSetting("Export3DSingle", false);
 	addBoolSetting("Export3DNoHeader", false);
 	addBoolSetting("Export3DHeader", true);
+	addBoolSetting("Export3DNoCols", true);
+	addBoolSetting("Export3DOffsetCols", false);
 
 	addBoolSetting("ExportTransMulti", true);
 	addBoolSetting("ExportTransSingle", false);
@@ -155,6 +157,8 @@ Settings::Settings()
 	addBoolSetting("ExportTransHeader", true);
 	addBoolSetting("ExportTransUnfiltered", false);
 	addBoolSetting("ExportTransFiltered", true);
+	addBoolSetting("ExportTransNoCols", true);
+	addBoolSetting("ExportTransOffsetCols", false);
 
 	addBoolSetting("TrialDrawMarkerIds", false);
 	addBoolSetting("TrialDrawRigidBodyConstellation", true);

@@ -769,7 +769,7 @@ void Trial::recomputeAndFilterRigidBodyTransformations()
 	}
 }
 
-void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, bool headerRow, bool filtered)
+void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, bool headerRow, bool filtered, bool saveColumn, int start, int stop)
 {
 	for (unsigned int i = 0; i < getRigidBodies().size(); i++)
 	{
@@ -783,6 +783,10 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 		outfile.precision(12);
 		if (headerRow)
 		{
+			if (saveColumn)
+			{
+				outfile << "Frame" << " , ";
+			}
 			for (unsigned int i = 0; i < getRigidBodies().size(); i++)
 			{
 				QString name;
@@ -829,8 +833,17 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 			}
 		}
 		double trans[16];
-		for (int f = 0; f < nbImages; f++)
+		if (!saveColumn)
 		{
+			start = 0;
+			stop = nbImages - 1;
+		}
+		for (int f = start; f < stop + 1; f++)
+		{
+			if (saveColumn)
+			{
+				outfile << f + 1 << " , ";
+			}
 			for (unsigned int i = 0; i < getRigidBodies().size(); i++)
 			{
 				if (getRigidBodies()[i]->getTransformationMatrix(f, filtered, &trans[0]))
@@ -879,6 +892,10 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 			outfile.precision(12);
 			if (headerRow)
 			{
+				if (saveColumn)
+				{
+					outfile << "Frame" << " , ";
+				}
 				QString name;
 				QString filterRate = "";
 				if (getRigidBodies()[i]->getDescription().isEmpty())
@@ -916,8 +933,17 @@ void Trial::saveRigidBodyTransformations(QString outputfolder, bool onefile, boo
 			}
 
 			double trans[16];
-			for (int f = 0; f < nbImages; f++)
+			if (!saveColumn)
 			{
+				start = 0;
+				stop = nbImages - 1;
+			}
+			for (int f = start; f < stop + 1; f++)
+			{
+				if (saveColumn)
+				{
+					outfile << f + 1 << " , ";
+				}
 				if (getRigidBodies()[i]->getTransformationMatrix(f, filtered, &trans[0]))
 				{
 					outfile << trans[0] << " , " << trans[1] << " , " << trans[2] << " , " << trans[3] << " , ";
@@ -1163,7 +1189,7 @@ void Trial::resetRigidBodyByMarker(Marker* marker, int frame)
 	}
 }
 
-bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, double filterFrequency)
+bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, double filterFrequency, bool saveColumn,int start, int stop)
 {
 	//create TmpData
 	std::vector<std::vector <cv::Point3d> > points3D;
@@ -1199,6 +1225,10 @@ bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, dou
 		outfile.precision(12);
 		if (headerRow)
 		{
+			if (saveColumn)
+			{
+				outfile << "Frame" << " , ";
+			}
 			for (unsigned int i = 0; i < getMarkers().size(); i++)
 			{
 				QString name;
@@ -1228,9 +1258,17 @@ bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, dou
 				}
 			}
 		}
-
-		for (int f = 0; f < nbImages; f++)
+		if (!saveColumn)
 		{
+			start = 0;
+			stop = nbImages - 1;
+		}
+		for (int f = start; f < stop+1; f++)
+		{
+			if (saveColumn)
+			{
+				outfile << f + 1 << " , ";
+			}
 			for (unsigned int i = 0; i < points3D.size(); i++)
 			{
 				if (status3D[i][f] <= 0)
@@ -1268,6 +1306,10 @@ bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, dou
 			std::ofstream outfile(filename.toAscii().data());
 			if (headerRow)
 			{
+				if (saveColumn)
+				{
+					outfile << "Frame" << " , ";
+				}
 				QString name;
 				if (getMarkers()[i]->getDescription().isEmpty())
 				{
@@ -1285,8 +1327,17 @@ bool Trial::save3dPoints(QString outputfolder, bool onefile, bool headerRow, dou
 
 				outfile << std::endl;
 			}
-			for (int f = 0; f < nbImages; f++)
+			if (!saveColumn)
 			{
+				start = 0;
+				stop = nbImages - 1;
+			}
+			for (int f = start; f < stop + 1; f++)
+			{
+				if (saveColumn)
+				{
+					outfile << f + 1 << " , ";
+				}
 				if (status3D[i][f] <= 0)
 				{
 					outfile << "NaN" << " , " << "NaN" << " , " << "NaN";

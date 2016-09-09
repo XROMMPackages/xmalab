@@ -58,7 +58,7 @@ PointImportExportDialog::PointImportExportDialog(ImportExportType type, QWidget*
 		diag->radioButton_Undistorted->setChecked(Settings::getInstance()->getBoolSetting("Import2DUndistorted"));
 		diag->radioButton_NoCols->setChecked(Settings::getInstance()->getBoolSetting("Import2DNoCols"));
 		diag->radioButton_OffsetCols->setChecked(Settings::getInstance()->getBoolSetting("Import2DOffsetCols"));
-
+		diag->radioButton_OffsetCols->setText("cam offset columns(Matlab xromm tools)");
 		break;
 	case EXPORT2D:
 		this->setWindowTitle("Export 2D points");
@@ -76,7 +76,7 @@ PointImportExportDialog::PointImportExportDialog(ImportExportType type, QWidget*
 		diag->radioButton_Undistorted->setChecked(Settings::getInstance()->getBoolSetting("Export2DUndistorted"));
 		diag->radioButton_NoCols->setChecked(Settings::getInstance()->getBoolSetting("Export2DNoCols"));
 		diag->radioButton_OffsetCols->setChecked(Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
-
+		diag->radioButton_OffsetCols->setText("cam offset columns(Matlab xromm tools)");
 		break;
 	case EXPORT3D:
 		this->setWindowTitle("Export 3D points");
@@ -84,21 +84,23 @@ PointImportExportDialog::PointImportExportDialog(ImportExportType type, QWidget*
 		diag->frame_YAxis->hide();
 		diag->frame_Start->hide();
 		diag->frame_Distorted->hide();
-		diag->frame_Columns->hide();
+		//diag->frame_Columns->hide();
 		diag->frame_Filtered->hide();
 
 		diag->radioButton_Multi->setChecked(Settings::getInstance()->getBoolSetting("Export3DMulti"));
 		diag->radioButton_Single->setChecked(Settings::getInstance()->getBoolSetting("Export3DSingle"));
 		diag->radioButton_NoHeader->setChecked(Settings::getInstance()->getBoolSetting("Export3DNoHeader"));
 		diag->radioButton_Header->setChecked(Settings::getInstance()->getBoolSetting("Export3DHeader"));
-
+		diag->radioButton_NoCols->setChecked(Settings::getInstance()->getBoolSetting("Export3DNoCols"));
+		diag->radioButton_OffsetCols->setChecked(Settings::getInstance()->getBoolSetting("Export3DOffsetCols"));
+		diag->radioButton_OffsetCols->setText("Frame Number (allows saving of subsequence)");
 		break;
 
 	case EXPORTTRANS:
 		diag->frame_YAxis->hide();
 		diag->frame_Start->hide();
 		diag->frame_Distorted->hide();
-		diag->frame_Columns->hide();
+		//diag->frame_Columns->hide();
 
 		diag->radioButton_Multi->setChecked(Settings::getInstance()->getBoolSetting("ExportTransMulti"));
 		diag->radioButton_Single->setChecked(Settings::getInstance()->getBoolSetting("ExportTransSingle"));
@@ -106,7 +108,9 @@ PointImportExportDialog::PointImportExportDialog(ImportExportType type, QWidget*
 		diag->radioButton_Header->setChecked(Settings::getInstance()->getBoolSetting("ExportTransHeader"));
 		diag->radioButton_Unfiltered->setChecked(Settings::getInstance()->getBoolSetting("ExportTransUnfiltered"));
 		diag->radioButton_Filtered->setChecked(Settings::getInstance()->getBoolSetting("ExportTransFiltered"));
-
+		diag->radioButton_NoCols->setChecked(Settings::getInstance()->getBoolSetting("ExportTransNoCols"));
+		diag->radioButton_OffsetCols->setChecked(Settings::getInstance()->getBoolSetting("ExportTransOffsetCols"));
+		diag->radioButton_OffsetCols->setText("Frame Number (allows saving of subsequence)");
 		break;
 	}
 
@@ -294,6 +298,12 @@ void PointImportExportDialog::on_radioButton_NoCols_toggled(bool value)
 	case EXPORT2D:
 		Settings::getInstance()->set("Export2DNoCols", value);
 		break;
+	case EXPORT3D:
+		Settings::getInstance()->set("Export3DNoCols", value);
+		break;
+	case EXPORTTRANS:
+		Settings::getInstance()->set("ExportTransNoCols", value);
+		break;
     default:
         break;
 	}
@@ -308,6 +318,12 @@ void PointImportExportDialog::on_radioButton_OffsetCols_toggled(bool value)
 		break;
 	case EXPORT2D:
 		Settings::getInstance()->set("Export2DOffsetCols", value);
+		break;
+	case EXPORT3D:
+		Settings::getInstance()->set("Export3DOffsetCols", value);
+		break;
+	case EXPORTTRANS:
+		Settings::getInstance()->set("ExportTransOffsetCols", value);
 		break;
     default:
         break;

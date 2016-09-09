@@ -1302,7 +1302,21 @@ void MainWindow::on_actionExport3D_Points_triggered(bool checked)
 		{
 			filter_frequency = QInputDialog::getDouble(this, "Enter cutoff frequency (Hz)", "", project->getTrials()[State::getInstance()->getActiveTrial()]->getCutoffFrequency(), 0.0, project->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed()*0.5);
 		}
+		int start = 0;
+		int stop = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages() - 1;
+		if (Settings::getInstance()->getBoolSetting("Export3DOffsetCols")){
+			FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
+				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
+				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
+				, false, this);
 
+			bool ok2 = fromTo->exec();
+			if (ok2)
+			{
+				start = fromTo->getFrom() - 1;
+				stop = fromTo->getTo() - 1;
+			}
+		}
 
 		if (Settings::getInstance()->getBoolSetting("Export3DSingle"))
 		{
@@ -1314,7 +1328,8 @@ void MainWindow::on_actionExport3D_Points_triggered(bool checked)
 				saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(outputPath + OS_SEP
 				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DMulti")
 				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DHeader")
-																										  ,filter_frequency);
+																										  , filter_frequency
+																										  , Settings::getInstance()->getBoolSetting("Export3DOffsetCols"),start,stop);
 				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 			}
 		}
@@ -1328,7 +1343,8 @@ void MainWindow::on_actionExport3D_Points_triggered(bool checked)
 				saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(fileName
 				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DMulti")
 				                                                                                          , Settings::getInstance()->getBoolSetting("Export3DHeader"),
-																										  filter_frequency);
+																										  filter_frequency
+																										  , Settings::getInstance()->getBoolSetting("Export3DOffsetCols"), start, stop);
 				Settings::getInstance()->setLastUsedDirectory(fileName);
 			}
 		}
@@ -1392,6 +1408,22 @@ void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 	diag->exec();
 	if (diag->result())
 	{
+		int start = 0;
+		int stop = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages() - 1;
+		if (Settings::getInstance()->getBoolSetting("ExportTransOffsetCols")){
+			FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
+				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
+				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
+				, false, this);
+
+			bool ok2 = fromTo->exec();
+			if (ok2)
+			{
+				start = fromTo->getFrom() - 1;
+				stop = fromTo->getTo() - 1;
+			}
+		}
+
 		if (Settings::getInstance()->getBoolSetting("ExportTransSingle"))
 		{
 			QString outputPath = QFileDialog::getExistingDirectory(this, tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
@@ -1401,7 +1433,8 @@ void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(outputPath + OS_SEP
 				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransMulti")
 				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransHeader")
-				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransFiltered"));
+				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransFiltered")
+																														  , Settings::getInstance()->getBoolSetting("ExportTransOffsetCols"), start, stop);
 				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 			}
 		}
@@ -1416,7 +1449,8 @@ void MainWindow::on_actionRigidBodyTransformations_triggered(bool checked)
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(fileName
 				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransMulti")
 				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransHeader")
-				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransFiltered"));
+				                                                                                                          , Settings::getInstance()->getBoolSetting("ExportTransFiltered")
+																														  , Settings::getInstance()->getBoolSetting("ExportTransOffsetCols"), start, stop);
 				Settings::getInstance()->setLastUsedDirectory(fileName);
 			}
 		}
