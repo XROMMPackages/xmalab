@@ -547,7 +547,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Digitizing</string>
+      <string>Tracking</string>
      </property>
      <property name="checkable">
       <bool>true</bool>
