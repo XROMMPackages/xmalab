@@ -44,6 +44,10 @@ FIND_PACKAGE( OpenGL )
 FIND_PACKAGE( GLEW REQUIRED )
 FIND_PACKAGE( Levmar REQUIRED)
 
+find_package(Eigen3 REQUIRED)
+
+include_directories(${EIGEN3_INCLUDE_DIR})
+
 #Shared Libs off
 #set(OpenCV_SHARED OFF)
 #set(BUILD_SHARED_LIBS OFF)
@@ -150,6 +154,7 @@ SET(Processing_HEADERS
 	src/processing/MultiCameraCalibration.h
 	src/processing/UpdateTrialFrame.h
 	src/processing/cubic.h
+	src/processing/GPnP.h
 )
 
 SET(Processing_SOURCES
@@ -165,6 +170,16 @@ SET(Processing_SOURCES
 	src/processing/CheckerboardDetection.cpp
 	src/processing/MultiCameraCalibration.cpp
 	src/processing/UpdateTrialFrame.cpp
+	src/processing/GPnP.cpp
+	src/processing/GPnPFuncs/getCoefficiantsL3_1.cpp
+	src/processing/GPnPFuncs/getCoefficiantsL3_2.cpp
+	src/processing/GPnPFuncs/getCoefficiantsL3_3.cpp
+	src/processing/GPnPFuncs/getCoefficiantsL3_4.cpp
+	src/processing/GPnPFuncs/getCoefficiantsL3_5.cpp
+	src/processing/GPnPFuncs/getCoefficiantsL3_6.cpp
+	src/processing/GPnPFuncs/getCoefficiantsL3_7.cpp
+	src/processing/GPnPFuncs/getCoefficiantsL3_8.cpp
+	src/processing/GPnPFuncs/getCoefficiantsL3_9.cpp
 )
 
 SOURCE_GROUP(_PROCESSING FILES ${Processing_HEADERS} ${Processing_SOURCES})

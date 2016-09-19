@@ -39,6 +39,7 @@
 #include "core/HelperFunctions.h"
 #include "core/RigidBodyObj.h"
 #include "processing/ButterworthLowPassFilter.h" //should move this dependency
+#include "processing/GPnP.h" //should move this dependency
 
 
 #include <fstream>
@@ -674,6 +675,32 @@ void RigidBody::computePose(int Frame)
 	{
 		std::vector<cv::Point3d> src;
 		std::vector<cv::Point3d> dst;
+		//if (1)
+		//{
+
+		std::vector <int> cams;
+		std::vector <cv::Point2d> points2D;
+		int c = 0;
+		for (unsigned int i = 0; i < pointsIdx.size(); i++)
+		{
+			if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[Frame] > UNDEFINED)
+			{
+				src.push_back(trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame]);
+				dst.push_back(points3D[i]);
+				cams.push_back(c);
+				points2D.push_back(trial->getMarkers()[pointsIdx[i]]->getPoints2D()[c][Frame]);
+				c = (c == 1)? 0 : 1;
+			}
+			if (src.size() >= 3) break;
+		}
+		if (src.size() == 3){
+			src = GPnP::compute3Dpoints(getTrial(),cams, points2D,dst);
+		}
+		src.clear();
+		dst.clear();
+		//}
+		//else{
+			
 		cv::Mat out;
 		cv::Mat inliers;
 
@@ -681,12 +708,12 @@ void RigidBody::computePose(int Frame)
 		{
 			if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[Frame] > UNDEFINED)
 			{
-				src.push_back(cv::Point3f(trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame].x
-				                          , trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame].y
-				                          , trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame].z));
-				dst.push_back(cv::Point3f(points3D[i].x
-				                          , points3D[i].y
-				                          , points3D[i].z));
+				src.push_back(cv::Point3d(trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame].x
+					, trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame].y
+					, trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame].z));
+				dst.push_back(cv::Point3d(points3D[i].x
+					, points3D[i].y
+					, points3D[i].z));
 			}
 		}
 
@@ -697,24 +724,25 @@ void RigidBody::computePose(int Frame)
 				cv::Point3d dummy_tmp;
 				if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints2[i], dummy_tmp, Frame))
 				{
-					src.push_back(cv::Point3f(dummy_tmp.x
-					                          , dummy_tmp.y
-					                          , dummy_tmp.z));
-					dst.push_back(cv::Point3f(dummypoints[i].x
-					                          , dummypoints[i].y
-					                          , dummypoints[i].z));
+					src.push_back(cv::Point3d(dummy_tmp.x
+						, dummy_tmp.y
+						, dummy_tmp.z));
+					dst.push_back(cv::Point3d(dummypoints[i].x
+						, dummypoints[i].y
+						, dummypoints[i].z));
 				}
 			}
 			else if (dummypointsCoordsSet[i][Frame])
 			{
-				src.push_back(cv::Point3f(dummypointsCoords[i][Frame].x
-				                          , dummypointsCoords[i][Frame].y
-				                          , dummypointsCoords[i][Frame].z));
-				dst.push_back(cv::Point3f(dummypoints[i].x
-				                          , dummypoints[i].y
-				                          , dummypoints[i].z));
+				src.push_back(cv::Point3d(dummypointsCoords[i][Frame].x
+					, dummypointsCoords[i][Frame].y
+					, dummypointsCoords[i][Frame].z));
+				dst.push_back(cv::Point3d(dummypoints[i].x
+					, dummypoints[i].y
+					, dummypoints[i].z));
 			}
 		}
+		//}
 
 		if (dst.size() >= 3)
 		{
@@ -798,6 +826,7 @@ void RigidBody::computePose(int Frame)
 			translationvectors[Frame] = cv::Vec3d(t);
 
 			poseComputed[Frame] = 1;
+				
 		}
 	}
 	updateError(Frame);

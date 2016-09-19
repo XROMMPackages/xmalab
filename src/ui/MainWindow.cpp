@@ -103,7 +103,9 @@ MainWindow::MainWindow(QWidget* parent) :
 {
 	//To prevent endless looping when accesing MainWindow::getInstance in constructors
 	worldViewDockWidget = NULL;
-	
+	std::cerr << sizeof(double) << std::endl;
+	std::cerr << sizeof(long double) << std::endl;
+
 	if (!instance) instance = this;
 
 	ui->setupUi(this);

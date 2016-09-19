@@ -205,7 +205,7 @@
       <item row="0" column="1">
        <widget class="QRadioButton" name="radioButton_OffsetCols">
         <property name="text">
-         <string>cam offset columns (Matlab xromm tools and subsequence)</string>
+         <string>cam offset columns (Matlab xromm tools)</string>
         </property>
        </widget>
       </item>
