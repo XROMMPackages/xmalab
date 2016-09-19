@@ -128,10 +128,12 @@ void PlotWindow::saveData()
 			int cam_end = (dock->comboBoxCamera->currentIndex() == 0) ? Project::getInstance()->getCameras().size() - 1 : dock->comboBoxCamera->currentIndex() - 1;
 			int marker_id = dock->comboBoxMarker1->currentIndex();
 
+			outfile << "Frame , ";
+
 			//Header
 			for (int c = cam_start; c <= cam_end; c++)
 			{
-				outfile << "Cam" + std::to_string(c) + "_Marker_" + std::to_string(marker_id + 1) + "_x , Cam" + std::to_string(c+1) + "_Marker_" + std::to_string(marker_id + 1) + "_y";
+				outfile << "Cam" + std::to_string(c + 1) + "_Marker_" + std::to_string(marker_id + 1) + "_x , Cam" + std::to_string(c+1) + "_Marker_" + std::to_string(marker_id + 1) + "_y";
 				if (c != cam_end)
 				{
 					outfile << " , ";
@@ -167,11 +169,13 @@ void PlotWindow::saveData()
 			int marker_id = dock->comboBoxMarker1->currentIndex();
 			
 			//Header
+			outfile << "Frame , ";
 			outfile << "Marker_" + std::to_string(marker_id + 1) + "_x , Marker_" + std::to_string(marker_id + 1) + "_y , Marker_" + std::to_string(marker_id + 1) + "_z" << std::endl;
 
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
 			{
 
+				outfile << i + 1 << " , ";
 				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getStatus3D()[i] > UNDEFINED)
 				{
 					outfile << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints3D()[i].x
@@ -188,10 +192,12 @@ void PlotWindow::saveData()
 		else if (dock->comboBoxPlotType->currentIndex() == 2)
 		{
 			//Header
+			outfile << "Frame , ";
 			outfile << "Marker_" + std::to_string(dock->comboBoxMarker1->currentIndex() + 1) + "_to_Marker_" + std::to_string(dock->comboBoxMarker2->currentIndex() + 1) << std::endl;
 
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++, count++)
 			{
+				outfile << i + 1 << " , ";
 				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getStatus3D()[i] > UNDEFINED)
 				{
 					cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getPoints3D()[i] - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getPoints3D()[i];
@@ -210,6 +216,7 @@ void PlotWindow::saveData()
 			int marker_id = dock->comboBoxMarker1->currentIndex();
 			
 			//Header
+			outfile << "Frame , ";
 			outfile << "ReprojectionError_Marker_" + std::to_string(dock->comboBoxMarker1->currentIndex() + 1) << "_" << dock->comboBoxCamera->currentText().toAscii().data() << std::endl;
 
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
@@ -228,6 +235,7 @@ void PlotWindow::saveData()
 					}
 				}
 
+				outfile << i + 1 << " , ";
 				if (set)
 				{
 					outfile << error_val / count;
@@ -247,7 +255,8 @@ void PlotWindow::saveData()
 
 			QStringList data = QStringList();
 
-			//Header 
+			//Header
+			outfile << "Frame , ";
 			if (type == 0 || type == 1 || type == 3)
 			{
 				if (filtered != 1) data << "Unfiltered_Yaw_RB" + QString::number(body + 1);
@@ -390,6 +399,7 @@ void PlotWindow::saveData()
 				}
 
 				//write DataOut
+				outfile << i + 1 << " , ";
 				for (int i = 0; i < data.size(); i++)
 				{
 					outfile << data[i].toAscii().data();
@@ -413,6 +423,8 @@ void PlotWindow::saveData()
 			
 			QStringList data = QStringList();
 
+			//header
+			outfile << "Frame , ";
 			if (filtered != 1){
 				data << "Unfiltered_RigidBodyError" + QString(draw3D ? "3D" : "2D") + "_RB" + QString::number(bodyIdx + 1) + "_Mean";
 				data << "Unfiltered_RigidBodyError" + QString(draw3D ? "3D" : "2D") + "_RB" + QString::number(bodyIdx + 1) + "_SD";
@@ -476,6 +488,7 @@ void PlotWindow::saveData()
 					}
 				}
 
+				outfile << i + 1 << " , ";
 				for (int i = 0; i < data.size(); i++)
 				{
 					outfile << data[i].toAscii().data();
