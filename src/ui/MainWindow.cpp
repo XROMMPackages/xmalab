@@ -675,6 +675,14 @@ void MainWindow::UndistortionAfterloadProjectFinished()
 				allCamerasCalibrated = false;
 			}
 		}
+
+
+		ConsoleDockWidget::getInstance()->afterLoad();
+
+		WizardDockWidget::getInstance()->updateWizard();
+
+		State::getInstance()->setLoading(false);
+
 		if (allCamerasCalibrated)
 		{
 			ui->actionImportTrial->setEnabled(true);
@@ -683,12 +691,6 @@ void MainWindow::UndistortionAfterloadProjectFinished()
 		else if (State::getInstance()->getUndistortion() == UNDISTORTED){
 			State::getInstance()->changeWorkspace(CALIBRATION, true);
 		}
-
-		ConsoleDockWidget::getInstance()->afterLoad();
-
-		WizardDockWidget::getInstance()->updateWizard();
-
-		State::getInstance()->setLoading(false);
 
 		MainWindow::getInstance()->redrawGL();
 	}
