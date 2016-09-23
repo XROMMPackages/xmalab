@@ -2170,7 +2170,7 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 
 		dock->checkBoxStatus->hide();
 
-		on_pushButtonUpdate_clicked();
+		plotRigidBody(dock->comboBoxRigidBody->currentIndex());
 	}
 	else if (idx == 5)
 	{
@@ -2181,7 +2181,7 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 
 		dock->checkBoxStatus->hide();
 
-		on_pushButtonUpdate_clicked();
+		plotRigidBodyError(dock->comboBoxRigidBody->currentIndex());
 	}
 }
 

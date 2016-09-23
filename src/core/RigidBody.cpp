@@ -39,7 +39,8 @@
 #include "core/HelperFunctions.h"
 #include "core/RigidBodyObj.h"
 #include "processing/ButterworthLowPassFilter.h" //should move this dependency
-
+#include "processing/RigidBodyPoseOptimization.h"
+#include "processing/RigidBodyPoseFrom2D.h"
 
 #include <fstream>
 
@@ -72,6 +73,7 @@ RigidBody::RigidBody(int size, Trial* _trial)
 	m_drawMeshModel = false;
 	cutoffFrequency = 0;
 	overrideCutoffFrequency = false;
+	hasOptimizedCoordinates = false;
 	meshScale = 1.0;
 	init(size);
 }
@@ -98,6 +100,7 @@ void RigidBody::copyData(RigidBody* rb)
 		for (unsigned int i = 0; i < rb->points3D.size(); i++)
 		{
 			points3D[i] = rb->points3D[i];
+			points3D_original[i] = rb->points3D_original[i];
 		}
 
 		updateCenter();
@@ -107,6 +110,7 @@ void RigidBody::copyData(RigidBody* rb)
 		m_drawMeshModel = rb->getDrawMeshModel();
 		meshScale = rb->getMeshScale();
 	}
+	hasOptimizedCoordinates = rb->hasOptimizedCoordinates;
 	overrideCutoffFrequency = rb->getOverrideCutoffFrequency();
 	cutoffFrequency = rb->getOverrideCutoffFrequency();
 	color = rb->getColor();
@@ -158,6 +162,16 @@ const std::vector<QString>& RigidBody::getReferenceNames()
 	return referenceNames;
 }
 
+const std::vector<cv::Point3d>& RigidBody::getReferencePoints()
+{
+	return points3D;
+}
+
+const std::vector<cv::Point3d>& RigidBody::getReference3DPointOriginal()
+{
+	return points3D_original;
+}
+
 Marker* RigidBody::getMarker(int idx)
 {
 	return trial->getMarkers()[idx];
@@ -180,6 +194,7 @@ void RigidBody::addPointIdx(int idx)
 {
 	pointsIdx.push_back(idx);
 	points3D.push_back(cv::Point3d(0, 0, 0));
+	points3D_original.push_back(cv::Point3d(0, 0, 0));
 	referenceNames.push_back("");
 	resetReferences();
 }
@@ -189,6 +204,7 @@ void RigidBody::removePointIdx(int idx)
 	int pos = std::find(pointsIdx.begin(), pointsIdx.end(), idx) - pointsIdx.begin();
 	if (pos < pointsIdx.size()){
 		points3D.erase(std::remove(points3D.begin(), points3D.end(), points3D[pos]), points3D.end());
+		points3D_original.erase(std::remove(points3D_original.begin(), points3D_original.end(), points3D_original[pos]), points3D_original.end());
 		referenceNames.erase(std::remove(referenceNames.begin(), referenceNames.end(), referenceNames[pos]), referenceNames.end());
 		pointsIdx.erase(std::remove(pointsIdx.begin(), pointsIdx.end(), idx), pointsIdx.end());
 		resetReferences();
@@ -222,9 +238,13 @@ void RigidBody::resetReferences()
 		points3D[i].x = 0;
 		points3D[i].y = 0;
 		points3D[i].z = 0;
+		points3D_original[i].x = 0;
+		points3D_original[i].y = 0;
+		points3D_original[i].z = 0;
 	}
 	setReferencesSet(0);
 	initialised = false;
+	hasOptimizedCoordinates = false;
 	setReferenceMarkerReferences();
 }
 
@@ -324,6 +344,9 @@ void RigidBody::setReferenceMarkerReferences()
 			points3D[i].x = trial->getMarkers()[pointsIdx[i]]->getReference3DPoint().x;
 			points3D[i].y = trial->getMarkers()[pointsIdx[i]]->getReference3DPoint().y;
 			points3D[i].z = trial->getMarkers()[pointsIdx[i]]->getReference3DPoint().z;
+			points3D_original[i].x = trial->getMarkers()[pointsIdx[i]]->getReference3DPoint().x;
+			points3D_original[i].y = trial->getMarkers()[pointsIdx[i]]->getReference3DPoint().y;
+			points3D_original[i].z = trial->getMarkers()[pointsIdx[i]]->getReference3DPoint().z;
 			referenceNames[i] = trial->getMarkers()[pointsIdx[i]]->getDescription() + " - FromMarker";
 		}
 		initialised = true;
@@ -538,7 +561,7 @@ void RigidBody::computeCoordinateSystemAverage()
 			rotationmatrix.at<double>(2, 2) = py.z;
 
 			points3D.clear();
-
+			
 			for (unsigned int i = 0; i < points3D_mean.size(); i++)
 			{
 				cv::Point3d pt = points3D_mean[i] - center;
@@ -571,6 +594,74 @@ void RigidBody::computeCoordinateSystemAverage()
 		for (unsigned int f = 0; f < poseComputed.size(); f++)
 		{
 			computePose(f);
+		}
+	}
+}
+
+void RigidBody::setOptimized(bool optimized)
+{
+	hasOptimizedCoordinates = false;
+	points3D = points3D_original;
+
+	if (!isReferencesSet())
+	{
+		return;
+	}
+
+	if (optimized){
+		std::vector <int> goodFrames;
+		for (unsigned int f = 0; f < poseComputed.size(); f++)
+		{
+			if (poseComputed[f])
+			{
+				bool allfound = true;
+				for (unsigned int i = 0; i < pointsIdx.size(); i++)
+				{
+					if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[f] <= INTERPOLATED) allfound = false;
+				}
+				if (allfound){
+					goodFrames.push_back(f);
+					computePose(f);
+				}
+			}
+		}
+
+		if (goodFrames.size() > 0)
+		{
+			std::vector < std::vector <cv::Point3d> > pts_aligned;
+			for (std::vector<int>::iterator f = goodFrames.begin(); f < goodFrames.end(); ++f){
+				std::vector<cv::Point3d> pts_aligned_frame;
+				cv::Mat rotationMatrix;
+				cv::Rodrigues(rotationvectors[*f], rotationMatrix);
+
+				for (unsigned int i = 0; i < pointsIdx.size(); i++)
+				{
+					cv::Mat xmat = cv::Mat(trial->getMarkers()[pointsIdx[i]]->getPoints3D()[*f], true);
+					cv::Mat tmp_mat;
+
+					tmp_mat = rotationMatrix * (xmat)+cv::Mat(translationvectors[*f]);
+
+					cv::Point3d pt3d(tmp_mat.at<double>(0, 0),
+						tmp_mat.at<double>(1, 0),
+						tmp_mat.at<double>(2, 0));
+					pts_aligned_frame.push_back(pt3d);
+				}
+				pts_aligned.push_back(pts_aligned_frame);
+			}
+			points3D.clear();
+			for (int pt_idx = 0; pt_idx < pts_aligned[0].size(); pt_idx++)
+			{
+				points3D.push_back(cv::Point3d(0, 0, 0));
+
+				for (int f = 0; f < pts_aligned.size(); f++)
+				{
+					points3D[pt_idx] += pts_aligned[f][pt_idx];
+				}
+				points3D[pt_idx].x /= pts_aligned.size();
+				points3D[pt_idx].y /= pts_aligned.size();
+				points3D[pt_idx].z /= pts_aligned.size();
+			}
+			hasOptimizedCoordinates = true;
 		}
 	}
 }
@@ -716,6 +807,14 @@ void RigidBody::computePose(int Frame)
 			}
 		}
 
+		if (dst.size()<3 && dst.size()>=1)
+		{
+			//try to find more points for initialisation
+			RigidBodyPoseFrom2D * poseFrom2d = new RigidBodyPoseFrom2D(this, Frame);
+			poseFrom2d->findFrom2Dwith3D(src, dst);
+			delete poseFrom2d;
+		}
+
 		if (dst.size() >= 3)
 		{
 			cv::vector<cv::vector<double> > y, x;
@@ -798,6 +897,94 @@ void RigidBody::computePose(int Frame)
 			translationvectors[Frame] = cv::Vec3d(t);
 
 			poseComputed[Frame] = 1;
+		}
+		else
+		{
+			int goodCamera = -1;
+			int bestCameracount = 4;
+			for (int c = 0; c < Project::getInstance()->getCameras().size(); c++)
+			{
+				int count = 0;
+				for (int p = 0; p < getPointsIdx().size(); p++){
+					if (getTrial()->getMarkers()[getPointsIdx()[p]]->getStatus2D()[c][Frame] > UNDEFINED)
+					{
+						count++;
+					}
+				}
+				if (count >= bestCameracount)
+				{
+					goodCamera = c;
+				}
+			}
+			if (goodCamera >= 0)
+			{
+				cv::Vec3d rotationVec_tmp;
+				cv::Vec3d translationVec_tmp;
+				std::vector<cv::Point3f> object_points;
+				std::vector<cv::Point2f> image_points;
+				cv::Mat distortion_coeffs = cv::Mat::zeros(8, 1, CV_64F);
+				for (int p = 0; p < getPointsIdx().size(); p++){
+					if (getTrial()->getMarkers()[getPointsIdx()[p]]->getStatus2D()[goodCamera][Frame] > UNDEFINED)
+					{
+						object_points.push_back(points3D[p]);
+						image_points.push_back(Project::getInstance()->getCameras()[goodCamera]->undistortPoint(getTrial()->getMarkers()[getPointsIdx()[p]]->getPoints2D()[goodCamera][Frame], true));
+					}
+				}
+
+
+				cv::solvePnP(object_points, image_points, Project::getInstance()->getCameras()[goodCamera]->getCameraMatrix(), distortion_coeffs, rotationVec_tmp, translationVec_tmp, false, CV_EPNP);
+
+				cv::Mat trans1;
+				trans1.create(4, 4, CV_64FC1);
+				cv::Mat rot1;
+				cv::Rodrigues(rotationVec_tmp, rot1);
+
+				for (unsigned int i = 0; i < 3; ++i)
+				{
+					for (unsigned int j = 0; j < 3; ++j)
+					{
+						trans1.at<double>(i, j) = rot1.at<double>(i, j);
+					}
+				}
+				//set t
+				for (unsigned int j = 0; j < 3; ++j)
+				{
+					trans1.at<double>(j, 3) = translationVec_tmp[j];
+				}
+
+				for (unsigned int j = 0; j < 3; ++j)
+				{
+					trans1.at<double>(3, j) = 0;
+				}
+				trans1.at<double>(3, 3) = 1;
+				trans1 = trans1.inv();
+
+				cv::Mat out = Project::getInstance()->getCameras()[goodCamera]->getCalibrationImages()[trial->getReferenceCalibrationImage()]->getTransformationMatrix().inv() * trans1;
+
+				out = out.inv();
+
+				for (unsigned int i = 0; i < 3; ++i)
+				{
+					for (unsigned int j = 0; j < 3; ++j)
+					{
+						rot1.at<double>(i, j) = out.at<double>(i, j);
+					}
+				}
+				cv::Rodrigues(rot1, rotationvectors[Frame]);
+
+				for (unsigned int j = 0; j < 3; ++j)
+				{
+					translationvectors[Frame][j] = out.at<double>(j, 3);
+				}
+				poseComputed[Frame] = 1;
+			}
+		}
+
+		if (Settings::getInstance()->getBoolSetting("OptimizeRigidBody") && poseComputed[Frame])
+		{
+			RigidBodyPoseOptimization * opt = new RigidBodyPoseOptimization(this, Frame);
+			opt->optimizeRigidBodySetup();
+			delete opt;
 		}
 	}
 	updateError(Frame);
@@ -1037,7 +1224,25 @@ void RigidBody::save(QString filename_referenceNames, QString filename_points3D)
 	outfile_Points.precision(12);
 	for (unsigned int j = 0; j < points3D.size(); j++)
 	{
-		outfile_Points << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z << std::endl;
+		if (hasOptimizedCoordinates){
+			outfile_Points << points3D_original[j].x << " , " << points3D_original[j].y << " , " << points3D_original[j].z << std::endl;
+			std::cerr << points3D_original[j].x << " , " << points3D_original[j].y << " , " << points3D_original[j].z << std::endl;
+		} 
+		else
+		{
+			outfile_Points << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z << std::endl;
+		}
+	}
+	outfile_Points.close();
+}
+
+void RigidBody::saveOptimized(QString filename_points3DOptimized)
+{
+	std::ofstream outfile_Points(filename_points3DOptimized.toAscii().data());
+	outfile_Points.precision(12);
+	for (unsigned int j = 0; j < points3D.size(); j++)
+	{	
+		outfile_Points << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z << std::endl;	
 	}
 	outfile_Points.close();
 }
@@ -1048,8 +1253,11 @@ void RigidBody::load(QString filename_referenceNames, QString filename_points3D)
 	std::istringstream in;
 	std::string line;
 
+	hasOptimizedCoordinates = false;
+
 	fin.open(filename_points3D.toAscii().data());
 	points3D.clear();
+	points3D_original.clear();
 	while (!littleHelper::safeGetline(fin, line).eof())
 	{
 		QString tmp_coords = QString::fromStdString(line);
@@ -1057,6 +1265,7 @@ void RigidBody::load(QString filename_referenceNames, QString filename_points3D)
 		if (coords_list.size() == 3)
 		{
 			points3D.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
+			points3D_original.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
 		}
 	}
 	fin.close();
@@ -1075,6 +1284,33 @@ void RigidBody::load(QString filename_referenceNames, QString filename_points3D)
 
 	setReferencesSet(2);
 	initialised = true;
+}
+
+void RigidBody::loadOptimized(QString filename_points3DOptimized)
+{
+	std::ifstream fin;
+	std::istringstream in;
+	std::string line;
+
+	hasOptimizedCoordinates = true;
+
+	for (int i = 0; i < points3D.size(); i++)
+	{
+		points3D_original[i] = points3D[i];
+	}
+
+	fin.open(filename_points3DOptimized.toAscii().data());
+	points3D.clear();
+	while (!littleHelper::safeGetline(fin, line).eof())
+	{
+		QString tmp_coords = QString::fromStdString(line);
+		QStringList coords_list = tmp_coords.split(",");
+		if (coords_list.size() == 3)
+		{
+			points3D.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
+		}
+	}
+	fin.close();
 }
 
 void RigidBody::recomputeTransformations()
@@ -1370,6 +1606,21 @@ const std::vector<cv::Vec3d>& RigidBody::getTranslationVector(bool filtered)
 	{
 		return translationvectors;
 	}
+}
+
+
+
+void RigidBody::setTransformation(int frame, cv::Vec3d rotVec, cv::Vec3d transVec)
+{
+	rotationvectors[frame][0] = rotVec[0];
+	rotationvectors[frame][1] = rotVec[1];
+	rotationvectors[frame][2] = rotVec[2];
+
+	translationvectors[frame][0] = transVec[0];
+	translationvectors[frame][1] = transVec[1];
+	translationvectors[frame][2] = transVec[2];
+
+	updateError(frame);
 }
 
 const std::vector<double>& RigidBody::getErrorMean2D()
@@ -1829,20 +2080,50 @@ int RigidBody::setReferenceFromFile(QString filename)
 	}
 
 	points3D.clear();
+	points3D_original.clear();
+	hasOptimizedCoordinates = false;
 	referenceNames.clear();
 
 	for (unsigned int i = 0; i < best_permutation.size(); i++)
 	{
 		points3D.push_back(points3D_tmp[best_permutation[i]]);
+		points3D_original.push_back(points3D_tmp[best_permutation[i]]);
 		referenceNames.push_back(referenceNames_tmp[best_permutation[i]]);
 	}
-
 
 	setReferencesSet(2);
 
 	recomputeTransformations();
 
 	return 1;
+}
+
+bool RigidBody::setReferenceFromFrame(int frame)
+{
+	bool canSet = true;
+	for (unsigned int i = 0; i < pointsIdx.size(); i++)
+	{
+		if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[frame] <= UNDEFINED) canSet = false;
+	}
+
+	if (!canSet) return false;
+
+	points3D.clear();
+	points3D_original.clear();
+	hasOptimizedCoordinates = false;
+	referenceNames.clear();
+
+	for (unsigned int i = 0; i < pointsIdx.size(); i++)
+	{
+		points3D.push_back(trial->getMarkers()[pointsIdx[i]]->getPoints3D()[frame]);
+		points3D_original.push_back(trial->getMarkers()[pointsIdx[i]]->getPoints3D()[frame]);
+		referenceNames.push_back(trial->getMarkers()[pointsIdx[i]]->getDescription() + "_Frame" + QString::number(frame));
+	}
+
+	setReferencesSet(2);
+	recomputeTransformations();
+
+	return true;
 }
 
 int RigidBody::isReferencesSet()
@@ -1904,6 +2185,11 @@ bool RigidBody::getVisible()
 void RigidBody::setVisible(bool value)
 {
 	visible = value;
+}
+
+bool RigidBody::getHasOptimizedCoordinates()
+{
+	return hasOptimizedCoordinates;
 }
 
 QColor RigidBody::getColor()

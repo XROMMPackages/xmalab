@@ -82,6 +82,7 @@ namespace xma
 		void on_spinBox_OutlierThreshold_valueChanged(int value);
 		void on_checkBox_RetrackOptimizedTrackedPoints_stateChanged(int state);
 		void on_pushButton_MarkerStatus_clicked();
+		void on_checkBox_optimize2D_clicked();
 
 	};
 }

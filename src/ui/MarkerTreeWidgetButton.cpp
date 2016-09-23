@@ -76,11 +76,23 @@ void MarkerTreeWidgetButton::setButtonIcon()
 	{
 		if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[m_idx]->isReferencesSet() == 2)
 		{
-			icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d.png"), QSize(), QIcon::Normal, QIcon::Off);
+			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[m_idx]->getHasOptimizedCoordinates())
+			{
+				icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_optimized.png"), QSize(), QIcon::Normal, QIcon::Off);
+			}
+			else{
+				icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d.png"), QSize(), QIcon::Normal, QIcon::Off);
+			}
 		}
 		else if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[m_idx]->isReferencesSet() == 1)
 		{
-			icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_setMarker.png"), QSize(), QIcon::Normal, QIcon::Off);
+			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[m_idx]->getHasOptimizedCoordinates())
+			{
+				icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_setMarker_optimized.png"), QSize(), QIcon::Normal, QIcon::Off);
+			}
+			else{
+				icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_setMarker.png"), QSize(), QIcon::Normal, QIcon::Off);
+			}
 		}
 		else
 		{

@@ -76,6 +76,7 @@ namespace xma
 		void on_pushButton_OK_clicked();
 		void on_pushButton_Cancel_clicked();
 		void on_pushButton_setFromFile_clicked();
+		void on_pushButton_setFromFrame_clicked();
 		void currentIndexChanged(int idx);
 
 		void on_checkBox_Draw_clicked();
@@ -87,6 +88,7 @@ namespace xma
 		void on_pushButton_AddDummy_clicked();
 		void on_pushButton_DeleteDummy_clicked();
 		void on_pushButton_Reset_clicked();
+		void on_checkBox_Optimized_clicked();
 
 		void on_checkbox_DrawMesh_clicked();
 		void on_toolButton_Mesh_clicked();

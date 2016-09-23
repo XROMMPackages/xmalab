@@ -125,7 +125,7 @@ RigidBodyDialog::RigidBodyDialog(RigidBody* body, QWidget* parent) :
 		diag->doubleSpinBoxMeshScale->setEnabled(false);
 	}
 	diag->doubleSpinBoxMeshScale->setValue(m_body->getMeshScale());
-	
+
 	reloadDummyPoints();
 }
 
@@ -135,17 +135,31 @@ void RigidBodyDialog::updateIcon()
 	QIcon icon;
 	if (m_body->isReferencesSet() == 2)
 	{
-		icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d.png"), QSize(), QIcon::Normal, QIcon::Off);
+		if (m_body->getHasOptimizedCoordinates())
+		{
+			icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_optimized.png"), QSize(), QIcon::Normal, QIcon::Off);
+		}
+		else{
+			icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d.png"), QSize(), QIcon::Normal, QIcon::Off);
+		}
 	}
 	else if (m_body->isReferencesSet() == 1)
 	{
-		icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_setMarker.png"), QSize(), QIcon::Normal, QIcon::Off);
+		if (m_body->getHasOptimizedCoordinates())
+		{
+			icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_setMarker_optimized.png"), QSize(), QIcon::Normal, QIcon::Off);
+		}
+		else{
+			icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_setMarker.png"), QSize(), QIcon::Normal, QIcon::Off);
+		}
 	}
 	else
 	{
 		icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_notSet.png"), QSize(), QIcon::Normal, QIcon::Off);
 	}
 	this->setWindowIcon(icon);
+
+	diag->checkBox_Optimized->setChecked(m_body->getHasOptimizedCoordinates());
 }
 
 void RigidBodyDialog::updateLabels()
@@ -282,6 +296,24 @@ void RigidBodyDialog::on_pushButton_setFromFile_clicked()
 	}
 }
 
+void RigidBodyDialog::on_pushButton_setFromFrame_clicked()
+{
+	bool ok;
+	int idx = QInputDialog::getInt(this, tr("Frame Number"),
+		tr(""), m_body->getTrial()->getActiveFrame() + 1, m_body->getTrial()->getStartFrame(), m_body->getTrial()->getEndFrame(), 1, &ok) - 1;
+	if (ok)
+	{
+		bool could_set = m_body->setReferenceFromFrame(idx);
+
+		if (!could_set)
+		{
+			ErrorDialog::getInstance()->showErrorDialog("Cannot set references. All markers of the rigid body have to be detected in the selected frame!");
+			return;
+		}
+		updateIcon();
+		updateLabels();
+	}
+}
 
 void RigidBodyDialog::on_pushButton_OK_clicked()
 {
@@ -441,6 +473,13 @@ void RigidBodyDialog::on_pushButton_Reset_clicked()
 	m_body->resetReferences();
 	updateIcon();
 	updateLabels();
+}
+
+void RigidBodyDialog::on_checkBox_Optimized_clicked()
+{
+	m_body->setOptimized(diag->checkBox_Optimized->isChecked());
+	updateIcon();
+	m_body->recomputeTransformations();
 }
 
 void RigidBodyDialog::on_checkbox_DrawMesh_clicked()

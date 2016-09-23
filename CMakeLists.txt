@@ -150,6 +150,8 @@ SET(Processing_HEADERS
 	src/processing/MultiCameraCalibration.h
 	src/processing/UpdateTrialFrame.h
 	src/processing/cubic.h
+	src/processing/RigidBodyPoseOptimization.h
+		src/processing/RigidBodyPoseFrom2D.h
 )
 
 SET(Processing_SOURCES
@@ -165,7 +167,9 @@ SET(Processing_SOURCES
 	src/processing/CheckerboardDetection.cpp
 	src/processing/MultiCameraCalibration.cpp
 	src/processing/UpdateTrialFrame.cpp
-)
+	src/processing/RigidBodyPoseOptimization.cpp
+	src/processing/RigidBodyPoseFrom2D.cpp
+	)
 
 SOURCE_GROUP(_PROCESSING FILES ${Processing_HEADERS} ${Processing_SOURCES})
 

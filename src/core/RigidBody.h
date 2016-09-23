@@ -57,8 +57,12 @@ namespace xma
 		const std::vector<int>& getPoseComputed();
 		const std::vector<int>& getPoseFiltered();
 		const std::vector<QString>& getReferenceNames();
+		const std::vector<cv::Point3d>& getReferencePoints();
+		const std::vector<cv::Point3d>& getReference3DPointOriginal();
 		const std::vector<cv::Vec3d>& getRotationVector(bool filtered);
 		const std::vector<cv::Vec3d>& getTranslationVector(bool filtered);
+
+		void setTransformation(int frame, cv::Vec3d rotVec, cv::Vec3d transVec);
 
 		const std::vector<double>& getErrorMean2D();
 		const std::vector<double>& getErrorSd2D();
@@ -85,15 +89,19 @@ namespace xma
 		void computeCoordinateSystemAverage();
 		void computeCoordinateSystem(int Frame);
 		void computePose(int Frame);
+		void setOptimized(bool optimized);
 
 		std::vector<cv::Point2d> projectToImage(Camera* cam, int Frame, bool with_center, bool dummy = false, bool dummy_frame = false, bool filtered = false);
 		void setMissingPoints(int Frame);
 
 		int setReferenceFromFile(QString filename);
+		bool setReferenceFromFrame(int frame);
 		double fitAndComputeError(std::vector<cv::Point3d> src, std::vector<cv::Point3d> dst);
 
 		void save(QString filename_referenceNames, QString filename_points3D);
+		void saveOptimized(QString filename_points3DOptimized);
 		void load(QString filename_referenceNames, QString filename_points3D);
+		void loadOptimized(QString filename_points3DOptimized);
 		void saveTransformations(QString filename, bool inverse, bool filtered);
 		bool getTransformationMatrix(int frame, bool filtered, double* trans);
 
@@ -110,6 +118,8 @@ namespace xma
 
 		bool getVisible();
 		void setVisible(bool value);
+
+		bool getHasOptimizedCoordinates();
 
 		QColor getColor();
 		void setColor(QColor value);
@@ -155,7 +165,7 @@ namespace xma
 		bool expanded;
 		bool initialised;
 		int referencesSet;
-
+		bool hasOptimizedCoordinates;
 		bool overrideCutoffFrequency;
 		double cutoffFrequency;
 
@@ -163,6 +173,7 @@ namespace xma
 
 		std::vector<int> pointsIdx;
 		std::vector<cv::Point3d> points3D;
+		std::vector<cv::Point3d> points3D_original;
 
 		cv::Point3d center;
 		std::vector<QString> referenceNames;

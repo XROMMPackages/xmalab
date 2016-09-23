@@ -229,6 +229,11 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferenceNames.csv",
 							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d.csv");
 					}
+					if ((*trial_it)->getRigidBodies()[k]->getHasOptimizedCoordinates())
+					{
+						(*trial_it)->getRigidBodies()[k]->saveOptimized(
+							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d_optimized.csv");
+					}
 					for (unsigned int p = 0; p < (*trial_it)->getRigidBodies()[k]->getDummyNames().size(); p++)
 					{
 						(*trial_it)->getRigidBodies()[k]->saveDummy(p,
@@ -466,6 +471,13 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 													trial->getRigidBodies()[id]->resetReferences();
 												}
 
+												QString filename_referencePoints3DOptimized_attr = attr.value("ReferencePoints3DOptimized").toString();
+												if (!filename_referencePoints3DOptimized_attr.isEmpty())
+												{
+													QString filename_referencePoints3DOptimized = basedir + OS_SEP + filename_referencePoints3DOptimized_attr;
+													trial->getRigidBodies()[id]->loadOptimized(littleHelper::adjustPathToOS(filename_referencePoints3DOptimized));
+												}
+
 												QString visible = attr.value("Visible").toString();
 												if (!visible.isEmpty())
 												{
@@ -655,6 +667,13 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 												else
 												{
 													trial->getRigidBodies()[id]->resetReferences();
+												}
+
+												QString filename_referencePoints3DOptimized_attr = attr.value("ReferencePoints3DOptimized").toString();
+												if (!filename_referencePoints3DOptimized_attr.isEmpty())
+												{
+													QString filename_referencePoints3DOptimized = basedir + OS_SEP + filename_referencePoints3DOptimized_attr;
+													trial->getRigidBodies()[id]->loadOptimized(littleHelper::adjustPathToOS(filename_referencePoints3DOptimized));
 												}
 
 												QString visible = attr.value("Visible").toString();
@@ -1166,6 +1185,10 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 						xmlWriter.writeAttribute("ReferenceNames", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferenceNames.csv");
 						xmlWriter.writeAttribute("ReferencePoints3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d.csv");
 					}
+					if ((*trial_it)->getRigidBodies()[k]->getHasOptimizedCoordinates())
+					{
+						xmlWriter.writeAttribute("ReferencePoints3DOptimized", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d_optimized.csv");
+					}
 					xmlWriter.writeAttribute("Visible", QString::number((*trial_it)->getRigidBodies()[k]->getVisible()));
 					xmlWriter.writeAttribute("Color", (*trial_it)->getRigidBodies()[k]->getColor().name());
 					xmlWriter.writeAttribute("OverrideCutOffFrequency", QString::number((*trial_it)->getRigidBodies()[k]->getOverrideCutoffFrequency()));
@@ -1522,6 +1545,13 @@ bool ProjectFileIO::readProjectFile(QString filename)
 										else
 										{
 											trial->getRigidBodies()[id]->resetReferences();
+										}
+
+										QString filename_referencePoints3DOptimized_attr = attr.value("ReferencePoints3DOptimized").toString();
+										if (!filename_referencePoints3DOptimized_attr.isEmpty())
+										{
+											QString filename_referencePoints3DOptimized = basedir + OS_SEP + filename_referencePoints3DOptimized_attr;
+											trial->getRigidBodies()[id]->loadOptimized(littleHelper::adjustPathToOS(filename_referencePoints3DOptimized));
 										}
 
 										QString visible = attr.value("Visible").toString();
