@@ -41,8 +41,6 @@
 #include "core/CalibrationObject.h"
 
 #include <math.h>
-#include "../../../../libraries/Qt/4.8.6/src/gui/painting/qprinter.h"
-
 
 using namespace xma;
 
