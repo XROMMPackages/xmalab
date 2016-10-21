@@ -2117,7 +2117,7 @@ bool RigidBody::setReferenceFromFrame(int frame)
 	{
 		points3D.push_back(trial->getMarkers()[pointsIdx[i]]->getPoints3D()[frame]);
 		points3D_original.push_back(trial->getMarkers()[pointsIdx[i]]->getPoints3D()[frame]);
-		referenceNames.push_back(trial->getMarkers()[pointsIdx[i]]->getDescription() + "_Frame" + QString::number(frame));
+		referenceNames.push_back(trial->getMarkers()[pointsIdx[i]]->getDescription() + "_Frame" + QString::number(frame + 1));
 	}
 
 	setReferencesSet(2);
