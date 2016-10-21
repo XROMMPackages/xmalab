@@ -44,6 +44,7 @@
 #include <QColorDialog>
 #include <QInputDialog>
 #include <QFileDialog>
+#include <core/HelperFunctions.h>
 
 using namespace xma;
 
@@ -312,6 +313,19 @@ void RigidBodyDialog::on_pushButton_setFromFrame_clicked()
 		}
 		updateIcon();
 		updateLabels();
+	}
+}
+
+void RigidBodyDialog::on_pushButtonExport_clicked()
+{
+	QString fileName = QFileDialog::getSaveFileName(this,tr("Rigid Body references as"), 
+		Settings::getInstance()->getLastUsedDirectory() + OS_SEP + m_body->getDescription(), tr("CSV (*.csv)"));
+
+	if (fileName.isNull() == false)
+	{
+		Settings::getInstance()->setLastUsedDirectory(fileName);
+		m_body->saveOptimized(fileName, true);
+
 	}
 }
 

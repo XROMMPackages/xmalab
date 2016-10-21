@@ -1236,13 +1236,43 @@ void RigidBody::save(QString filename_referenceNames, QString filename_points3D)
 	outfile_Points.close();
 }
 
-void RigidBody::saveOptimized(QString filename_points3DOptimized)
+void RigidBody::saveOptimized(QString filename_points3DOptimized, bool withHeader)
 {
 	std::ofstream outfile_Points(filename_points3DOptimized.toAscii().data());
 	outfile_Points.precision(12);
-	for (unsigned int j = 0; j < points3D.size(); j++)
-	{	
-		outfile_Points << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z << std::endl;	
+	if (withHeader)
+	{
+		for (unsigned int j = 0; j < points3D.size(); j++)
+		{
+			outfile_Points << referenceNames[j].toAscii().data() << "_x , " << referenceNames[j].toAscii().data() << "_y , " << referenceNames[j].toAscii().data() << "_z";
+			if (j == points3D.size() - 1)
+			{
+				outfile_Points << std::endl;
+			} 
+			else
+			{
+				outfile_Points << " , ";
+			}
+		}
+
+		for (unsigned int j = 0; j < points3D.size(); j++)
+		{
+			outfile_Points << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z;
+			if (j == points3D.size() - 1)
+			{
+				outfile_Points << std::endl;
+			}
+			else
+			{
+				outfile_Points << " , ";
+			}
+		}
+	}
+	else{
+		for (unsigned int j = 0; j < points3D.size(); j++)
+		{
+			outfile_Points << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z << std::endl;
+		}
 	}
 	outfile_Points.close();
 }

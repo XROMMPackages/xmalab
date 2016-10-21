@@ -99,7 +99,7 @@ namespace xma
 		double fitAndComputeError(std::vector<cv::Point3d> src, std::vector<cv::Point3d> dst);
 
 		void save(QString filename_referenceNames, QString filename_points3D);
-		void saveOptimized(QString filename_points3DOptimized);
+		void saveOptimized(QString filename_points3DOptimized, bool withHeader = false);
 		void load(QString filename_referenceNames, QString filename_points3D);
 		void loadOptimized(QString filename_points3DOptimized);
 		void saveTransformations(QString filename, bool inverse, bool filtered);

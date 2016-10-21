@@ -77,6 +77,7 @@ namespace xma
 		void on_pushButton_Cancel_clicked();
 		void on_pushButton_setFromFile_clicked();
 		void on_pushButton_setFromFrame_clicked();
+		void on_pushButtonExport_clicked();
 		void currentIndexChanged(int idx);
 
 		void on_checkBox_Draw_clicked();

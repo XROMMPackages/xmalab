@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>724</width>
-    <height>375</height>
+    <width>825</width>
+    <height>313</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -39,59 +39,62 @@
    <bool>false</bool>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
-   <item row="3" column="0" colspan="7">
-    <widget class="QGroupBox" name="groupBox_4">
-     <property name="title">
-      <string>Virtual Points</string>
+   <item row="4" column="2">
+    <widget class="QPushButton" name="pushButton_Reset">
+     <property name="text">
+      <string>Reset To Marker References</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_5">
-      <item row="0" column="0">
-       <widget class="QPushButton" name="pushButton_AddDummy">
-        <property name="text">
-         <string>Add virtual point</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="pushButton_DeleteDummy">
-        <property name="text">
-         <string>Delete all virtual points</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
     </widget>
    </item>
-   <item row="2" column="0" colspan="7">
-    <widget class="QGroupBox" name="groupBox_3">
-     <property name="title">
-      <string>Fillter</string>
+   <item row="4" column="5">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
-     <layout class="QGridLayout" name="gridLayout_4">
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="checkBoxCutoffOverride">
-        <property name="text">
-         <string>Override Trial Cutoff Frequency</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBoxCutoff">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximum">
-         <double>10000.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="4" column="1">
+    <widget class="QPushButton" name="pushButton_setFromFrame">
+     <property name="text">
+      <string>Set Body from Frame</string>
+     </property>
     </widget>
    </item>
-   <item row="0" column="0" colspan="7">
+   <item row="4" column="6">
+    <widget class="QPushButton" name="pushButton_Cancel">
+     <property name="text">
+      <string>Cancel</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="7">
+    <widget class="QPushButton" name="pushButton_OK">
+     <property name="text">
+      <string>OK</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="3">
+    <widget class="QCheckBox" name="checkBox_Optimized">
+     <property name="text">
+      <string>optimized from tracked</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QPushButton" name="pushButton_setFromFile">
+     <property name="text">
+      <string>Set Body from File</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="8">
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Correspondances</string>
@@ -99,7 +102,7 @@
      <layout class="QGridLayout" name="gridLayout"/>
     </widget>
    </item>
-   <item row="1" column="0" colspan="7">
+   <item row="1" column="0" colspan="8">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
       <string>Visualization</string>
@@ -169,58 +172,62 @@
      </layout>
     </widget>
    </item>
-   <item row="4" column="0">
-    <widget class="QPushButton" name="pushButton_setFromFile">
-     <property name="text">
-      <string>Set Body from File</string>
+   <item row="2" column="0" colspan="8">
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="title">
+      <string>Fillter</string>
      </property>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="checkBoxCutoffOverride">
+        <property name="text">
+         <string>Override Trial Cutoff Frequency</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="doubleSpinBoxCutoff">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximum">
+         <double>10000.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
-   <item row="4" column="2">
-    <widget class="QPushButton" name="pushButton_Reset">
-     <property name="text">
-      <string>Reset To Marker References</string>
+   <item row="3" column="0" colspan="8">
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="title">
+      <string>Virtual Points</string>
      </property>
-    </widget>
-   </item>
-   <item row="4" column="6">
-    <widget class="QPushButton" name="pushButton_OK">
-     <property name="text">
-      <string>OK</string>
-     </property>
+     <layout class="QGridLayout" name="gridLayout_5">
+      <item row="0" column="0">
+       <widget class="QPushButton" name="pushButton_AddDummy">
+        <property name="text">
+         <string>Add virtual point</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="pushButton_DeleteDummy">
+        <property name="text">
+         <string>Delete all virtual points</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item row="4" column="4">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="4" column="5">
-    <widget class="QPushButton" name="pushButton_Cancel">
+    <widget class="QPushButton" name="pushButtonExport">
      <property name="text">
-      <string>Cancel</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="3">
-    <widget class="QCheckBox" name="checkBox_Optimized">
-     <property name="text">
-      <string>optimized from tracked</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1">
-    <widget class="QPushButton" name="pushButton_setFromFrame">
-     <property name="text">
-      <string>Set Body from Frame</string>
+      <string>Export references</string>
      </property>
     </widget>
    </item>
