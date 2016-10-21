@@ -161,6 +161,8 @@ void RigidBodyDialog::updateIcon()
 	this->setWindowIcon(icon);
 
 	diag->checkBox_Optimized->setChecked(m_body->getHasOptimizedCoordinates());
+
+	diag->pushButtonUpdate->setEnabled(diag->checkBox_Optimized->isChecked());
 }
 
 void RigidBodyDialog::updateLabels()
@@ -493,6 +495,11 @@ void RigidBodyDialog::on_checkBox_Optimized_clicked()
 {
 	m_body->setOptimized(diag->checkBox_Optimized->isChecked());
 	updateIcon();
+	m_body->recomputeTransformations();
+}
+
+void RigidBodyDialog::on_pushButtonUpdate_clicked()
+{
 	m_body->recomputeTransformations();
 }
 

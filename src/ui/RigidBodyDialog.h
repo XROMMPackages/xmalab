@@ -90,6 +90,7 @@ namespace xma
 		void on_pushButton_DeleteDummy_clicked();
 		void on_pushButton_Reset_clicked();
 		void on_checkBox_Optimized_clicked();
+		void on_pushButtonUpdate_clicked();
 
 		void on_checkbox_DrawMesh_clicked();
 		void on_toolButton_Mesh_clicked();

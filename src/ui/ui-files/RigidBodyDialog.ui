@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>825</width>
+    <width>922</width>
     <height>313</height>
    </rect>
   </property>
@@ -46,7 +46,7 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="5">
+   <item row="4" column="6">
     <spacer name="horizontalSpacer">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -66,14 +66,14 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="6">
+   <item row="4" column="7">
     <widget class="QPushButton" name="pushButton_Cancel">
      <property name="text">
       <string>Cancel</string>
      </property>
     </widget>
    </item>
-   <item row="4" column="7">
+   <item row="4" column="8">
     <widget class="QPushButton" name="pushButton_OK">
      <property name="text">
       <string>OK</string>
@@ -94,7 +94,7 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="0" colspan="8">
+   <item row="0" column="0" colspan="9">
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Correspondances</string>
@@ -102,7 +102,7 @@
      <layout class="QGridLayout" name="gridLayout"/>
     </widget>
    </item>
-   <item row="1" column="0" colspan="8">
+   <item row="1" column="0" colspan="9">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
       <string>Visualization</string>
@@ -172,7 +172,7 @@
      </layout>
     </widget>
    </item>
-   <item row="2" column="0" colspan="8">
+   <item row="2" column="0" colspan="9">
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
       <string>Fillter</string>
@@ -201,7 +201,7 @@
      </layout>
     </widget>
    </item>
-   <item row="3" column="0" colspan="8">
+   <item row="3" column="0" colspan="9">
     <widget class="QGroupBox" name="groupBox_4">
      <property name="title">
       <string>Virtual Points</string>
@@ -224,10 +224,17 @@
      </layout>
     </widget>
    </item>
-   <item row="4" column="4">
+   <item row="4" column="5">
     <widget class="QPushButton" name="pushButtonExport">
      <property name="text">
       <string>Export references</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="4">
+    <widget class="QPushButton" name="pushButtonUpdate">
+     <property name="text">
+      <string>Update Optimzed</string>
      </property>
     </widget>
    </item>
