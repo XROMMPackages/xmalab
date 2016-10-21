@@ -363,6 +363,18 @@ QString Settings::getLastUsedDirectory()
 	return settings.value("lastDirectoryUsed").toString();
 }
 
+void Settings::checkRecenFiles()
+{
+	QStringList previouslist = getQStringListSetting("RecentFiles");
+	foreach(const QString &file, previouslist) {
+		QFileInfo check_file(file);
+		if (!check_file.exists() || !check_file.isFile())
+			previouslist.removeOne(file);
+	}
+	
+	set("RecentFiles", previouslist);
+}
+
 void Settings::addToRecentFiles(QString filename)
 {
 	QStringList previouslist = getQStringListSetting("RecentFiles");

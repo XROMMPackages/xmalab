@@ -59,6 +59,7 @@ namespace xma
 		QString getLastUsedDirectory();
 
 		void addToRecentFiles(QString filename);
+		void checkRecenFiles();
 
 		//UI QByteArray
 		void setUIGeometry(QString windowTitle, QByteArray geometry);

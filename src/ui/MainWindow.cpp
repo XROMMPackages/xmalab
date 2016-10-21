@@ -794,6 +794,7 @@ void MainWindow::updateRecentFiles()
 {
 	ui->menuRecent_Files->clear();
 
+	Settings::getInstance()->checkRecenFiles();
 	QStringList recentFiles = Settings::getInstance()->getQStringListSetting("RecentFiles");
 
 	for (QStringList::const_iterator iter = recentFiles.constBegin(); iter != recentFiles.constEnd(); ++iter)
