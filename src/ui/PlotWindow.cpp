@@ -133,7 +133,8 @@ void PlotWindow::saveData()
 			//Header
 			for (int c = cam_start; c <= cam_end; c++)
 			{
-				outfile << "Cam" + std::to_string(c + 1) + "_Marker_" + std::to_string(marker_id + 1) + "_x , Cam" + std::to_string(c+1) + "_Marker_" + std::to_string(marker_id + 1) + "_y";
+				outfile << "Cam" + std::to_string(c + 1) + "_Marker_" + std::to_string(marker_id + 1) + "_x , Cam" + std::to_string(c+1) + "_Marker_" + std::to_string(marker_id + 1) + "_y" <<
+					" , Cam" + std::to_string(c + 1) + "_Marker_" + std::to_string(marker_id + 1) + "_x_undistorted , Cam" + std::to_string(c + 1) + "_Marker_" + std::to_string(marker_id + 1) + "_y_undistorted";
 				if (c != cam_end)
 				{
 					outfile << " , ";
@@ -143,16 +144,18 @@ void PlotWindow::saveData()
 
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
 			{
+				outfile << i + 1 << " , ";
 				for (int c = cam_start; c <= cam_end; c++)
 				{
 					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getStatus2D()[c][i] > UNDEFINED)
 					{
+						cv::Point2d undist = Project::getInstance()->getCameras()[c]->undistortPoint(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints2D()[c][i], true);
 						outfile << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints2D()[c][i].x << " , " <<
-						 Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints2D()[c][i].y;
+							Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints2D()[c][i].y << " , " << undist.x << " , " << undist.y;
 					}
 					else
 					{
-						outfile << "NaN , NaN" << std::endl;
+						outfile << "NaN , NaN , NaN, NaN";
 					}
 					if (c != cam_end)
 					{
