@@ -87,11 +87,13 @@ void StatusColorDialog::setColor(QString name)
 {
     QColor color = QColorDialog::getColor(QColor(Settings::getInstance()->getQStringSetting(name)), this);
     
-    Settings::getInstance()->set(name, color.name());
+	if (color.isValid()){
+		Settings::getInstance()->set(name, color.name());
 
-    updateColors();
-    
-    MainWindow::getInstance()->redrawGL();
+		updateColors();
+
+		MainWindow::getInstance()->redrawGL();
+	}
 }
 
 void StatusColorDialog::on_toolButton_Interpolated_clicked()
