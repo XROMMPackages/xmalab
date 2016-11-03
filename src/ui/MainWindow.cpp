@@ -108,6 +108,11 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	ui->setupUi(this);
 
+	if (!restoreGeometry(Settings::getInstance()->getUIGeometry("XMALab")))
+	{
+		setGeometry(50, 50, 1280, 1024);
+	}
+
 	mapper = new QSignalMapper(this);
 	connect(mapper, SIGNAL(mapped(QString)), this, SLOT(loadRecentFile(QString)));
 	updateRecentFiles();
@@ -162,16 +167,16 @@ MainWindow::MainWindow(QWidget* parent) :
 	DetailViewDockWidget::getInstance();
 	PlotWindow::getInstance();
 
-	restoreGeometry(Settings::getInstance()->getUIGeometry("XMALab"));
-	if (Settings::getInstance()->getUIState("XMALab").size() < 0 ||
-		!restoreState(Settings::getInstance()->getUIState("XMALab"), UI_VERSION))
+
+
+	if (!restoreState(Settings::getInstance()->getUIState("XMALab"), UI_VERSION))
 	{
 		WizardDockWidget::getInstance()->setFloating(true);
-		ProgressDialog::getInstance()->setFloating(true);
+		ProgressDialog::getInstance()->setFloating(false);
 		worldViewDockWidget->setFloating(true);
 		ConsoleDockWidget::getInstance()->setFloating(true);
-		DetailViewDockWidget::getInstance()->setFloating(true);
-		PlotWindow::getInstance()->setFloating(true);
+		DetailViewDockWidget::getInstance()->setFloating(false);
+		PlotWindow::getInstance()->setFloating(false);
 	}
 
 	WizardDockWidget::getInstance()->hide();
