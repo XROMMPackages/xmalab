@@ -421,23 +421,26 @@ void CalibrationImage::toggleInlier(double x, double y, bool isDistortedView)
 	double dist;
 	cv::Point2d diff;
 	cv::Point2d pt = cv::Point2d(x, y);
-	for (unsigned int i = 0; i < projectedPoints.size(); i ++)
+	for (unsigned int i = 0; i < detectedPoints.size(); i ++)
 	{
-		if (isDistortedView)
-		{
-			diff = pt - projectedPoints[i];
-		}
-		else
-		{
-			diff = pt - projectedPointsUndistorted[i];
-		}
+		if (detectedPoints[i].x != -1 && detectedPoints[i].y != -1){
+			if (isDistortedView)
+			{
+				diff = pt - detectedPoints[i];
+			}
+			else
+			{
+				diff = pt - detectedPointsUndistorted[i];
+			}
+		
 
-		dist = cv::sqrt(diff.x * diff.x + diff.y * diff.y);
+			dist = cv::sqrt(diff.x * diff.x + diff.y * diff.y);
 
-		if (dist < mindist)
-		{
-			mindist = dist;
-			idx = i;
+			if (dist < mindist)
+			{
+				mindist = dist;
+				idx = i;
+			}
 		}
 	}
 
