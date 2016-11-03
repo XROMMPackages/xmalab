@@ -327,7 +327,7 @@ void GLCameraView::wheelEvent(QWheelEvent* e)
 			State::getInstance()->changeActiveCamera(this->camera->getID());
 			double zoom_prev = zoomRatio;
 
-			setZoomRatio(zoomRatio * 1 + e->delta() / 1000.0, false);
+			setZoomRatio(zoomRatio * 1 - e->delta() / 1000.0, false);
 
 			QPoint coordinatesGlobal = e->globalPos();
 			QPoint coordinates = this->mapFromGlobal(coordinatesGlobal);
