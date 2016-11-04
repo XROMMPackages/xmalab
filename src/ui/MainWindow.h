@@ -143,6 +143,7 @@ namespace xma
 
 		void on_actionSettings_triggered(bool checked);
 		void on_actionAbout_triggered(bool checked);
+		void on_actionHelp_triggered(bool checked);
 		void on_action3D_world_view_triggered(bool checked);
 		void on_actionConsole_triggered(bool checked);
 		void on_actionDetailed_View_triggered(bool checked);

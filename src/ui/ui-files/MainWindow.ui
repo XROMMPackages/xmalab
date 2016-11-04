@@ -374,11 +374,12 @@
     </property>
     <addaction name="actionSettings"/>
     <addaction name="actionAbout"/>
+    <addaction name="actionHelp"/>
+    <addaction name="separator"/>
     <addaction name="actionConsole"/>
     <addaction name="actionDetailed_View"/>
     <addaction name="actionPlot"/>
     <addaction name="action3D_world_view"/>
-    <addaction name="actionProject_Metadata"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -871,6 +872,11 @@
   <action name="actionSave_subdataset_as">
    <property name="text">
     <string>Save subdataset as</string>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="text">
+    <string>Help</string>
    </property>
   </action>
  </widget>

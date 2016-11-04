@@ -186,6 +186,16 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 			PointsDockWidget::getInstance()->selectAllPoints();
 			return true;
 		}
+		if (_keyEvent->key() == Qt::Key_I && !_keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+		{
+			WizardDockWidget::getInstance()->interpolateActive();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_I && _keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+		{
+			WizardDockWidget::getInstance()->interpolateAll();
+			return true;
+		}
 	}
 	return false;
 }

@@ -56,6 +56,7 @@
 #include "ui/FromToDialog.h"
 #include "ui/MetaDataInfo.h"
 #include "ui/TrialSelectorDialog.h"
+#include "ui/HelpDialog.h"
 
 #include "core/Project.h"
 #include "core/Camera.h"
@@ -1651,6 +1652,13 @@ void MainWindow::on_actionSettings_triggered(bool checked)
 void MainWindow::on_actionAbout_triggered(bool checked)
 {
 	AboutDialog* diag = new AboutDialog(this);
+	diag->exec();
+	delete diag;
+}
+
+void MainWindow::on_actionHelp_triggered(bool checked)
+{
+	HelpDialog* diag = new HelpDialog(this);
 	diag->exec();
 	delete diag;
 }
