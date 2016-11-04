@@ -88,6 +88,7 @@ MetaDataInfo::MetaDataInfo(QWidget* parent) :
 				itemVideo->addChild(new QTreeWidgetItem(QStringList() << "FrameRate" << QString::number(Project::getInstance()->getTrials()[i]->getVideoStreams()[j]->getFrameRate())));
 				itemVideo->addChild(new QTreeWidgetItem(QStringList() << "ShutterSpeed" << Project::getInstance()->getTrials()[i]->getVideoStreams()[j]->getShutterSpeed()));
 				itemVideo->addChild(new QTreeWidgetItem(QStringList() << "kV" << Project::getInstance()->getTrials()[i]->getVideoStreams()[j]->getKV()));
+				itemVideo->addChild(new QTreeWidgetItem(QStringList() << "EDR" << Project::getInstance()->getTrials()[i]->getVideoStreams()[j]->getEDR()));
 				itemVideo->addChild(new QTreeWidgetItem(QStringList() << "mA" << Project::getInstance()->getTrials()[i]->getVideoStreams()[j]->getMA()));
 				itemVideo->addChild(new QTreeWidgetItem(QStringList() << "SID" << Project::getInstance()->getTrials()[i]->getVideoStreams()[j]->getSid()));
 				itemVideo->addChild(new QTreeWidgetItem(QStringList() << "MagLevel" << Project::getInstance()->getTrials()[i]->getVideoStreams()[j]->getMagLevel()));

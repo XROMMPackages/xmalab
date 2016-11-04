@@ -63,6 +63,7 @@ namespace xma
 		const double& getFrameRate() const;
 		const QString& getShutterSpeed() const;
 		const QString& getKV() const;
+		const QString& getEDR() const;
 		const QString& getMA() const;
 		const QString& getSid() const;
 		const QString& getMagLevel() const;
@@ -86,6 +87,7 @@ namespace xma
 		double FrameRate;
 		QString ShutterSpeed;
 		QString kV;
+		QString EDR;
 		QString mA;
 		QString SID;
 		QString MagLevel;

@@ -380,6 +380,7 @@
     <addaction name="actionDetailed_View"/>
     <addaction name="actionPlot"/>
     <addaction name="action3D_world_view"/>
+    <addaction name="actionProject_Metadata"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>

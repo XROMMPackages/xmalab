@@ -101,6 +101,7 @@ void VideoStream::parseXMLData(int id, QString xml_data)
 	double FrameRate_tmp;
 	QString ShutterSpeed_tmp;
 	QString kV_tmp;
+	QString EDR_tmp;
 	QString mA_tmp;
 	QString SID_tmp;
 	QString MagLevel_tmp;
@@ -132,6 +133,7 @@ void VideoStream::parseXMLData(int id, QString xml_data)
 				FrameRate_tmp = 0;
 				ShutterSpeed_tmp = "";
 				kV_tmp = "";
+				EDR_tmp = "";
 				mA_tmp = "";
 				SID_tmp = "";
 				MagLevel_tmp = "";
@@ -182,6 +184,10 @@ void VideoStream::parseXMLData(int id, QString xml_data)
 									{
 										kV_tmp = xml.readElementText();
 									}
+									else if (xml.name() == "EDR")
+									{
+										EDR_tmp = xml.readElementText();
+									}
 									else if (xml.name() == "mA")
 									{
 										mA_tmp = xml.readElementText();
@@ -227,6 +233,7 @@ void VideoStream::parseXMLData(int id, QString xml_data)
 					FrameRate = FrameRate_tmp;
 					ShutterSpeed = ShutterSpeed_tmp;
 					kV = kV_tmp;
+					EDR = EDR_tmp;
 					mA = mA_tmp;
 					SID = SID_tmp;
 					MagLevel = MagLevel_tmp;
@@ -279,6 +286,11 @@ const QString& VideoStream::getShutterSpeed() const
 const QString& VideoStream::getKV() const
 {
 	return kV;
+}
+
+const QString& VideoStream::getEDR() const
+{
+	return EDR;
 }
 
 const QString& VideoStream::getMA() const
