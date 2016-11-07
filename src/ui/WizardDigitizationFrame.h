@@ -29,6 +29,8 @@
 
 #include <QFrame>
 #include "ui/State.h"
+#include "cv.h"
+
 
 namespace Ui
 {
@@ -48,6 +50,7 @@ namespace xma
 		void addDigitizationPoint(int camera, double x, double y);
 		void selectDigitizationPoint(int camera, double x, double y);
 		void moveDigitizationPoint(int camera, double x, double y, bool noDetection);
+		void undoLastPoint();
 
 		void setDialog();
 		void stopTracking();
@@ -58,6 +61,10 @@ namespace xma
 		void goToFirstTrackedFrame();
 	private:
 		Ui::WizardDigitizationFrame* frame;
+
+		bool canUndo;
+		cv::Point2d lastPoint;
+		int lastStatus;
 
 		int trackID; //id for point or rb
 		int tmptrackID;
@@ -73,6 +80,8 @@ namespace xma
 		void uncheckTrackButtons();
 
 	public slots:
+		void activePointChanged(int idx);
+		void activeTrialChanged(int activeTrial);
 		void activeCameraChanged(int activeCamera);
 		void activeFrameTrialChanged(int activeFrame);
 		void workspaceChanged(work_state workspace);

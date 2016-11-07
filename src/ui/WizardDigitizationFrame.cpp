@@ -102,6 +102,8 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 	frame->checkBox_DrawFiltered->setFocusPolicy(Qt::StrongFocus);
 
 #endif
+	connect(PointsDockWidget::getInstance(), SIGNAL(activePointChanged(int)), this, SLOT(activePointChanged(int)));
+	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
 	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameTrialChanged(int)));
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
@@ -121,6 +123,12 @@ void WizardDigitizationFrame::addDigitizationPoint(int camera, double x, double 
 
 	if (marker != NULL)
 	{
+		canUndo = true;
+		MainWindow::getInstance()->setUndo(canUndo);
+		lastPoint = marker->getPoints2D()[camera][State::getInstance()->getActiveFrameTrial()];
+		lastStatus = marker->getStatus2D()[camera][State::getInstance()->getActiveFrameTrial()];
+
+
 		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, SET);
 
 		PointsDockWidget::getInstance()->reloadListFromObject();
@@ -162,6 +170,11 @@ void WizardDigitizationFrame::moveDigitizationPoint(int camera, double x, double
 
 	if (marker != NULL)
 	{
+		canUndo = true;
+		MainWindow::getInstance()->setUndo(canUndo);
+		lastPoint = marker->getPoints2D()[camera][State::getInstance()->getActiveFrameTrial()];
+		lastStatus = marker->getStatus2D()[camera][State::getInstance()->getActiveFrameTrial()];
+
 		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, noDetection ? MANUAL : SET);
 
 		if (!noDetection)
@@ -178,15 +191,48 @@ void WizardDigitizationFrame::moveDigitizationPoint(int camera, double x, double
 	}
 }
 
+void WizardDigitizationFrame::undoLastPoint()
+{
+	if (canUndo)
+	{
+		Marker* marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
+		marker->setPoint(State::getInstance()->getActiveCamera(), State::getInstance()->getActiveFrameTrial(), lastPoint.x, lastPoint.y, markerStatus(lastStatus));
+		canUndo = false;
+		MainWindow::getInstance()->setUndo(canUndo);
+		MainWindow::getInstance()->redrawGL();
+		setDialog();
+	}
+}
+
 WizardDigitizationFrame::~WizardDigitizationFrame()
 {
 	delete frame;
+}
+
+void WizardDigitizationFrame::activePointChanged(int idx){
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		canUndo = false;
+		MainWindow::getInstance()->setUndo(canUndo);
+	}
+}
+
+
+void WizardDigitizationFrame::activeTrialChanged(int activeTrial)
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		canUndo = false;
+		MainWindow::getInstance()->setUndo(canUndo);
+	}
 }
 
 void WizardDigitizationFrame::activeCameraChanged(int activeCamera)
 {
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
+		canUndo = false;
+		MainWindow::getInstance()->setUndo(canUndo);
 		setDialog();
 	}
 }
@@ -195,6 +241,8 @@ void WizardDigitizationFrame::activeFrameTrialChanged(int activeFrame)
 {
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
+		canUndo = false;
+		MainWindow::getInstance()->setUndo(canUndo);
 		setDialog();
 	}
 }
@@ -203,6 +251,8 @@ void WizardDigitizationFrame::workspaceChanged(work_state workspace)
 {
 	if (workspace == DIGITIZATION)
 	{
+		canUndo = false;
+		MainWindow::getInstance()->setUndo(canUndo);
 		setDialog();
 	}
 }

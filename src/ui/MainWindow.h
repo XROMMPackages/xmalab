@@ -56,6 +56,7 @@ namespace xma
 
 		void save3DPoints(std::vector<int> markers);
 		void saveRigidBodies(std::vector<int> bodies);
+		void setUndo(bool value);
 
 	private:
 		Ui::MainWindow* ui;
@@ -125,6 +126,8 @@ namespace xma
 		void on_actionSave_Project_as_triggered(bool checked);
 		void on_actionSave_subdataset_as_triggered(bool checked);
 		void loadRecentFile(QString filename);
+
+		void on_actionUndo_triggered(bool checked);
 
 		//File->Export Menu Slots
 		void on_actionExportAll_triggered(bool checked);

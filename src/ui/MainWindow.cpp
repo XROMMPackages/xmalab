@@ -974,6 +974,11 @@ void MainWindow::redrawGL()
 	}
 }
 
+void MainWindow::setUndo(bool value)
+{
+	ui->actionUndo->setEnabled(value);
+}
+
 void MainWindow::setCameraViewWidgetTitles()
 {
 	if (State::getInstance()->getWorkspace() == CALIBRATION)
@@ -1016,6 +1021,7 @@ UI - SLOTS
 //custom slots for state
 void MainWindow::workspaceChanged(work_state workspace)
 {
+	ui->actionUndo->setEnabled(false);
 	if (project->isCalibrated())
 	{
 		ui->actionImportTrial->setEnabled(true);
@@ -1220,6 +1226,7 @@ void MainWindow::activeTrialChanged(int activeTrial)
 {
 	if (activeTrial >= 0)
 	{
+		ui->actionUndo->setEnabled(false);
 		setCameraViewWidgetTitles();
 		redrawGL();
 	}
@@ -1274,6 +1281,11 @@ void MainWindow::loadRecentFile(QString filename)
 	if (project && !ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to close your dataset. Please make sure your data have been saved. \nAre you sure you want to close current dataset and load an existing dataset?"))
 		return;
 	loadProject(filename);
+}
+
+void MainWindow::on_actionUndo_triggered(bool checked)
+{
+	WizardDockWidget::getInstance()->undoLastPoint();
 }
 
 //File->Export Menu Slots

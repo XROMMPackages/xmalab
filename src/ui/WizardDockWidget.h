@@ -61,6 +61,7 @@ namespace xma
 		bool checkForPendingChanges();
 		void updateDialog();
 		void stop();
+		void undoLastPoint();
 
 	private:
 		Ui::WizardDockWidget* dock;

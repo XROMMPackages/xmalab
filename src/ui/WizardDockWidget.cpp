@@ -156,6 +156,14 @@ void WizardDockWidget::stop()
 	}
 }
 
+void WizardDockWidget::undoLastPoint()
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		digitizationFrame->undoLastPoint();
+	}
+}
+
 void WizardDockWidget::workspaceChanged(work_state workspace)
 {
 	if (workspace == UNDISTORTION)
