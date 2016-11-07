@@ -39,6 +39,7 @@ HelpDialog::HelpDialog(QWidget* parent) :
 {
 	diag->setupUi(this);
 
+#ifdef __APPLE__
 	QList<QLabel *> list = diag->groupBox_2->findChildren<QLabel*>();
 	for (QList<QLabel *>::iterator it = list.begin(); it < list.end(); ++it)
 	{
@@ -47,6 +48,7 @@ HelpDialog::HelpDialog(QWidget* parent) :
 			(*it)->setText(QChar(0x2318));
 		}
 	}
+#endif
 
 }
 

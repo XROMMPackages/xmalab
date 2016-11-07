@@ -36,7 +36,7 @@
 #include <QtGui/QLabel>
 #include <QtGui/QPushButton>
 #include <QtGui/QFileDialog>
-
+#include <QtGui/QLineEdit>
 #include <fstream>
 
 #include "core/Trial.h"
@@ -85,6 +85,8 @@ PlotWindow::PlotWindow(QWidget* parent) : QDockWidget(parent), dock(new Ui::Plot
 	dock->plotWidget->axisRect()->setRangeDrag(Qt::Horizontal);
 	dock->plotWidget->axisRect()->setRangeZoom(Qt::Horizontal);
 
+	dock->doubleSpinBoxError->setFocusPolicy(Qt::NoFocus);
+	
 	//Setup DockWidget
 	setWindowFlags(windowFlags() & ~Qt::WindowStaysOnTopHint);
 	this->resize(500, 500);
@@ -99,6 +101,7 @@ PlotWindow::PlotWindow(QWidget* parent) : QDockWidget(parent), dock(new Ui::Plot
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(PointsDockWidget::getInstance(), SIGNAL(activePointChanged(int)), this, SLOT(activePointChanged(int)));
 	connect(PointsDockWidget::getInstance(), SIGNAL(activeRigidBodyChanged(int)), this, SLOT(activeRigidBodyChanged(int)));
+	connect(dock->doubleSpinBoxError, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxError_valueChanged(double)), Qt::QueuedConnection);
 }
 
 void PlotWindow::installEventFilterToChildren(QObject* object)
@@ -505,6 +508,48 @@ void PlotWindow::saveData()
 			}
 		}
 	outfile.close();
+	}
+}
+
+bool PlotWindow::isFrameAboveBackProjectionError(Marker* marker, int frame)
+{
+	double error = 0;
+	if (dock->comboBoxCamera->currentIndex() == 0)
+	{
+		int count = 0;
+		for (unsigned int cam = 0; cam < Project::getInstance()->getCameras().size(); cam++)
+		{
+			if (marker->getStatus2D()[cam][frame] > UNDEFINED &&
+				marker->getStatus3D()[frame] > UNDEFINED)
+			{
+				count++;
+				error += marker->getError2D()[cam][frame];
+
+			}
+		}
+
+		if (count > 0)
+		{
+			error /= count;
+		}
+	}
+	else
+	{
+		int cam = dock->comboBoxCamera->currentIndex() - 1;
+		if (marker->getStatus2D()[cam][frame] > UNDEFINED &&
+			marker->getStatus3D()[frame] > UNDEFINED)
+		{
+			error = marker->getError2D()[cam][frame];
+		}
+	}
+
+	if (error> dock->doubleSpinBoxError->value())
+	{
+		return true; 
+	} 
+	else
+	{
+		return false;
 	}
 }
 
@@ -985,6 +1030,73 @@ void PlotWindow::updateTimeCheckBox()
 			dock->checkBoxTime->hide();
 		}
 	}
+}
+
+void PlotWindow::goToNextPointAboveBackprojectionError()
+{
+	std::cerr << "In" << std::endl;
+	Marker* marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
+	if (dock->comboBoxPlotType->currentIndex() == 3 && marker != NULL)
+	{
+		for (int i = State::getInstance()->getActiveFrameTrial() + 1; i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); i++)
+		{
+			if (isFrameAboveBackProjectionError(marker, i))
+			{
+				State::getInstance()->changeActiveFrameTrial(i);
+				return;
+			}
+		}
+	}
+}
+
+void PlotWindow::goToPrevPointAboveBackprojectionError()
+{
+
+	Marker* marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
+	if (dock->comboBoxPlotType->currentIndex() == 3 && marker != NULL)
+	{
+		for (int i = State::getInstance()->getActiveFrameTrial() - 1; i >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i--)
+		{
+			if (isFrameAboveBackProjectionError(marker, i))
+			{
+				State::getInstance()->changeActiveFrameTrial(i);
+				return;
+			}
+		}
+	}
+	
+}
+
+void PlotWindow::deleteAllAboveBackprojectionError()
+{
+
+	
+	Marker* marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
+	if (dock->comboBoxPlotType->currentIndex() == 3 && marker != NULL)
+	{
+		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete your data for " + dock->comboBoxCamera->currentText() + " for Marker " + dock->comboBoxMarker1->currentText() + " for all frames with reprojection error higher than " + QString::number(dock->doubleSpinBoxError->value())))
+			return;
+
+		for (int i = 0; i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages(); i++)
+		{
+			if (isFrameAboveBackProjectionError(marker, i))
+			{
+
+				if (dock->comboBoxCamera->currentIndex() == 0)
+				{
+					for (unsigned int cam = 0; cam < Project::getInstance()->getCameras().size(); cam++)
+					{
+						marker->reset(cam, i);
+					}
+				}
+				else
+				{
+					marker->reset(dock->comboBoxCamera->currentIndex() - 1, i);
+				}			
+			}
+		}
+	}
+	MainWindow::getInstance()->redrawGL();
 }
 
 void PlotWindow::activePointChanged(int idx)
@@ -2045,6 +2157,17 @@ void PlotWindow::plotReprojectionError(int idx1)
 			frameMarker->start->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, -0.5);
 			frameMarker->end->setCoords(State::getInstance()->getActiveFrameTrial() * posMultiplier + posOffset, range);
 
+			dock->plotWidget->addGraph();
+			QVector<double> pos_er, val_er;
+			pos_er.push_back((Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1)* posMultiplier + posOffset);
+			pos_er.push_back((Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame()  + 1)* posMultiplier + posOffset);
+			val_er.push_back(dock->doubleSpinBoxError->value());
+			val_er.push_back(dock->doubleSpinBoxError->value());
+
+			dock->plotWidget->graph(1)->setData(pos_er, val_er);
+			dock->plotWidget->graph(1)->setLineStyle(QCPGraph::lsLine);
+			dock->plotWidget->graph(1)->setPen(QPen(QColor(Qt::red)));
+
 			drawStatus(idx1);
 		}
 
@@ -2094,6 +2217,9 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 		dock->frameMarkerPlot->show();
 		dock->frameRigidBodyPlot->hide();
 
+		dock->labelError->hide();
+		dock->doubleSpinBoxError->hide();
+
 		dock->checkBoxStatus->show();
 
 		if (!updating && State::getInstance()->getActiveTrial() >= 0)
@@ -2114,6 +2240,9 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 
 		dock->frameMarkerPlot->show();
 		dock->frameRigidBodyPlot->hide();
+
+		dock->labelError->hide();
+		dock->doubleSpinBoxError->hide();
 
 		dock->checkBoxStatus->show();
 
@@ -2136,6 +2265,9 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 		dock->frameMarkerPlot->show();
 		dock->frameRigidBodyPlot->hide();
 
+		dock->labelError->hide();
+		dock->doubleSpinBoxError->hide();
+
 		dock->checkBoxStatus->hide();
 
 		if (!updating && State::getInstance()->getActiveTrial() >= 0)
@@ -2157,6 +2289,9 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 		dock->frameMarkerPlot->show();
 		dock->frameRigidBodyPlot->hide();
 
+		dock->labelError->show();
+		dock->doubleSpinBoxError->show();
+
 		dock->checkBoxStatus->show();
 
 		if (!updating && State::getInstance()->getActiveTrial() >= 0)
@@ -2171,6 +2306,9 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 		dock->comboBoxRigidBodyTransPart->show();
 		dock->comboBoxRigidBodyError->hide();
 
+		dock->labelError->hide();
+		dock->doubleSpinBoxError->hide();
+
 		dock->checkBoxStatus->hide();
 
 		plotRigidBody(dock->comboBoxRigidBody->currentIndex());
@@ -2181,6 +2319,9 @@ void PlotWindow::on_comboBoxPlotType_currentIndexChanged(int idx)
 		dock->frameRigidBodyPlot->show();
 		dock->comboBoxRigidBodyTransPart->hide();
 		dock->comboBoxRigidBodyError->show();
+
+		dock->labelError->hide();
+		dock->doubleSpinBoxError->hide();
 
 		dock->checkBoxStatus->hide();
 
@@ -2306,4 +2447,10 @@ void PlotWindow::on_checkBoxStatus_clicked()
 {
 	resetRange();
 	draw();
+}
+
+void PlotWindow::doubleSpinBoxError_valueChanged(double value)
+{	
+	draw();
+	dock->doubleSpinBoxError->findChild<QLineEdit*>()->deselect();
 }

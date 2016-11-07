@@ -44,6 +44,7 @@ namespace Ui
 
 namespace xma
 {
+	class Marker;
 	class PlotWindow : public QDockWidget
 	{
 		Q_OBJECT
@@ -66,6 +67,9 @@ namespace xma
 		void plotRigidBodyError(int idx);
 		void installEventFilterToChildren(QObject* widget);
 		void saveData();
+
+		bool isFrameAboveBackProjectionError(Marker * marker, int frame);
+		
 
 	protected:
 		bool eventFilter(QObject* target, QEvent* event) override;
@@ -102,10 +106,17 @@ namespace xma
 		void on_checkBoxTime_clicked();
 		void on_checkBoxStatus_clicked();
 
+		void doubleSpinBoxError_valueChanged(double value);
+
 		void activeTrialChanged(int activeTrial);
 		void workspaceChanged(work_state workspace);
 		void activePointChanged(int idx);
 		void activeRigidBodyChanged(int idx);
+
+		void goToNextPointAboveBackprojectionError();
+		void goToPrevPointAboveBackprojectionError();
+		void deleteAllAboveBackprojectionError();
+
 	};
 }
 

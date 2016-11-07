@@ -33,6 +33,7 @@
 #include "ui/SequenceNavigationFrame.h"
 #include "ui/PointsDockWidget.h"
 #include "ui/WizardDockWidget.h"
+#include "ui/PlotWindow.h"
 #include <QtGui/QShortcut>
 #include <QKeyEvent>
 
@@ -91,6 +92,18 @@ void Shortcuts::bindApplicationShortcuts()
 	shortcut->setContext(Qt::ApplicationShortcut);
 
 	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), PointsDockWidget::getInstance(), SLOT(selectAllPoints()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_4), PlotWindow::getInstance(), SLOT(goToNextPointAboveBackprojectionError()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_4), PlotWindow::getInstance(), SLOT(goToPrevPointAboveBackprojectionError()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_Delete), PlotWindow::getInstance(), SLOT(deleteAllAboveBackprojectionError()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_Backspace), PlotWindow::getInstance(), SLOT(deleteAllAboveBackprojectionError()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 }
 
@@ -194,6 +207,26 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 		if (_keyEvent->key() == Qt::Key_I && _keyEvent->modifiers().testFlag(Qt::ShiftModifier))
 		{
 			WizardDockWidget::getInstance()->interpolateAll();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_4 && !_keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+		{
+			PlotWindow::getInstance()->goToNextPointAboveBackprojectionError();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_4&& _keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+		{
+			PlotWindow::getInstance()->goToPrevPointAboveBackprojectionError();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_Delete&& _keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+		{
+			PlotWindow::getInstance()->deleteAllAboveBackprojectionError();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_Backspace&& _keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+		{
+			PlotWindow::getInstance()->deleteAllAboveBackprojectionError();
 			return true;
 		}
 	}
