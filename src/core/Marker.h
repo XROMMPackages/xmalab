@@ -101,7 +101,7 @@ namespace xma
 		void reconstruct3DPointZissermanMatlab(int frame);
 		void reconstruct3DPointZissermanIncrementalMatlab(int frame);
 		void reconstruct3DPointRayIntersection(int frame);
-		bool getMarkerPrediction(int camera, int frame, double& x, double& y, bool forward);
+		int getMarkerPrediction(int camera, int frame, double& x, double& y, bool forward);
 
 		double getSize();
 		double getSizeRange();

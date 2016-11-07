@@ -175,10 +175,10 @@ void Marker::setPoint(int camera, int activeFrame, double x, double y, markerSta
 //	reconstruct3DPoint(activeFrame);
 //}
 
-bool Marker::getMarkerPrediction(int camera, int frame, double& x, double& y, bool forward)
+int Marker::getMarkerPrediction(int camera, int frame, double& x, double& y, bool forward)
 {
 	if (frame < 0 || frame >= (int) points2D[0].size())
-		return false;
+		return 0;
 
 	int dir = forward ? 1 : -1;
 
@@ -189,19 +189,19 @@ bool Marker::getMarkerPrediction(int camera, int frame, double& x, double& y, bo
 			//linear position
 			x = 2 * points2D[camera][frame - 1 * dir].x - points2D[camera][frame - 2 * dir].x;
 			y = 2 * points2D[camera][frame - 1 * dir].y - points2D[camera][frame - 2 * dir].y;
-			return true;
+			return 2;
 		}
 		else
 		{
 			//previous position
 			x = points2D[camera][frame - 1 * dir].x;
 			y = points2D[camera][frame - 1 * dir].y;
-			return true;
+			return 1;
 		}
 	}
 	else
 	{
-		return false;
+		return 0;
 	}
 }
 

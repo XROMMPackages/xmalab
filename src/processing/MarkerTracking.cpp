@@ -80,7 +80,10 @@ void MarkerTracking::trackMarker_thread()
 	cv::Mat ROI_to;
 	int used_size = size + searchArea + 3;
 
-	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMarkerPrediction(m_camera, m_frame_to, x_to, y_to, m_forward);
+	int prediction = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMarkerPrediction(m_camera, m_frame_to, x_to, y_to, m_forward);
+
+	if(prediction <=1) maxPenalty /=3;
+
 #ifdef WRITEIMAGES
 	fprintf(stderr, "Prediction Track Marker : Camera %d Pos %lf %lf\n", m_camera, x_to, y_to);
 #endif
@@ -127,7 +130,7 @@ void MarkerTracking::trackMarker_thread()
 #ifdef WRITEIMAGES
 	cv::imwrite("Tra_Penalty.png", springforce);
 #endif
-
+	
 	result = result - springforce;
 	//normalize(result, result, 0, 255, cv::NORM_MINMAX, -1, cv::Mat());
 
