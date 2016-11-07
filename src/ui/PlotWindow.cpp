@@ -37,6 +37,7 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QFileDialog>
 #include <QtGui/QLineEdit>
+#include <QtGui/QInputDialog>
 #include <fstream>
 
 #include "core/Trial.h"
@@ -44,6 +45,7 @@
 #include "core/Marker.h"
 #include "core/Camera.h"
 #include "core/RigidBody.h"
+#include "core/HelperFunctions.h"
 
 #include "ui/State.h"
 #include "ui/MainWindow.h"
@@ -57,6 +59,7 @@
 #endif
 #include "Shortcuts.h"
 
+
 using namespace xma;
 
 PlotWindow* PlotWindow::instance = NULL;
@@ -69,6 +72,11 @@ PlotWindow::PlotWindow(QWidget* parent) : QDockWidget(parent), dock(new Ui::Plot
 	//plotWidget = new QCustomPlot(this);
 	frameMarker = new QCPItemLine(dock->plotWidget);
 	dock->plotWidget->addItem(frameMarker);
+	frameMarkerExtra = new QCPItemLine(dock->plotWidgetExtra);
+	dock->plotWidgetExtra->addItem(frameMarkerExtra);
+
+	connect(dock->plotWidget, SIGNAL(afterReplot()), this, SLOT(updateExtraPlot()));
+
 	//dock->plotWidget->installEventFilter(this);
 	installEventFilterToChildren(this);
 
@@ -96,6 +104,8 @@ PlotWindow::PlotWindow(QWidget* parent) : QDockWidget(parent), dock(new Ui::Plot
 	plot2D(-1);
 
 	updating = false;
+
+	dock->plotWidgetExtra->hide();
 
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
@@ -327,7 +337,7 @@ void PlotWindow::saveData()
 					}
 
 					double lastval = val[0];
-					for (int i = 1; i < val.size(); i++)
+					for (unsigned int i = 1; i < val.size(); i++)
 					{
 						if (lastval != min_value && fabs(lastval - val[i]) > 270)
 						{
@@ -738,6 +748,7 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 		}
 	}
 
+	
 	if (target == dock->plotWidget)
 	{
 		if (event->type() == QEvent::Wheel)
@@ -841,7 +852,6 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 			{
 				QMouseEvent* pEvent = new QMouseEvent(_mouseEvent->type(), dock->plotWidget->mapFromGlobal(mapToGlobal(_mouseEvent->pos())), Qt::NoButton, Qt::LeftButton, Qt::AltModifier);
 				QApplication::instance()->sendEvent(dock->plotWidget, pEvent);
-
 				return true;
 			}
 			else if (_mouseEvent->buttons() == Qt::LeftButton)
@@ -2447,6 +2457,119 @@ void PlotWindow::on_checkBoxStatus_clicked()
 {
 	resetRange();
 	draw();
+}
+
+void PlotWindow::on_toolButtonExtraPlot_clicked()
+{
+	if (dock->plotWidgetExtra->isVisible())
+	{
+		extraData.clear();
+		extraPos.clear();
+
+		dock->toolButtonExtraPlot->setText("+");
+		dock->plotWidgetExtra->hide();
+	} 
+	else
+	{
+		QString fileName = QFileDialog::getOpenFileName(this,
+			tr("Select data you want to plot"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.csv)"));
+
+		if (!fileName.isEmpty()){
+			bool ok;
+			double rate = QInputDialog::getDouble(this, "Enter number of data values per frame", "values per frame", 1.0, 0.0, 2147283647, 4, &ok);
+			if (ok){
+				int frame = 0;
+				std::ifstream fin;
+				std::istringstream in;
+				std::string line;
+				fin.open(fileName.toAscii().data());
+				while (!littleHelper::safeGetline(fin, line).eof())
+				{
+					QString tmp_coords = QString::fromStdString(line);
+					QStringList coords_list = tmp_coords.split(",");
+					
+					for (int i = 0; i < coords_list.size(); i++)
+					{
+						if ((int) extraData.size() <= i){
+							QVector<double> tmp;
+							extraData.push_back(tmp);
+						}
+						extraData[i].push_back(coords_list.at(i).toDouble());
+					}
+					extraPos.push_back(rate * frame);
+					frame++;
+				}
+				fin.close();
+
+				dock->toolButtonExtraPlot->setText("-");
+				dock->plotWidgetExtra->show();
+
+				draw();
+			}
+		}
+	}
+}
+
+void PlotWindow::updateExtraPlot()
+{
+	if (dock->plotWidgetExtra->isVisible())
+	{
+		dock->plotWidgetExtra->clearGraphs();
+		dock->plotWidgetExtra->yAxis->setVisible(true);
+		dock->plotWidgetExtra->yAxis->setLabel("");
+		//dock->plotWidgetExtra->xAxis->setVisible(false);
+		dock->plotWidgetExtra->axisRect()->setAutoMargins(QCP::msTop | QCP::msBottom);
+		dock->plotWidgetExtra->axisRect()->setMargins(dock->plotWidget->axisRect()->margins());
+		dock->plotWidgetExtra->xAxis->setRange(dock->plotWidget->xAxis->range());
+
+
+		double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+		int posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 0 : 1;
+
+		dock->plotWidgetExtra->clearGraphs();
+
+		QVector<double> adjPos;
+		double min_val = std::numeric_limits<double>::max();
+		double max_val = std::numeric_limits<double>::min();
+
+		for (unsigned int i = 0; i < extraPos.size(); i++)
+		{
+			adjPos.push_back(extraPos[i] * posMultiplier + posOffset);
+		}
+
+		for (unsigned int i = 0; i < extraData.size(); i++)
+		{
+			for (unsigned int j = 0; j < extraData[i].size(); j++)
+			{
+				if (min_val > extraData[i][j]) min_val = extraData[i][j];
+				if (max_val < extraData[i][j]) max_val = extraData[i][j];
+			}
+		}
+		QColor colours[12] = {QColor(255,0,0), QColor(0,255,0), QColor(0,0,255),
+                  QColor(255,255,0), QColor(0,255,255), QColor(255,0,255),
+				  QColor(128, 0, 0), QColor(0, 128, 0), QColor(0, 0, 128),
+				  QColor(128, 128, 0), QColor(0, 128, 128), QColor(128, 0, 128)
+		};
+
+		for (unsigned int i = 0; i < extraData.size(); i++)
+		{
+			
+			dock->plotWidgetExtra->addGraph();
+			dock->plotWidgetExtra->graph(dock->plotWidgetExtra->graphCount() - 1)->setData(adjPos, extraData[i]);
+			dock->plotWidgetExtra->graph(dock->plotWidgetExtra->graphCount() - 1)->setLineStyle(QCPGraph::lsNone);
+			dock->plotWidgetExtra->graph(dock->plotWidgetExtra->graphCount() - 1)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, 2));
+			dock->plotWidgetExtra->graph(dock->plotWidgetExtra->graphCount() - 1)->setPen(QPen(colours[i % 12]));
+		}
+
+		dock->plotWidgetExtra->yAxis->setRange(min_val, max_val);
+
+		frameMarkerExtra->start->setCoords(frameMarker->start->coords().x(), dock->plotWidgetExtra->yAxis->range().lower);
+		frameMarkerExtra->end->setCoords(frameMarker->start->coords().x(), dock->plotWidgetExtra->yAxis->range().upper);
+
+		dock->plotWidgetExtra->replot();
+	}
 }
 
 void PlotWindow::doubleSpinBoxError_valueChanged(double value)

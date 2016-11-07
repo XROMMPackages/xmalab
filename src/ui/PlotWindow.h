@@ -83,12 +83,17 @@ namespace xma
 		Ui::PlotWindow* dock;
 
 		QCPItemLine* frameMarker;
+		QCPItemLine* frameMarkerExtra;
 		QCPItemRect* selectionMarker;
+		std::vector<QVector<double> > extraData;
+		std::vector<double> extraPos;
 
 		std::vector<std::vector<QCPItemRect *> > marker_status;
 		int startFrame;
 		int endFrame;
 		bool updating;
+
+		
 
 	public slots:
 		void on_comboBoxCamera_currentIndexChanged(int idx);
@@ -105,6 +110,7 @@ namespace xma
 		void on_comboBoxRigidBodyTransType_currentIndexChanged(int idx);
 		void on_checkBoxTime_clicked();
 		void on_checkBoxStatus_clicked();
+		void on_toolButtonExtraPlot_clicked();
 
 		void doubleSpinBoxError_valueChanged(double value);
 
@@ -117,6 +123,7 @@ namespace xma
 		void goToPrevPointAboveBackprojectionError();
 		void deleteAllAboveBackprojectionError();
 
+		void updateExtraPlot();
 	};
 }
 
