@@ -246,6 +246,7 @@ void RigidBody::resetReferences()
 	initialised = false;
 	hasOptimizedCoordinates = false;
 	setReferenceMarkerReferences();
+	recomputeTransformations();
 }
 
 bool RigidBody::allReferenceMarkerReferencesSet()
@@ -351,7 +352,6 @@ void RigidBody::setReferenceMarkerReferences()
 		}
 		initialised = true;
 		setReferencesSet(1);
-		recomputeTransformations();
 	}
 }
 

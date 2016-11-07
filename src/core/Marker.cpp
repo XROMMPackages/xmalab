@@ -871,6 +871,7 @@ void Marker::resetMultipleFrames(int camera, int frameStart, int frameEnd)
 			points3D[i].z = -1000;
 			status3D[i] = UNDEFINED;
 			error3D[i] = 0.0;
+			reconstruct3DPoint(i);
 		}
 		else
 		{

@@ -605,6 +605,7 @@ void MarkerTreeWidget::action_AddToRigidBody_triggered()
 			}
 		}
 	}
+	PointsDockWidget::getInstance()->reloadListFromObject();
 }
 
 void MarkerTreeWidget::dropEvent(QDropEvent* event)
@@ -706,6 +707,7 @@ void MarkerTreeWidget::dropEvent(QDropEvent* event)
 		}
 	}
 	QTreeWidget::dropEvent(event);
+	PointsDockWidget::getInstance()->reloadListFromObject();
 }
 
 void MarkerTreeWidget::onItemCollapsed(QTreeWidgetItem* item)
