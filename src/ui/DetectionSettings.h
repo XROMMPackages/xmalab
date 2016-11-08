@@ -20,65 +20,56 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file MarkerDetection.h
+///\file DetectionSettings.h
 ///\author Benjamin Knorlein
-///\date 11/20/2015
+///\date 11/8/2016
 
-#ifndef MARKERDETECTION_H
-#define MARKERDETECTION_H
+#ifndef DETECTIONSETTINGS_H_
+#define DETECTIONSETTINGS_H_
 
-#include <QFutureWatcher>
-#include <QObject>
-
+#include <QDialog>
 #include <opencv/cv.h>
+
+namespace Ui
+{
+	class DetectionSettings;
+}
 
 namespace xma
 {
-	class Image;
+	class Marker;
 
-	class MarkerDetection : public QObject
+	class DetectionSettings : public QDialog
 	{
-		Q_OBJECT;
+		Q_OBJECT
 
 	public:
-		MarkerDetection(int camera, int trial, int frame, int marker, double searcharea = 30.0, bool refinementAfterTracking = false);
-		virtual ~MarkerDetection();
-		void detectMarker();
+		virtual ~DetectionSettings();
 
-		static bool isRunning()
-		{
-			return (nbInstances > 0);
-		}
-
-		static cv::Point2d detectionPoint(Image* image, int method, cv::Point2d center, int searchArea, int masksize, double threshold = 8, double* size = NULL, std::vector <cv::Mat> * images = NULL);
-
-		static bool refinePointPolynomialFit(cv::Point2d& pt, double& radius, bool darkMarker, int camera, int trial);
-
-		signals:
-		void detectMarker_finished();
-
-	private slots:
-		void detectMarker_threadFinished();
-
+		static DetectionSettings* getInstance();
+		void setMarker(Marker * marker);
+		void DetectionSettings::update(int camera, cv::Point2d center);
+	protected:
+		virtual void closeEvent(QCloseEvent * e);
+		virtual void showEvent(QShowEvent * event);
 	private:
-		void detectMarker_thread();
-		QFutureWatcher<void>* m_FutureWatcher;
-		static int nbInstances;
+		QPixmap getPixmap(cv::Mat inMat);
 
-		int m_camera;
-		int m_frame;
-		int m_trial;
-		int m_marker;
-		int m_method;
-		double m_x, m_y;
-		double m_size;
-		double m_input_size;
-		uchar m_thresholdOffset;
-
-		int m_searchArea;
-		bool m_refinementAfterTracking;
+		Ui::DetectionSettings* diag;
+		static DetectionSettings* instance;
+		DetectionSettings(QWidget* parent = 0);
+		Marker* m_marker;
+		std::vector <cv::Mat> m_images;
+		cv::Point2d m_lastCenter;
+		int m_lastCam;
+		
+	public slots:
+		void on_comboBox_currentIndexChanged(int index);
+		void activePointChanged(int idx);
+		void on_spinBox_ThresholdOffset_valueChanged(int value);
 	};
 }
-#endif // MARKERDETECTION_H
 
+
+#endif /* DETECTIONSETTINGS_H_ */
 

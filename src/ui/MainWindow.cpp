@@ -57,6 +57,7 @@
 #include "ui/MetaDataInfo.h"
 #include "ui/TrialSelectorDialog.h"
 #include "ui/HelpDialog.h"
+#include "ui/DetectionSettings.h"
 
 #include "core/Project.h"
 #include "core/Camera.h"
@@ -150,6 +151,8 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->action3D_world_view->setEnabled(false);
 
 	ui->actionConsole->setChecked(Settings::getInstance()->getBoolSetting("Console"));
+
+	ui->actionDetectionSettings->setEnabled(false);
 
 	project = NULL;
 
@@ -733,6 +736,7 @@ void MainWindow::closeProject()
 
 	ConsoleDockWidget::getInstance()->clear();
 	ui->actionPlot->setChecked(false);
+	ui->actionDetectionSettings->setChecked(false);
 	PlotWindow::getInstance()->hide();
 }
 
@@ -1044,9 +1048,11 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 		ui->actionDetailed_View->setEnabled(false);
 		ui->actionPlot->setEnabled(false);
+		ui->actionDetectionSettings->setEnabled(false);
 		ui->action3D_world_view->setEnabled(false);
 
 		PointsDockWidget::getInstance()->hide();
+		DetectionSettings::getInstance()->hide();
 		DetailViewDockWidget::getInstance()->hide();
 		PlotWindow::getInstance()->hide();
 		worldViewDockWidget->hide();
@@ -1070,14 +1076,18 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->actionImport2D_Points->setEnabled(false);
 		ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 		ui->actionPlot->setChecked(false);
+		ui->actionDetectionSettings->setChecked(false);
 		ui->actionPlot->setEnabled(false);
+		ui->actionDetectionSettings->setEnabled(false);
 
 		ui->actionDetailed_View->setEnabled(false);
 		ui->actionPlot->setEnabled(false);
+		ui->actionDetectionSettings->setEnabled(false);
 		ui->action3D_world_view->setEnabled(true);
 
 		PointsDockWidget::getInstance()->hide();
 		DetailViewDockWidget::getInstance()->hide();
+		DetectionSettings::getInstance()->hide();
 		PlotWindow::getInstance()->hide();
 		if (Settings::getInstance()->getBoolSetting("Show3DView"))
 		{
@@ -1096,6 +1106,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			ui->startTrialFrame->setVisible(false);
 			SequenceNavigationFrame::getInstance()->setVisible(true);
 			ui->actionPlot->setEnabled(true);
+			ui->actionDetectionSettings->setEnabled(true);
 			if (project->isCalibrated())
 			{
 				ui->labelCalibrateFirst->setVisible(false);
@@ -1103,6 +1114,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 
 				ui->actionDetailed_View->setEnabled(true);
 				ui->actionPlot->setEnabled(true);
+				ui->actionDetectionSettings->setEnabled(true);
 				ui->action3D_world_view->setEnabled(true);
 
 				PointsDockWidget::getInstance()->show();
@@ -1141,11 +1153,13 @@ void MainWindow::workspaceChanged(work_state workspace)
 
 				ui->actionDetailed_View->setEnabled(false);
 				ui->actionPlot->setEnabled(false);
+				ui->actionDetectionSettings->setEnabled(false);
 				ui->action3D_world_view->setEnabled(false);
 
 				PointsDockWidget::getInstance()->hide();
 				DetailViewDockWidget::getInstance()->hide();
 				PlotWindow::getInstance()->hide();
+				DetectionSettings::getInstance()->hide();
 				worldViewDockWidget->hide();
 			}
 
@@ -1162,6 +1176,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			ui->startTrialFrame->setVisible(true);
 			SequenceNavigationFrame::getInstance()->setVisible(false);
 			ui->actionPlot->setEnabled(false);
+			ui->actionDetectionSettings->setEnabled(false);
 			if (project->isCalibrated())
 			{
 				ui->labelCalibrateFirst->setVisible(false);
@@ -1181,11 +1196,13 @@ void MainWindow::workspaceChanged(work_state workspace)
 
 			ui->actionDetailed_View->setEnabled(false);
 			ui->actionPlot->setEnabled(false);
+			ui->actionDetectionSettings->setEnabled(false);
 			ui->actionShow_3D_View->setEnabled(false);
 
 			PointsDockWidget::getInstance()->hide();
 			DetailViewDockWidget::getInstance()->hide();
 			PlotWindow::getInstance()->hide();
+			DetectionSettings::getInstance()->hide();
 			worldViewDockWidget->hide();
 		}
 	}
@@ -1748,7 +1765,9 @@ void MainWindow::on_actionPlot_triggered(bool checked)
 	else
 	{
 		ui->actionPlot->setChecked(false);
+		ui->actionDetectionSettings->setEnabled(false);
 		PlotWindow::getInstance()->hide();
+		DetectionSettings::getInstance()->hide();
 		Settings::getInstance()->set("ShowPlot", false);
 	}
 }
@@ -1757,4 +1776,17 @@ void MainWindow::on_actionProject_Metadata_triggered(bool checked)
 {
 	MetaDataInfo* info = new MetaDataInfo(this);
 	info->show();
+}
+
+void MainWindow::on_actionDetectionSettings_triggered(bool checked)
+{
+	if (checked)
+	{
+		DetectionSettings::getInstance()->show();
+	} 
+	else
+	{
+		ui->actionDetectionSettings->setChecked(false);
+		DetectionSettings::getInstance()->hide();
+	}
 }

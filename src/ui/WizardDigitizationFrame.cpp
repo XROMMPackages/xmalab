@@ -33,6 +33,7 @@
 #include "ui_WizardDigitizationFrame.h"
 #include "ui/PointsDockWidget.h"
 #include "ui/PlotWindow.h"
+#include "ui/DetectionSettings.h"
 
 #include "core/Project.h"
 #include "core/Trial.h"
@@ -176,6 +177,12 @@ void WizardDigitizationFrame::moveDigitizationPoint(int camera, double x, double
 		lastStatus = marker->getStatus2D()[camera][State::getInstance()->getActiveFrameTrial()];
 
 		marker->setPoint(camera, State::getInstance()->getActiveFrameTrial(), x, y, noDetection ? MANUAL : SET);
+
+		if (DetectionSettings::getInstance()->isVisible() && (marker->getMethod() == 0 || marker->getMethod() == 2 || marker->getMethod() == 5))
+		{
+			DetectionSettings::getInstance()->setMarker(marker);
+			DetectionSettings::getInstance()->update(camera, cv::Point2d(x, y));
+		}
 
 		if (!noDetection)
 		{

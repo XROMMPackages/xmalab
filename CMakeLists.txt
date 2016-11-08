@@ -254,6 +254,7 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/TrialSelectorDialog.h
 	src/ui/StatusColorDialog.h
 	src/ui/HelpDialog.h
+	src/ui/DetectionSettings.h
 )
 
 SET(XMALab_FORMS_SOURCES
@@ -304,6 +305,7 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/TrialSelectorDialog.cpp
 		src/ui/StatusColorDialog.cpp
 		src/ui/HelpDialog.cpp
+		src/ui/DetectionSettings.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
@@ -347,6 +349,7 @@ SET(XMALab_FORMS
 		src/ui/ui-files/TrialSelectorDialog.ui
 		src/ui/ui-files/StatusColorDialog.ui
 		src/ui/ui-files/HelpDialog.ui
+		src/ui/ui-files/DetectionSettings.ui
 	)
 
 SOURCE_GROUP(UI_Files FILES ${XMALab_FORMS})
@@ -391,6 +394,7 @@ SET(XMALab_FORMS_MOC
 		${CMAKE_CURRENT_BINARY_DIR}/ui_TrialSelectorDialog.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_StatusColorDialog.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_HelpDialog.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_DetectionSettings.h
 )
 
 SOURCE_GROUP(UI_Generated FILES ${XMALab_FORMS_MOC})

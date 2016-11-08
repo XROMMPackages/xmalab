@@ -381,6 +381,7 @@
     <addaction name="actionPlot"/>
     <addaction name="action3D_world_view"/>
     <addaction name="actionProject_Metadata"/>
+    <addaction name="actionDetectionSettings"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -896,6 +897,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="actionDetectionSettings">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>DetectionSettings</string>
    </property>
   </action>
  </widget>

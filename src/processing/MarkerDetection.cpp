@@ -98,8 +98,10 @@ void MarkerDetection::detectMarker()
 	m_FutureWatcher->setFuture(future);
 }
 
-cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2d center, int searchArea, int masksize, double threshold, double* size)
+cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2d center, int searchArea, int masksize, double threshold, double* size, std::vector <cv::Mat> * images)
 {
+	if (images != NULL) images->clear();
+
 	cv::Point2d point_out(center.x, center.y);
 	double tmp_size;
 
@@ -115,9 +117,17 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 	cv::cvtColor(subimage, orig2, CV_GRAY2RGB);
 	cv::imwrite("1_Det_original.png", orig2);
 #endif
+	
 	if (method == 0 || method == 2 || method == 5)
 	{
 		if (method == 2) subimage = cv::Scalar::all(255) - subimage;
+
+		if (images != NULL)
+		{
+			cv::Mat tmp;
+			subimage.copyTo(tmp);
+			images->push_back(tmp);
+		}
 
 		//Convert To float
 		cv::Mat img_float;
@@ -126,6 +136,7 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		cv::Mat orig;
 		cv::cvtColor(subimage, orig, CV_GRAY2RGB);
 #endif
+
 		//Create Blurred image
 		int radius = (int)(1.5 * masksize + 0.5);
 		double sigma = radius * sqrt(2 * log(255)) - 1;
@@ -135,6 +146,12 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 #ifdef WRITEIMAGES
 		cv::imwrite("2_Det_blur.png", blurred);
 #endif
+		if (images != NULL)
+		{
+			cv::Mat tmp;
+			blurred.convertTo(tmp,CV_8U);
+			images->push_back(tmp);
+		}
 
 		//Substract Background
 		cv::Mat diff = img_float - blurred;
@@ -144,6 +161,12 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 #ifdef WRITEIMAGES
 		cv::imwrite("3_Det_diff.png", diff);
 #endif
+		if (images != NULL)
+		{
+			cv::Mat tmp;
+			subimage.copyTo(tmp);
+			images->push_back(tmp);
+		}
 
 		//Median
 		cv::medianBlur(subimage, subimage, 3);
@@ -151,6 +174,12 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 #ifdef WRITEIMAGES
 		cv::imwrite("4_Det_med.png", subimage);
 #endif
+		if (images != NULL)
+		{
+			cv::Mat tmp;
+			subimage.copyTo(tmp);
+			images->push_back(tmp);
+		}
 
 		//Thresholding
 		double minVal;
@@ -163,11 +192,24 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		//fprintf(stderr, "Thres %lf Selected %d\n", thres, image.at<uchar>(searchArea, searchArea));
 		cv::imwrite("5_Det_thresh.png", subimage);
 #endif
+		if (images != NULL)
+		{
+			cv::Mat tmp;
+			subimage.copyTo(tmp);
+			images->push_back(tmp);
+		}
+
 		cv::GaussianBlur(subimage, subimage, cv::Size(3, 3), 1.3);
 #ifdef WRITEIMAGES
 		//fprintf(stderr, "Thres %lf Selected %d\n", thres, image.at<uchar>(searchArea, searchArea));
 		cv::imwrite("6_Det_threshBlur.png", subimage);
 #endif
+		if (images != NULL)
+		{
+			cv::Mat tmp;
+			subimage.copyTo(tmp);
+			images->push_back(tmp);
+		}
 
 		//Find contours
 		cv::vector<cv::vector<cv::Point> > contours;
@@ -226,6 +268,17 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 
 			cv::imwrite("7_Detected.png", orig);
 #endif
+			if (images != NULL)
+			{
+				cv::Mat tmp;
+				image->getSubImage(subimage, searchArea, off_x, off_y);
+				subimage.copyTo(tmp);
+				cv::Point2d cent = detected_center - cv::Point2f(off_x, off_y);
+				cv::line(tmp, cent - cv::Point2d(2, 0), cent + cv::Point2d(2, 0), cv::Scalar(255));
+				cv::line(tmp, cent - cv::Point2d(0, 2), cent + cv::Point2d(0, 2), cv::Scalar(255));
+				images->push_back(tmp);
+			}
+
 		}
 #ifdef WRITEIMAGES 
 		else
