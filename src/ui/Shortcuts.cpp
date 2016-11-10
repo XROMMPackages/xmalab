@@ -139,9 +139,24 @@ bool Shortcuts::checkShortcut(QObject* target, QEvent* event)
 
 bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 {
+	if (event->type() == QEvent::KeyRelease)
+	{
+		QKeyEvent* _keyEvent = static_cast<QKeyEvent*>(event);
+		if (_keyEvent->key() == Qt::Key_Shift)
+		{
+			PlotWindow::getInstance()->ShiftReleased();
+		}
+	}
+
 	if (event->type() == QEvent::KeyPress)
 	{
 		QKeyEvent* _keyEvent = static_cast<QKeyEvent*>(event);
+
+		if (_keyEvent->key() == Qt::Key_Shift)
+		{
+			PlotWindow::getInstance()->ShiftPressed();
+		}
+
 		if (_keyEvent->key() == Qt::Key_Left)
 		{
 			SequenceNavigationFrame::getInstance()->on_toolButtonPrev_clicked();

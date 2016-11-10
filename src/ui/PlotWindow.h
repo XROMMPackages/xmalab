@@ -58,6 +58,9 @@ namespace xma
 		void resetRange(bool recreateStatus = true);
 		void updateTimeCheckBox();
 
+		void ShiftPressed();
+		void ShiftReleased();
+
 	private:
 		void plot2D(int idx1);
 		void plot3D(int idx1);
@@ -92,9 +95,10 @@ namespace xma
 		std::vector<QCPItemRect *> interpolation_status;
 		int startFrame;
 		int endFrame;
-		bool updating;
+		int tmpStartFrame;
+		bool shiftPressed;
 
-		
+		bool updating;
 
 	public slots:
 		void on_comboBoxCamera_currentIndexChanged(int idx);
@@ -119,6 +123,7 @@ namespace xma
 		void workspaceChanged(work_state workspace);
 		void activePointChanged(int idx);
 		void activeRigidBodyChanged(int idx);
+		void activeFrameTrialChanged(int frame);
 
 		void goToNextPointAboveBackprojectionError();
 		void goToPrevPointAboveBackprojectionError();
@@ -126,6 +131,7 @@ namespace xma
 
 		void updateExtraPlot();
 		void setInterpolation();
+
 	};
 }
 

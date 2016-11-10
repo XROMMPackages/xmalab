@@ -109,9 +109,13 @@ PlotWindow::PlotWindow(QWidget* parent) : QDockWidget(parent), dock(new Ui::Plot
 
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
+	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameTrialChanged(int)));
+
 	connect(PointsDockWidget::getInstance(), SIGNAL(activePointChanged(int)), this, SLOT(activePointChanged(int)));
 	connect(PointsDockWidget::getInstance(), SIGNAL(activeRigidBodyChanged(int)), this, SLOT(activeRigidBodyChanged(int)));
 	connect(dock->doubleSpinBoxError, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxError_valueChanged(double)), Qt::QueuedConnection);
+
+	shiftPressed = false;
 }
 
 void PlotWindow::installEventFilterToChildren(QObject* object)
@@ -805,9 +809,22 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 			deleteData();
 			return true;
 		}
+		if (_keyEvent->key() == Qt::Key_Shift)
+		{
+			ShiftPressed();
+		}
+
+	}
+	if (event->type() == QEvent::KeyRelease)
+	{
+		QKeyEvent* _keyEvent = static_cast<QKeyEvent*>(event);
+		if (_keyEvent->key() == Qt::Key_Shift)
+		{
+			ShiftReleased();
+		}
+		return false;
 	}
 
-	
 	if (target == dock->plotWidget)
 	{
 		if (event->type() == QEvent::Wheel)
@@ -817,12 +834,12 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 			{
 				dock->plotWidget->axisRect()->setRangeZoom(Qt::Horizontal);
 			}
-			else if (_wheelEvent->modifiers().testFlag(Qt::ShiftModifier))
+			else if (_wheelEvent->modifiers().testFlag(Qt::ControlModifier))
 			{
 				dock->plotWidget->axisRect()->setRangeZoom(Qt::Vertical);
 				dock->plotWidget->axisRect()->setRangeZoomAxes(dock->plotWidget->xAxis, dock->plotWidget->yAxis);
 			}
-			else if (_wheelEvent->modifiers().testFlag(Qt::ControlModifier))
+			else if (_wheelEvent->modifiers().testFlag(Qt::AltModifier))
 			{
 				dock->plotWidget->axisRect()->setRangeZoom(Qt::Vertical);
 				dock->plotWidget->axisRect()->setRangeZoomAxes(dock->plotWidget->xAxis, dock->plotWidget->yAxis2);
@@ -840,14 +857,14 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 					QMouseEvent* pEvent = new QMouseEvent(_mouseEvent->type(), dock->plotWidget->mapFromGlobal(mapToGlobal(_mouseEvent->pos())), Qt::NoButton, Qt::LeftButton, Qt::AltModifier);
 					QApplication::instance()->sendEvent(dock->plotWidget, pEvent);
 				} 
-				else if (_mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
+				else if (_mouseEvent->modifiers().testFlag(Qt::ControlModifier))
 				{
 					dock->plotWidget->axisRect()->setRangeDrag(Qt::Vertical);
 					dock->plotWidget->axisRect()->setRangeDragAxes(dock->plotWidget->xAxis, dock->plotWidget->yAxis);
 					QMouseEvent* pEvent	 = new QMouseEvent(_mouseEvent->type(), dock->plotWidget->mapFromGlobal(mapToGlobal(_mouseEvent->pos())), Qt::NoButton, Qt::LeftButton, Qt::AltModifier);
 					QApplication::instance()->sendEvent(dock->plotWidget, pEvent);
 				}
-				else if (_mouseEvent->modifiers().testFlag(Qt::ControlModifier))
+				else if (_mouseEvent->modifiers().testFlag(Qt::AltModifier))
 				{
 					dock->plotWidget->axisRect()->setRangeDrag(Qt::Vertical);
 					dock->plotWidget->axisRect()->setRangeDragAxes(dock->plotWidget->xAxis, dock->plotWidget->yAxis2);
@@ -867,7 +884,7 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 				{
 					return false;
 				}
-				if (_mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
+				if (_mouseEvent->modifiers().testFlag(Qt::ControlModifier))
 				{
 					double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
 						                       ? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
@@ -919,7 +936,7 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 				{
 					return false;
 				}
-				else if (_mouseEvent->modifiers().testFlag(Qt::ShiftModifier))
+				else if (_mouseEvent->modifiers().testFlag(Qt::ControlModifier))
 				{
 					double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
 						                       ? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
@@ -1019,7 +1036,8 @@ void PlotWindow::resetRange(bool recreateStatus)
 }
 
 void PlotWindow::activeTrialChanged(int activeTrial)
-{
+{	
+	shiftPressed = false;
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		if (activeTrial >= 0)
@@ -1077,6 +1095,7 @@ void PlotWindow::draw()
 
 void PlotWindow::workspaceChanged(work_state workspace)
 {
+	shiftPressed = false;
 	if (workspace == DIGITIZATION)
 	{
 		updateMarkers(false);
@@ -1183,6 +1202,7 @@ void PlotWindow::deleteAllAboveBackprojectionError()
 
 void PlotWindow::activePointChanged(int idx)
 {
+	shiftPressed = false;
 	if (idx >= 0)
 	{
 		if (dock->comboBoxPlotType->currentIndex() == 0)
@@ -1218,6 +1238,7 @@ void PlotWindow::activePointChanged(int idx)
 
 void PlotWindow::activeRigidBodyChanged(int idx)
 {
+	shiftPressed = false;
 	if (idx >= 0)
 	{
 		if (dock->comboBoxPlotType->currentIndex() == 4)
@@ -1236,6 +1257,7 @@ void PlotWindow::activeRigidBodyChanged(int idx)
 		}
 	}
 }
+
 
 void PlotWindow::updateMarkers(bool rememberSelection)
 {
@@ -2689,6 +2711,27 @@ void PlotWindow::setInterpolation()
 			marker->setInterpolation(i, method);
 		}
 		marker->updateHasInterpolation();
+		draw();
+	}
+}
+
+void PlotWindow::ShiftPressed()
+{
+	tmpStartFrame = State::getInstance()->getActiveFrameTrial();
+	shiftPressed = true;
+}
+
+void PlotWindow::ShiftReleased()
+{
+	shiftPressed = false;
+}
+
+void PlotWindow::activeFrameTrialChanged(int frame)
+{
+	if (shiftPressed && tmpStartFrame != State::getInstance()->getActiveFrameTrial())
+	{
+		startFrame = tmpStartFrame;
+		endFrame = State::getInstance()->getActiveFrameTrial();
 		draw();
 	}
 }
