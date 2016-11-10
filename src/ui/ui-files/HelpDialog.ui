@@ -339,7 +339,7 @@ background: white;
 }</string>
             </property>
             <property name="text">
-             <string>hold right mouse</string>
+             <string>hold right mouse while moving</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -1026,7 +1026,7 @@ background: white;
 }</string>
             </property>
             <property name="text">
-             <string>hold right mouse</string>
+             <string>hold right mouse while moving</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -1493,7 +1493,7 @@ background: white;
 }</string>
             </property>
             <property name="text">
-             <string>hold right mouse</string>
+             <string>hold right mouse while moving</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -2738,7 +2738,7 @@ background: white;
 }</string>
             </property>
             <property name="text">
-             <string>hold right mouse</string>
+             <string>hold right mouse while moving</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -4191,6 +4191,146 @@ background: white;
             </property>
             <property name="text">
              <string>select frames from the frame Shift was pressed  to the new frame</string>
+            </property>
+           </widget>
+          </item>
+          <item row="29" column="1">
+           <widget class="QLabel" name="label_247">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>24</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Hold</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="31" column="1">
+           <widget class="QLabel" name="label_248">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>24</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Hold</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="32" column="1">
+           <widget class="QLabel" name="label_249">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>24</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Hold</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="34" column="1">
+           <widget class="QLabel" name="label_250">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>24</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Hold</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="35" column="1">
+           <widget class="QLabel" name="label_251">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>24</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Hold</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
            </widget>
           </item>
