@@ -74,6 +74,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 	diag->comboBox_DetectionMethodForCalibration->setCurrentIndex(Settings::getInstance()->getIntSetting("DetectionMethodForCalibration"));
 	diag->doubleSpinBox_MaxError->setValue(Settings::getInstance()->getFloatSetting("MaximumReprojectionError"));
 	diag->checkBox_RetrackOptimizedTrackedPoints->setChecked(Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints"));
+	diag->checkBox_TrackInterpolated->setChecked(Settings::getInstance()->getBoolSetting("TrackInterpolatedPoints"));
 	diag->checkBox_ShowColoredMarkerCross->setChecked(Settings::getInstance()->getBoolSetting("ShowColoredMarkerCross"));
 	diag->checkBox_ShowColoredMarkerIDs->setChecked(Settings::getInstance()->getBoolSetting("ShowColoredMarkerIDs"));
 	diag->checkBox_optimize2D->setChecked(Settings::getInstance()->getBoolSetting("OptimizeRigidBody"));
@@ -242,6 +243,11 @@ void SettingsDialog::on_spinBox_IdentificationThreshold_valueChanged(int value)
 void SettingsDialog::on_checkBox_RetrackOptimizedTrackedPoints_stateChanged(int state)
 {
 	Settings::getInstance()->set("RetrackOptimizedTrackedPoints", diag->checkBox_RetrackOptimizedTrackedPoints->isChecked());
+}
+
+void SettingsDialog::on_checkBox_TrackInterpolated_stateChanged(int state)
+{
+	Settings::getInstance()->set("TrackInterpolatedPoints", diag->checkBox_TrackInterpolated->isChecked());
 }
 
 void SettingsDialog::on_pushButton_MarkerStatus_clicked()

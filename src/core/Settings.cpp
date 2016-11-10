@@ -80,6 +80,7 @@ Settings::Settings()
 	addIntSetting("TriangulationMethod", 1);
 	addFloatSetting("MaximumReprojectionError", 5.0);
 	addBoolSetting("RetrackOptimizedTrackedPoints", true);
+	addBoolSetting("TrackInterpolatedPoints", true);
 	addBoolSetting("OptimizeRigidBody", true);
 	//Colors
 
