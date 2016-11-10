@@ -10,146 +10,147 @@
 // PARTICULAR PURPOSE. See the GNU General Public License for more details.
 // ---------------------------------------------------------------------------------
 //! Interpolates a given set of points using cubic spline fitting.
+// Code was converted to C++ from "Cubic spline interpolation - a review" by George Wolberg
+// https://academiccommons.columbia.edu/download/fedora_content/download/ac:142812/CONTENT/cucs-389-88.pdf
+ 
 
 #ifndef MATHS_INTERPOLATION_CUBIC_H
 #define MATHS_INTERPOLATION_CUBIC_H
 
 #include <assert.h>
+#include <vector>
 
 namespace Maths
 {
 
-namespace Interpolation
-{
+	namespace Interpolation
+	{
 
-//! Interpolates a given set of points using cubic spline fitting.
+		/*******************************************************************
+		Gauss Elimination with backsubstitution for general
+		tridiagonal matrix with bands A,B,C and column vector O.
+		******************************************************************/
+		bool tridiag(std::vector<double> &A, std::vector<double> &B, std::vector<double> &C, std::vector<double> &D)
+		{
+			int i;
+			double b;
+			std::vector<double> F;
+			F.push_back(0);
 
-class Cubic
-{
-public:
+			b = B[0];
+			D[0] = D[0] / b;
 
-//! Class constructor
+			for (i = 1 ; i < A.size(); i++) {
+				F.push_back(C[i - 1] / b);
+				b = B[i] - A[i] * F[i];
+				if (b == 0)
+					//divide by 0 abort;
+					return false;
+				
+				D[i] = (D[i] - D[i - 1] * A[i]) / b;
+			}
 
-Cubic(int n, double *x, double *y)
-{
-  m_n = n;
-  m_x = new double[n + 1];
-  m_y = new double[n + 1];
-  m_b = new double[n + 1];
-  m_c = new double[n + 1];
-  m_d = new double[n + 1];
+			//backsubstituiton
+			for (i = A.size() - 2; i >= 0;  i--)
+				D[i] -= (D[i + 1] * F[i + 1]);
+		}
 
-  // remember and shift base and shift base.
-  for (int i = 1; i <= n; ++i) {
-      m_x[i] = x[i - 1];
-      m_y[i] = y[i - 1];
-  }
+		/*******************************************************************
+		YO <-Computed 1st derivative of data in X, Y(len entries)
+		The not - a - knot boundary condition is used
+		******************************************************************/
+		bool getYD(std::vector<double> X, std::vector<double> Y, std::vector<double> & YD)
+		{
+			int i;
+			double h0, h1, r0, r1;
+			std::vector<double> A, B, C;
+			//init first row data
 
-  // linear interpolation when we have too little data (i.e. just two points!)
-  if (n < 3) {
-      m_b[2] = m_b[1] = (m_y[2] - m_y[1]) / (m_x[2] - m_x[1]);
-      m_c[1] = m_c[2] = m_d[1] = m_d[2] = 0.0;
-      return;
-  }
+			h0 = X[1] - X[0];
+			h1 = X[2] - X[1];
+			r0 = (Y[1] - Y[0]) / h0;
+			r1 = (Y[2] - Y[1]) / h1;
 
-  m_d[1] = m_x[2] - m_x[1];
-  m_b[1] = - m_d[1];
-  m_c[2] = (m_y[2] - m_y[1]) / m_d[1];
-  m_c[1] = 0.0;
-  for (int i = 2; i < n; ++i) {
-    m_d[i] = m_x[i + 1] - m_x[i];
-    m_b[i] = 2.0 * (m_d[i - 1] + m_d[i]);
-    m_c[i + 1] = (m_y[i + 1] - m_y[i]) / m_d[i];
-    m_c[i] = m_c[i + 1] - m_c[i];
-  }
-  
-  m_b[n] = -m_d[n - 1];
-  m_c[n] = 0.0;
-  if (n != 3) {
-    m_c[1] = m_c[3] / (m_x[4] - m_x[2]) - m_c[2] / (m_x[3] - m_x[1]);
-    m_c[n] = m_c[n - 1] / (m_x[n] - m_x[n - 2]) - m_c[n - 2] / (m_x[n - 1] - m_x[n - 3]);
-    m_c[1] *= m_d[1] * m_d[1] / (m_x[4] - m_x[1]);
-    m_c[n] *= - m_d[n - 1] * m_d[n - 1] / (m_x[n] - m_x[n - 3]);
-  }
-  for (int i = 2; i <= n; ++i) {
-    double T = m_d[i - 1] / m_b[i - 1];
-    m_b[i] -= T * m_d[i - 1];
-    m_c[i] -= T * m_c[i - 1];
-  }
+			A.push_back(0);
+			B.push_back(h1 * (h0+h1));
+			C.push_back((h0 + h1) * (h0 + h1));
+			YD.push_back(r0 * (3 * h0*h1 + 2 * h1*h1) + r1*h0*h0);
+			//init tridiagonal bands A, B, C, and column vector Y0 
+			//Y0 will later be used to return the derivatives
+			for (i = 1; i < X.size() - 1; i++) {
+				h0 = X[i] - X[i - 1];
+				h1 = X[i + 1] - X[i];
+				r0 = (Y[i] - Y[i - 1]) / h0;
+				r1 = (Y[i + 1] - Y[i]) / h1;
+				A.push_back(h1);
+				B.push_back(2 * (h0 + h1));
+				C.push_back(h0);
+				YD.push_back(3 * (r0*h1 + r1*h0));
+			}
 
-  m_c[n] /= m_b[n];
-  for  (int i = n - 1; i > 0; --i)
-      m_c[i] = (m_c[i] - m_d[i] * m_c[i + 1]) / m_b[i];
-
-  m_b[n] = (m_y[n] - m_y[n - 1]) / m_d[n - 1] + m_d[n - 1] * (m_c[n - 1] + 2.0 * m_c[n]);
-  
-  for (int i = 1; i < n; ++i) {
-    m_b[i] = (m_y[i + 1] - m_y[i]) / m_d[i] - m_d[i] * (m_c[i + 1] + 2.0 * m_c[i]);
-    m_d[i] = (m_c[i + 1] - m_c[i]) / m_d[i];
-    m_c[i] *= 3.0;
-  }
-  m_c[n] *= 3.0;
-  m_d[n] = m_d[n - 1];
-}
-
-//! m_class destructor
-
-~Cubic()
-{
-  delete [] m_x;
-  delete [] m_y;
-  delete [] m_b;
-  delete [] m_c;
-  delete [] m_d;
-}
-
-//! Returns an interpolated value.
-
-double getValue(double x)
-{
-   if (x <= m_x[1]) 
-      return (((m_y[2]-m_y[1])/(m_x[2]-m_x[1]))*(x-m_x[1])+m_y[1]); 
-   if (x >= m_x[m_n]) 
-      return (((m_y[m_n]-m_y[m_n-1])/(m_x[m_n]-m_x[m_n-1]))*(x-m_x[m_n-1])+m_y[m_n-1]);
-
-   if (x <= m_x[2])
-   {
-     double dx = x - m_x[1];
-     return m_y[1] + dx * (m_b[1] + dx * (m_c[1] + dx * m_d[1]));
-   }
-
-   int i = 1, j = m_n + 1;
-   do {
-     int k = (i + j) / 2;
-     (x < m_x[k]) ? j = k : i = k;
-   } while (j > i + 1);
-
-   double dx = x - m_x[i];
-   return m_y[i] + dx * (m_b[i] + dx * (m_c[i] + dx * m_d[i]));
-}
-
-private:
-
-int m_n;
-
-double *m_x, *m_y, *m_b, *m_c, *m_d;
-};
+			//last row
+			A.push_back((h0 + h1) * (h0+h1));
+			B.push_back(h0 * (h0+h1));
+			YD.push_back(r0*h1*h1 + r1*(3 * h0*h1 + 2 * h0*h0));
+			//solve for the tridiagonal matrix : YO = YO'inv(tridiag matrix)
+			return tridiag(A, B, C, YD);		
+		}
 
 
-//! A static function implementing the Cubic Class for one off calculations
+		/*******************************************************************
+		Interpolating cubic spline function for irregularly - spaced points
+		Input : Y1 is a list of irregular data points(len1 entries)
+		Their x - coordinates are spec~ied in X1
+		Output : Y2 <-cubic spline sampled according to X2(len2 entries)
+		Assume that X1, X2 entries are monotonically increasing
+		******************************************************************/
+		bool ispline(std::vector<double> X1, std::vector<double> Y1, std::vector<double> X2, std::vector<double> &Y2)
+		{
+			int i, j;
+			std::vector<double> YD;
+			Y2.clear();
+			double	AO, A1, A2, A3, x, dx, dy, p1, p2, p3;
+			
+			//compute 1 st derivatives at each point->YD
+			if (!getYD(X1, Y1, YD))
+				return false;
+			
+			//error checking
+			if (X2[0] < X1[0] || X2[X2.size() - 1] > X1[X1.size() - 1])
+				return false;
+			
+			//p1 is left endpoint of interval
+			//p2 is resampling position
+			//p3 is right endpoint of interval
+			//j is input index for current interval
 
-double Cubic_once(int N, double *x, double *y, double a )
-{
-  // This function is created to enable an Instant Calculator on CodeCogs. 
-  // You probably shouldn't be using this function otherwise. 
+			p3 = X2[0] - 1; //r force coefficient initialization
+			for (i = j = 0; i < X2.size(); i++) {
+				//check if in new interval 
+				p2 = X2[i];
+				if (p2 > p3){
+					//find the interval which contains p2
+					for (; j<X1.size() && p2>X1[j]; j++);
 
-   Maths::Interpolation::Cubic A(N, x, y);
-   return A.getValue(a);
-}
+					if (p2 < X1[j]) j--;
+					p1 = X1[j];			//update left endpoint
+					p3 = X1[j + 1];		//update right endpoint
 
-}
-
+					//compute spline coefficients
+					dx = 1.0 / (X1[j + 1] - X1[j]);
+					dy = (Y1[j + 1] - Y1[j]) * dx;
+					AO = Y1[j];
+					A1 = YD[j];
+					A2 = dx * (3.0*dy - 2.0*YD[j] - YD[j + 1]);
+					A3 = dx * dx * (-2.0*dy + YD[j] + YD[j + 1]);
+				}
+				//use Horner's rule to calculate cubic polynomial
+				x = p2 - p1;
+				Y2.push_back(((A3*x + A2)*x + A1)*x + AO);
+			}
+			return true;
+		}
+	}
 }
 
 #endif
-

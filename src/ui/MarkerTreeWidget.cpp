@@ -88,9 +88,6 @@ MarkerTreeWidget::MarkerTreeWidget(QWidget* parent): QTreeWidget(parent)
 	action_ChangeDetectionMethod = new QAction(tr("&Change Detectionmethod of selected Points"), this);
 	connect(action_ChangeDetectionMethod, SIGNAL(triggered()), this, SLOT(action_ChangeDetectionMethod_triggered()));
 
-	action_ChangeInterpolationMethod = new QAction(tr("&Change Interpolation method of selected Points"), this);
-	connect(action_ChangeInterpolationMethod, SIGNAL(triggered()), this, SLOT(action_ChangeInterpolationMethod_triggered()));
-
 	action_RefinePointsPolynomialFit = new QAction(tr("&Refine center of selected Points by polynomial fit"), this);
 	connect(action_RefinePointsPolynomialFit, SIGNAL(triggered()), this, SLOT(action_RefinePointsPolynomialFit_triggered()));
 
@@ -165,7 +162,6 @@ void MarkerTreeWidget::showContextMenu(QTreeWidgetItem* item_contextMenu, const 
 		menu.addAction(action_ResetPoints);
 		menu.addAction(action_DeletePoints);
 		menu.addAction(action_ChangeDetectionMethod);
-		menu.addAction(action_ChangeInterpolationMethod);
 		menu.addAction(action_RefinePointsPolynomialFit);
 		menu.addAction(action_ChangePoint);
 		menu.addAction(action_Save3D);
@@ -258,30 +254,6 @@ void MarkerTreeWidget::action_ChangeDetectionMethod_triggered()
 			}
 		}
 	}
-}
-
-void MarkerTreeWidget::action_ChangeInterpolationMethod_triggered()
-{
-	bool ok;
-	QStringList methodnames;
-	methodnames << "No Interpolation" << "Repeat Values" << "Linear Interpolation" << "Spline Interpolation" << "Repeat Values (3D)" << "Linear Interpolation (3D)" << "Spline Interpolation (3D)";
-
-	QString methodName = QInputDialog::getItem(this, tr("Choose method"),
-		tr("Method:"), methodnames, 0, false, &ok);
-
-	if (ok && !methodName.isEmpty())
-	{
-		int method = methodnames.indexOf(methodName);
-		QList<QTreeWidgetItem *> items = this->selectedItems();
-		for (int i = 0; i < items.size(); i++)
-		{
-			if (items.at(i)->type() == MARKER)
-			{
-				Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[items.at(i)->text(0).toInt() - 1]->setInterpolation(method);
-			}
-		}
-	}
-	MainWindow::getInstance()->redrawGL();
 }
 
 void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()

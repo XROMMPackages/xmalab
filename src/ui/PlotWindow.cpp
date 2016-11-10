@@ -656,19 +656,21 @@ void PlotWindow::drawStatus(int idx)
 		QBrush brush_Undefined = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorUndefined")));
 		QPen pen_Undefined = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorUndefined")));
 
-		double y_max = dock->plotWidget->yAxis->range().upper;
-		double height = dock->plotWidget->yAxis->range().size() / (1.0 + (0.05 * (Project::getInstance()->getCameras().size() + 1))) * 0.05;
-
-		double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
-			? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
-		double posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
-			? 1 : 0;
-
 		Marker * marker = NULL;
-		if (idx >= 0 && idx < (int) Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
+		if (idx >= 0 && idx < (int)Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
 		{
 			marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx];
 		}
+		double offsetInterpolation = (marker && marker->getHasInterpolation()) ? 0.07 : 0;
+
+		double height = dock->plotWidget->yAxis->range().size() / (1.0 + (0.05 * (Project::getInstance()->getCameras().size() + 1) + offsetInterpolation)) * 0.05;
+		double y_max = dock->plotWidget->yAxis->range().upper - height / 2;
+
+		double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+
+		double posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+			? 1 : 0;
 
 		for (unsigned int c = 0; c < Project::getInstance()->getCameras().size(); c++)
 		{
@@ -718,13 +720,70 @@ void PlotWindow::drawStatus(int idx)
                             break;
 					}
 
-					marker_status[c][count]->topLeft->setCoords((((double) f) - 0.5 - posOffset) * posMultiplier, y_max - c*height);
-					marker_status[c][count]->bottomRight->setCoords((((double) f) + 0.5 - posOffset) * posMultiplier, y_max - (c + 1)*height);
+					marker_status[c][count]->topLeft->setCoords((((double)f) - 0.5 - posOffset) * posMultiplier, y_max - (c)*height + height/2.5);
+					marker_status[c][count]->bottomRight->setCoords((((double)f) + 0.5 - posOffset) * posMultiplier, y_max - (c + 1)*height + height/2.5);
 				}
 				else
 				{
 					marker_status[c][count]->setVisible(false);
 				}
+				count++;
+			}
+		}
+
+		if (marker && marker->getHasInterpolation())
+		{
+			QBrush brush_InterNone = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorInterNone")));
+			QPen pen_InterNone = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorInterNone")));
+
+			QBrush brush_InterRepeat = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorInterRepeat")));
+			QPen pen_InterRepeat = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorInterRepeat")));
+
+			QBrush brush_InterLinear = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorInterLinear")));
+			QPen pen_InterLinear = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorInterLinear")));
+
+			QBrush brush_InterCubic = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorInterCubic")));
+			QPen pen_InterCubic = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorInterCubic")));
+
+			int count = 0;
+			for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
+			{
+				interpolation_status[count]->setVisible(true);
+				switch (marker->getInterpolation(f - 1))
+				{
+				case NONE:
+					interpolation_status[count]->setBrush(brush_InterNone);
+					interpolation_status[count]->setPen(pen_InterNone);
+					break;
+				case REPEAT:
+					interpolation_status[count]->setBrush(brush_InterRepeat);
+					interpolation_status[count]->setPen(pen_InterRepeat);
+					break;
+				case LINEAR:
+					interpolation_status[count]->setBrush(brush_InterLinear);
+					interpolation_status[count]->setPen(pen_InterLinear);
+					break;
+				case CUBIC:
+					interpolation_status[count]->setBrush(brush_InterCubic);
+					interpolation_status[count]->setPen(pen_InterCubic);
+					break;
+				default:
+					interpolation_status[count]->setBrush(brush_Undefined);
+					interpolation_status[count]->setPen(pen_Undefined);
+					break;
+				}
+				interpolation_status[count]->topLeft->setCoords((((double)f) - 0.5 - posOffset) * posMultiplier, y_max - Project::getInstance()->getCameras().size() * height);
+				interpolation_status[count]->bottomRight->setCoords((((double)f) + 0.5 - posOffset) * posMultiplier, y_max - (Project::getInstance()->getCameras().size() + 1) * height);
+				
+				count++;
+			}
+		}
+		else
+		{
+			int count = 0;
+			for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
+			{
+				interpolation_status[count]->setVisible(false);
 				count++;
 			}
 		}
@@ -914,6 +973,13 @@ void PlotWindow::resetRange(bool recreateStatus)
 			marker_status[c].clear();
 		}
 		marker_status.clear();
+
+		for (unsigned int f = 0; f < interpolation_status.size(); f++)
+		{
+			
+			dock->plotWidget->removeItem(interpolation_status[f]);
+		}
+		interpolation_status.clear();
 	}
 
 	if (State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
@@ -938,6 +1004,12 @@ void PlotWindow::resetRange(bool recreateStatus)
 						dock->plotWidget->addItem(rects.back());
 					}
 					marker_status.push_back(rects);
+				}
+
+				for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
+				{
+					interpolation_status.push_back(new QCPItemRect(dock->plotWidget));
+					dock->plotWidget->addItem(interpolation_status.back());
 				}
 			}
 		}
@@ -1302,7 +1374,8 @@ void PlotWindow::plot2D(int idx1)
 			double range = 0.2;
 			double center = (max_val_x + min_val_x) * 0.5;
 			range = (max_val_x - min_val_x) > range ? (max_val_x - min_val_x) : range;
-			double offset = (dock->checkBoxStatus->isChecked()) ? range * (0.05 * (Project::getInstance()->getCameras().size() + 1)): 0; 
+			double offsetInterpolation = (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getHasInterpolation()) ? range * 0.07 : 0;
+			double offset = (dock->checkBoxStatus->isChecked()) ? range * (0.05 * (Project::getInstance()->getCameras().size() + 1)) + offsetInterpolation : 0;
 			dock->plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5 + offset);
 			
 			selectionMarker->topLeft->setCoords(startFrame * posMultiplier + posOffset, center + range * 0.5);
@@ -1315,7 +1388,8 @@ void PlotWindow::plot2D(int idx1)
 
 			center = (max_val_y + min_val_y) * 0.5;
 			range = (max_val_y - min_val_y) > range ? (max_val_y - min_val_y) : range;
-			offset = (dock->checkBoxStatus->isChecked()) ? range * (0.05 * (Project::getInstance()->getCameras().size() + 1)) : 0;
+			offsetInterpolation = (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getHasInterpolation()) ? range * 0.07 : 0;
+			offset = (dock->checkBoxStatus->isChecked()) ? range * (0.05 * (Project::getInstance()->getCameras().size() + 1)) + offsetInterpolation : 0;
 			dock->plotWidget->yAxis2->setRange(center - range * 0.5, center + range * 0.5 + offset);
 		}
 		dock->plotWidget->replot();
@@ -1395,7 +1469,8 @@ void PlotWindow::plot3D(int idx1)
 			double range = 0.2;
 			double center = (max_val + min_val) * 0.5;
 			range = (max_val - min_val) > range ? (max_val - min_val) : range;
-			double offset = (dock->checkBoxStatus->isChecked()) ? range * (0.05 * (Project::getInstance()->getCameras().size() + 1)) : 0;
+			double offsetInterpolation = (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getHasInterpolation()) ? range * 0.07 : 0;
+			double offset = (dock->checkBoxStatus->isChecked()) ? range * (0.05 * (Project::getInstance()->getCameras().size() + 1)) + offsetInterpolation : 0; 
 			dock->plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5 + offset);
 
 
@@ -2158,7 +2233,8 @@ void PlotWindow::plotReprojectionError(int idx1)
 
 			double range = 0.2;
 			range = (max_val) > range ? (max_val * 1.1) : range;
-			double offset = (dock->checkBoxStatus->isChecked()) ? (range + 0.5) * (0.05 * (Project::getInstance()->getCameras().size() + 1)) : 0;
+			double offsetInterpolation = (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getHasInterpolation()) ? range * 0.07 : 0;
+			double offset = (dock->checkBoxStatus->isChecked()) ? range * (0.05 * (Project::getInstance()->getCameras().size() + 1)) + offsetInterpolation : 0;
 			dock->plotWidget->yAxis->setRange(-0.5, range + offset);
 
 			selectionMarker->topLeft->setCoords(startFrame * posMultiplier + posOffset, range);
@@ -2569,6 +2645,51 @@ void PlotWindow::updateExtraPlot()
 		frameMarkerExtra->end->setCoords(frameMarker->start->coords().x(), dock->plotWidgetExtra->yAxis->range().upper);
 
 		dock->plotWidgetExtra->replot();
+	}
+}
+
+void PlotWindow::setInterpolation()
+{
+	if (!(dock->comboBoxPlotType->currentIndex() == 0 || dock->comboBoxPlotType->currentIndex() == 1))
+		return;
+
+	Marker * marker = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveMarker();
+	if (marker == NULL)
+		return;
+
+	int frameStart;
+	int frameEnd;
+	frameStart = (endFrame > startFrame) ? startFrame : endFrame;
+	frameEnd = (endFrame > startFrame) ? endFrame : startFrame;
+	frameStart = (frameStart < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1 : frameStart;
+	frameEnd = (frameEnd > Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1 : frameEnd;
+
+	QStringList list;
+	list << "None" << "Repeat" << "Linear" << "Cubic";
+	bool ok;
+	QString item = QInputDialog::getItem(this, "Choose interpolation method", "interpolation", list, 0, false, &ok);
+	if (ok)
+	{
+		interpolationMethod method;
+		if (item == "None"){
+			method = NONE;
+		}
+		else if (item == "Repeat"){
+			method = REPEAT;
+		}
+		else if (item == "Linear"){
+			method = LINEAR;
+		}
+		else if (item == "Cubic"){
+			method = CUBIC;
+		}
+				
+		for (int i = frameStart; i <= frameEnd; i++)
+		{
+			marker->setInterpolation(i, method);
+		}
+		marker->updateHasInterpolation();
+		draw();
 	}
 }
 

@@ -80,8 +80,6 @@ namespace xma
 
 		double getCutoffFrequency();
 		void setCutoffFrequency(double value);
-		int getInterpolateMissingFrames();
-		void setInterpolateMissingFrames(int value);
 
 		int getNbImages();
 		QString getName();
@@ -141,6 +139,9 @@ namespace xma
 		const QString& getTs() const;
 		const QString& getTrialDate() const;
 
+		void setInterpolate3D(bool val);
+		bool getInterpolate3D();
+
 	private:
 		QString name;
 		void setNbImages();
@@ -184,6 +185,8 @@ namespace xma
 		QString	trialDate;
 
 		QStringList xml_data;
+
+		bool interpolate3D;
 	};
 }
 

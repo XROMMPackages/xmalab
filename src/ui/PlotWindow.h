@@ -89,6 +89,7 @@ namespace xma
 		std::vector<double> extraPos;
 
 		std::vector<std::vector<QCPItemRect *> > marker_status;
+		std::vector<QCPItemRect *> interpolation_status;
 		int startFrame;
 		int endFrame;
 		bool updating;
@@ -124,6 +125,7 @@ namespace xma
 		void deleteAllAboveBackprojectionError();
 
 		void updateExtraPlot();
+		void setInterpolation();
 	};
 }
 

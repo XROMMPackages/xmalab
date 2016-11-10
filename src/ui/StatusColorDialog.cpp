@@ -81,6 +81,22 @@ void StatusColorDialog::updateColors()
 	QPixmap pix8(16, 16);
 	pix8.fill(QColor(Settings::getInstance()->getQStringSetting("ColorUndefined")));
 	diag->toolButton_Undefined->setIcon(pix8);
+
+	QPixmap pix9(16, 16);
+	pix9.fill(QColor(Settings::getInstance()->getQStringSetting("ColorInterNone")));
+	diag->toolButton_InterNone->setIcon(pix9);
+
+	QPixmap pix10(16, 16);
+	pix10.fill(QColor(Settings::getInstance()->getQStringSetting("ColorInterRepeat")));
+	diag->toolButton_InterRepeat->setIcon(pix10);
+
+	QPixmap pix11(16, 16);
+	pix11.fill(QColor(Settings::getInstance()->getQStringSetting("ColorInterLinear")));
+	diag->toolButton_InterLinear->setIcon(pix11);
+
+	QPixmap pix12(16, 16);
+	pix12.fill(QColor(Settings::getInstance()->getQStringSetting("ColorInterCubic")));
+	diag->toolButton_InterCubic->setIcon(pix12);
 }
 
 void StatusColorDialog::setColor(QString name)
@@ -134,4 +150,24 @@ void StatusColorDialog::on_toolButton_TrackedAndOpt_clicked()
 void StatusColorDialog::on_toolButton_Undefined_clicked()
 {
 	setColor("ColorUndefined");
+}
+
+void StatusColorDialog::on_toolButton_InterNone_clicked()
+{
+	setColor("ColorInterNone");
+}
+
+void StatusColorDialog::on_toolButton_InterRepeat_clicked()
+{
+	setColor("ColorInterRepeat");
+}
+
+void StatusColorDialog::on_toolButton_InterLinear_clicked()
+{
+	setColor("ColorInterLinear");
+}
+
+void StatusColorDialog::on_toolButton_InterCubic_clicked()
+{
+	setColor("ColorInterCubic");
 }

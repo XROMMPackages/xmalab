@@ -66,6 +66,10 @@ namespace xma
 	void on_toolButton_Tracked_clicked();
 	void on_toolButton_TrackedAndOpt_clicked();
 	void on_toolButton_Undefined_clicked();
+	void on_toolButton_InterNone_clicked();
+	void on_toolButton_InterRepeat_clicked();	
+	void on_toolButton_InterLinear_clicked();
+	void on_toolButton_InterCubic_clicked();
 	};
 }
 

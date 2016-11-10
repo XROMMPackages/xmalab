@@ -52,8 +52,9 @@ Marker::Marker(int nbCameras, int size, Trial* _trial)
 	maxPenalty = 125;
 	point3D_ref_set = false;
 	method = 0;
-	interpolation = 0;
+	//interpolation = 0;
 	requiresRecomputation = true;
+	hasInterpolation = false;
 }
 
 Marker::~Marker()
@@ -896,6 +897,76 @@ void Marker::resetMultipleFrames(int camera, int frameStart, int frameEnd)
 	updateMeanSize();
 }
 
+void Marker::setInterpolation(int frame, interpolationMethod method)
+{
+	interpolation[frame] = method;
+}
+
+interpolationMethod Marker::getInterpolation(int frame)
+{
+	return interpolation[frame];
+}
+
+bool Marker::getHasInterpolation()
+{
+	return hasInterpolation;
+}
+
+void Marker::updateHasInterpolation()
+{
+	hasInterpolation = false;
+	for (std::vector<interpolationMethod>::iterator it = interpolation.begin(); it < interpolation.end(); ++it)
+	{
+		if (*it > NONE)
+		{
+			hasInterpolation = true;
+			return;
+		}
+	}
+}
+
+void Marker::saveInterpolation(QString filename)
+{
+	if (!filename.isEmpty())
+	{
+		std::ofstream outfile(filename.toAscii().data());
+		outfile.precision(12);		
+		for (unsigned int i = 0; i < interpolation.size(); i++)
+		{
+			outfile << interpolation[i] << std::endl;
+		}		
+		outfile.close();
+	}
+}
+
+void Marker::loadInterpolation(QString filename)
+{
+	std::ifstream fin;
+	fin.open(filename.toAscii().data());
+	std::istringstream in;
+	std::string line; 
+	int linecount = 0;
+	while (!littleHelper::safeGetline(fin, line).eof())
+	{
+		in.clear();
+		in.str(line);
+		std::vector<int> tmp;
+		for (double value; in >> value; littleHelper::comma(in))
+		{
+			tmp.push_back(value);
+		}
+		if (tmp.size() > 0)
+		{
+			interpolation[linecount] = interpolationMethod(tmp[0]);
+		}
+		line.clear();
+		linecount++;
+	}
+	fin.close();
+
+	updateHasInterpolation();
+}
+
 void Marker::update(bool updateAll)
 {
 	if (requiresRecomputation)
@@ -1123,235 +1194,269 @@ void Marker::updateToProject13()
 
 void Marker::interpolate()
 {
-	//no interpolation
-	if (interpolation == 0)
-	{
-		for (unsigned int c = 0; c < status2D.size(); c++){
-			for (unsigned int i = 0; i < status2D[c].size(); i++){
-				if (status2D[c][i] == INTERPOLATED)
-				{
-					setPoint(c,i,-2,-2,UNDEFINED);
-				}
+	//reset all interpolated
+	for (unsigned int c = 0; c < status2D.size(); c++){
+		for (unsigned int i = 0; i < status2D[c].size(); i++){
+			if (status2D[c][i] <= INTERPOLATED)
+			{
+				setPoint(c, i, -2, -2, UNDEFINED);
 			}
 		}
 	}
-	//Repeat
-	else if (interpolation == 2 || interpolation == 1)
-	{
-		for (unsigned int c = 0; c < status2D.size(); c++){
-			int idxStart = -1;
-			int idxEnd = -1;
-			for (unsigned int f = 0; f < status2D[c].size(); f++){
-				//we have to replace this one;
-				if (status2D[c][f] < TRACKED)
-				{
-					if (idxEnd == -1)
-					{
-						//findNewEnd
-						for (unsigned int f2 = f; f2 < status2D[c].size(); f2++)
+
+	bool requiresRepeat = false;
+	bool requiresLinear = false;
+	bool requiresCubic = false;
+
+	for (unsigned int f = 1; f < interpolation.size(); f++){
+		if (interpolation[f] == REPEAT){
+			requiresRepeat = true;
+		}
+		else if (interpolation[f] == LINEAR)
+		{
+			requiresLinear = true;
+		}
+		else if(interpolation[f] == CUBIC)
+		{
+			requiresCubic = true;
+		}
+	}
+
+	// first interpolate repeat
+	if (requiresRepeat){
+		for (unsigned int f = 1; f < interpolation.size(); f++){
+			if (interpolation[f] == REPEAT)
+			{
+				if (!trial->getInterpolate3D()){
+					//check if last was set
+					for (unsigned int c = 0; c < status2D.size(); c++){
+						if (status2D[c][f - 1] >= INTERPOLATED && status2D[c][f] < INTERPOLATED)
 						{
-							if (status2D[c][f2] >= TRACKED)
-							{
-								idxEnd = f2;
-								break;
-							}
+							setPoint(c, f, points2D[c][f - 1].x, points2D[c][f - 1].y, INTERPOLATED);
 						}
-						//Still no End found
-						if (idxEnd == -1)
-						{
-							idxEnd = status2D[c].size();
-						}
-					}
-					
-					if (idxEnd != status2D[c].size() && idxStart != -1)
-					{
-						if (interpolation == 2){
-							double p = (((double)(f - idxStart)) / (idxEnd - idxStart));
-							double x = points2D[c][idxStart].x + p *(points2D[c][idxEnd].x - points2D[c][idxStart].x);
-							double y = points2D[c][idxStart].y + p *(points2D[c][idxEnd].y - points2D[c][idxStart].y);
-							setPoint(c, f, x, y, INTERPOLATED);
-						}
-						else
-						{
-							setPoint(c, f, points2D[c][idxStart].x, points2D[c][idxStart].y, INTERPOLATED);
-						}
-				
 					}
 				}
-				//Point was tracked so we set it as a new start;
 				else
 				{
-					idxStart = f;
-					idxEnd = -1;
-				}
-			}
-		}
-	}
-	//cubic spline
-	else if (interpolation == 3)
-	{
-		for (unsigned int c = 0; c < status2D.size(); c++){
-			int count = 0;
-			for (unsigned int f = 0; f < status2D[c].size(); f++){
-				if (status2D[c][f] >= TRACKED)
-				{
-					count++;
-				}
-			}
-
-			if (count == 0) return;
-
-			double* samplesX = new double[count];
-			double* samplesY = new double[count];
-			double* pos = new double[count];
-			count = 0;
-			for (unsigned int f = 0; f < status2D[c].size(); f++){
-				if (status2D[c][f] >= TRACKED)
-				{
-					samplesX[count] = points2D[c][f].x;
-					samplesY[count] = points2D[c][f].y;
-					pos[count] = f;
-					count++;
-				}
-			}
-
-			Maths::Interpolation::Cubic X(count, pos, samplesX);
-			Maths::Interpolation::Cubic Y(count, pos, samplesY);
-
-			for (unsigned int f = pos[0]; f < pos[count-1]; f++){
-				if (status2D[c][f] < TRACKED)
-				{
-					double x = X.getValue(f);
-					double y = Y.getValue(f);
-					setPoint(c, f, x, y, INTERPOLATED);
-				}
-			}
-			delete[] samplesX;
-			delete[] samplesY;
-			delete[] pos;
-
-		}
-	}
-	else if (interpolation == 4 || interpolation == 5)
-	{
-		int idxStart = -1;
-		int idxEnd = -1;
-
-		for (unsigned int f = 0; f < status3D.size(); f++){
-			//we have to replace this one;
-			if (status3D[f] < TRACKED)
-			{
-				if (idxEnd == -1)
-				{
-					//findNewEnd
-					for (unsigned int f2 = f; f2 < status3D.size(); f2++)
+					if (status3D[f - 1] >= INTERPOLATED)
 					{
-						if (status3D[f2] >= TRACKED)
-						{
-							idxEnd = f2;
-							break;
-						}
-					}
-					//Still no End found
-					if (idxEnd == -1)
-					{
-						idxEnd = status3D.size();
-					}
-				}
-
-				if (idxEnd != status3D.size() && idxStart != -1)
-				{
-					cv::Point3d pt3d;
-
-					if (interpolation == 5){
-						double p = (((double)(f - idxStart)) / (idxEnd - idxStart));
-						pt3d.x = points3D[idxStart].x + p *(points3D[idxEnd].x - points3D[idxStart].x);
-						pt3d.y = points3D[idxStart].y + p *(points3D[idxEnd].y - points3D[idxStart].y);
-						pt3d.z = points3D[idxStart].z + p *(points3D[idxEnd].z - points3D[idxStart].z);
-						//setPoint(c, f, x, y, INTERPOLATED);
-					}
-					else
-					{
-						pt3d = points3D[idxStart];
-						//setPoint(c, f, points2D[c][idxStart].x, points2D[c][idxStart].y, INTERPOLATED);
-					}
-					for (unsigned int c = 0; c < status2D.size(); c++){
-						if (status2D[c][f] < TRACKED)
-						{
-							cv::Point2d pt2d = Project::getInstance()->getCameras()[c]->projectPoint(pt3d, trial->getReferenceCalibrationImage());
-							setPoint(c, f, pt2d.x, pt2d.y, INTERPOLATED);
+						for (unsigned int c = 0; c < status2D.size(); c++){
+							if (status2D[c][f] < INTERPOLATED){
+								cv::Point2d pt2d = Project::getInstance()->getCameras()[c]->projectPoint(points3D[f - 1], trial->getReferenceCalibrationImage());
+								setPoint(c, f, pt2d.x, pt2d.y, INTERPOLATED);
+							}
 						}
 					}
 				}
 			}
-			//Point was tracked so we set it as a new start;
-			else
-			{
-				idxStart = f;
-				idxEnd = -1;
+		}
+	}
+
+	//then interpolate linear
+	if (requiresLinear){
+		if (!trial->getInterpolate3D()){
+			//do each camera seperately
+			for (unsigned int c = 0; c < status2D.size(); c++){
+				for (unsigned int f = 1; f < interpolation.size(); f++){
+					//std::cerr << "set " << f << " " << interpolation[f] << " " << status2D[c][f - 1] << std::endl;;
+
+					if (status2D[c][f] < INTERPOLATED && status2D[c][f - 1] >= INTERPOLATED)
+					{
+						int start = f - 1;
+						int end = f;
+						//continue until either interpolation is not linear anymore or the value is set
+						while (end < interpolation.size() && status2D[c][end] < INTERPOLATED)
+						{
+							end++;
+						}
+						//start and end are set and we have to check that end is defined
+						if (end < interpolation.size() && status2D[c][end] >= INTERPOLATED)
+						{
+							while (f < end){
+								if (interpolation[f] == LINEAR){
+									double p = (((double)(f - start)) / (end - start));
+									double x = points2D[c][start].x + p *(points2D[c][end].x - points2D[c][start].x);
+									double y = points2D[c][start].y + p *(points2D[c][end].y - points2D[c][start].y);
+									setPoint(c, f, x, y, INTERPOLATED);
+								}
+								f++;
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			for (unsigned int f = 1; f < interpolation.size(); f++){
+				if (status3D[f] < INTERPOLATED && status3D[f - 1] >= INTERPOLATED)
+				{
+					int start = f - 1;
+					int end = f;
+					//continue until either interpolation is not linear anymore or the value is set
+					while (end < interpolation.size() && status3D[end] < INTERPOLATED)
+					{
+						end++;
+					}
+					//start and end are set and we have to check that end is defined
+					if (end < interpolation.size() && status3D[end] >= INTERPOLATED)
+					{
+						while (f < end){
+							if (interpolation[f] == LINEAR){
+								cv::Point3d pt3d;
+								double p = (((double)(f - start)) / (end - start));
+								pt3d.x = points3D[start].x + p *(points3D[end].x - points3D[start].x);
+								pt3d.y = points3D[start].y + p *(points3D[end].y - points3D[start].y);
+								pt3d.z = points3D[start].z + p *(points3D[end].z - points3D[start].z);
+								for (unsigned int c = 0; c < status2D.size(); c++){
+									if (status2D[c][f] < INTERPOLATED){
+										cv::Point2d pt2d = Project::getInstance()->getCameras()[c]->projectPoint(pt3d, trial->getReferenceCalibrationImage());
+										setPoint(c, f, pt2d.x, pt2d.y, INTERPOLATED);
+									}
+								}
+							}
+							f++;
+						}
+					}
+				}
 			}
 		}
 	}
-	else if (interpolation == 6)
+
+	//// finally do cubic spline
+	if (requiresCubic)
 	{
-		int count = 0;
-		for (unsigned int f = 0; f < status3D.size(); f++){
-			if (status3D[f] >= TRACKED)
-			{
-				count++;
+		if (!trial->getInterpolate3D())
+		{
+			for (unsigned int c = 0; c < status2D.size(); c++){
+				std::vector<double> YX1;
+				std::vector<double> YY1;
+				std::vector<double> X1;
+
+				std::vector<double> YX2;
+				std::vector<double> YY2;
+				std::vector<double> X2;
+
+				for (unsigned int f = 0; f < status2D[c].size(); f++){
+					if (status2D[c][f] >= INTERPOLATED)
+					{
+						YX1.push_back(points2D[c][f].x);
+						YY1.push_back(points2D[c][f].y);
+						X1.push_back(f);
+					} 
+				}
+
+				if (X1.size() < 4)
+					return;
+
+				for (unsigned int f = X1[0]; f < X1[X1.size() - 1]; f++){
+					if (interpolation[f] == CUBIC && status2D[c][f - 1] >= INTERPOLATED)
+					{
+						int start = f - 1;
+						int end = f;
+						//continue until either interpolation is not linear anymore or the value is set
+						while (end < interpolation.size() && interpolation[end] == CUBIC && status2D[c][end] < INTERPOLATED)
+						{
+							end++;
+						}
+						//start and end are set and we have to check that end is defined
+						if (end < interpolation.size() && status2D[c][end] >= INTERPOLATED)
+						{
+							while (f < end){
+								X2.push_back(f);
+								f++;
+							}
+						}
+					}
+				}
+
+				if (X2.size() == 0) 
+					return;
+				
+				if(!Maths::Interpolation::ispline(X1,YX1,X2,YX2))
+					return;
+				if (!Maths::Interpolation::ispline(X1,YY1,X2,YY2))
+					return;
+
+				for (unsigned int k = 0; k < X2.size(); k++){
+					setPoint(c, X2[k], YX2[k], YY2[k], INTERPOLATED);
+				}
 			}
 		}
-		if (count == 0) return;
+		else
+		{
 
-		double* samplesX = new double[count];
-		double* samplesY = new double[count];
-		double* samplesZ = new double[count];
-		double* pos = new double[count];
-		count = 0;
-		for (unsigned int f = 0; f < status3D.size(); f++){
-			if (status3D[f] >= TRACKED)
-			{
-				samplesX[count] = points3D[f].x;
-				samplesY[count] = points3D[f].y;
-				samplesZ[count] = points3D[f].z;
-				pos[count] = f;
-				count++;
+			std::vector<double> YX1;
+			std::vector<double> YY1;
+			std::vector<double> YZ1;
+			std::vector<double> X1;
+
+			std::vector<double> YX2;
+			std::vector<double> YY2;
+			std::vector<double> YZ2;
+			std::vector<double> X2;
+
+			for (unsigned int f = 0; f < status3D.size(); f++){
+				if (status3D[f] >= INTERPOLATED)
+				{
+					YX1.push_back(points3D[f].x);
+					YY1.push_back(points3D[f].y);
+					YZ1.push_back(points3D[f].z);
+					X1.push_back(f);
+				}
 			}
-		}
 
-		Maths::Interpolation::Cubic X(count, pos, samplesX);
-		Maths::Interpolation::Cubic Y(count, pos, samplesY);
-		Maths::Interpolation::Cubic Z(count, pos, samplesZ);
-		for (unsigned int c = 0; c < status2D.size(); c++){
-			for (unsigned int f = pos[0]; f < pos[count - 1]; f++){
+			if (X1.size() < 4)
+				return;
+
+			for (unsigned int f = X1[0]; f < X1[X1.size() - 1]; f++){
+				if (interpolation[f] == CUBIC && status3D[f - 1] >= INTERPOLATED)
+				{
+					int start = f - 1;
+					int end = f;
+					//continue until either interpolation is not linear anymore or the value is set
+					while (end < interpolation.size() && interpolation[end] == CUBIC && status3D[end] < INTERPOLATED)
+					{
+						end++;
+					}
+					//start and end are set and we have to check that end is defined
+					if (end < interpolation.size() && status3D[end] >= INTERPOLATED)
+					{
+						while (f < end){
+							X2.push_back(f);
+							f++;
+						}
+					}
+				}
+			}
+
+			if (X2.size() == 0)
+				return;
+
+			if (!Maths::Interpolation::ispline(X1, YX1, X2, YX2))
+				return;
+			if (!Maths::Interpolation::ispline(X1, YY1, X2, YY2))
+				return;
+			if (!Maths::Interpolation::ispline(X1, YZ1, X2, YZ2))
+				return;
+
+			for (unsigned int k = 0; k < X2.size(); k++){
 				cv::Point3d pt3d;
-				pt3d.x = X.getValue(f);
-				pt3d.y = Y.getValue(f);
-				pt3d.z = Z.getValue(f);
-				if (status2D[c][f] < TRACKED)
-				{
-					cv::Point2d pt2d = Project::getInstance()->getCameras()[c]->projectPoint(pt3d, trial->getReferenceCalibrationImage());
-					setPoint(c, f, pt2d.x, pt2d.y, INTERPOLATED);
+				pt3d.x = YX2[k];
+				pt3d.y = YY2[k];
+				pt3d.z = YZ2[k];
+				for (unsigned int c = 0; c < status2D.size(); c++){
+					if (status2D[c][X2[k]] < INTERPOLATED)
+					{
+						cv::Point2d pt2d = Project::getInstance()->getCameras()[c]->projectPoint(pt3d, trial->getReferenceCalibrationImage());
+						setPoint(c, X2[k], pt2d.x, pt2d.y, INTERPOLATED);
+					}
 				}
 			}
 		}
-		delete[] samplesX;
-		delete[] samplesY;
-		delete[] pos;
 	}
 }
 
-
-int Marker::getInterpolation()
-{
-	return interpolation;
-}
-
-void Marker::setInterpolation(int value)
-{
-	interpolation = value;
-	interpolate();
-}
 
 QColor Marker::getStatusColor(int camera, int frame)
 {
@@ -1628,7 +1733,7 @@ void Marker::clear()
 	status2D.clear();
 	error2D.clear();
 	markerSize.clear();
-
+	interpolation.clear();
 	points3D.clear();
 	status3D.clear();
 	error3D.clear();
@@ -1670,6 +1775,7 @@ void Marker::init(int nbCameras, int size)
 		points3D.push_back(p3);
 		status3D.push_back(UNDEFINED);
 		error3D.push_back(0);
+		interpolation.push_back(NONE);
 	}
 }
 

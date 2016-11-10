@@ -91,6 +91,12 @@ Settings::Settings()
 	addQStringSetting("ColorTracked", QColor::fromRgb(0, 100, 200).name());
 	addQStringSetting("ColorTrackedAndOpt", QColor::fromRgb(0, 128, 255).name());
 	addQStringSetting("ColorUndefined", QColor::fromRgb(210, 210, 210).name());
+
+	addQStringSetting("ColorInterNone", QColor::fromRgb(255, 255, 255).name());
+	addQStringSetting("ColorInterRepeat", QColor::fromRgb(230 ,128, 128).name());
+	addQStringSetting("ColorInterLinear", QColor::fromRgb(184, 230, 184).name());
+	addQStringSetting("ColorInterCubic", QColor::fromRgb(170, 170, 230).name());
+
 	addBoolSetting("ShowColoredMarkerIDs", false);
 	addBoolSetting("ShowColoredMarkerCross", false);
 

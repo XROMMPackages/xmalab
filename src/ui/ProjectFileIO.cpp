@@ -215,6 +215,9 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 					                                                              path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
 					(*trial_it)->getMarkers()[k]->save3DPoints(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points3d.csv",
 					                                                                      path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status3d.csv");
+					(*trial_it)->getMarkers()[k]->saveInterpolation(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "interpolation.csv");
+
+
 
 					if ((*trial_it)->getMarkers()[k]->Reference3DPointSet())
 					{
@@ -404,8 +407,9 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 									QString cutOffFrequency = attr.value("cutOffFrequency").toString();
 									if (!cutOffFrequency.isEmpty())trial->setCutoffFrequency(cutOffFrequency.toDouble());
 
-									QString interpolateMissingFrames = attr.value("interpolateMissingFrames").toString();
-									if (!interpolateMissingFrames.isEmpty())trial->setInterpolateMissingFrames(interpolateMissingFrames.toInt());
+									QString interpolate3D = attr.value("interpolate3D").toString();
+									if (!interpolate3D.isEmpty())trial->setInterpolate3D(interpolate3D.toInt());
+
 									trial->loadMarkers(trialfolder + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
 
 									trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
@@ -442,13 +446,43 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 												if (!DetectionMethod.isEmpty())trial->getMarkers()[id]->setMethod(DetectionMethod.toInt());
 
 												QString InterpolationMethod = attr.value("InterpolationMethod").toString();
-												if (!InterpolationMethod.isEmpty())trial->getMarkers()[id]->setInterpolation(InterpolationMethod.toInt());
+												if (!InterpolationMethod.isEmpty()){
+													int newMethod = 0;
+													switch (InterpolationMethod.toInt())
+													{
+														case 0:
+														default:
+															newMethod = 0;
+															break;
+														case 1:
+														case 4:
+															newMethod = 10;
+															break;
+														case 2:
+														case 5:
+															newMethod = 20;
+															break;
+														case 3:
+														case 6:
+															newMethod = 20;
+															break;
+													}
+													for (int i = 0; i < trial->getNbImages(); i++)
+														trial->getMarkers()[id]->setInterpolation(i,interpolationMethod(newMethod));
 
+													trial->getMarkers()[id]->updateHasInterpolation();
+												}
 												QString SizeOverride = attr.value("SizeOverride").toString();
 												if (!SizeOverride.isEmpty())trial->getMarkers()[id]->setSizeOverride(SizeOverride.toInt());
 
 												QString ThresholdOffset = attr.value("ThresholdOffset").toString();
 												if (!ThresholdOffset.isEmpty())trial->getMarkers()[id]->setThresholdOffset(ThresholdOffset.toInt());
+
+												QString filename_interpolation = attr.value("FilenameInterpolation").toString();
+												if (!filename_interpolation.isEmpty())
+												{
+													trial->getMarkers()[id]->loadInterpolation(basedir + OS_SEP + filename_interpolation);
+												}
 											}
 
 											if (xml.name() == "RigidBody")
@@ -640,7 +674,32 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 												if (!DetectionMethod.isEmpty())trial->getMarkers()[id]->setMethod(DetectionMethod.toInt());
 
 												QString InterpolationMethod = attr.value("InterpolationMethod").toString();
-												if (!InterpolationMethod.isEmpty())trial->getMarkers()[id]->setInterpolation(InterpolationMethod.toInt());
+												if (!InterpolationMethod.isEmpty()){
+													int newMethod = 0;
+													switch (InterpolationMethod.toInt())
+													{
+													case 0:
+													default:
+														newMethod = 0;
+														break;
+													case 1:
+													case 4:
+														newMethod = 10;
+														break;
+													case 2:
+													case 5:
+														newMethod = 20;
+														break;
+													case 3:
+													case 6:
+														newMethod = 20;
+														break;
+													}
+													for (int i = 0; i < trial->getNbImages(); i++)
+														trial->getMarkers()[id]->setInterpolation(i, interpolationMethod(newMethod));
+
+													trial->getMarkers()[id]->updateHasInterpolation();
+												}
 
 												QString SizeOverride = attr.value("SizeOverride").toString();
 												if (!SizeOverride.isEmpty())trial->getMarkers()[id]->setSizeOverride(SizeOverride.toInt());
@@ -1145,7 +1204,9 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 				xmlWriter.writeAttribute("referenceCalibration", QString::number((*trial_it)->getReferenceCalibrationImage()));
 				xmlWriter.writeAttribute("recordingSpeed", QString::number((*trial_it)->getRecordingSpeed()));
 				xmlWriter.writeAttribute("cutOffFrequency", QString::number((*trial_it)->getCutoffFrequency()));
-				xmlWriter.writeAttribute("interpolateMissingFrames", QString::number((*trial_it)->getInterpolateMissingFrames()));
+				xmlWriter.writeAttribute("interpolate3D", QString::number((*trial_it)->getInterpolate3D()));
+
+				
 				if ((*trial_it)->getHasStudyData()){
 					xmlWriter.writeAttribute("MetaData", (*trial_it)->getName() + OS_SEP + QString("metadata.xml"));
 				}
@@ -1156,7 +1217,6 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 					xmlWriter.writeAttribute("ID", QString::number(k));
 					xmlWriter.writeAttribute("TrackingPenalty", QString::number((*trial_it)->getMarkers()[k]->getMaxPenalty()));
 					xmlWriter.writeAttribute("DetectionMethod", QString::number((*trial_it)->getMarkers()[k]->getMethod()));
-					xmlWriter.writeAttribute("InterpolationMethod", QString::number((*trial_it)->getMarkers()[k]->getInterpolation()));
 					xmlWriter.writeAttribute("SizeOverride", QString::number((*trial_it)->getMarkers()[k]->getSizeOverride()));
 					xmlWriter.writeAttribute("ThresholdOffset", QString::number((*trial_it)->getMarkers()[k]->getThresholdOffset()));
 					xmlWriter.writeAttribute("RequiresRecomputation", QString::number((*trial_it)->getMarkers()[k]->getRequiresRecomputation()));
@@ -1171,6 +1231,8 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 					xmlWriter.writeAttribute("FilenameSize", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
 					xmlWriter.writeAttribute("FilenamePoints3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points3d.csv");
 					xmlWriter.writeAttribute("FilenameStatus3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status3d.csv");
+					xmlWriter.writeAttribute("FilenameInterpolation", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "interpolation.csv");
+
 
 					xmlWriter.writeEndElement();
 				}
@@ -1468,8 +1530,8 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							QString cutOffFrequency = attr.value("cutOffFrequency").toString();
 							if (!cutOffFrequency.isEmpty())trial->setCutoffFrequency(cutOffFrequency.toDouble());
 
-							QString interpolateMissingFrames = attr.value("interpolateMissingFrames").toString();
-							if (!interpolateMissingFrames.isEmpty())trial->setInterpolateMissingFrames(interpolateMissingFrames.toInt());
+							QString interpolate3D = attr.value("interpolate3D").toString();
+							if (!interpolate3D.isEmpty())trial->setInterpolate3D(interpolate3D.toInt());
 
 							trial->loadMarkers(trialfolder + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
 							trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
@@ -1506,8 +1568,32 @@ bool ProjectFileIO::readProjectFile(QString filename)
 										if (!DetectionMethod.isEmpty())trial->getMarkers()[id]->setMethod(DetectionMethod.toInt());
 
 										QString InterpolationMethod = attr.value("InterpolationMethod").toString();
-										if (!InterpolationMethod.isEmpty())trial->getMarkers()[id]->setInterpolation(InterpolationMethod.toInt());
+										if (!InterpolationMethod.isEmpty()){
+											int newMethod = 0;
+											switch (InterpolationMethod.toInt())
+											{
+												case 0:
+												default:
+													newMethod = 0;
+													break;
+												case 1:
+												case 4:
+													newMethod = 10;
+													break;
+												case 2:
+												case 5:
+													newMethod = 20;
+													break;
+												case 3:
+												case 6:
+													newMethod = 20;
+													break;
+											}
+											for (int i = 0; i < trial->getNbImages(); i++)
+												trial->getMarkers()[id]->setInterpolation(i,interpolationMethod(newMethod));
 
+											trial->getMarkers()[id]->updateHasInterpolation();
+										}
 										QString SizeOverride = attr.value("SizeOverride").toString();
 										if (!SizeOverride.isEmpty())trial->getMarkers()[id]->setSizeOverride(SizeOverride.toInt());
 
@@ -1524,6 +1610,12 @@ bool ProjectFileIO::readProjectFile(QString filename)
 											filename_status3D = basedir + OS_SEP + filename_status3D;
 											trial->getMarkers()[id]->setRequiresRecomputation(requiresRecomputation.toInt());
 											trial->getMarkers()[id]->load3DPoints(littleHelper::adjustPathToOS(filename_points3D), littleHelper::adjustPathToOS(filename_status3D));
+										}
+
+										QString filename_interpolation = attr.value("FilenameInterpolation").toString();
+										if (!filename_interpolation.isEmpty())
+										{
+											trial->getMarkers()[id]->loadInterpolation(basedir + OS_SEP + filename_interpolation);
 										}
 									}
 

@@ -66,6 +66,14 @@ namespace xma
 			MANUAL_AND_OPTIMIZED = 65
 		};
 
+		enum interpolationMethod
+		{
+			NONE = 0,
+			REPEAT = 10,
+			LINEAR = 20,
+			CUBIC = 30
+		};
+
 	class Trial;
 
 	class Marker
@@ -112,6 +120,14 @@ namespace xma
 		void load3DPoints(QString points_filename, QString status_filename);
 		void resetMultipleFrames(int camera, int frameStart, int frameEnd);
 
+		void interpolate();
+		void setInterpolation(int frame, interpolationMethod method);
+		interpolationMethod getInterpolation(int frame);
+		bool getHasInterpolation();
+		void updateHasInterpolation(); 
+		void saveInterpolation(QString filename);
+		void loadInterpolation(QString filename);
+
 		void update(bool updateAll = false);
 
 		bool isValid(int camera, int frame);
@@ -136,9 +152,6 @@ namespace xma
 		void updateToProject12();
 		void updateToProject13();
 
-		void interpolate();
-		int getInterpolation();
-		void setInterpolation(int value);
 		QColor getStatusColor(int camera, int frame);
 		void reprojectPoint(int frame);
 
@@ -158,7 +171,8 @@ namespace xma
 		std::vector<std::vector<cv::Point2d> > points2D_projected;
 		std::vector<std::vector<markerStatus> > status2D;
 		std::vector<std::vector<double> > error2D;
-
+		std::vector<interpolationMethod> interpolation;
+		bool hasInterpolation;
 		void updateMeanSize();
 		std::vector<std::vector<double> > markerSize;
 		double meanSize;
@@ -168,7 +182,7 @@ namespace xma
 		int sizeOverride;
 		int maxPenalty;
 		int method;
-		int interpolation;
+		//int interpolation;
 
 		bool point3D_ref_set;
 		cv::Point3d point3D_ref;

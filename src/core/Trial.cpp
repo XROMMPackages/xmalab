@@ -70,6 +70,7 @@ Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
 	activeMarkerIdx = -1;
 	activeBodyIdx = -1;
 
+	interpolate3D = false;
 	requiresRecomputation = true;
 
 	for (std::vector<QStringList>::iterator filenameList = imageFilenames.begin(); filenameList != imageFilenames.end(); ++filenameList)
@@ -108,6 +109,7 @@ Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
 
 Trial::Trial(QString trialname, QString folder)
 {
+	interpolate3D = false;
 	name = trialname;
 	activeFrame = 0;
 	referenceCalibrationImage = 0;
@@ -413,16 +415,6 @@ double Trial::getCutoffFrequency()
 void Trial::setCutoffFrequency(double value)
 {
 	cutoffFrequency = value;
-}
-
-int Trial::getInterpolateMissingFrames()
-{
-	return interpolateMissingFrames;
-}
-
-void Trial::setInterpolateMissingFrames(int value)
-{
-	interpolateMissingFrames = value;
 }
 
 QString Trial::getActiveFilename(int camera)
@@ -1918,4 +1910,14 @@ const QString& Trial::getTs() const
 const QString& Trial::getTrialDate() const
 {
 	return trialDate;
+}
+
+void Trial::setInterpolate3D(bool val)
+{
+	interpolate3D = val;
+}
+
+bool Trial::getInterpolate3D()
+{
+	return interpolate3D;
 }

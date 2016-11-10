@@ -50,7 +50,6 @@ namespace xma
 		QAction* action_ResetPoints;
 		QAction* action_DeletePoints;
 		QAction* action_ChangeDetectionMethod;
-		QAction* action_ChangeInterpolationMethod;
 		QAction* action_RefinePointsPolynomialFit;
 		QAction* action_ChangePoint;
 		QAction* action_Save3D;
@@ -68,7 +67,6 @@ namespace xma
 		void action_ResetPoints_triggered();
 		void action_DeletePoints_triggered();
 		void action_ChangeDetectionMethod_triggered();
-		void action_ChangeInterpolationMethod_triggered();
 		void action_RefinePointsPolynomialFit_triggered();
 		void action_ChangePoint_triggered();
 		void action_Save3D_triggered();
