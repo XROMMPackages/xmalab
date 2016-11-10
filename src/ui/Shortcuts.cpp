@@ -90,8 +90,11 @@ void Shortcuts::bindApplicationShortcuts()
 
 	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I), WizardDockWidget::getInstance(), SLOT(interpolateAll()));
 	shortcut->setContext(Qt::ApplicationShortcut);
-
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), PointsDockWidget::getInstance(), SLOT(selectAllPoints()));
+	
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), PlotWindow::getInstance(), SLOT(setInterpolation()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+	
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), PointsDockWidget::getInstance(), SLOT(selectAllPoints()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_4), PlotWindow::getInstance(), SLOT(goToNextPointAboveBackprojectionError()));
@@ -199,14 +202,19 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 			PointsDockWidget::getInstance()->selectAllPoints();
 			return true;
 		}
-		if (_keyEvent->key() == Qt::Key_I && !_keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+		if (_keyEvent->key() == Qt::Key_I && !_keyEvent->modifiers().testFlag(Qt::ShiftModifier) && !_keyEvent->modifiers().testFlag(Qt::ControlModifier))
 		{
 			WizardDockWidget::getInstance()->interpolateActive();
 			return true;
 		}
-		if (_keyEvent->key() == Qt::Key_I && _keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+		if (_keyEvent->key() == Qt::Key_I && _keyEvent->modifiers().testFlag(Qt::ShiftModifier) && !_keyEvent->modifiers().testFlag(Qt::ControlModifier))
 		{
 			WizardDockWidget::getInstance()->interpolateAll();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_I && !_keyEvent->modifiers().testFlag(Qt::ShiftModifier) && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
+		{
+			PlotWindow::getInstance()->setInterpolation();
 			return true;
 		}
 		if (_keyEvent->key() == Qt::Key_4 && !_keyEvent->modifiers().testFlag(Qt::ShiftModifier))
