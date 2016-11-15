@@ -39,48 +39,10 @@
         <property name="spacing">
          <number>0</number>
         </property>
-        <item row="4" column="0">
-         <widget class="QPushButton" name="pushButtonSetNumberMarkers">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>20</width>
-            <height>0</height>
-           </size>
-          </property>
+        <item row="3" column="0" colspan="3">
+         <widget class="QCheckBox" name="checkBoxIsFromMaster">
           <property name="text">
-           <string>Set Number Markers</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="2">
-         <widget class="QPushButton" name="pushButtonImportExport">
-          <property name="minimumSize">
-           <size>
-            <width>20</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Import/Export</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QPushButton" name="pushButtonSetNumberRigidBodies">
-          <property name="minimumSize">
-           <size>
-            <width>20</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Set Number Rigid Bodies</string>
+           <string>from default</string>
           </property>
          </widget>
         </item>
@@ -135,6 +97,51 @@
           </column>
          </widget>
         </item>
+        <item row="6" column="0">
+         <widget class="QPushButton" name="pushButtonSetNumberMarkers">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>20</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Set Number Markers</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="2">
+         <widget class="QPushButton" name="pushButtonImportExport">
+          <property name="minimumSize">
+           <size>
+            <width>20</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Import/Export</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QPushButton" name="pushButtonSetNumberRigidBodies">
+          <property name="minimumSize">
+           <size>
+            <width>20</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Set Number Rigid Bodies</string>
+          </property>
+         </widget>
+        </item>
         <item row="2" column="0" colspan="3">
          <widget class="QCheckBox" name="checkBoxShowMarkerStatus">
           <property name="minimumSize">
@@ -145,6 +152,13 @@
           </property>
           <property name="text">
            <string>Show marker status</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0" colspan="3">
+         <widget class="QPushButton" name="pushButtonApply">
+          <property name="text">
+           <string>Apply to trials</string>
           </property>
          </widget>
         </item>

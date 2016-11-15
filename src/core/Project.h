@@ -85,6 +85,8 @@ namespace xma
 		void setFlipImages(bool value);
 		bool getFlipImages();
 
+		bool hasDefaultTrial();
+
 	private:
 		Project();
 		static Project* instance;

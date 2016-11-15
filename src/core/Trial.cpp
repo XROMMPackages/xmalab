@@ -105,6 +105,9 @@ Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
 
 	startFrame = 1;
 	endFrame = nbImages;
+
+	isDefault = false;
+	IsCopyFromDefault = false;
 }
 
 Trial::Trial(QString trialname, QString folder)
@@ -165,14 +168,29 @@ Trial::Trial(QString trialname, QString folder)
 
 	startFrame = 1;
 	endFrame = nbImages;
+
+	isDefault = false;
+	IsCopyFromDefault = false;
 }
 
+Trial::Trial()
+{
+	name = "Default";
+	activeFrame = 0;
+	isDefault = true;
+	IsCopyFromDefault = false;
+	nbImages = 1;
+	startFrame = 1;
+	endFrame = 1;
+}
 
 Trial::~Trial()
 {
-	for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
-	{
-		delete *video;
+	if(!isDefault){
+		for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
+		{
+			delete *video;
+		}
 	}
 	videos.clear();
 	for (std::vector<RigidBody*>::iterator rigidBody = rigidBodies.begin(); rigidBody != rigidBodies.end(); ++rigidBody)
@@ -189,6 +207,9 @@ Trial::~Trial()
 
 void Trial::changeTrialData(QString trialname, std::vector<QStringList>& imageFilenames)
 {
+	if (isDefault)
+		return;
+
 	name = trialname;
 
 	for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
@@ -231,6 +252,9 @@ void Trial::changeTrialData(QString trialname, std::vector<QStringList>& imageFi
 
 void Trial::setNbImages()
 {
+	if (isDefault)
+		return;
+
 	nbImages = 0;
 	for (unsigned int i = 0; i < videos.size(); i++)
 	{
@@ -250,6 +274,8 @@ void Trial::setNbImages()
 
 void Trial::bindTextures()
 {
+	if (isDefault)
+		return;
 	for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
 	{
 		(*video)->bindTexture();
@@ -258,6 +284,9 @@ void Trial::bindTextures()
 
 void Trial::save(QString path)
 {
+	if (isDefault)
+		return;
+
 	for (unsigned int i = 0; i < videos.size(); i++)
 	{
 		QString cameraPath = path + Project::getInstance()->getCameras()[i]->getName() + "_filenames_absolute.txt";
@@ -273,6 +302,9 @@ int Trial::getActiveFrame()
 void Trial::setActiveFrame(int _activeFrame)
 {
 	activeFrame = _activeFrame;
+	if (isDefault)
+		return;
+	
 	for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
 	{
 		(*video)->setActiveFrame(activeFrame);
@@ -419,6 +451,9 @@ void Trial::setCutoffFrequency(double value)
 
 QString Trial::getActiveFilename(int camera)
 {
+	if (isDefault)
+		return "";
+
 	return videos[camera]->getFrameName(activeFrame);
 }
 
@@ -743,6 +778,9 @@ void Trial::saveRigidBodies(QString filename)
 
 void Trial::changeImagePath(int camera, QString newfolder, QString oldfolder)
 {
+	if (isDefault)
+		return;
+
 	videos[camera]->changeImagePath(newfolder, oldfolder);
 }
 
@@ -961,6 +999,9 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 
 void Trial::saveTrialImages(QString outputfolder, int from, int to, QString format)
 {
+	if (isDefault)
+		return;
+
 	for (unsigned int i = 0; i < videos.size(); i++)
 	{
 		QFileInfo info(videos[i]->getFileBasename());
@@ -1785,6 +1826,9 @@ bool Trial::setFrameRateFromXML()
 
 void Trial::parseXMLData()
 {
+	if (isDefault)
+		return;
+
 	if (hasStudyData){
 		QXmlStreamReader xml(xml_data.join(""));
 
@@ -1920,4 +1964,38 @@ void Trial::setInterpolate3D(bool val)
 bool Trial::getInterpolate3D()
 {
 	return interpolate3D;
+}
+
+bool Trial::getIsDefault()
+{
+	return isDefault;
+}
+
+void Trial::setIsDefault(bool value)
+{
+	isDefault = value;
+}
+
+bool Trial::getIsCopyFromDefault()
+{
+	return IsCopyFromDefault;
+}
+
+void Trial::setIsCopyFromDefault(bool value)
+{
+	IsCopyFromDefault = value;
+}
+
+void Trial::clearMarkerAndRigidBodies()
+{
+	for (std::vector<RigidBody*>::iterator rigidBody = rigidBodies.begin(); rigidBody != rigidBodies.end(); ++rigidBody)
+	{
+		delete *rigidBody;
+	}
+	rigidBodies.clear();
+	for (std::vector<Marker*>::iterator marker = markers.begin(); marker != markers.end(); ++marker)
+	{
+		delete *marker;
+	}
+	markers.clear();
 }

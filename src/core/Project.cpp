@@ -147,6 +147,14 @@ bool Project::getFlipImages()
 	return flipImages;
 }
 
+bool Project::hasDefaultTrial()
+{
+	for (std::vector<Trial*>::iterator it = trials.begin(); it != trials.end(); ++it)
+		if ((*it)->getIsDefault()) return true;
+
+	return false;
+}
+
 Project::~Project()
 {
 	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)

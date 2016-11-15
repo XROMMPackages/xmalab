@@ -158,6 +158,7 @@ namespace xma
 		void on_pushButtonNew_Project_clicked();
 		void on_pushButtonLoad_Project_clicked();
 		void on_pushButtonNewTrial_clicked();
+		void on_pushButtonDefaultTrial_clicked();
 
 		//resizing
 		void resizeDone();

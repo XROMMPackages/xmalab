@@ -221,8 +221,13 @@ bool ImportExportPointsDialog::copyFromTrial()
 		{
 			if (diag->comboBoxTrial->currentText() == Project::getInstance()->getTrials()[idx]->getName())
 			{
+				//Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->clearMarkerAndRigidBodies();
+
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setIsCopyFromDefault(Project::getInstance()->getTrials()[idx]->getIsDefault());
+
 				for (unsigned int i = 0; i < Project::getInstance()->getTrials()[idx]->getMarkers().size(); i++)
 				{
+
 					if (i >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
 						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addMarker();
 
@@ -251,6 +256,14 @@ bool ImportExportPointsDialog::copyFromTrial()
 						Project::getInstance()->getTrials()[idx]->getRigidBodies()[i]);
 				}
 				PlotWindow::getInstance()->updateMarkers(false);
+
+				while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() > Project::getInstance()->getTrials()[idx]->getRigidBodies().size())
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->removeRigidBody(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() - 1);
+
+				while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() > Project::getInstance()->getTrials()[idx]->getMarkers().size())
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->removeMarker(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() - 1);
+
+
 				return true;
 			}
 		}

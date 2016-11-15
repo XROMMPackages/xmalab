@@ -1082,6 +1082,11 @@ void Marker::setMethod(int value)
 	method = value;
 }
 
+Trial* Marker::getTrial()
+{
+	return trial;
+}
+
 bool Marker::getRequiresRecomputation()
 {
 	return requiresRecomputation;
@@ -1793,5 +1798,6 @@ void Marker::addFrame()
 	points3D.push_back(cv::Point3d(-1000, -1000, -1000));
 	status3D.push_back(UNDEFINED);
 	error3D.push_back(0);
+	interpolation.push_back(NONE);
 }
 

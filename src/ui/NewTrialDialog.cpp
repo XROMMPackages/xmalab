@@ -70,6 +70,11 @@ QDialog(MainWindow::getInstance()), m_trial(trial),
 		trialname = m_trial->getName();
 		diag->lineEditTrialName->setText(trialname);
 	}
+
+	if (Project::getInstance()->hasDefaultTrial()){
+		diag->pushButton_Default->setEnabled(false);
+	}
+
 }
 
 NewTrialDialog::~NewTrialDialog()
@@ -198,6 +203,21 @@ void NewTrialDialog::on_pushButton_LoadXMA_clicked()
 
 		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load trial " + xmaTrial_filename).toAscii().data());
 	}
+}
+
+void NewTrialDialog::on_pushButton_Default_clicked()
+{
+	Trial * t = new Trial();
+	Project::getInstance()->addTrial(t);
+	WorkspaceNavigationFrame::getInstance()->addTrial(t->getName());
+	State::getInstance()->changeActiveTrial(Project::getInstance()->getTrials().size() - 1, true);
+	State::getInstance()->changeActiveFrameTrial(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame(), true);
+	State::getInstance()->changeWorkspace(DIGITIZATION, true);
+	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setXMLData(xml_metadata);
+	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->parseXMLData();
+	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setFrameRateFromXML();
+
+	this->close();
 }
 
 void NewTrialDialog::LoadXMAFinished()

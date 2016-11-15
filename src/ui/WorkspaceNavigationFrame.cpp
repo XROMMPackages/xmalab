@@ -134,6 +134,9 @@ void WorkspaceNavigationFrame::workspaceChanged(work_state workspace)
 		{
 			ThreadScheduler::getInstance()->updateTrialData(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
 		}
+
+		if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 && Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial())
+			frame->toolButtonTrialSettings->setEnabled(!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault());
 	}
 }
 
@@ -178,6 +181,9 @@ void WorkspaceNavigationFrame::activeTrialChanged(int activeTrial)
 		{
 			ThreadScheduler::getInstance()->updateTrialData(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
 		}
+
+		if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 && Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial())
+			frame->toolButtonTrialSettings->setEnabled(!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault());
 	}
 }
 

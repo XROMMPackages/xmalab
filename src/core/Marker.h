@@ -145,6 +145,8 @@ namespace xma
 		int getMethod();
 		void setMethod(int value);
 
+		Trial* getTrial();
+
 		bool getRequiresRecomputation();
 		void setRequiresRecomputation(bool value);
 		bool filterMarker(double cutoffFrequency, std::vector <cv::Point3d> &marker, std::vector <markerStatus>& status);

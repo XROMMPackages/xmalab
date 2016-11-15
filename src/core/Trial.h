@@ -45,6 +45,7 @@ namespace xma
 	public:
 		Trial(QString trialname, std::vector<QStringList>& imageFilenames);
 		Trial(QString trialname, QString folder);
+		Trial();
 		virtual ~Trial();
 
 		void changeTrialData(QString trialname, std::vector<QStringList>& imageFilenames);
@@ -142,6 +143,13 @@ namespace xma
 		void setInterpolate3D(bool val);
 		bool getInterpolate3D();
 
+		bool getIsDefault();
+		void setIsDefault(bool value);
+		bool getIsCopyFromDefault();
+		void setIsCopyFromDefault(bool value);
+
+		void clearMarkerAndRigidBodies();
+
 	private:
 		QString name;
 		void setNbImages();
@@ -187,6 +195,9 @@ namespace xma
 		QStringList xml_data;
 
 		bool interpolate3D;
+
+		bool isDefault; 
+		bool IsCopyFromDefault;
 	};
 }
 

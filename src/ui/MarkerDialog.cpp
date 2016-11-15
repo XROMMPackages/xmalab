@@ -30,7 +30,7 @@
 
 #include "ui/MarkerDialog.h"
 #include "ui_MarkerDialog.h"
-#include "ui/State.h"
+#include "core/Trial.h"
 
 #include "core/Marker.h"
 
@@ -46,6 +46,17 @@ MarkerDialog::MarkerDialog(Marker* marker, QWidget* parent) :
 	diag->spinBox_ThresholdOffset->setValue(m_marker->getThresholdOffset());
 	diag->spinBox_Penalty->setValue(m_marker->getMaxPenalty());
 	diag->comboBox_Method->setCurrentIndex(m_marker->getMethod());
+
+	if (m_marker->getTrial()->getIsCopyFromDefault())
+	{
+		diag->comboBox_Method->setEnabled(false);
+	}
+	else if (m_marker->getTrial()->getIsDefault())
+	{
+		diag->spinBox_MarkerRadius->setEnabled(false);
+		diag->spinBox_ThresholdOffset->setEnabled(false);
+		diag->spinBox_Penalty->setEnabled(false);
+	}
 }
 
 
@@ -56,10 +67,10 @@ MarkerDialog::~MarkerDialog()
 
 bool MarkerDialog::isComplete()
 {
-	m_marker->setMaxPenalty(diag->spinBox_Penalty->value());
-	m_marker->setMethod(diag->comboBox_Method->currentIndex());
-	m_marker->setSizeOverride(diag->spinBox_MarkerRadius->value());
-	m_marker->setThresholdOffset(diag->spinBox_ThresholdOffset->value());
+	if (!m_marker->getTrial()->getIsDefault()) m_marker->setMaxPenalty(diag->spinBox_Penalty->value());
+	if (!m_marker->getTrial()->getIsCopyFromDefault())m_marker->setMethod(diag->comboBox_Method->currentIndex());
+	if (!m_marker->getTrial()->getIsDefault()) m_marker->setSizeOverride(diag->spinBox_MarkerRadius->value());
+	if (!m_marker->getTrial()->getIsDefault()) m_marker->setThresholdOffset(diag->spinBox_ThresholdOffset->value());
 
 	return true;
 }

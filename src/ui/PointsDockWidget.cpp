@@ -206,12 +206,45 @@ void PointsDockWidget::reloadListFromObject()
 		}
 	}
 	updateColor();
+	if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsCopyFromDefault())
+	{
+		dock->checkBoxIsFromMaster->setEnabled(true);
+		dock->checkBoxIsFromMaster->setChecked(true);
+		dock->checkBoxIsFromMaster->show();
+		dock->treeWidgetPoints->setDragEnabled(false);
+		dock->treeWidgetPoints->setAcceptDrops(false);
+		dock->pushButtonImportExport->setEnabled(false);
+		dock->pushButtonSetNumberMarkers->setEnabled(false);
+		dock->pushButtonSetNumberRigidBodies->setEnabled(false);
+	} 
+	else
+	{
+		dock->checkBoxIsFromMaster->setEnabled(false);
+		dock->checkBoxIsFromMaster->setChecked(false);
+		dock->checkBoxIsFromMaster->hide();
+		dock->treeWidgetPoints->setDragEnabled(true);
+		dock->treeWidgetPoints->setAcceptDrops(true);
+		dock->pushButtonImportExport->setEnabled(true);
+		dock->pushButtonSetNumberMarkers->setEnabled(true);
+		dock->pushButtonSetNumberRigidBodies->setEnabled(true);
+	}
+
+	if (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsDefault())
+	{
+		dock->pushButtonApply->setEnabled(true);
+		dock->pushButtonApply->show();
+	}
+	else
+	{
+		dock->pushButtonApply->setEnabled(false);
+		dock->pushButtonApply->hide();
+	}
+
 	WizardDockWidget::getInstance()->updateDialog();
 }
 
 void PointsDockWidget::selectNextPoint()
 {
-	std::cerr << "Select Next" << std::endl;
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		if (Project::getInstance()->getTrials().size() > 0 && (int) Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
@@ -227,7 +260,6 @@ void PointsDockWidget::selectNextPoint()
 
 void PointsDockWidget::selectPrevPoint()
 {
-	std::cerr << "Select Prev" << std::endl;
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		if ((Project::getInstance()->getTrials().size() > 0 && (int) Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0))
@@ -244,6 +276,66 @@ void PointsDockWidget::selectPrevPoint()
 void PointsDockWidget::selectAllPoints()
 {
 	dock->treeWidgetPoints->selectAll();
+}
+
+void PointsDockWidget::on_checkBoxIsFromMaster_clicked()
+{
+	if (ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure to remove the link to the default trial? This step cannot be undone!"))
+	{
+		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setIsCopyFromDefault(false);
+		reloadListFromObject();
+	} else
+	{
+		dock->checkBoxIsFromMaster->setChecked(true);
+	}
+}
+
+void PointsDockWidget::on_pushButtonApply_clicked()
+{
+	for (std::vector<Trial * >::const_iterator it = Project::getInstance()->getTrials().begin(); it < Project::getInstance()->getTrials().end(); ++it)
+	{
+		if ((*it)->getIsCopyFromDefault())
+		{
+			for (unsigned int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers().size(); i++)
+			{
+
+				if (i >= (*it)->getMarkers().size())
+					(*it)->addMarker();
+
+				(*it)->getMarkers()[i]->setDescription(
+					Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[i]->getDescription());
+
+				//Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setMaxPenalty(
+				//	Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getMaxPenalty());
+
+				(*it)->getMarkers()[i]->setMethod(
+					Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[i]->getMethod());
+
+				//Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setSizeOverride(
+				//	Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getSizeOverride());
+
+				//Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setThresholdOffset(
+				//	Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getThresholdOffset());
+			}
+
+			for (unsigned int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies().size(); i++)
+			{
+				if (i >= (*it)->getRigidBodies().size())
+					(*it)->addRigidBody();
+
+				(*it)->getRigidBodies()[i]->copyData(
+					Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]);
+			}
+
+			while ((*it)->getRigidBodies().size() > Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies().size())
+				(*it)->removeRigidBody((*it)->getRigidBodies().size() - 1);
+
+			while ((*it)->getMarkers().size() > Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers().size())
+				(*it)->removeMarker((*it)->getMarkers().size() - 1);
+
+			(*it)->setRequiresRecomputation(true);
+		}
+	}
 }
 
 bool PointsDockWidget::selectPoint(int idx)

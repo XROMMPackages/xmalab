@@ -128,6 +128,25 @@ RigidBodyDialog::RigidBodyDialog(RigidBody* body, QWidget* parent) :
 	diag->doubleSpinBoxMeshScale->setValue(m_body->getMeshScale());
 
 	reloadDummyPoints();
+
+	if (m_body->getTrial()->getIsDefault())
+	{
+		diag->pushButton_setFromFrame->setEnabled(false);
+		diag->checkBox_Optimized->setEnabled(false);
+		diag->pushButtonUpdate->setEnabled(false);
+	}
+	else if (m_body->getTrial()->getIsCopyFromDefault())
+	{	
+		diag->groupBox->setEnabled(false);
+		diag->groupBox_2->setEnabled(false);
+		diag->groupBox_3->setEnabled(false);
+		diag->groupBox_4->setEnabled(false);
+		diag->pushButton_setFromFile->setEnabled(false);
+		diag->pushButton_setFromFrame->setEnabled(false);
+		diag->pushButton_Reset->setEnabled(false);
+		diag->checkBox_Optimized->setEnabled(false);
+		diag->pushButtonUpdate->setEnabled(false);
+	}
 }
 
 

@@ -76,6 +76,7 @@ namespace xma
 		void on_pushButton_OK_clicked();
 		void on_pushButton_Cancel_clicked();
 		void on_pushButton_LoadXMA_clicked();
+		void on_pushButton_Default_clicked();
 
 		void on_lineEditTrialName_textChanged(QString text);
 		void LoadXMAFinished();

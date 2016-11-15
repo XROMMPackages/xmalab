@@ -392,8 +392,13 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 								{
 									QString _trialname = attr.value("Name").toString();
 									QString trialfolder = basedir + OS_SEP + _trialname + OS_SEP;
-									trial = new Trial(_trialname, littleHelper::adjustPathToOS(trialfolder));
-
+									if (trialname == "Default")
+									{
+										trial = new Trial();
+									}
+									else{
+										trial = new Trial(_trialname, littleHelper::adjustPathToOS(trialfolder));
+									}
 									int startFrame = attr.value("startFrame").toString().toInt();
 									trial->setStartFrame(startFrame);
 									int endFrame = attr.value("endFrame").toString().toInt();
@@ -420,6 +425,17 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 										loadProjectMetaData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
 										trial->setXMLData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
 										trial->parseXMLData();
+									}
+
+									QString isDefault = attr.value("Default").toString();
+									if (!isDefault.isEmpty())
+									{
+										trial->setIsDefault(isDefault.toInt());
+									}
+									QString fromDefault = attr.value("FromDefault").toString();
+									if (!fromDefault.isEmpty())
+									{
+										trial->setIsCopyFromDefault(fromDefault.toInt());
 									}
 
 									while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "Trial"))
@@ -1199,6 +1215,8 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 			{
 				xmlWriter.writeStartElement("Trial");
 				xmlWriter.writeAttribute("Name", (*trial_it)->getName());
+				xmlWriter.writeAttribute("Default", QString::number((*trial_it)->getIsDefault()));
+				xmlWriter.writeAttribute("FromDefault", QString::number((*trial_it)->getIsCopyFromDefault()));
 				xmlWriter.writeAttribute("startFrame", QString::number((*trial_it)->getStartFrame()));
 				xmlWriter.writeAttribute("endFrame", QString::number((*trial_it)->getEndFrame()));
 				xmlWriter.writeAttribute("referenceCalibration", QString::number((*trial_it)->getReferenceCalibrationImage()));
@@ -1515,12 +1533,19 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							QXmlStreamAttributes attr = xml.attributes();
 							QString trialname = attr.value("Name").toString();
 							QString trialfolder = basedir + OS_SEP + trialname + OS_SEP;
-							Trial* trial = new Trial(trialname, littleHelper::adjustPathToOS(trialfolder));
-
+							Trial* trial;
+							if (trialname == "Default")
+							{
+								trial = new Trial();
+							}
+							else{
+								trial = new Trial(trialname, littleHelper::adjustPathToOS(trialfolder));
+							}
 							int startFrame = attr.value("startFrame").toString().toInt();
 							trial->setStartFrame(startFrame);
 							int endFrame = attr.value("endFrame").toString().toInt();
 							trial->setEndFrame(endFrame);
+
 							int referenceCalibration = attr.value("referenceCalibration").toString().toInt();
 							trial->setReferenceCalibrationImage(referenceCalibration);
 
@@ -1542,6 +1567,17 @@ bool ProjectFileIO::readProjectFile(QString filename)
 								loadProjectMetaData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
 								trial->setXMLData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
 								trial->parseXMLData();
+							}
+
+							QString isDefault = attr.value("Default").toString();
+							if (!isDefault.isEmpty())
+							{
+								trial->setIsDefault(isDefault.toInt());
+							}
+							QString fromDefault = attr.value("FromDefault").toString();
+							if (!fromDefault.isEmpty())
+							{
+								trial->setIsCopyFromDefault(fromDefault.toInt());
 							}
 
 							while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "Trial"))

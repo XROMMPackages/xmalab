@@ -76,6 +76,8 @@ namespace xma
 		void selectNextPoint();
 		void selectPrevPoint();
 		void selectAllPoints();
+		void on_checkBoxIsFromMaster_clicked();
+		void on_pushButtonApply_clicked();
 
 		signals:
 		void activePointChanged(int idx);

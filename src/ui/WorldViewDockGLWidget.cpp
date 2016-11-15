@@ -329,7 +329,8 @@ void WorldViewDockGLWidget::drawCameras()
 				if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 &&
 					State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
 				{
-					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getVideoStreams()[cam]->getImage()->bindTexture();
+					if (!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault())
+						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getVideoStreams()[cam]->getImage()->bindTexture();
 				}
 			}
 

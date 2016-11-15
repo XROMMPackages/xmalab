@@ -81,7 +81,6 @@ RigidBody::RigidBody(int size, Trial* _trial)
 void RigidBody::copyData(RigidBody* rb)
 {
 	setDescription(rb->getDescription());
-
 	clearPointIdx();
 
 	for (unsigned int j = 0; j < rb->getPointsIdx().size(); j++)
@@ -105,16 +104,19 @@ void RigidBody::copyData(RigidBody* rb)
 
 		updateCenter();
 	}
+
 	bool modelLoaded = addMeshModel(rb->getMeshModelname());
 	if (modelLoaded) {
 		m_drawMeshModel = rb->getDrawMeshModel();
 		meshScale = rb->getMeshScale();
 	}
+
 	hasOptimizedCoordinates = rb->hasOptimizedCoordinates;
 	overrideCutoffFrequency = rb->getOverrideCutoffFrequency();
 	cutoffFrequency = rb->getOverrideCutoffFrequency();
 	color = rb->getColor();
 	meshScale = rb->getMeshScale();
+	expanded= rb->isExpanded();
 }
 
 RigidBody::~RigidBody()
@@ -288,7 +290,9 @@ bool RigidBody::addMeshModel(QString filename)
 	{
 		delete meshmodel;
 	}
+
 	RigidBodyObj* tmp = new RigidBodyObj(filename, this);
+
 	if (tmp->vboSet())
 	{
 		meshmodel = tmp;
@@ -308,6 +312,9 @@ bool RigidBody::hasMeshModel()
 
 QString RigidBody::getMeshModelname()
 {
+	if (meshmodel == NULL) 
+		return "";
+
 	return meshmodel->getFilename();
 }
 

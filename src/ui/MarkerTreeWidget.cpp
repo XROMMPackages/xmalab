@@ -156,21 +156,21 @@ void MarkerTreeWidget::showContextMenu(QTreeWidgetItem* item_contextMenu, const 
 	switch (item_contextMenu->type())
 	{
 	case MARKER:
-		menu.addAction(action_ChangeDescription);
-		menu.addAction(action_CreateRigidBody);
-		menu.addAction(action_AddToRigidBody);
-		menu.addAction(action_ResetPoints);
-		menu.addAction(action_DeletePoints);
-		menu.addAction(action_ChangeDetectionMethod);
-		menu.addAction(action_RefinePointsPolynomialFit);
-		menu.addAction(action_ChangePoint);
-		menu.addAction(action_Save3D);
+		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsCopyFromDefault())menu.addAction(action_ChangeDescription);
+		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsCopyFromDefault()) menu.addAction(action_CreateRigidBody);
+		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsCopyFromDefault())menu.addAction(action_AddToRigidBody);
+		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsDefault())menu.addAction(action_ResetPoints);
+		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsCopyFromDefault())menu.addAction(action_DeletePoints);
+		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsCopyFromDefault())menu.addAction(action_ChangeDetectionMethod);
+		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsDefault())menu.addAction(action_RefinePointsPolynomialFit);
+		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsDefault())menu.addAction(action_ChangePoint);
+		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsDefault())menu.addAction(action_Save3D);
 
 		break;
 
 	case RIGID_BODY:
-		menu.addAction(action_ChangeDescription);
-		menu.addAction(action_SaveTransformations);
+		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsCopyFromDefault())menu.addAction(action_ChangeDescription);
+		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsDefault())menu.addAction(action_SaveTransformations);
 		break;
 	}
 

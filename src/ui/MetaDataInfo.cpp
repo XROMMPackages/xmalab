@@ -63,6 +63,9 @@ MetaDataInfo::MetaDataInfo(QWidget* parent) :
 	
 		for (unsigned int i = 0; i < Project::getInstance()->getInstance()->getTrials().size(); i++)
 		{
+			if (Project::getInstance()->getTrials()[i]->getIsDefault())
+				continue;
+
 			QTreeWidgetItem * itemTrial = new QTreeWidgetItem(QStringList() << "Trial" << Project::getInstance()->getTrials()[i]->getName());
 			diag->treeWidget->addTopLevelItem(itemTrial);
 			itemTrial->addChild(new QTreeWidgetItem(QStringList() << "Repository:" << Project::getInstance()->getTrials()[i]->getRepository()));

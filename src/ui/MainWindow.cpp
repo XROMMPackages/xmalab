@@ -873,6 +873,10 @@ void MainWindow::checkTrialImagePaths()
 	for (unsigned int t = 0; t < Project::getInstance()->getTrials().size(); t++)
 	{
 		bool requiresReload = false;
+
+		if (Project::getInstance()->getTrials()[t]->getIsDefault())
+			continue;
+
 		for (unsigned int c = 0; c < Project::getInstance()->getCameras().size(); c++)
 		{
 			QString filename = littleHelper::adjustPathToOS(Project::getInstance()->getTrials()[t]->getVideoStreams()[c]->getFilenames()[0]);
@@ -1111,6 +1115,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			{
 				ui->labelCalibrateFirst->setVisible(false);
 				ui->pushButtonNewTrial->setVisible(true);
+				ui->pushButtonDefaultTrial->setVisible(true);
 
 				ui->actionDetailed_View->setEnabled(true);
 				ui->actionPlot->setEnabled(true);
@@ -1146,16 +1151,18 @@ void MainWindow::workspaceChanged(work_state workspace)
 					DetailViewDockWidget::getInstance()->hide();
 				}
 			}
-			else
+			else 
 			{
 				ui->labelCalibrateFirst->setVisible(true);
 				ui->pushButtonNewTrial->setVisible(false);
+				ui->pushButtonDefaultTrial->setVisible(false);
 
 				ui->actionDetailed_View->setEnabled(false);
 				ui->actionPlot->setEnabled(false);
 				ui->actionDetectionSettings->setEnabled(false);
 				ui->action3D_world_view->setEnabled(false);
 
+				
 				PointsDockWidget::getInstance()->hide();
 				DetailViewDockWidget::getInstance()->hide();
 				PlotWindow::getInstance()->hide();
@@ -1181,11 +1188,13 @@ void MainWindow::workspaceChanged(work_state workspace)
 			{
 				ui->labelCalibrateFirst->setVisible(false);
 				ui->pushButtonNewTrial->setVisible(true);
+				ui->pushButtonDefaultTrial->setVisible(true);
 			}
 			else
 			{
 				ui->labelCalibrateFirst->setVisible(true);
 				ui->pushButtonNewTrial->setVisible(false);
+				ui->pushButtonDefaultTrial->setVisible(false);
 			}
 			ui->actionExport2D_Points->setEnabled(false);
 			ui->actionExport3D_Points->setEnabled(false);
@@ -1706,6 +1715,15 @@ void MainWindow::on_pushButtonLoad_Project_clicked()
 void MainWindow::on_pushButtonNewTrial_clicked()
 {
 	newTrial();
+}
+
+void MainWindow::on_pushButtonDefaultTrial_clicked()
+{
+	NewTrialDialog* newTriaLdialog = new NewTrialDialog();
+	newTriaLdialog->on_pushButton_Default_clicked();
+	State::getInstance()->changeActiveTrial(project->getTrials().size() - 1);
+	State::getInstance()->changeActiveFrameTrial(project->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
+	delete newTriaLdialog;
 }
 
 void MainWindow::on_action3D_world_view_triggered(bool checked)

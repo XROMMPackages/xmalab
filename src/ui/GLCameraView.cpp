@@ -546,13 +546,15 @@ void GLCameraView::drawTexture()
 	{
 		if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
 		{
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getVideoStreams()[camera->getID()]->bindTexture();
+			if (!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault())
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getVideoStreams()[camera->getID()]->bindTexture();
 		}
 	}
 	if (drawImage)
 	{
 		glDisable(GL_LIGHTING);
-		drawQuad();
+		if (State::getInstance()->getWorkspace() != DIGITIZATION || !Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault())
+			drawQuad();
 	}
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);

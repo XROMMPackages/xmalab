@@ -53,6 +53,8 @@ namespace Maths
 			//backsubstituiton
 			for (i = A.size() - 2; i >= 0;  i--)
 				D[i] -= (D[i + 1] * F[i + 1]);
+
+			return true;
 		}
 
 		/*******************************************************************
