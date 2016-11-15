@@ -165,7 +165,6 @@ void Image::loadTexture()
 		if (!color)
 		{
 			imageOut.create(image.rows, image.cols, CV_8UC(3));
-			cv::imwrite("test.png", image);
 			cvtColor(image, imageOut, CV_GRAY2RGB);
 		}
 		else
