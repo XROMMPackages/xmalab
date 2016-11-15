@@ -48,7 +48,7 @@ namespace xma
 
 		static DetectionSettings* getInstance();
 		void setMarker(Marker * marker);
-		void DetectionSettings::update(int camera, cv::Point2d center);
+		void update(int camera, cv::Point2d center);
 	protected:
 		virtual void closeEvent(QCloseEvent * e);
 		virtual void showEvent(QShowEvent * event);
