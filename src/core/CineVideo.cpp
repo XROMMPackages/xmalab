@@ -80,6 +80,7 @@ void readAndAdvance(T* output, char* & ptr, int length)
 
 CineVideo::CineVideo(QStringList _filenames) : VideoStream(_filenames)
 {
+	lastFrame = -1;
 	loadCineInfo();
 }
 
@@ -565,6 +566,11 @@ CineVideo::~CineVideo()
 
 void CineVideo::setActiveFrame(int _activeFrame)
 {
+	if (lastFrame == _activeFrame)
+		return;
+
+	lastFrame = _activeFrame;
+
 	std::ifstream is(filenames.at(0).toAscii().data(), std::ifstream::binary);
 	if (_activeFrame < (int) ImageCount && _activeFrame < (int) image_addresses.size())
 	{

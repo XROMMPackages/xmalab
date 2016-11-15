@@ -114,6 +114,7 @@ SET(XMALab_HEADERS
 	src/core/ImageSequence.h
 	src/core/HelperFunctions.h
 	src/core/RigidBodyObj.h
+	src/core/CalibrationSequence.h
 )
 
 SET(XMALab_SOURCES
@@ -133,6 +134,7 @@ SET(XMALab_SOURCES
 	src/core/ImageSequence.cpp
 	src/core/HelperFunctions.cpp
 	src/core/RigidBodyObj.cpp
+	src/core/CalibrationSequence.cpp
 )
 
 SOURCE_GROUP(_CORE FILES ${XMALab_HEADERS} ${XMALab_SOURCES})

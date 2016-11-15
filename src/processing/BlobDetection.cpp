@@ -40,6 +40,7 @@
 #include "core/CalibrationObject.h"
 #include "core/UndistortionObject.h"
 #include "core/Settings.h"
+#include "core/CalibrationSequence.h"
 
 #include <QtCore>
 
@@ -65,7 +66,7 @@ void BlobDetection::process()
 	}
 	else
 	{
-		Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[m_image]->getImage()->getImage(image);
+		Project::getInstance()->getCameras()[m_camera]->getCalibrationSequence()->getImage(m_image,true)->getImage(image);
 	}
 
 	cv::SimpleBlobDetector::Params paramsBlob;

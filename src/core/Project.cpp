@@ -375,6 +375,7 @@ void Project::loadTextures()
 		(*it)->loadTextures();
 		QApplication::processEvents();
 	}
+
 }
 
 void Project::exportDLT(QString foldername)

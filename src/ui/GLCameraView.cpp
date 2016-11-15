@@ -49,6 +49,7 @@
 #include "core/Marker.h"
 #include "core/RigidBody.h"
 #include "core/Settings.h"
+#include "core/CalibrationSequence.h"
 #include "processing/MarkerDetection.h"
 
 
@@ -262,7 +263,7 @@ void GLCameraView::mousePressEvent(QMouseEvent* e)
 					{
 						method = method - 1; // different ordering than normal detection
 					}
-					cv::Point out = MarkerDetection::detectionPoint(camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getImage(), method, cv::Point2d(x, y), 40, 5);
+					cv::Point out = MarkerDetection::detectionPoint(camera->getCalibrationSequence()->getImage(State::getInstance()->getActiveFrameCalibration(), true), method, cv::Point2d(x, y), 40, 5);
 					x = out.x;
 					y = out.y;
 				}
@@ -540,7 +541,7 @@ void GLCameraView::drawTexture()
 	}
 	else if (State::getInstance()->getWorkspace() == CALIBRATION)
 	{
-		camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->bindTexture(State::getInstance()->getCalibrationVisImage());
+		camera->getCalibrationSequence()->bindTexture(State::getInstance()->getActiveFrameCalibration(),State::getInstance()->getCalibrationVisImage());
 	}
 	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{

@@ -36,6 +36,7 @@ using namespace xma;
 
 AviVideo::AviVideo(QStringList _filenames) : VideoStream(_filenames)
 {
+	lastFrame = -1;
 	reloadFile();
 }
 
@@ -45,6 +46,10 @@ AviVideo::~AviVideo()
 
 void AviVideo::setActiveFrame(int _activeFrame)
 {
+	if (lastFrame == _activeFrame)
+		return;
+
+	lastFrame = _activeFrame;
 	cv::VideoCapture cap(filenames.at(0).toAscii().data());
 	if (cap.isOpened() && _activeFrame >= 0 && _activeFrame < nbImages)
 	{

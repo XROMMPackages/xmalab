@@ -141,7 +141,7 @@ void CameraBox::addUndistortionImage(QString filename)
 void CameraBox::on_toolButtonImages_clicked()
 {
 	imageFileNames = QFileDialog::getOpenFileNames(this,
-	                                               tr("Open Calibration Images"), Settings::getInstance()->getLastUsedDirectory(), tr("Image Files (*.png *.jpg *.jpeg *.bmp *.tif)"));
+	                                               tr("Open Calibration Images or video"), Settings::getInstance()->getLastUsedDirectory(), tr("Image Files (*.png *.jpg *.jpeg *.bmp *.tif *.avi *.cine)"));
 
 	imageFileNames.sort();
 	if (imageFileNames.size() > 0 && imageFileNames[0].isNull() == false)

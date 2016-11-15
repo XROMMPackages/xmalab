@@ -40,6 +40,7 @@
 #include "core/Trial.h"
 #include "core/Marker.h"
 #include "core/RigidBody.h"
+#include "core/CalibrationSequence.h"
 
 #include <QtGui/QApplication>
 #include <QMouseEvent>
@@ -322,7 +323,7 @@ void WorldViewDockGLWidget::drawCameras()
 
 			if (State::getInstance()->getWorkspace() == CALIBRATION)
 			{
-				Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->bindTexture(State::getInstance()->getCalibrationVisImage());
+				Project::getInstance()->getCameras()[cam]->getCalibrationSequence()->bindTexture(State::getInstance()->getActiveFrameCalibration(),State::getInstance()->getCalibrationVisImage());
 			}
 			else if (State::getInstance()->getWorkspace() == DIGITIZATION)
 			{

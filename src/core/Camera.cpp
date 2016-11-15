@@ -35,6 +35,7 @@
 #include "core/UndistortionObject.h"
 #include "core/HelperFunctions.h"
 #include "core/CalibrationObject.h"
+#include "core/CalibrationSequence.h"
 
 #include <QApplication>
 
@@ -55,7 +56,7 @@ using namespace xma;
 
 Camera::Camera(QString cameraName, int _id)
 {
-	calibrationImages.clear();
+	calibrationSequence = new CalibrationSequence(this);
 	undistortionObject = NULL;
 
 	name = cameraName;
@@ -75,9 +76,7 @@ Camera::Camera(QString cameraName, int _id)
 
 Camera::~Camera()
 {
-	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
-		delete *it;
-	calibrationImages.clear();
+	delete calibrationSequence;
 	if (undistortionObject)
 		delete undistortionObject;
 
@@ -91,18 +90,13 @@ void Camera::reset()
 	setCalibrated(false);
 	setRecalibrationRequired(0);
 	setUpdateInfoRequired(true);
-	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
-	{
-		(*it)->reset();
-		(*it)->init(CalibrationObject::getInstance()->getFrameSpecifications().size());
-	}
+	calibrationSequence->reset();
 	resetDistortion();
 }
 
 void Camera::deleteFrame(int id)
 {
-	delete calibrationImages[id];
-	calibrationImages.erase(calibrationImages.begin() + id);
+	calibrationSequence->deleteFrame(id);
 }
 
 void Camera::getGLTransformations(int referenceCalibration, double* projection, double* modelviewMatrix)
@@ -183,17 +177,29 @@ cv::Point2d Camera::projectPoint(cv::Point3d pt3d, int referenceCalibration)
 	return pt2d;
 }
 
+cv::Mat* Camera::getUndistortionMapX()
+{
+	return &undistortionMapX;
+}
+
+cv::Mat* Camera::getUndistortionMapY()
+{
+	return &undistortionMapY;
+}
+
+void Camera::setCalibrationSequence(QString filename, int nbImages, int width, int height)
+{
+	calibrationSequence->setCalibrationSequence(filename, nbImages, width, height);
+}
+
 void Camera::loadImages(QStringList fileNames)
 {
-	for (QStringList::const_iterator constIterator = fileNames.constBegin(); constIterator != fileNames.constEnd(); ++constIterator)
-		calibrationImages.push_back(new CalibrationImage(this, (*constIterator)));
+	calibrationSequence->loadImages(fileNames);
 }
 
 CalibrationImage* Camera::addImage(QString fileName)
 {
-	CalibrationImage* image = new CalibrationImage(this, fileName);
-	calibrationImages.push_back(image);
-	return image;
+	return calibrationSequence->addImage(fileName);
 }
 
 void Camera::loadUndistortionImage(QString undistortionImage)
@@ -203,23 +209,29 @@ void Camera::loadUndistortionImage(QString undistortionImage)
 
 bool Camera::setResolutions()
 {
-	width = calibrationImages[0]->getWidth();
-	height = calibrationImages[0]->getHeight();
-
+	calibrationSequence->getResolution(width, height);
+	
 	if (hasModelDistortion())
 	{
 		cv::initUndistortRectifyMap(cameramatrix, distortion_coeffs, cv::Mat(), cameramatrix, cv::Size(width, height), CV_32FC1, undistortionMapX, undistortionMapY);
 	}
 
-	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
-	{
-		if (width != (*it)->getWidth() || height != (*it)->getHeight()) return false;
-	}
+	if (!calibrationSequence->checkResolution(width, height)) return false;
 
 	if (undistortionObject && (width != undistortionObject->getWidth() || height != undistortionObject->getHeight())) return false;
 
 
 	return true;
+}
+
+const std::vector<CalibrationImage*>& Camera::getCalibrationImages()
+{
+	return calibrationSequence->getCalibrationImages();
+}
+
+CalibrationSequence* Camera::getCalibrationSequence()
+{
+	return calibrationSequence;
 }
 
 void Camera::save(QString folder)
@@ -242,18 +254,7 @@ void Camera::save(QString folder)
 		}
 	}
 
-	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
-	{
-		(*it)->getImage()->save(folder + (*it)->getFilename());
-		if ((*it)->isCalibrated())
-		{
-			(*it)->savePointsInlier(folder + "data" + OS_SEP + (*it)->getFilenamePointsInlier());
-			(*it)->savePointsDetected(folder + "data" + OS_SEP + (*it)->getFilenamePointsDetected());
-			(*it)->savePointsDetectedAll(folder + "data" + OS_SEP + (*it)->getFilenamePointsDetectedAll());
-			(*it)->saveRotationMatrix(folder + "data" + OS_SEP + (*it)->getFilenameRotationMatrix());
-			(*it)->saveTranslationVector(folder + "data" + OS_SEP + (*it)->getFilenameTranslationVector());
-		}
-	}
+	calibrationSequence->save(folder);
 }
 
 void Camera::loadTextures()
@@ -263,11 +264,7 @@ void Camera::loadTextures()
 
 	QApplication::processEvents();
 
-	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
-	{
-		(*it)->loadTextures();
-		QApplication::processEvents();
-	}
+	calibrationSequence->loadTextures();
 }
 
 void Camera::undistort()
@@ -275,37 +272,10 @@ void Camera::undistort()
 	if (undistortionObject && undistortionObject->isComputed())
 	{
 		undistortionObject->undistort(undistortionObject->getImage(), undistortionObject->getUndistortedImage());
-
-		for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
-		{
-			undistortionObject->undistort((*it)->getImage(), (*it)->getUndistortedImage());
-			if (hasModelDistortion())
-			{
-				cv::Mat imageMat;
-				(*it)->getUndistortedImage()->getImage(imageMat);
-				cv::remap(imageMat, imageMat, undistortionMapX, undistortionMapY, cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
-				(*it)->getUndistortedImage()->setImage(imageMat);
-				imageMat.release();
-			}
-			if (isCalibrated())setRecalibrationRequired(1);
-		}
-	}
-	else if (hasModelDistortion())
-	{
-		for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
-		{
-			cv::Mat imageMat;
-			(*it)->getImage()->getImage(imageMat);
-			cv::remap(imageMat, imageMat, undistortionMapX, undistortionMapY, cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
-			(*it)->getUndistortedImage()->setImage(imageMat);
-			imageMat.release();
-		}
 	}
 
-	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
-	{
-		(*it)->undistortPoints();
-	}
+	if (isCalibrated())setRecalibrationRequired(1);
+	calibrationSequence->undistort();
 }
 
 void Camera::setCalibrated(bool value)

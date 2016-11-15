@@ -44,6 +44,7 @@
 #include "core/Marker.h" 
 #include "core/RigidBody.h" 
 #include "core/CalibrationImage.h"
+#include "core/CalibrationSequence.h"
 #include "core/UndistortionObject.h"
 #include "core/CalibrationObject.h"
 #include "core/HelperFunctions.h"
@@ -1158,11 +1159,36 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 					xmlWriter.writeEndElement();
 				}
 
+				if ((*it)->getCalibrationSequence()->hasCalibrationSequence())
+				{
+					xmlWriter.writeStartElement("CalibrationSequence");
+					xmlWriter.writeAttribute("Filename", (*it)->getCalibrationSequence()->getFilename());
+					xmlWriter.writeAttribute("Frames", QString::number((*it)->getCalibrationSequence()->getNbImages()));
+					int width, height;
+					(*it)->getCalibrationSequence()->getResolution(width, height);
+					xmlWriter.writeAttribute("Width", QString::number(width));
+					xmlWriter.writeAttribute("Height", QString::number(height));
+					xmlWriter.writeEndElement();
+				}
+				int count = 0;
 				for (std::vector<CalibrationImage*>::const_iterator it2 = (*it)->getCalibrationImages().begin(); it2 != (*it)->getCalibrationImages().end(); ++it2)
 				{
-					xmlWriter.writeStartElement("CalibrationImage");
-					xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + (*it2)->getFilename());
-					xmlWriter.writeAttribute("isCalibrated", QString::number((*it2)->isCalibrated()));
+					if ((*it)->getCalibrationSequence()->hasCalibrationSequence())
+					{
+						if ((*it2)->isCalibrated())
+						{
+							xmlWriter.writeStartElement("CalibrationImage");
+							xmlWriter.writeAttribute("Frame", QString::number(count));
+							xmlWriter.writeAttribute("isCalibrated", QString::number((*it2)->isCalibrated()));
+						}
+					} 
+					else
+					{
+						xmlWriter.writeStartElement("CalibrationImage");
+						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + (*it2)->getFilename());
+						xmlWriter.writeAttribute("isCalibrated", QString::number((*it2)->isCalibrated()));
+					}
+
 					if ((*it2)->isCalibrated())
 					{
 						xmlWriter.writeStartElement("PointsDetectedAll");
@@ -1185,10 +1211,11 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it2)->getFilenameTranslationVector());
 						xmlWriter.writeEndElement();
 					}
+					if (!(*it)->getCalibrationSequence()->hasCalibrationSequence() || (*it2)->isCalibrated())
+						xmlWriter.writeEndElement();
 
-					xmlWriter.writeEndElement();
-				}
-
+					count++;
+				}			
 				xmlWriter.writeEndElement();
 			}
 
@@ -1436,13 +1463,34 @@ bool ProjectFileIO::readProjectFile(QString filename)
 											xml.readNext();
 										}
 									}
-									else if (xml.name() == "CalibrationImage")
+									else if (xml.name() == "CalibrationSequence")
 									{
 										attr = xml.attributes();
+										QString filename_seq = attr.value("Filename").toString();
+										filename_seq.replace("\\", OS_SEP);
+										filename_seq.replace("/", OS_SEP);
+
+										int frames_seq = attr.value("Frames").toString().toInt();
+										int width_seq = attr.value("Width").toString().toInt();
+										int height_seq = attr.value("Height").toString().toInt();
+										cam->setCalibrationSequence(filename_seq,frames_seq, width_seq, height_seq);
+									}
+									else if (xml.name() == "CalibrationImage")
+									{
+										CalibrationImage* image;
+										attr = xml.attributes();
 										text = attr.value("Filename").toString();
-										text.replace("\\",OS_SEP);
-										text.replace("/",OS_SEP);
-										CalibrationImage* image = cam->addImage(basedir + OS_SEP + text);
+										if (!text.isEmpty()){
+											text.replace("\\", OS_SEP);
+											text.replace("/", OS_SEP);
+											//TODO
+											image = cam->addImage(basedir + OS_SEP + text);
+										} 
+										else
+										{
+											int frame = attr.value("Frame").toString().toInt();
+											image = cam->getCalibrationImages()[frame];
+										}
 										image->setCalibrated(attr.value("isCalibrated").toString().toInt());
 										while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "CalibrationImage"))
 										{

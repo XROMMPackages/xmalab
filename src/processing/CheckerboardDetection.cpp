@@ -39,6 +39,7 @@
 #include "core/CalibrationImage.h"
 #include "core/CalibrationObject.h"
 #include "core/Settings.h"
+#include "core/CalibrationSequence.h"
 
 #include <QtCore>
 
@@ -91,7 +92,7 @@ void CheckerboardDetection::detectCorner_thread()
 	tmpPoints.clear();
 	cv::Mat image;
 
-	Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[m_image]->getImage()->getImage(image);
+	Project::getInstance()->getCameras()[m_camera]->getCalibrationSequence()->getImage(m_image,true)->getImage(image);
 
 	if (!viaHomography){
 		cv::vector<cv::Point2f> tmpPoints2;

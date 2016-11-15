@@ -64,6 +64,8 @@ namespace xma
 
 		void loadCineInfo();
 
+		int lastFrame;
+
 		//CINEFILEHEADER
 		CHAR Type[2];
 		WORD Headersize;

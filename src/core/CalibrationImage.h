@@ -40,7 +40,7 @@ namespace xma
 	{
 	public:
 
-		CalibrationImage(Camera* _camera, QString imageFileName);
+		CalibrationImage(Camera* _camera, QString imageFileName, bool createImages = true);
 
 		virtual ~CalibrationImage();
 
@@ -77,7 +77,6 @@ namespace xma
 			calibrated = value;
 		}
 
-		QString getImageFilename();
 		void loadTextures();
 		void init(int nbPoints);
 

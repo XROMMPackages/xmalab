@@ -38,7 +38,7 @@ namespace xma
 	class Image;
 	class UndistortionObject;
 	class CalibrationImage;
-
+	class CalibrationSequence;
 	class Camera
 	{
 	public:
@@ -57,10 +57,8 @@ namespace xma
 			return undistortionObject;
 		}
 
-		const std::vector<CalibrationImage*>& getCalibrationImages()
-		{
-			return calibrationImages;
-		}
+		const std::vector<CalibrationImage*>& getCalibrationImages();
+		CalibrationSequence* getCalibrationSequence();
 
 		bool hasUndistortion()
 		{
@@ -177,9 +175,14 @@ namespace xma
 
 		cv::Point2d projectPoint(cv::Point3d, int referenceCalibration);
 
+		cv::Mat* getUndistortionMapX();
+		cv::Mat* getUndistortionMapY();
+
+		void setCalibrationSequence(QString filename, int nbImages, int width, int height);
+
 	private:
 		//InputData
-		std::vector<CalibrationImage*> calibrationImages;
+		CalibrationSequence* calibrationSequence;
 		UndistortionObject* undistortionObject;
 
 		//Camera parameters

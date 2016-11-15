@@ -20,30 +20,70 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file AviVideo.h
+///\file CalibrationSequence.h
 ///\author Benjamin Knorlein
-///\date 11/20/2015
+///\date 11/15/2016
 
-#ifndef AVIVIDEO_H_
-#define AVIVIDEO_H_
+#ifndef CALIBRATIONSEQUENCE_H_
+#define CALIBRATIONSEQUENCE_H_
 
-#include <core/VideoStream.h>
+#include <QString>
+#include <QStringList>
+
+#include <opencv/cv.h>
+#include <fstream>
 
 namespace xma
 {
-	class AviVideo: public VideoStream
+	class CalibrationImage;
+	class Camera;
+	class Image;
+	class VideoStream;
+
+	class CalibrationSequence
 	{
 	public:
-		AviVideo(QStringList _filenames);
-		virtual ~AviVideo();
+		CalibrationSequence(Camera * camera);
+		virtual ~CalibrationSequence();
 
-		void setActiveFrame(int _activeFrame) override;
-		QString getFrameName(int frameNumber) override;
-		void reloadFile() override;
+		const std::vector<CalibrationImage*>& getCalibrationImages()
+		{
+			return calibrationImages;
+		}
+
+		void reset();
+		void deleteFrame(int id);
+		void getResolution(int &width, int &height);
+		bool checkResolution(int width, int height);
+
+		void loadImages(QStringList fileNames);
+		CalibrationImage* addImage(QString fileName);
+
+		void save(QString folder);
+		void loadTextures();
+		void undistort();
+		Image* getImage(int id, bool dist);
+		void bindTexture(int id, int type);
+
+		bool hasCalibrationSequence();
+		QString getFilename();
+		int getNbImages();
+		void setCalibrationSequence(QString filename, int nbImages, int width, int height);
+
 	private:
-		int lastFrame;
+		std::vector<CalibrationImage*> calibrationImages;
+		VideoStream * sequence;
+		int sequence_width;
+		int sequence_height;
+		Camera* m_camera;
+
+		void undstortSequenceImage(int id);
+		Image* undistortedImage;
+		int lastUndistorted; 
+		QString sequence_filename;
 	};
 }
 
-#endif /* AVIVIDEO_H_ */
+
+#endif /* CALIBRATIONSEQUENCE_H_ */
 

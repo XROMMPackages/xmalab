@@ -39,16 +39,24 @@
 
 using namespace xma;
 
-CalibrationImage::CalibrationImage(Camera* _camera, QString _imageFileName)
+CalibrationImage::CalibrationImage(Camera* _camera, QString _imageFileName, bool createImage)
 {
 	camera = _camera;
 	imageFileName = _imageFileName;
-	image = new Image(imageFileName);
 
-	width = image->getWidth();
-	height = image->getHeight();
+	if (createImage){
+		image = new Image(imageFileName);
 
-	undistortedImage = new Image(image);
+		width = image->getWidth();
+		height = image->getHeight();
+
+		undistortedImage = new Image(image);
+	} else
+	{
+		image = NULL;
+		undistortedImage = NULL;
+	}
+
 
 	calibrated = 0;
 
@@ -60,8 +68,8 @@ CalibrationImage::CalibrationImage(Camera* _camera, QString _imageFileName)
 
 CalibrationImage::~CalibrationImage()
 {
-	delete image;
-	delete undistortedImage;
+	if(image) delete image;
+	if (undistortedImage) delete undistortedImage;
 
 	rotationvector.release();
 	translationvector.release();

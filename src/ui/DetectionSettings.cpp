@@ -49,7 +49,8 @@ DetectionSettings::DetectionSettings(QWidget* parent) :
 	m_lastCam = -1;
 	diag->setupUi(this);
 	connect(PointsDockWidget::getInstance(), SIGNAL(activePointChanged(int)), this, SLOT(activePointChanged(int)));
-	setMarker(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker());
+	if (State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size())
+		setMarker(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker());
 }
 
 void DetectionSettings::on_comboBox_currentIndexChanged(int index)
