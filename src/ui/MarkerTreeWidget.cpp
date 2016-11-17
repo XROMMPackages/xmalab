@@ -160,7 +160,8 @@ void MarkerTreeWidget::showContextMenu(QTreeWidgetItem* item_contextMenu, const 
 		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsCopyFromDefault()) menu.addAction(action_CreateRigidBody);
 		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsCopyFromDefault())menu.addAction(action_AddToRigidBody);
 		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsDefault())menu.addAction(action_ResetPoints);
-		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsCopyFromDefault())menu.addAction(action_DeletePoints);
+		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsCopyFromDefault()
+			&& !Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsDefault())menu.addAction(action_DeletePoints);
 		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsCopyFromDefault())menu.addAction(action_ChangeDetectionMethod);
 		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsDefault())menu.addAction(action_RefinePointsPolynomialFit);
 		if (!Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getIsDefault())menu.addAction(action_ChangePoint);
