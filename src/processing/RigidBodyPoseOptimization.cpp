@@ -113,7 +113,6 @@ void RigidBodyPoseOptimization::projErrorJac(int n, int m, double* p, double* Ja
 		Jac[i*m + 3] = A0[i][3];
 		Jac[i*m + 4] = A0[i][4];
 		Jac[i*m + 5] = A0[i][5];
-		Jac[i*m + 6] = A0[i][6];
 	}
 }
 
