@@ -36,7 +36,6 @@
 #include "ui/MainWindow.h"
 #include "ui/PointsDockWidget.h"
 #include "ui_DetectionSettings.h"
-#include <QtCore/QFile>
 
 using namespace xma;
 

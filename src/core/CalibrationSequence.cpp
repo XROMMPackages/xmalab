@@ -40,12 +40,11 @@
 #include "core/AviVideo.h"
 
 #include <QApplication>
-#include <QtCore/QFile>
+#include <QFile>
 #include "Settings.h"
-#include <QtGui/QFileDialog>
+#include <QFileDialog>
+#include <QFileInfo>
 
-
-class QFileInfo;
 using namespace xma;
 
 CalibrationSequence::CalibrationSequence(Camera * camera)
