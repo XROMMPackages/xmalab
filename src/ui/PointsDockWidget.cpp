@@ -305,6 +305,13 @@ void PointsDockWidget::on_pushButtonApply_clicked()
 				(*it)->getMarkers()[i]->setDescription(
 					Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[i]->getDescription());
 
+				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->Reference3DPointSet())
+					(*it)->getMarkers()[i]->setReference3DPoint(
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->getReference3DPoint().x, 
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->getReference3DPoint().y, 
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->getReference3DPoint().z);
+
+
 				//Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setMaxPenalty(
 				//	Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getMaxPenalty());
 

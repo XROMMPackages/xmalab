@@ -213,7 +213,7 @@ bool ImportExportPointsDialog::copyFromTrial()
 	bool ok = true;
 	if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() > 0 || Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() > 0)
 	{
-		ok = ConfirmationDialog::getInstance()->showConfirmationDialog("All markers and Rigid bodies will be deleted before import. Are you sure you want to proceed?");
+		ok = ConfirmationDialog::getInstance()->showConfirmationDialog("Some markers and Rigid bodies will be deleted before import. Are you sure you want to proceed?");
 	}
 	if (ok)
 	{
@@ -230,6 +230,12 @@ bool ImportExportPointsDialog::copyFromTrial()
 
 					if (i >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
 						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->addMarker();
+
+					if (Project::getInstance()->getTrials()[idx]->getMarkers()[i]->Reference3DPointSet())
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setReference3DPoint(
+						Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getReference3DPoint().x, 
+						Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getReference3DPoint().y, 
+						Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getReference3DPoint().z);
 
 					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setDescription(
 						Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getDescription());
@@ -262,7 +268,6 @@ bool ImportExportPointsDialog::copyFromTrial()
 
 				while (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() > Project::getInstance()->getTrials()[idx]->getMarkers().size())
 					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->removeMarker(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() - 1);
-
 
 				return true;
 			}
