@@ -51,7 +51,7 @@ DetectionSettings::DetectionSettings(QWidget* parent) :
 	if (State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size())
 		setMarker(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker());
 
-	setWindowFlags(windowFlags() & ~Qt::WindowStaysOnTopHint);
+	setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
 }
 
 void DetectionSettings::on_comboBox_currentIndexChanged(int index)
