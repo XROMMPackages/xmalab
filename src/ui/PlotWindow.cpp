@@ -116,6 +116,7 @@ PlotWindow::PlotWindow(QWidget* parent) : QDockWidget(parent), dock(new Ui::Plot
 	connect(dock->doubleSpinBoxError, SIGNAL(valueChanged(double)), this, SLOT(doubleSpinBoxError_valueChanged(double)), Qt::QueuedConnection);
 
 	shiftPressed = false;
+	noSelection = true;
 }
 
 void PlotWindow::installEventFilterToChildren(QObject* object)
@@ -896,6 +897,7 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 
 					startFrame = frame;
 					endFrame = frame;
+					noSelection = true;
 
 					if (frame >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
 						frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1)
@@ -947,6 +949,15 @@ bool PlotWindow::eventFilter(QObject* target, QEvent* event)
 					double x = dock->plotWidget->xAxis->pixelToCoord(_mouseEvent->pos().x());
 					int frame = (x - posOffset) / posMultiplier + 0.5;;
 					endFrame = frame;
+
+					if (endFrame == startFrame)
+					{
+						noSelection = true;
+					}
+					else
+					{
+						noSelection = false;
+					}
 
 					if (frame >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
 						frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1)
@@ -2732,7 +2743,12 @@ void PlotWindow::activeFrameTrialChanged(int frame)
 	{
 		startFrame = tmpStartFrame;
 		endFrame = State::getInstance()->getActiveFrameTrial();
+		noSelection = false;
 		draw();
+	}
+	else if (noSelection)
+	{
+		startFrame = endFrame  = State::getInstance()->getActiveFrameTrial();
 	}
 }
 

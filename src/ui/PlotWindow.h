@@ -97,9 +97,10 @@ namespace xma
 		int endFrame;
 		int tmpStartFrame;
 		bool shiftPressed;
+		bool noSelection;
 
 		bool updating;
-
+		
 	public slots:
 		void on_comboBoxCamera_currentIndexChanged(int idx);
 		void on_comboBoxPlotType_currentIndexChanged(int idx);
