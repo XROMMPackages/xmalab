@@ -171,8 +171,20 @@ bool ImportExportPointsDialog::importCSV()
 {
 	if (!diag->lineEditMarkersCSV->text().isEmpty())
 	{
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->loadMarkersFromCSV(diag->lineEditMarkersCSV->text());
-
+		if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() >0)
+		{
+			if(ConfirmationDialog::getInstance()->showConfirmationDialog("Your current trial already has markers associated with it. Do you want to update the positions of these points based on the data in the csv-file? If you want to add them to the list click Cancel"))
+			{
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->loadMarkersFromCSV(diag->lineEditMarkersCSV->text(), true);
+			} 
+			else
+			{
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->loadMarkersFromCSV(diag->lineEditMarkersCSV->text());
+			}
+		}
+		else{
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->loadMarkersFromCSV(diag->lineEditMarkersCSV->text());
+		}
 		PlotWindow::getInstance()->updateMarkers(false);
 		return true;
 	}

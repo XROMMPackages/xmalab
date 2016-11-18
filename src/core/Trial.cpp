@@ -656,7 +656,7 @@ void Trial::setRequiresRecomputation(bool value)
 	}
 }
 
-void Trial::loadMarkersFromCSV(QString filename)
+void Trial::loadMarkersFromCSV(QString filename, bool updateOnly)
 {
 	QString tmp_names;
 	QString tmp_coords;
@@ -686,9 +686,28 @@ void Trial::loadMarkersFromCSV(QString filename)
 
 	for (unsigned int i = 0; i < points3D_tmp.size(); i++)
 	{
-		addMarker();
-		markers[markers.size() - 1]->setDescription(referenceNames_tmp[i]);
-		markers[markers.size() - 1]->setReference3DPoint(points3D_tmp[i].x, points3D_tmp[i].y, points3D_tmp[i].z);
+		if (!updateOnly){
+			addMarker();
+			markers[markers.size() - 1]->setDescription(referenceNames_tmp[i]);
+			markers[markers.size() - 1]->setReference3DPoint(points3D_tmp[i].x, points3D_tmp[i].y, points3D_tmp[i].z);
+		}
+		else
+		{
+			if (markers.size() <= i) addMarker();
+			markers[i]->setDescription(referenceNames_tmp[i]);
+			markers[i]->setReference3DPoint(points3D_tmp[i].x, points3D_tmp[i].y, points3D_tmp[i].z);
+		}
+	}
+
+	if (updateOnly){
+		for (unsigned int i = 0; i < getRigidBodies().size(); i++)
+		{
+			if (getRigidBodies()[i]->isReferencesSet() == 1){
+				getRigidBodies()[i]->setReferenceMarkerReferences();
+				getRigidBodies()[i]->recomputeTransformations();
+				getRigidBodies()[i]->filterTransformations();
+			}
+		}
 	}
 }
 
