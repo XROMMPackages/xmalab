@@ -76,7 +76,7 @@ void Shortcuts::bindApplicationShortcuts()
 	shortcut = new QShortcut(QKeySequence(Qt::Key_3), WizardDockWidget::getInstance(), SLOT(goToLastTrackedFrame()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_3), WizardDockWidget::getInstance(), SLOT(goToFirstTrackedFrame()));
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_3), WizardDockWidget::getInstance(), SLOT(goToFirstTrackedFrame()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_Q), SequenceNavigationFrame::getInstance(), SLOT(on_toolButtonPrev_clicked()));
@@ -100,7 +100,7 @@ void Shortcuts::bindApplicationShortcuts()
 	shortcut = new QShortcut(QKeySequence(Qt::Key_4), PlotWindow::getInstance(), SLOT(goToNextPointAboveBackprojectionError()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_4), PlotWindow::getInstance(), SLOT(goToPrevPointAboveBackprojectionError()));
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_4), PlotWindow::getInstance(), SLOT(goToPrevPointAboveBackprojectionError()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
 	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_Delete), PlotWindow::getInstance(), SLOT(deleteAllAboveBackprojectionError()));
@@ -192,12 +192,12 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 			WizardDockWidget::getInstance()->trackSelectedPointForward();
 			return true;
 		}
-		if (_keyEvent->key() == Qt::Key_3 && !_keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+		if (_keyEvent->key() == Qt::Key_3 && !_keyEvent->modifiers().testFlag(Qt::ControlModifier))
 		{
 			WizardDockWidget::getInstance()->goToLastTrackedFrame();
 			return true;
 		}
-		if (_keyEvent->key() == Qt::Key_3 && _keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+		if (_keyEvent->key() == Qt::Key_3 && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
 		{
 			WizardDockWidget::getInstance()->goToFirstTrackedFrame();
 			return true;
@@ -232,12 +232,12 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 			PlotWindow::getInstance()->setInterpolation();
 			return true;
 		}
-		if (_keyEvent->key() == Qt::Key_4 && !_keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+		if (_keyEvent->key() == Qt::Key_4 && !_keyEvent->modifiers().testFlag(Qt::ControlModifier))
 		{
 			PlotWindow::getInstance()->goToNextPointAboveBackprojectionError();
 			return true;
 		}
-		if (_keyEvent->key() == Qt::Key_4&& _keyEvent->modifiers().testFlag(Qt::ShiftModifier))
+		if (_keyEvent->key() == Qt::Key_4&& _keyEvent->modifiers().testFlag(Qt::ControlModifier))
 		{
 			PlotWindow::getInstance()->goToPrevPointAboveBackprojectionError();
 			return true;
