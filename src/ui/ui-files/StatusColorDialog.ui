@@ -27,28 +27,35 @@
       <string>MarkerStatus</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="3" column="1">
+      <item row="1" column="1">
+       <widget class="QToolButton" name="toolButton_Untrackable">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
        <widget class="QToolButton" name="toolButton_TrackedAndOpt">
         <property name="text">
          <string/>
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item row="5" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
          <string>Tracked and Optimized</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_6">
+      <item row="8" column="0">
+       <widget class="QLabel" name="label_8">
         <property name="text">
-         <string>Set from mainwindow</string>
+         <string>Manual from detailwindow</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="6" column="1">
        <widget class="QToolButton" name="toolButton_Set">
         <property name="text">
          <string/>
@@ -56,41 +63,27 @@
        </widget>
       </item>
       <item row="6" column="0">
-       <widget class="QLabel" name="label_8">
+       <widget class="QLabel" name="label_6">
         <property name="text">
-         <string>Manual from detailwindow</string>
+         <string>Set from mainwindow</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="7" column="1">
        <widget class="QToolButton" name="toolButton_SetAndOpt">
         <property name="text">
          <string/>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Set and Optimized</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
+      <item row="8" column="1">
        <widget class="QToolButton" name="toolButton_Manual">
         <property name="text">
          <string/>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QToolButton" name="toolButton_Interpolated">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
+      <item row="4" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
          <string>Tracked</string>
@@ -98,44 +91,65 @@
        </widget>
       </item>
       <item row="7" column="0">
-       <widget class="QLabel" name="label_7">
+       <widget class="QLabel" name="label_5">
         <property name="text">
-         <string>Manual and Optimized</string>
+         <string>Set and Optimized</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QToolButton" name="toolButton_Tracked">
+      <item row="3" column="1">
+       <widget class="QToolButton" name="toolButton_Interpolated">
         <property name="text">
          <string/>
         </property>
        </widget>
       </item>
-      <item row="7" column="1">
+      <item row="9" column="1">
        <widget class="QToolButton" name="toolButton_ManualAndOpt">
         <property name="text">
          <string/>
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
+      <item row="9" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Manual and Optimized</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
          <string>Interpolated</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
+      <item row="4" column="1">
+       <widget class="QToolButton" name="toolButton_Tracked">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
          <string>Undefined</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
+      <item row="2" column="1">
        <widget class="QToolButton" name="toolButton_Undefined">
         <property name="text">
          <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_13">
+        <property name="text">
+         <string>Untrackable</string>
         </property>
        </widget>
       </item>
@@ -205,12 +219,6 @@
        </widget>
       </item>
      </layout>
-     <zorder>toolButton_Tracked</zorder>
-     <zorder>label_2</zorder>
-     <zorder>label</zorder>
-     <zorder>toolButton_Interpolated</zorder>
-     <zorder>toolButton_Undefined</zorder>
-     <zorder>label_3</zorder>
      <zorder>label_9</zorder>
      <zorder>label_10</zorder>
      <zorder>toolButton_InterRepeat</zorder>

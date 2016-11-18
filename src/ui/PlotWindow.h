@@ -132,7 +132,7 @@ namespace xma
 
 		void updateExtraPlot();
 		void setInterpolation();
-
+		void setUntrackable();
 	};
 }
 

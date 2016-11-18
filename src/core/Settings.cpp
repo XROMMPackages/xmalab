@@ -84,6 +84,7 @@ Settings::Settings()
 	addBoolSetting("OptimizeRigidBody", true);
 	//Colors
 
+	addQStringSetting("ColorUntrackable", QColor::fromRgb(0, 0, 0).name());
 	addQStringSetting("ColorInterpolated", QColor::fromRgb(255, 205, 50).name());
 	addQStringSetting("ColorManual", QColor::fromRgb(200, 0, 30).name());
 	addQStringSetting("ColorManualAndOpt", QColor::fromRgb(255, 0, 42).name());

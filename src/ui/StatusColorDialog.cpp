@@ -48,6 +48,7 @@ StatusColorDialog::~StatusColorDialog()
 	delete diag;
 }
 
+
 void StatusColorDialog::updateColors()
 {
 	QPixmap pix1(16, 16);
@@ -97,6 +98,10 @@ void StatusColorDialog::updateColors()
 	QPixmap pix12(16, 16);
 	pix12.fill(QColor(Settings::getInstance()->getQStringSetting("ColorInterCubic")));
 	diag->toolButton_InterCubic->setIcon(pix12);
+
+	QPixmap pix13(16, 16);
+	pix13.fill(QColor(Settings::getInstance()->getQStringSetting("ColorUntrackable")));
+	diag->toolButton_Untrackable->setIcon(pix13);
 }
 
 void StatusColorDialog::setColor(QString name)
@@ -110,6 +115,12 @@ void StatusColorDialog::setColor(QString name)
 
 		MainWindow::getInstance()->redrawGL();
 	}
+}
+
+
+void StatusColorDialog::on_toolButton_Untrackable_clicked()
+{
+	setColor("ColorUntrackable");
 }
 
 void StatusColorDialog::on_toolButton_Interpolated_clicked()

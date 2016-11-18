@@ -94,6 +94,9 @@ void Shortcuts::bindApplicationShortcuts()
 	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), PlotWindow::getInstance(), SLOT(setInterpolation()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 	
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_U), PlotWindow::getInstance(), SLOT(setUntrackable()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
 	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), PointsDockWidget::getInstance(), SLOT(selectAllPoints()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
@@ -230,6 +233,11 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 		if (_keyEvent->key() == Qt::Key_I && !_keyEvent->modifiers().testFlag(Qt::ShiftModifier) && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
 		{
 			PlotWindow::getInstance()->setInterpolation();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_U && !_keyEvent->modifiers().testFlag(Qt::ShiftModifier) && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
+		{
+			PlotWindow::getInstance()->setUntrackable();
 			return true;
 		}
 		if (_keyEvent->key() == Qt::Key_4 && !_keyEvent->modifiers().testFlag(Qt::ControlModifier))

@@ -53,6 +53,7 @@ namespace xma
 
 		enum markerStatus
 		{
+			UNTRACKABLE = -30,
 			DELETED = -20,
 			LOST = -10,
 			UNDEFINED = 0,
@@ -118,7 +119,7 @@ namespace xma
 		void load(QString points_filename, QString status_filename, QString markersize_filename);
 		void save3DPoints(QString points_filename, QString status_filename);
 		void load3DPoints(QString points_filename, QString status_filename);
-		void resetMultipleFrames(int camera, int frameStart, int frameEnd);
+		void resetMultipleFrames(int camera, int frameStart, int frameEnd, bool toggleUntrackable = false);
 
 		void interpolate();
 		void setInterpolation(int frame, interpolationMethod method);

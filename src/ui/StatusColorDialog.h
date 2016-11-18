@@ -58,7 +58,8 @@ namespace xma
 
 		
 	public slots:
-    void on_toolButton_Interpolated_clicked();
+	void on_toolButton_Untrackable_clicked();
+	void on_toolButton_Interpolated_clicked();
 	void on_toolButton_Manual_clicked();
 	void on_toolButton_ManualAndOpt_clicked();
 	void on_toolButton_Set_clicked();

@@ -850,7 +850,7 @@ void Marker::load3DPoints(QString points_filename, QString status_filename)
 	fin.close();
 }
 
-void Marker::resetMultipleFrames(int camera, int frameStart, int frameEnd)
+void Marker::resetMultipleFrames(int camera, int frameStart, int frameEnd, bool toggleUntrackable)
 {
 	//fprintf(stderr, "Delete %d - from %d  to %d\n", camera, frameStart, frameEnd);
 	for (int i = frameStart; i <= frameEnd; i++)
@@ -862,8 +862,8 @@ void Marker::resetMultipleFrames(int camera, int frameStart, int frameEnd)
 				points2D[cam][i].x = -2;
 				points2D[cam][i].y = -2;
 				points2D[cam][i].x = -2;
-				points2D_projected[cam][i].y = -2;
-				status2D[cam][i] = UNDEFINED;
+				points2D_projected[cam][i].y = -2;			
+				status2D[cam][i] = toggleUntrackable ? UNTRACKABLE : UNDEFINED;
 				error2D[cam][i] = 0.0;
 				markerSize[cam][i] = -1.0;
 			}
@@ -880,7 +880,7 @@ void Marker::resetMultipleFrames(int camera, int frameStart, int frameEnd)
 			points2D[camera][i].y = -2;
 			points2D[camera][i].x = -2;
 			points2D_projected[camera][i].y = -2;
-			status2D[camera][i] = UNDEFINED;
+			status2D[camera][i] = toggleUntrackable ? UNTRACKABLE : UNDEFINED;
 			error2D[camera][i] = 0.0;
 			markerSize[camera][i] = -1.0;
 
@@ -1467,6 +1467,8 @@ QColor Marker::getStatusColor(int camera, int frame)
 {
 	switch (status2D[camera][frame])
 	{
+		case UNTRACKABLE:
+			return QColor(Settings::getInstance()->getQStringSetting("ColorUntrackable"));
 		case DELETED:
 			return QColor(Settings::getInstance()->getQStringSetting("ColorUndefined"));
 		case LOST:

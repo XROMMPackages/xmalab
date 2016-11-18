@@ -637,6 +637,9 @@ void PlotWindow::deleteData()
 void PlotWindow::drawStatus(int idx)
 {
 	if (dock->checkBoxStatus->isChecked()){
+		QBrush brush_Untrackable = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorUntrackable")));
+		QPen pen_Untrackable = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorUntrackable")));
+
 		QBrush brush_Interpolated = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorInterpolated")));
 		QPen pen_Interpolated = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorInterpolated")));
 
@@ -687,6 +690,10 @@ void PlotWindow::drawStatus(int idx)
 					marker_status[c][count]->setVisible(true);
 					switch (marker->getStatus2D()[c][f - 1])
 					{
+						case UNTRACKABLE:
+							marker_status[c][count]->setBrush(brush_Untrackable);
+							marker_status[c][count]->setPen(pen_Untrackable);
+							break;
 						case UNDEFINED:
 							marker_status[c][count]->setBrush(brush_Undefined);
 							marker_status[c][count]->setPen(pen_Undefined);
@@ -2724,6 +2731,57 @@ void PlotWindow::setInterpolation()
 		marker->updateHasInterpolation();
 		draw();
 	}
+}
+
+void PlotWindow::setUntrackable()
+{
+	int cam = -1;
+	int frameStart;
+	int frameEnd;
+	frameStart = (endFrame > startFrame) ? startFrame : endFrame;
+	frameEnd = (endFrame > startFrame) ? endFrame : startFrame;
+	frameStart = (frameStart < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1 : frameStart;
+	frameEnd = (frameEnd > Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1 : frameEnd;
+
+	QString cameras;
+	if (dock->comboBoxPlotType->currentIndex() == 0 || dock->comboBoxPlotType->currentIndex() == 3)
+	{
+		cam = dock->comboBoxCamera->currentIndex() - 1;
+		cameras = dock->comboBoxCamera->currentText();
+	}
+	else if (dock->comboBoxPlotType->currentIndex() == 1 || dock->comboBoxPlotType->currentIndex() == 2 || dock->comboBoxPlotType->currentIndex() == 4)
+	{
+		cam = -1;
+		cameras = "All Cameras";
+	}
+
+	if (dock->comboBoxPlotType->currentIndex() == 0 || dock->comboBoxPlotType->currentIndex() == 1 || dock->comboBoxPlotType->currentIndex() == 3)
+	{
+		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete your data and set it to untrackable for " + cameras + " for Marker " + dock->comboBoxMarker1->currentText() + " from Frame " +
+			QString::number(frameStart + 1) + " to " + QString::number(frameEnd + 1)))
+			return;
+		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd, true);
+	}
+	else if (dock->comboBoxPlotType->currentIndex() == 2)
+	{
+		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete your data and set it to untrackable for " + cameras + " for Marker " + dock->comboBoxMarker1->currentText() + " and Marker " + dock->comboBoxMarker2->currentText() + " from Frame " +
+			QString::number(frameStart + 1) + " to " + QString::number(frameEnd + 1)))
+			return;
+		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd, true);
+		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd, true);
+	}
+	else if (dock->comboBoxPlotType->currentIndex() == 4 || dock->comboBoxPlotType->currentIndex() == 5)
+	{
+		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete your data and set it to untrackable for " + cameras + " for all marker of Rigid Body " + dock->comboBoxRigidBody->currentText() + " from Frame " + QString::number(frameStart + 1) + " to " + QString::number(frameEnd + 1))) return;
+		for (unsigned int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[dock->comboBoxRigidBody->currentIndex()]->getPointsIdx().size(); i++)
+		{
+			int idx = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[dock->comboBoxRigidBody->currentIndex()]->getPointsIdx()[i];
+			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[idx]->resetMultipleFrames(cam, frameStart, frameEnd, true);
+		}
+
+		on_pushButtonUpdate_clicked();
+	}
+	MainWindow::getInstance()->redrawGL();
 }
 
 void PlotWindow::ShiftPressed()
