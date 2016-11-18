@@ -727,6 +727,7 @@ void MainWindow::closeProject()
 	WizardDockWidget::getInstance()->hide();
 	PointsDockWidget::getInstance()->hide();
 	DetailViewDockWidget::getInstance()->hide();
+	PlotWindow::getInstance()->hide();
 
 #ifndef BETA
 	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
@@ -735,9 +736,11 @@ void MainWindow::closeProject()
 #endif
 
 	ConsoleDockWidget::getInstance()->clear();
-	ui->actionPlot->setChecked(false);
-	ui->actionDetectionSettings->setChecked(false);
-	PlotWindow::getInstance()->hide();
+
+	ui->actionPlot->setEnabled(false);
+	ui->actionDetectionSettings->setEnabled(false);
+	ui->action3D_world_view->setEnabled(false);
+	ui->actionDetailed_View->setEnabled(false);
 }
 
 void MainWindow::saveProject()
@@ -1256,6 +1259,9 @@ void MainWindow::activeTrialChanged(int activeTrial)
 		setCameraViewWidgetTitles();
 		redrawGL();
 	}
+
+	if (DetectionSettings::getInstance()->isVisible())
+		DetectionSettings::getInstance()->close();
 }
 
 //File Menu Slots
@@ -1783,9 +1789,7 @@ void MainWindow::on_actionPlot_triggered(bool checked)
 	else
 	{
 		ui->actionPlot->setChecked(false);
-		ui->actionDetectionSettings->setEnabled(false);
 		PlotWindow::getInstance()->hide();
-		DetectionSettings::getInstance()->hide();
 		Settings::getInstance()->set("ShowPlot", false);
 	}
 }

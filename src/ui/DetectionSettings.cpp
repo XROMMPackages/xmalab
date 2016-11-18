@@ -50,6 +50,8 @@ DetectionSettings::DetectionSettings(QWidget* parent) :
 	connect(PointsDockWidget::getInstance(), SIGNAL(activePointChanged(int)), this, SLOT(activePointChanged(int)));
 	if (State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < Project::getInstance()->getTrials().size())
 		setMarker(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker());
+
+	setWindowFlags(windowFlags() & ~Qt::WindowStaysOnTopHint);
 }
 
 void DetectionSettings::on_comboBox_currentIndexChanged(int index)
