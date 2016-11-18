@@ -155,6 +155,14 @@ bool Project::hasDefaultTrial()
 	return false;
 }
 
+Trial* Project::getDefaultTrail()
+{
+	for (std::vector<Trial*>::iterator it = trials.begin(); it != trials.end(); ++it)
+		if ((*it)->getIsDefault()) return *it;
+
+	return NULL;
+}
+
 Project::~Project()
 {
 	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
@@ -245,6 +253,13 @@ void Project::deleteTrial(Trial* trial)
 	std::vector<Trial *>::iterator position = std::find(trials.begin(), trials.end(), trial);
 	delete *position;
 	trials.erase(position);
+}
+
+void Project::replaceTrial(Trial* old_trial, Trial* new_trial)
+{
+	std::vector<Trial *>::iterator position = std::find(trials.begin(), trials.end(), old_trial);
+	*position = new_trial;
+	delete old_trial;
 }
 
 void Project::saveXMLData(QString filename)

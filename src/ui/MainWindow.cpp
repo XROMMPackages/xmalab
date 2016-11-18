@@ -1672,10 +1672,31 @@ void MainWindow::on_actionImportTrial_triggered(bool checked)
 		if (ok && !item.isEmpty())
 		{
 			Trial* trial = ProjectFileIO::getInstance()->loadTrials(fileName, item);
-			Project::getInstance()->addTrial(trial);
-			WorkspaceNavigationFrame::getInstance()->addTrial(item);
+			if (trial->getIsDefault() && project->hasDefaultTrial())
+			{
+				if (ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to replace your current Default trial. Are you sure you want to update it?")){
+					Project::getInstance()->replaceTrial(Project::getInstance()->getDefaultTrail(), trial);
+				} else
+				{
+					delete trial;
+					return;
+				}
+			} 
+			else
+			{
+				Project::getInstance()->addTrial(trial);
+				WorkspaceNavigationFrame::getInstance()->addTrial(item);
+			}
+
+			
 			checkTrialImagePaths();
 			trial->bindTextures();
+
+			if (trial->getIsDefault())
+			{
+				PointsDockWidget::getInstance()->on_pushButtonApply_clicked();
+				PointsDockWidget::getInstance()->reloadListFromObject();
+			}
 
 			if (State::getInstance()->getWorkspace() == DIGITIZATION)
 			{

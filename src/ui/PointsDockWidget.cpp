@@ -292,36 +292,40 @@ void PointsDockWidget::on_checkBoxIsFromMaster_clicked()
 
 void PointsDockWidget::on_pushButtonApply_clicked()
 {
+	Trial * defaultTrial = Project::getInstance()->getDefaultTrail();
+	if (defaultTrial == NULL)
+		return;
+
 	for (std::vector<Trial * >::const_iterator it = Project::getInstance()->getTrials().begin(); it < Project::getInstance()->getTrials().end(); ++it)
 	{
 		if ((*it)->getIsCopyFromDefault())
 		{
-			for (unsigned int i = 0; i < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers().size(); i++)
+			for (unsigned int i = 0; i < defaultTrial->getMarkers().size(); i++)
 			{
 
 				if (i >= (*it)->getMarkers().size())
 					(*it)->addMarker();
 
 				(*it)->getMarkers()[i]->setDescription(
-					Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[i]->getDescription());
+					defaultTrial->getMarkers()[i]->getDescription());
 
-				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->Reference3DPointSet())
+				if (defaultTrial->getMarkers()[i]->Reference3DPointSet())
 					(*it)->getMarkers()[i]->setReference3DPoint(
-					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->getReference3DPoint().x, 
-					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->getReference3DPoint().y, 
-					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->getReference3DPoint().z);
+					defaultTrial->getMarkers()[i]->getReference3DPoint().x, 
+					defaultTrial->getMarkers()[i]->getReference3DPoint().y, 
+					defaultTrial->getMarkers()[i]->getReference3DPoint().z);
 
 
-				//Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setMaxPenalty(
+				//defaultTrial->getMarkers()[i]->setMaxPenalty(
 				//	Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getMaxPenalty());
 
 				(*it)->getMarkers()[i]->setMethod(
 					Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[i]->getMethod());
 
-				//Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setSizeOverride(
+				//defaultTrial->getMarkers()[i]->setSizeOverride(
 				//	Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getSizeOverride());
 
-				//Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->setThresholdOffset(
+				//defaultTrial->getMarkers()[i]->setThresholdOffset(
 				//	Project::getInstance()->getTrials()[idx]->getMarkers()[i]->getThresholdOffset());
 			}
 
@@ -331,13 +335,13 @@ void PointsDockWidget::on_pushButtonApply_clicked()
 					(*it)->addRigidBody();
 
 				(*it)->getRigidBodies()[i]->copyData(
-					Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[i]);
+					defaultTrial->getRigidBodies()[i]);
 			}
 
-			while ((*it)->getRigidBodies().size() > Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies().size())
+			while ((*it)->getRigidBodies().size() > defaultTrial->getRigidBodies().size())
 				(*it)->removeRigidBody((*it)->getRigidBodies().size() - 1);
 
-			while ((*it)->getMarkers().size() > Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers().size())
+			while ((*it)->getMarkers().size() > defaultTrial->getMarkers().size())
 				(*it)->removeMarker((*it)->getMarkers().size() - 1);
 
 			(*it)->setRequiresRecomputation(true);

@@ -62,6 +62,7 @@ namespace xma
 		void exportLUT(QString foldername);
 		void recountFrames();
 		void deleteTrial(Trial* trial);
+		void replaceTrial(Trial* old_trial, Trial*  new_trial);
 
 		void saveXMLData(QString filename);
 		void setXMLData(QString filename);
@@ -86,6 +87,7 @@ namespace xma
 		bool getFlipImages();
 
 		bool hasDefaultTrial();
+		Trial * getDefaultTrail();
 
 	private:
 		Project();
