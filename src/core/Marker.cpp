@@ -1752,23 +1752,12 @@ void Marker::init(int nbCameras, int size)
 
 	for (int c = 0; c < nbCameras; c++)
 	{
-		std::vector<cv::Point2d> c_points2D;
-		std::vector<cv::Point2d> c_points2D_projected;
-		std::vector<markerStatus> c_status2D;
-		std::vector<double> c_error2D;
-		std::vector<double> c_size;
+		std::vector<cv::Point2d> c_points2D(size, cv::Point2d(-2, -2));
+		std::vector<cv::Point2d> c_points2D_projected(size, cv::Point2d(-2, -2));
+		std::vector<markerStatus> c_status2D(size, UNDEFINED);
+		std::vector<double> c_error2D(size, 0.0);
+		std::vector<double> c_size(size, -1.0);
 
-		for (int i = 0; i < size; i++)
-		{
-			cv::Point2d p(-2, -2);
-			c_points2D.push_back(p);
-			cv::Point2d p_projected(-2, -2);
-			c_points2D_projected.push_back(p_projected);
-
-			c_status2D.push_back(UNDEFINED);
-			c_error2D.push_back(0.0);
-			c_size.push_back(-1.0);
-		}
 		points2D.push_back(c_points2D);
 		points2D_projected.push_back(c_points2D_projected);
 		status2D.push_back(c_status2D);
@@ -1776,14 +1765,10 @@ void Marker::init(int nbCameras, int size)
 		markerSize.push_back(c_size);
 	}
 
-	for (int i = 0; i < size; i++)
-	{
-		cv::Point3d p3(-1000, -1000, -1000);
-		points3D.push_back(p3);
-		status3D.push_back(UNDEFINED);
-		error3D.push_back(0);
-		interpolation.push_back(NONE);
-	}
+	points3D.resize(size, cv::Point3d(-1000, -1000, -1000));
+	status3D.resize(size, UNDEFINED);
+	error3D.resize(size, 0.0);
+	interpolation.resize(size, NONE);
 }
 
 void Marker::addFrame()

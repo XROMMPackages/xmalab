@@ -60,6 +60,8 @@ using namespace xma;
 
 Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
 {
+	isDefault = false;
+	IsCopyFromDefault = false;
 	name = trialname;
 	activeFrame = 0;
 	referenceCalibrationImage = 0;
@@ -105,13 +107,12 @@ Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
 
 	startFrame = 1;
 	endFrame = nbImages;
-
-	isDefault = false;
-	IsCopyFromDefault = false;
 }
 
 Trial::Trial(QString trialname, QString folder)
 {
+	isDefault = false;
+	IsCopyFromDefault = false;
 	interpolate3D = false;
 	name = trialname;
 	activeFrame = 0;
@@ -168,9 +169,6 @@ Trial::Trial(QString trialname, QString folder)
 
 	startFrame = 1;
 	endFrame = nbImages;
-
-	isDefault = false;
-	IsCopyFromDefault = false;
 }
 
 Trial::Trial()
@@ -756,7 +754,7 @@ void Trial::loadRigidBodies(QString filename)
 			in.str(indices);
 			for (int value; in >> value; littleHelper::comma(in))
 			{
-				this->getRigidBodies()[count]->addPointIdx(value - 1);
+				this->getRigidBodies()[count]->addPointIdx(value - 1, false);
 			}
 			count++;
 			line.clear();

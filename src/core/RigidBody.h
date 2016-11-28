@@ -78,7 +78,7 @@ namespace xma
 		Marker* getMarker(int idx);
 
 		void clearPointIdx();
-		void addPointIdx(int idx);
+		void addPointIdx(int idx, bool recompute = true);
 		void removePointIdx(int idx);
 		void updatePointIdx(int idx);
 		void setPointIdx(int idx, int markerIdx);

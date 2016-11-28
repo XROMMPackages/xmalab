@@ -85,7 +85,7 @@ void RigidBody::copyData(RigidBody* rb)
 
 	for (unsigned int j = 0; j < rb->getPointsIdx().size(); j++)
 	{
-		addPointIdx(rb->getPointsIdx()[j]);
+		addPointIdx(rb->getPointsIdx()[j], false);
 	}
 
 	if (rb->isReferencesSet())
@@ -213,13 +213,18 @@ void RigidBody::setPointIdx(int idx, int markerIdx)
 	pointsIdx[idx] = markerIdx;
 }
 
-void RigidBody::addPointIdx(int idx)
+void RigidBody::addPointIdx(int idx, bool recompute)
 {
 	pointsIdx.push_back(idx);
 	points3D.push_back(cv::Point3d(0, 0, 0));
 	points3D_original.push_back(cv::Point3d(0, 0, 0));
 	referenceNames.push_back("");
 	resetReferences();
+	if (recompute)
+	{
+		recomputeTransformations();
+		filterTransformations();
+	}
 }
 
 void RigidBody::removePointIdx(int idx)
@@ -269,7 +274,7 @@ void RigidBody::resetReferences()
 	initialised = false;
 	hasOptimizedCoordinates = false;
 	setReferenceMarkerReferences();
-	recomputeTransformations();
+	//recomputeTransformations();
 }
 
 bool RigidBody::allReferenceMarkerReferencesSet()
@@ -454,26 +459,23 @@ void RigidBody::init(int size)
 {
 	clear();
 
-	for (int i = 0; i < size; i ++)
-	{
-		rotationvectors.push_back(cv::Vec3d());
-		translationvectors.push_back(cv::Vec3d());
-		rotationvectors_filtered.push_back(cv::Vec3d());
-		translationvectors_filtered.push_back(cv::Vec3d());
+	rotationvectors.resize(size,cv::Vec3d());
+	translationvectors.resize(size, cv::Vec3d());
+	rotationvectors_filtered.resize(size, cv::Vec3d());
+	translationvectors_filtered.resize(size, cv::Vec3d());
 
-		poseComputed.push_back(0);
-		poseFiltered.push_back(0);
+	poseComputed.resize(size, 0);
+	poseFiltered.resize(size, 0);
 
-		errorMean2D.push_back(0);
-		errorSd2D.push_back(0);
-		errorMean3D.push_back(0);
-		errorSd3D.push_back(0);
+	errorMean2D.resize(size, 0);
+	errorSd2D.resize(size, 0);
+	errorMean3D.resize(size, 0);
+	errorSd3D.resize(size, 0);
 
-		errorMean2D_filtered.push_back(0);
-		errorSd2D_filtered.push_back(0);
-		errorMean3D_filtered.push_back(0);
-		errorSd3D_filtered.push_back(0);
-	}
+	errorMean2D_filtered.resize(size, 0);
+	errorSd2D_filtered.resize(size, 0);
+	errorMean3D_filtered.resize(size, 0);
+	errorSd3D_filtered.resize(size, 0);
 }
 
 void RigidBody::computeCoordinateSystemAverage()
