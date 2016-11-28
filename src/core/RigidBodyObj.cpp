@@ -73,6 +73,9 @@ bool RigidBodyObj::vboSet()
 
 void RigidBodyObj::render(int frame)
 {
+	if (m_body->getPoseComputed().size() <= frame)
+		return;
+
 	if (m_body->getPoseComputed()[frame] || (Settings::getInstance()->getBoolSetting("TrialDrawFiltered") && m_body->getPoseFiltered()[frame])){
 		bool filtered = Settings::getInstance()->getBoolSetting("TrialDrawFiltered");
 		

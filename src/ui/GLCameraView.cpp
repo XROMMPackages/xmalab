@@ -625,7 +625,8 @@ void GLCameraView::paintGL()
 		{
 			if (!detailedView && Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyMeshmodels"))
 			{
-				renderMeshes = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->renderMeshes();
+				renderMeshes = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->renderMeshes() && 
+					!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault();
 			}
 		}
 		if (renderMeshes){
