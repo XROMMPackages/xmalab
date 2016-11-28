@@ -111,12 +111,33 @@ void RigidBody::copyData(RigidBody* rb)
 		meshScale = rb->getMeshScale();
 	}
 
+	dummyNames.clear();
+	dummyRBIndex.clear();
+	dummypointsCoords.clear();
+	dummypointsCoordsSet.clear();
+	dummypoints.clear();
+	dummypoints2.clear();
+
+	for (unsigned int i = 0; i < rb->dummyRBIndex.size(); i++)
+	{
+		if (dummyRBIndex[i] >= 0)
+		{
+			dummyRBIndex.push_back(rb->dummyRBIndex[i]);
+			dummyNames.push_back(rb->dummyNames[i]);
+			dummypoints.push_back(rb->dummypoints[i]);
+			dummypoints2.push_back(rb->dummypoints2[i]);
+		}
+	}
+
 	hasOptimizedCoordinates = rb->hasOptimizedCoordinates;
 	overrideCutoffFrequency = rb->getOverrideCutoffFrequency();
 	cutoffFrequency = rb->getOverrideCutoffFrequency();
 	color = rb->getColor();
 	meshScale = rb->getMeshScale();
 	expanded= rb->isExpanded();
+	color = rb->getColor();
+	visible = rb->getVisible();
+	initialised = rb->initialised;
 }
 
 RigidBody::~RigidBody()
