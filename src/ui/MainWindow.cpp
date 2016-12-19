@@ -745,7 +745,7 @@ void MainWindow::closeProject()
 
 void MainWindow::saveProject()
 {
-	if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to overwrite the existing File " + project->getProjectFilename() + "?")) return;
+	//if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to overwrite the existing File " + project->getProjectFilename() + "?")) return;
 
 	if (WizardDockWidget::getInstance()->checkForPendingChanges())
 	{
