@@ -92,7 +92,7 @@
 #endif
 
 
-#define BETA 3
+//#define BETA 3
 
 using namespace xma;
 
@@ -109,6 +109,16 @@ MainWindow::MainWindow(QWidget* parent) :
 	if (!instance) instance = this;
 
 	ui->setupUi(this);
+
+
+	if (QDate::currentDate() >= QDate(2016,12,23)
+		&& QDate::currentDate() <= QDate(2017, 1, 2))
+	{
+		ui->labelXMAS->show();
+	}else
+	{
+		ui->labelXMAS->hide();
+	}
 
 	if (!restoreGeometry(Settings::getInstance()->getUIGeometry("XMALab")))
 	{
