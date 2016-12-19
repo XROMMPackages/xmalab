@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>369</width>
-    <height>476</height>
+    <width>201</width>
+    <height>522</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,13 +23,13 @@
    <item row="3" column="0" colspan="2">
     <widget class="QGroupBox" name="groupBox_RB">
      <property name="title">
-      <string>Selected points</string>
+      <string>Track selected points</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="1" column="0">
        <widget class="QPushButton" name="pushButton_RBBack">
         <property name="text">
-         <string>Track selected backward</string>
+         <string>backward</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -42,14 +42,14 @@
       <item row="0" column="0">
        <widget class="QPushButton" name="pushButton_RBPrev">
         <property name="text">
-         <string>Track selected to previous frame</string>
+         <string>previous frame</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QPushButton" name="pushButton_RBForw">
         <property name="text">
-         <string>Track selected forward</string>
+         <string>forward</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -62,7 +62,7 @@
       <item row="0" column="1">
        <widget class="QPushButton" name="pushButton_RBNext">
         <property name="text">
-         <string>Track selected to next frame</string>
+         <string>next frame</string>
         </property>
        </widget>
       </item>
@@ -72,27 +72,27 @@
    <item row="2" column="0" colspan="2">
     <widget class="QGroupBox" name="groupBox_Point">
      <property name="title">
-      <string>Point</string>
+      <string>Track single point</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="1">
        <widget class="QPushButton" name="pushButton_PointNext">
         <property name="text">
-         <string>Track point to next frame</string>
+         <string>next frame</string>
         </property>
        </widget>
       </item>
       <item row="0" column="0">
        <widget class="QPushButton" name="pushButton_PointPrev">
         <property name="text">
-         <string>Track point to previous frame</string>
+         <string>previous frame</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QPushButton" name="pushButton_PointBack">
+      <item row="1" column="1">
+       <widget class="QPushButton" name="pushButton_PointForw">
         <property name="text">
-         <string>Track point backward</string>
+         <string>forward</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -102,10 +102,10 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="pushButton_PointForw">
+      <item row="1" column="0">
+       <widget class="QPushButton" name="pushButton_PointBack">
         <property name="text">
-         <string>Track point forward</string>
+         <string>backward</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -121,27 +121,27 @@
    <item row="4" column="0" colspan="2">
     <widget class="QGroupBox" name="groupBox_All">
      <property name="title">
-      <string>All</string>
+      <string>Track all points</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
       <item row="0" column="1">
        <widget class="QPushButton" name="pushButton_AllNext">
         <property name="text">
-         <string>Track all to next frame</string>
+         <string> next frame</string>
         </property>
        </widget>
       </item>
       <item row="0" column="0">
        <widget class="QPushButton" name="pushButton_AllPrev">
         <property name="text">
-         <string>Track all to previous frame</string>
+         <string>previous frame</string>
         </property>
        </widget>
       </item>
       <item row="1" column="0">
        <widget class="QPushButton" name="pushButton_AllBack">
         <property name="text">
-         <string>Track all backward</string>
+         <string>backward</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -154,7 +154,7 @@
       <item row="1" column="1">
        <widget class="QPushButton" name="pushButton_AllForw">
         <property name="text">
-         <string>Track all forward</string>
+         <string>forward</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -174,20 +174,20 @@
    <item row="5" column="0" colspan="2">
     <widget class="QGroupBox" name="groupBox_Interpolation">
      <property name="title">
-      <string>Interpolation</string>
+      <string>Update Interpolation</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_6">
       <item row="0" column="0">
        <widget class="QPushButton" name="pushButton_InterpolateActive">
         <property name="text">
-         <string>Update interpolation active</string>
+         <string>active point</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
        <widget class="QPushButton" name="pushButton_InterpolateAll">
         <property name="text">
-         <string>Update interpolation all</string>
+         <string>all points</string>
         </property>
        </widget>
       </item>
@@ -220,13 +220,6 @@
       <string>Drawing</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_7">
-      <item row="0" column="3">
-       <widget class="QCheckBox" name="checkBoxRigidBodyMeshmodels">
-        <property name="text">
-         <string>Meshmodels</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
        <widget class="QCheckBox" name="checkBoxMarkerIds">
         <property name="text">
@@ -234,17 +227,30 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
-       <widget class="QCheckBox" name="checkBoxRigidBodyConstellation">
+      <item row="3" column="0" colspan="4">
+       <widget class="QCheckBox" name="checkBox_DrawFiltered">
         <property name="text">
-         <string>Rigid body constellations</string>
+         <string>Use filtered transformations</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="0" colspan="4">
-       <widget class="QCheckBox" name="checkBox_DrawFiltered">
+      <item row="2" column="0">
+       <widget class="QCheckBox" name="checkBoxRigidBodyMeshmodels">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
-         <string>Use filtered transformations for drawing</string>
+         <string>Meshmodels</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="checkBoxRigidBodyConstellation">
+        <property name="text">
+         <string>Rigid body constellations</string>
         </property>
        </widget>
       </item>
