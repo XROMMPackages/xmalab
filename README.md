@@ -1,7 +1,7 @@
-XMALab is software for marker-based fluoromicrometry and XROMM. The developer is Dr. Ben Knorlein, a computer-vision expert and software engineer at the Center for Computation and Visualization at Brown University. XMALab also includes tools, such as checkerboard calibration, for motion analysis with standard (non-Xray) video.
+XMALab is software for marker-based fluoromicrometry and XROMM, with tools for standard (non-X-ray) video analysis as well. The developer is Dr. Ben Knorlein, a computer-vision expert and software engineer at the Center for Computation and Visualization at Brown University. XMALab has been described and validated in [a peer-reviewed paper ](http://jeb.biologists.org/content/early/2016/09/21/jeb.145383) in the *Journal of Experimental Biology*.
 
 XMALab integrates distortion correction, calibration, marker tracking, rigid body calculations and filtering all into one program. XMALab replaces all
-components of the MATLAB X-ray Project workflow. For marker-based XROMM, XMALab generates animation matrices suitable for animating bones in Autodesk Maya.
+components of the MATLAB X-ray Project workflow. For marker-based XROMM, XMALab generates animation matrices suitable for animating bones in Autodesk Maya. XMALab also includes tools, such as checkerboard calibration, for motion analysis with standard (non-Xray) video.
 ## Download the latest binary release #
 ### Version 1.3.9 : [Mac](https://bitbucket.org/xromm/xmalab/downloads/XMALab_1.3.9.dmg) and [Windows](https://bitbucket.org/xromm/xmalab/downloads/XMALab_setup-1.3.9.msi)
 ### Visit the [XMALab Bitbucket Wiki](https://bitbucket.org/xromm/xmalab/wiki/Home) for User Manual and Version History
