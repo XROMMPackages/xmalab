@@ -643,7 +643,6 @@ void MultiCameraCalibration::optimizeCameraSetup_threadFinished()
 	if (nbInstances == 0)
 	{
 		ProgressDialog::getInstance()->closeProgressbar();
-		MainWindow::getInstance()->redrawGL();
 		emit optimizeCameraSetup_finished();
 	}
 	delete this;

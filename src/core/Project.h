@@ -89,6 +89,8 @@ namespace xma
 		bool hasDefaultTrial();
 		Trial * getDefaultTrail();
 
+		bool camerasOptimized();
+
 	private:
 		Project();
 		static Project* instance;

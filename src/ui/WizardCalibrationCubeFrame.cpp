@@ -425,16 +425,18 @@ void WizardCalibrationCubeFrame::setDialog()
 
 	if (State::getInstance()->getActiveCamera() >= 0 && State::getInstance()->getActiveFrameCalibration() >= 0)
 	{
+		frame->groupBoxOptimization->show();
+
 		if (Settings::getInstance()->getBoolSetting("ShowAdvancedCalibration"))
 		{
-			frame->groupBoxOptimization->show();
+			frame->checkBoxDistortion->show();
 		}
 		else
 		{
-			frame->groupBoxOptimization->hide();
+			frame->checkBoxDistortion->hide();
 		}
 
-		frame->checkBoxOptimized->setChecked(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->isOptimized());
+		frame->checkBoxOptimized->setChecked(Project::getInstance()->camerasOptimized());
 		frame->checkBoxDistortion->setChecked(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->hasModelDistortion());
 
 		frame->checkBoxManual->show();
@@ -886,15 +888,29 @@ void WizardCalibrationCubeFrame::checkBoxManualReference_clicked()
 
 void WizardCalibrationCubeFrame::on_pushButtonOptimize_clicked()
 {
-	OptimizationDialog* optdiag = new OptimizationDialog(this);
-	optdiag->exec();
+	if (Settings::getInstance()->getBoolSetting("ShowAdvancedCalibration")){
+		OptimizationDialog* optdiag = new OptimizationDialog(this);
+		optdiag->exec();
 
-	if (optdiag->result())
+		if (optdiag->result())
+		{
+			MultiCameraCalibration* multi = new MultiCameraCalibration(optdiag->getMethod(), optdiag->getIterations(), optdiag->getInitial());
+			connect(multi, SIGNAL(optimizeCameraSetup_finished()), this, SLOT(on_OptimizationDone_clicked()));
+			multi->optimizeCameraSetup();
+		}
+		delete optdiag;
+	} else
 	{
-		MultiCameraCalibration* multi = new MultiCameraCalibration(optdiag->getMethod(), optdiag->getIterations(), optdiag->getInitial());
+		MultiCameraCalibration* multi = new MultiCameraCalibration(0, 50000, 0.01);
+		connect(multi, SIGNAL(optimizeCameraSetup_finished()), this, SLOT(on_OptimizationDone_clicked()));
 		multi->optimizeCameraSetup();
 	}
-	delete optdiag;
+}
+
+void WizardCalibrationCubeFrame::on_OptimizationDone_clicked()
+{
+	setDialog();
+	MainWindow::getInstance()->redrawGL();
 }
 
 void WizardCalibrationCubeFrame::on_checkBoxDistortion_clicked()

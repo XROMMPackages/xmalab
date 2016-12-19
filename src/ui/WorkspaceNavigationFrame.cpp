@@ -122,10 +122,12 @@ void WorkspaceNavigationFrame::workspaceChanged(work_state workspace)
 	if (workspace == UNDISTORTION)
 	{
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion"));
+		frame->label_Optimized->hide();
 	}
 	else if (workspace == CALIBRATION)
 	{
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration"));
+		frame->label_Optimized->hide();
 	}
 	else if (workspace == DIGITIZATION)
 	{
@@ -137,6 +139,14 @@ void WorkspaceNavigationFrame::workspaceChanged(work_state workspace)
 
 		if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 && Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial())
 			frame->toolButtonTrialSettings->setEnabled(!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault());
+
+		if (Project::getInstance()->camerasOptimized() || Project::getInstance()->getNbImagesCalibration() <= 1)
+		{
+			frame->label_Optimized->hide();
+		} else 
+		{
+			frame->label_Optimized->show();
+		}
 	}
 }
 

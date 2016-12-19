@@ -163,6 +163,15 @@ Trial* Project::getDefaultTrail()
 	return NULL;
 }
 
+bool Project::camerasOptimized()
+{
+	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+	{
+		if (!(*it)->isOptimized())return false;
+	}
+	return true;
+}
+
 Project::~Project()
 {
 	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)

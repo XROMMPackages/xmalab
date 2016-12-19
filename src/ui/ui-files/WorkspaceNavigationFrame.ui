@@ -44,7 +44,17 @@
    <property name="verticalSpacing">
     <number>0</number>
    </property>
-   <item row="0" column="11">
+   <item row="0" column="2">
+    <widget class="QLabel" name="label_Optimized">
+     <property name="styleSheet">
+      <string notr="true">color : rgb(170, 0, 0)</string>
+     </property>
+     <property name="text">
+      <string>Camera calibration is not optimized! !</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="13">
     <widget class="QLabel" name="label_2">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
@@ -70,7 +80,7 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="12">
+   <item row="0" column="14">
     <widget class="QComboBox" name="comboBoxViewspace">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -106,19 +116,6 @@
      </item>
     </widget>
    </item>
-   <item row="0" column="10">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>0</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
    <item row="0" column="1">
     <widget class="QComboBox" name="comboBoxWorkspace">
      <property name="sizePolicy">
@@ -147,20 +144,20 @@
      </item>
     </widget>
    </item>
-   <item row="0" column="3">
-    <widget class="QLabel" name="label_Trial">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+   <item row="0" column="11">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
-     <property name="text">
-      <string>Trial : </string>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>20</height>
+      </size>
      </property>
-    </widget>
+    </spacer>
    </item>
-   <item row="0" column="4">
+   <item row="0" column="5">
     <widget class="QComboBox" name="comboBoxTrial">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -173,7 +170,7 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="2">
+   <item row="0" column="3">
     <spacer name="horizontalSpacer_2">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -186,7 +183,27 @@
      </property>
     </spacer>
    </item>
+   <item row="0" column="4">
+    <widget class="QLabel" name="label_Trial">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Trial : </string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="8">
+    <widget class="QToolButton" name="toolButtonAddTrial">
+     <property name="text">
+      <string>+</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="9">
     <widget class="QToolButton" name="toolButtonTrialSettings">
      <property name="text">
       <string/>
@@ -200,13 +217,6 @@
      </property>
      <property name="autoRaise">
       <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="7">
-    <widget class="QToolButton" name="toolButtonAddTrial">
-     <property name="text">
-      <string>+</string>
      </property>
     </widget>
    </item>
