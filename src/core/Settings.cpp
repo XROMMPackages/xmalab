@@ -69,8 +69,8 @@ Settings::Settings()
 	addIntSetting("DetectionMethodForCalibration", 0);
 	addBoolSetting("ShowAdvancedCalibration", false);
 	addBoolSetting("HideWarningsDuringCalibration", false);
-	addIntSetting("IdentificationThresholdCalibration", 10);
-	addIntSetting("OutlierThresholdForCalibration", 5);
+	addIntSetting("IdentificationThresholdCalibration", 15);
+	addIntSetting("OutlierThresholdForCalibration", 10);
 
 	//Digitizing
 	addBoolSetting("CenterDetailView", false);

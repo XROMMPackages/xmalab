@@ -681,7 +681,7 @@ void WizardCalibrationCubeFrame::runCalibration()
 
 void WizardCalibrationCubeFrame::checkForCalibrationError()
 {
-	QString errorMessage = "Error during Calibration\n";
+	QString errorMessage = "There were problems during Calibration with the following frames:\n";
 	bool hasError = false;
 	for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j ++)
 	{
@@ -697,7 +697,7 @@ void WizardCalibrationCubeFrame::checkForCalibrationError()
 	}
 	if (hasError)
 	{
-		errorMessage += "Please control all your data !";
+		errorMessage += "Please try to select the references again. If you keep getting this error please have a look at the 3D view and check if the already computed cameras are correct. If necessary reset the erroneous frames or reset the camera!";
 		if (!Settings::getInstance()->getBoolSetting("HideWarningsDuringCalibration"))ErrorDialog::getInstance()->showErrorDialog(errorMessage);
 	}
 }
