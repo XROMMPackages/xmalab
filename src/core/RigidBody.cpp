@@ -837,7 +837,7 @@ void RigidBody::computePose(int Frame)
 			}
 		}
 
-		if (dst.size()<3 && dst.size()>=1)
+		if (!Settings::getInstance()->getBoolSetting("DisableRBComputeAdvanced") && dst.size()<3 && dst.size() >= 1)
 		{
 			//try to find more points for initialisation
 			RigidBodyPoseFrom2D * poseFrom2d = new RigidBodyPoseFrom2D(this, Frame);
@@ -928,7 +928,7 @@ void RigidBody::computePose(int Frame)
 
 			poseComputed[Frame] = 1;
 		}
-		else
+		else if (!Settings::getInstance()->getBoolSetting("DisableRBComputeAdvanced"))
 		{
 			int goodCamera = -1;
 			int bestCameracount = 4;

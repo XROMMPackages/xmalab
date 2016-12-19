@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>931</width>
-    <height>1331</height>
+    <height>858</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -92,7 +92,7 @@
            <x>0</x>
            <y>0</y>
            <width>810</width>
-           <height>415</height>
+           <height>153</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
@@ -184,7 +184,7 @@
            <x>0</x>
            <y>0</y>
            <width>810</width>
-           <height>416</height>
+           <height>310</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
@@ -316,26 +316,55 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>0</y>
-           <width>810</width>
-           <height>415</height>
+           <y>-45</y>
+           <width>793</width>
+           <height>355</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
-          <item row="5" column="2">
-           <widget class="QSpinBox" name="spinBoxEpiPrecision">
+          <item row="7" column="2">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_MaxError"/>
+          </item>
+          <item row="10" column="0">
+           <widget class="QCheckBox" name="checkBox_ShowColoredMarkerIDs">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="maximum">
-             <number>999</number>
+            <property name="text">
+             <string>Show Marker ids in the status color of the marker</string>
             </property>
            </widget>
           </item>
-          <item row="13" column="0" colspan="3">
+          <item row="4" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_Show3DPointDetailWindow">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Show the 3d reconstructed point in the detail window</string>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="0">
+           <widget class="QCheckBox" name="checkBox_ShowColoredMarkerCross">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Show Marker Cross in the status color of the marker</string>
+            </property>
+           </widget>
+          </item>
+          <item row="14" column="0" colspan="3">
            <spacer name="verticalSpacer_4">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -348,36 +377,16 @@
             </property>
            </spacer>
           </item>
-          <item row="3" column="0" colspan="3">
-           <widget class="QCheckBox" name="checkBox_ShowEpiLineDetailWindow">
+          <item row="5" column="2">
+           <widget class="QSpinBox" name="spinBoxEpiPrecision">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
-             <string>Show the epipolar line in the detail view</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0" colspan="3">
-           <widget class="QCheckBox" name="checkBox_ShowAdvancedCrosshairDetailWindow">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Show an advanced crosshair in the detail window</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Triangulation method</string>
+            <property name="maximum">
+             <number>999</number>
             </property>
            </widget>
           </item>
@@ -394,15 +403,8 @@
             </property>
            </widget>
           </item>
-          <item row="14" column="0" colspan="3">
-           <widget class="QPushButton" name="pushButton_MarkerStatus">
-            <property name="text">
-             <string>Set marker status colors</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" colspan="3">
-           <widget class="QCheckBox" name="checkBox_UseCenteredDetailWindow">
+          <item row="3" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_ShowEpiLineDetailWindow">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
               <horstretch>0</horstretch>
@@ -410,21 +412,34 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Always center detail window</string>
+             <string>Show the epipolar line in the detail view</string>
             </property>
            </widget>
           </item>
-          <item row="7" column="0" colspan="2">
-           <widget class="QLabel" name="labelEpiPrecision_2">
+          <item row="6" column="0">
+           <widget class="QLabel" name="label">
             <property name="text">
-             <string>Maximum reprojection error before point is marked lost </string>
+             <string>Triangulation method</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="0" colspan="2">
-           <widget class="QLabel" name="labelEpiPrecision">
+          <item row="1" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_ShowAdvancedCrosshairDetailWindow">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
-             <string>Precision for the drawing of an epipolar line</string>
+             <string>Show an advanced crosshair in the detail window</string>
+            </property>
+           </widget>
+          </item>
+          <item row="15" column="0" colspan="3">
+           <widget class="QPushButton" name="pushButton_MarkerStatus">
+            <property name="text">
+             <string>Set marker status colors</string>
             </property>
            </widget>
           </item>
@@ -457,54 +472,39 @@
             </item>
            </widget>
           </item>
+          <item row="0" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_UseCenteredDetailWindow">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Always center detail window</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0" colspan="2">
+           <widget class="QLabel" name="labelEpiPrecision_2">
+            <property name="text">
+             <string>Maximum reprojection error before point is marked lost </string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0" colspan="2">
+           <widget class="QLabel" name="labelEpiPrecision">
+            <property name="text">
+             <string>Precision for the drawing of an epipolar line</string>
+            </property>
+           </widget>
+          </item>
           <item row="12" column="0">
            <widget class="QCheckBox" name="checkBox_optimize2D">
             <property name="text">
              <string>Optimze Rigid Body transformations based on the detected 2d positions</string>
             </property>
            </widget>
-          </item>
-          <item row="11" column="0">
-           <widget class="QCheckBox" name="checkBox_ShowColoredMarkerCross">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Show Marker Cross in the status color of the marker</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0" colspan="3">
-           <widget class="QCheckBox" name="checkBox_Show3DPointDetailWindow">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Show the 3d reconstructed point in the detail window</string>
-            </property>
-           </widget>
-          </item>
-          <item row="10" column="0">
-           <widget class="QCheckBox" name="checkBox_ShowColoredMarkerIDs">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Show Marker ids in the status color of the marker</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="2">
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_MaxError"/>
           </item>
           <item row="9" column="0">
            <widget class="QCheckBox" name="checkBox_TrackInterpolated">
@@ -516,6 +516,13 @@
             </property>
             <property name="text">
              <string>Override interpolated points during tracking</string>
+            </property>
+           </widget>
+          </item>
+          <item row="13" column="0">
+           <widget class="QCheckBox" name="checkBox_DisableRBComputeAdvanced">
+            <property name="text">
+             <string>Disable computation of rigid bodies with less than 3 2d correspondences</string>
             </property>
            </widget>
           </item>

@@ -78,6 +78,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 	diag->checkBox_ShowColoredMarkerCross->setChecked(Settings::getInstance()->getBoolSetting("ShowColoredMarkerCross"));
 	diag->checkBox_ShowColoredMarkerIDs->setChecked(Settings::getInstance()->getBoolSetting("ShowColoredMarkerIDs"));
 	diag->checkBox_optimize2D->setChecked(Settings::getInstance()->getBoolSetting("OptimizeRigidBody"));
+	diag->checkBox_DisableRBComputeAdvanced->setChecked(Settings::getInstance()->getBoolSetting("DisableRBComputeAdvanced"));
 
 	initPhase = false;
 }
@@ -262,6 +263,11 @@ void SettingsDialog::on_pushButton_MarkerStatus_clicked()
 void SettingsDialog::on_checkBox_optimize2D_clicked()
 {
 	Settings::getInstance()->set("OptimizeRigidBody", diag->checkBox_optimize2D->isChecked());
+}
+
+void SettingsDialog::on_checkBox_DisableRBComputeAdvanced_clicked()
+{
+	Settings::getInstance()->set("DisableRBComputeAdvanced", diag->checkBox_DisableRBComputeAdvanced->isChecked());
 }
 
 void SettingsDialog::on_spinBox_OutlierThreshold_valueChanged(int value)
