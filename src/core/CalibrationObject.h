@@ -53,7 +53,7 @@ namespace xma
 			return referencesFilename;
 		}
 
-		void setCheckerboard(int nbHorizontalSquares, int nbVerticalSquares, int squareSize);
+		void setCheckerboard(int nbHorizontalSquares, int nbVerticalSquares, double squareSize);
 
 		bool isInitialised()
 		{
@@ -100,7 +100,7 @@ namespace xma
 			return nbVerticalSquares;
 		}
 
-		int getSquareSize()
+		double getSquareSize()
 		{
 			return squareSize;
 		}
@@ -125,7 +125,7 @@ namespace xma
 
 		int nbHorizontalSquares;
 		int nbVerticalSquares;
-		int squareSize;
+		double squareSize;
 	};
 }
 

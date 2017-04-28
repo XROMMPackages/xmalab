@@ -127,7 +127,7 @@ int NewProjectDialog::createProject()
 	}
 	else
 	{
-		CalibrationObject::getInstance()->setCheckerboard(diag->spinBoxHorizontalSquares->value(), diag->spinBoxVerticalSquares->value(), diag->spinBoxSizeSquares->value());
+		CalibrationObject::getInstance()->setCheckerboard(diag->spinBoxHorizontalSquares->value(), diag->spinBoxVerticalSquares->value(), diag->doubleSpinBoxSizeSquares->value());
 	}
 	return 0;
 }
@@ -177,7 +177,7 @@ bool NewProjectDialog::isComplete()
 			ErrorDialog::getInstance()->showErrorDialog("Calibrationtarget Checkerboard is incomplete : Nb squares vertical missing");
 			return false;
 		}
-		if (diag->spinBoxSizeSquares->value() <= 0)
+		if (diag->doubleSpinBoxSizeSquares->value() <= 0)
 		{
 			ErrorDialog::getInstance()->showErrorDialog("Calibrationtarget Checkerboard is incomplete : Squaresize missing");
 			return false;

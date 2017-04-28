@@ -1562,7 +1562,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 								CalibrationObject::getInstance()->setCheckerboard(
 									attr.value("HorizontalSquares").toString().toInt(),
 									attr.value("VerticalSquares").toString().toInt(),
-									attr.value("SquareSize").toString().toInt()
+									attr.value("SquareSize").toString().toDouble()
 								);
 							}
 							else

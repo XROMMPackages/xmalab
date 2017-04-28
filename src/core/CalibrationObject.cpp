@@ -205,7 +205,7 @@ void CalibrationObject::saveCoords(QString folder)
 	outfile_references.close();
 }
 
-void CalibrationObject::setCheckerboard(int _nbHorizontalSquares, int _nbVerticalSquares, int _squareSize)
+void CalibrationObject::setCheckerboard(int _nbHorizontalSquares, int _nbVerticalSquares, double _squareSize)
 {
 	nbHorizontalSquares = _nbHorizontalSquares;
 	nbVerticalSquares = _nbVerticalSquares;
