@@ -899,11 +899,19 @@ void WizardCalibrationCubeFrame::on_pushButtonOptimize_clicked()
 			multi->optimizeCameraSetup();
 		}
 		delete optdiag;
-	} else
+	} 
+	else
 	{
-		MultiCameraCalibration* multi = new MultiCameraCalibration(0, 50000, 0.01);
-		connect(multi, SIGNAL(optimizeCameraSetup_finished()), this, SLOT(on_OptimizationDone_clicked()));
-		multi->optimizeCameraSetup();
+		bool ok;
+		int nbIterations = QInputDialog::getInt(this, tr("Set number of iterations"),
+			tr("Iterations:"), 10000, 1, 99999999999, 1, &ok);
+		if (ok)
+		{
+			MultiCameraCalibration* multi = new MultiCameraCalibration(0, nbIterations, 0.01);
+			connect(multi, SIGNAL(optimizeCameraSetup_finished()), this, SLOT(on_OptimizationDone_clicked()));
+			multi->optimizeCameraSetup();
+		}
+		
 	}
 }
 
