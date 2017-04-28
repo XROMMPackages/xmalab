@@ -73,7 +73,7 @@ namespace xma
 
 		//checks if all inputs are done
 		bool isComplete();
-
+		bool referencesValid();
 	public slots:
 		//Cameras
 		void on_toolButtonCameraMinus_clicked();

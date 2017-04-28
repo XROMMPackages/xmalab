@@ -41,6 +41,7 @@
 #include "core/Project.h"
 
 #include <QFileDialog>
+#include <core/HelperFunctions.h>
 
 using namespace xma;
 
@@ -132,6 +133,28 @@ int NewProjectDialog::createProject()
 	return 0;
 }
 
+bool NewProjectDialog::referencesValid()
+{
+
+	std::ifstream fin;
+	std::string line;
+	fin.open(diag->lineEditReferencePoints->text().toAscii().data(), std::ios::binary);
+
+	char str[100];
+	int id;
+	int count = 0;
+	while (!littleHelper::safeGetline(fin, line).eof())
+	{
+		if (sscanf(line.c_str(), "%i %20[0-9a-zA-Z ]s", &id, &str[0]) == 2)
+		{
+			count++;
+		}
+	}
+	fin.close();
+
+	return count == 4;
+}
+
 bool NewProjectDialog::isComplete()
 {
 	int nbImages = cameras[0]->getImageFileNames().size();
@@ -162,6 +185,12 @@ bool NewProjectDialog::isComplete()
 		if (diag->lineEditReferencePoints->text().isEmpty())
 		{
 			ErrorDialog::getInstance()->showErrorDialog("Calibrationtarget Cube is incomplete : Reference Points missing");
+			return false;
+		} 
+		else if (!referencesValid())
+		{
+			ErrorDialog::getInstance()->showErrorDialog("Reference file is invalid. Please ensure that it has 4 entries and that the format is correct");
+			diag->lineEditReferencePoints->setText("");
 			return false;
 		}
 	}
