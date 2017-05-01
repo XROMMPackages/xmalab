@@ -104,12 +104,18 @@ trialDialogReturn TrialDialog::getDialogReturn()
 
 bool TrialDialog::isComplete()
 {
-	m_trial->setRecordingSpeed(diag->doubleSpinBoxRecSpeedFPS->value());
-	m_trial->setCutoffFrequency(diag->doubleSpinBoxCutoffFrq->value());
+	returnValue = TRIALDAILOGDEFAULT;
+	if (diag->doubleSpinBoxRecSpeedFPS->value() != m_trial->getRecordingSpeed()){
+		returnValue = TRIALDIALOGUPDATEFILTER;
+		m_trial->setRecordingSpeed(diag->doubleSpinBoxRecSpeedFPS->value());
+		PlotWindow::getInstance()->updateTimeCheckBox();
+	}
+	if (diag->doubleSpinBoxCutoffFrq->value() != m_trial->getCutoffFrequency()){
+		returnValue = TRIALDIALOGUPDATEFILTER;
+		m_trial->setCutoffFrequency(diag->doubleSpinBoxCutoffFrq->value());
+	}
+
 	m_trial->setInterpolate3D(diag->checkBoxInterpolate->isChecked());
-
-	PlotWindow::getInstance()->updateTimeCheckBox();
-
 
 	if (diag->comboBoxReferenceCalibration->count() > 0)
 	{
@@ -117,14 +123,10 @@ bool TrialDialog::isComplete()
 		if (ref != m_trial->getReferenceCalibrationImage())
 		{
 			m_trial->setReferenceCalibrationImage(ref);
-			returnValue = TRIALDIALOGDELETE;
-			//m_trial->setRequiresRecomputation(true);
-			//ThreadScheduler::getInstance()->updateTrialData(m_trial);
-			this->reject();
+			returnValue = TRIALDIALOGUPDATE;
 		}
 	}
 	
-
 	return true;
 }
 
@@ -166,63 +168,5 @@ void TrialDialog::on_pushButton_Update_clicked()
 	returnValue = TRIALDIALOGUPDATE;
 	this->reject();
 }
-
-//void WorkspaceNavigationFrame::updateCalibrationReference()
-//{
-//	updating = true;
-//	int idx;
-//	if (frame->comboBoxReferenceCalibration->count() > 0){
-//		idx = frame->comboBoxReferenceCalibration->currentText().toInt() - 1;
-//	}
-//	else
-//	{
-//		idx = -1;
-//	}
-//	frame->comboBoxReferenceCalibration->clear();
-//
-//	for (int i = 0; i < Project::getInstance()->getCameras()[0]->getCalibrationImages().size(); i++)
-//	{
-//		bool calibrated = true;
-//		for (int j = 0; j < Project::getInstance()->getCameras().size(); j++)
-//		{
-//			calibrated = calibrated && Project::getInstance()->getCameras()[j]->getCalibrationImages()[i]->isCalibrated();
-//		}
-//		if (calibrated) frame->comboBoxReferenceCalibration->addItem(QString::number(i + 1));
-//	}
-//
-//	updating = false;
-//	if (idx = -1)
-//	{
-//		if (frame->comboBoxReferenceCalibration->count() > 0){
-//			frame->comboBoxReferenceCalibration->setCurrentIndex(0);
-//		}
-//	}
-//	else
-//	{
-//		frame->comboBoxReferenceCalibration->setCurrentIndex(frame->comboBoxReferenceCalibration->findData(QString::number(idx + 1)));
-//	}
-//}
-
-//if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0){
-//	int referenceIdx = frame->comboBoxReferenceCalibration->findText(QString::number(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getReferenceCalibrationImage() + 1));
-//	if (referenceIdx != -1) {
-//		frame->comboBoxReferenceCalibration->setCurrentIndex(referenceIdx);
-//	}
-//}
-//
-//int referenceIdx = frame->comboBoxReferenceCalibration->findText(QString::number(Project::getInstance()->getTrials()[activeTrial]->getReferenceCalibrationImage() + 1));
-//if (referenceIdx != -1) {
-//	frame->comboBoxReferenceCalibration->setCurrentIndex(referenceIdx);
-//}
-
-//void WorkspaceNavigationFrame::on_comboBoxReferenceCalibration_currentIndexChanged(QString value)
-//{
-//	if (!updating){
-//		int idx = value.toInt() - 1;
-//		if (Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0){
-//			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setReferenceCalibrationImage(idx);
-//		}
-//	}
-//}
 
 
