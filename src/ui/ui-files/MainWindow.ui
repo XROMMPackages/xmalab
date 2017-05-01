@@ -408,12 +408,13 @@
     <addaction name="actionAbout"/>
     <addaction name="actionHelp"/>
     <addaction name="separator"/>
-    <addaction name="actionConsole"/>
+    <addaction name="actionDisplay_Options"/>
     <addaction name="actionDetailed_View"/>
     <addaction name="actionPlot"/>
     <addaction name="action3D_world_view"/>
     <addaction name="actionProject_Metadata"/>
     <addaction name="actionDetectionSettings"/>
+    <addaction name="actionConsole"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -937,6 +938,17 @@
    </property>
    <property name="text">
     <string>DetectionSettings</string>
+   </property>
+  </action>
+  <action name="actionDisplay_Options">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Display Options</string>
    </property>
   </action>
  </widget>

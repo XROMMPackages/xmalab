@@ -87,23 +87,23 @@ namespace xma
 		void workspaceChanged(work_state workspace);
 
 		void on_pushButton_clicked();
-		void on_pushButton_PointNext_clicked();
-		void on_pushButton_PointPrev_clicked();
-		void on_pushButton_PointForw_clicked(bool checked);
-		void on_pushButton_PointBack_clicked(bool checked);
+		void on_toolButton_PointNext_clicked();
+		void on_toolButton_PointPrev_clicked();
+		void on_toolButton_PointForw_clicked(bool checked);
+		void on_toolButton_PointBack_clicked(bool checked);
 
-		void on_pushButton_RBNext_clicked();
-		void on_pushButton_RBPrev_clicked();
-		void on_pushButton_RBForw_clicked(bool checked);
-		void on_pushButton_RBBack_clicked(bool checked);
+		void on_toolButton_RBNext_clicked();
+		void on_toolButton_RBPrev_clicked();
+		void on_toolButton_RBForw_clicked(bool checked);
+		void on_toolButton_RBBack_clicked(bool checked);
 
-		void on_pushButton_AllNext_clicked();
-		void on_pushButton_AllPrev_clicked();
-		void on_pushButton_AllForw_clicked(bool checked);
-		void on_pushButton_AllBack_clicked(bool checked);
+		void on_toolButton_AllNext_clicked();
+		void on_toolButton_AllPrev_clicked();
+		void on_toolButton_AllForw_clicked(bool checked);
+		void on_toolButton_AllBack_clicked(bool checked);
 
-		void on_pushButton_InterpolateActive_clicked(bool checked);
-		void on_pushButton_InterpolateAll_clicked(bool checked);
+		void on_toolButton_InterpolateActive_clicked(bool checked);
+		void on_toolButton_InterpolateAll_clicked(bool checked);
 
 		void trackSinglePointFinished();
 		void trackRBFinished();
@@ -111,11 +111,6 @@ namespace xma
 
 		void checkIfValid();
 		void track();
-
-		void on_checkBoxMarkerIds_clicked();
-		void on_checkBoxRigidBodyConstellation_clicked();
-		void on_checkBoxRigidBodyMeshmodels_clicked();
-		void on_checkBox_DrawFiltered_clicked();
 	};
 }
 

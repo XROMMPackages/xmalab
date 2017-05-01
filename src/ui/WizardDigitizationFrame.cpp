@@ -51,58 +51,43 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 {
 	frame->setupUi(this);
 
-	frame->checkBoxMarkerIds->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawMarkerIds"));
-	frame->checkBoxRigidBodyConstellation->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyConstellation"));
-	frame->checkBoxRigidBodyMeshmodels->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyMeshmodels"));
-	frame->checkBox_DrawFiltered->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawFiltered"));
-
 #ifdef __APPLE__
-	frame->pushButton->setMinimumHeight(26);
+	frame->toolButton->setMinimumHeight(26);
                                                     
-    frame->pushButton_RBBack->setMinimumHeight(26);
-    frame->pushButton_RBPrev->setMinimumHeight(26);
-    frame->pushButton_RBForw->setMinimumHeight(26);
-    frame->pushButton_RBNext->setMinimumHeight(26);
+    frame->toolButton_RBBack->setMinimumHeight(26);
+    frame->toolButton_RBPrev->setMinimumHeight(26);
+    frame->toolButton_RBForw->setMinimumHeight(26);
+    frame->toolButton_RBNext->setMinimumHeight(26);
     
-    frame->pushButton_AllPrev->setMinimumHeight(26);
-    frame->pushButton_AllNext->setMinimumHeight(26);
-    frame->pushButton_AllBack->setMinimumHeight(26);
-    frame->pushButton_AllForw->setMinimumHeight(26);
+    frame->toolButton_AllPrev->setMinimumHeight(26);
+    frame->toolButton_AllNext->setMinimumHeight(26);
+    frame->toolButton_AllBack->setMinimumHeight(26);
+    frame->toolButton_AllForw->setMinimumHeight(26);
     
-    frame->pushButton_PointNext->setMinimumHeight(26);
-    frame->pushButton_PointPrev->setMinimumHeight(26);
-    frame->pushButton_PointBack->setMinimumHeight(26);
-    frame->pushButton_PointForw->setMinimumHeight(26);
+    frame->toolButton_PointNext->setMinimumHeight(26);
+    frame->toolButton_PointPrev->setMinimumHeight(26);
+    frame->toolButton_PointBack->setMinimumHeight(26);
+    frame->toolButton_PointForw->setMinimumHeight(26);
 
-	frame->pushButton_InterpolateActive->setMinimumHeight(26);
-	frame->pushButton_InterpolateAll->setMinimumHeight(26);
+	frame->toolButton_InterpolateActive->setMinimumHeight(26);
+	frame->toolButton_InterpolateAll->setMinimumHeight(26);
 
-	frame->checkBoxMarkerIds->setMinimumHeight(26);
-	frame->checkBoxRigidBodyConstellation->setMinimumHeight(26);
-	frame->checkBoxRigidBodyMeshmodels->setMinimumHeight(26);
-	frame->checkBox_DrawFiltered->setMinimumHeight(26);
+	frame->toolButton_RBBack->setFocusPolicy(Qt::StrongFocus);
+	frame->toolButton_RBPrev->setFocusPolicy(Qt::StrongFocus);
+	frame->toolButton_RBForw->setFocusPolicy(Qt::StrongFocus);
+	frame->toolButton_RBNext->setFocusPolicy(Qt::StrongFocus);
 
-	frame->pushButton_RBBack->setFocusPolicy(Qt::StrongFocus);
-	frame->pushButton_RBPrev->setFocusPolicy(Qt::StrongFocus);
-	frame->pushButton_RBForw->setFocusPolicy(Qt::StrongFocus);
-	frame->pushButton_RBNext->setFocusPolicy(Qt::StrongFocus);
+	frame->toolButton_AllPrev->setFocusPolicy(Qt::StrongFocus);
+	frame->toolButton_AllNext->setFocusPolicy(Qt::StrongFocus);
+	frame->toolButton_AllBack->setFocusPolicy(Qt::StrongFocus);
+	frame->toolButton_AllForw->setFocusPolicy(Qt::StrongFocus);
 
-	frame->pushButton_AllPrev->setFocusPolicy(Qt::StrongFocus);
-	frame->pushButton_AllNext->setFocusPolicy(Qt::StrongFocus);
-	frame->pushButton_AllBack->setFocusPolicy(Qt::StrongFocus);
-	frame->pushButton_AllForw->setFocusPolicy(Qt::StrongFocus);
-
-	frame->pushButton_PointNext->setFocusPolicy(Qt::StrongFocus);
-	frame->pushButton_PointPrev->setFocusPolicy(Qt::StrongFocus);
-	frame->pushButton_PointBack->setFocusPolicy(Qt::StrongFocus);
-	frame->pushButton_PointForw->setFocusPolicy(Qt::StrongFocus);
-
-	frame->checkBoxMarkerIds->setFocusPolicy(Qt::StrongFocus);
-	frame->checkBoxRigidBodyConstellation->setFocusPolicy(Qt::StrongFocus);
-	frame->checkBoxRigidBodyMeshmodels->setFocusPolicy(Qt::StrongFocus);
-	frame->checkBox_DrawFiltered->setFocusPolicy(Qt::StrongFocus);
-
+	frame->toolButton_PointNext->setFocusPolicy(Qt::StrongFocus);
+	frame->toolButton_PointPrev->setFocusPolicy(Qt::StrongFocus);
+	frame->toolButton_PointBack->setFocusPolicy(Qt::StrongFocus);
+	frame->toolButton_PointForw->setFocusPolicy(Qt::StrongFocus);
 #endif
+
 	connect(PointsDockWidget::getInstance(), SIGNAL(activePointChanged(int)), this, SLOT(activePointChanged(int)));
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
@@ -708,9 +693,9 @@ void WizardDigitizationFrame::stopTracking()
 
 void WizardDigitizationFrame::trackSelectedPointToNextFrame()
 {
-	if (frame->pushButton_PointNext->isEnabled())
+	if (frame->toolButton_PointNext->isEnabled())
 	{
-		on_pushButton_PointNext_clicked();
+		on_toolButton_PointNext_clicked();
 	}
 }
 
@@ -768,13 +753,13 @@ void WizardDigitizationFrame::goToFirstTrackedFrame()
 
 void WizardDigitizationFrame::trackSelectedPointToPrevFrame()
 {
-	if (frame->pushButton_PointPrev->isEnabled())
+	if (frame->toolButton_PointPrev->isEnabled())
 	{
-		on_pushButton_PointPrev_clicked();
+		on_toolButton_PointPrev_clicked();
 	}
 }
 
-void WizardDigitizationFrame::on_pushButton_PointNext_clicked()
+void WizardDigitizationFrame::on_toolButton_PointNext_clicked()
 {
 	//if (isTracking) return;
 	uncheckTrackButtons();
@@ -787,7 +772,7 @@ void WizardDigitizationFrame::on_pushButton_PointNext_clicked()
 	track();
 }
 
-void WizardDigitizationFrame::on_pushButton_PointPrev_clicked()
+void WizardDigitizationFrame::on_toolButton_PointPrev_clicked()
 {
 	//if (isTracking) return;
 	uncheckTrackButtons();
@@ -800,12 +785,12 @@ void WizardDigitizationFrame::on_pushButton_PointPrev_clicked()
 	track();
 }
 
-void WizardDigitizationFrame::on_pushButton_PointForw_clicked(bool checked)
+void WizardDigitizationFrame::on_toolButton_PointForw_clicked(bool checked)
 {
 	uncheckTrackButtons();
 	if (checked)
 	{
-		frame->pushButton_PointForw->setChecked(true);
+		frame->toolButton_PointForw->setChecked(true);
 
 		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
 		trackType = 1;
@@ -815,12 +800,12 @@ void WizardDigitizationFrame::on_pushButton_PointForw_clicked(bool checked)
 	}
 }
 
-void WizardDigitizationFrame::on_pushButton_PointBack_clicked(bool checked)
+void WizardDigitizationFrame::on_toolButton_PointBack_clicked(bool checked)
 {
 	uncheckTrackButtons();
 	if (checked)
 	{
-		frame->pushButton_PointBack->setChecked(true);
+		frame->toolButton_PointBack->setChecked(true);
 
 		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
 		trackType = 1;
@@ -830,7 +815,7 @@ void WizardDigitizationFrame::on_pushButton_PointBack_clicked(bool checked)
 	}
 }
 
-void WizardDigitizationFrame::on_pushButton_RBNext_clicked()
+void WizardDigitizationFrame::on_toolButton_RBNext_clicked()
 {
 	uncheckTrackButtons();
 
@@ -841,7 +826,7 @@ void WizardDigitizationFrame::on_pushButton_RBNext_clicked()
 	track();
 }
 
-void WizardDigitizationFrame::on_pushButton_RBPrev_clicked()
+void WizardDigitizationFrame::on_toolButton_RBPrev_clicked()
 {
 	uncheckTrackButtons();
 
@@ -852,12 +837,12 @@ void WizardDigitizationFrame::on_pushButton_RBPrev_clicked()
 	track();
 }
 
-void WizardDigitizationFrame::on_pushButton_RBForw_clicked(bool checked)
+void WizardDigitizationFrame::on_toolButton_RBForw_clicked(bool checked)
 {
 	uncheckTrackButtons();
 	if (checked)
 	{
-		frame->pushButton_RBForw->setChecked(true);
+		frame->toolButton_RBForw->setChecked(true);
 
 		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx();
 		trackType = 2;
@@ -867,12 +852,12 @@ void WizardDigitizationFrame::on_pushButton_RBForw_clicked(bool checked)
 	}
 }
 
-void WizardDigitizationFrame::on_pushButton_RBBack_clicked(bool checked)
+void WizardDigitizationFrame::on_toolButton_RBBack_clicked(bool checked)
 {
 	uncheckTrackButtons();
 	if (checked)
 	{
-		frame->pushButton_RBBack->setChecked(true);
+		frame->toolButton_RBBack->setChecked(true);
 
 		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx();
 		trackType = 2;
@@ -882,7 +867,7 @@ void WizardDigitizationFrame::on_pushButton_RBBack_clicked(bool checked)
 	}
 }
 
-void WizardDigitizationFrame::on_pushButton_AllNext_clicked()
+void WizardDigitizationFrame::on_toolButton_AllNext_clicked()
 {
 	//if (isTracking) return;
 	uncheckTrackButtons();
@@ -895,7 +880,7 @@ void WizardDigitizationFrame::on_pushButton_AllNext_clicked()
 	track();
 }
 
-void WizardDigitizationFrame::on_pushButton_AllPrev_clicked()
+void WizardDigitizationFrame::on_toolButton_AllPrev_clicked()
 {
 	//if (isTracking) return;
 	uncheckTrackButtons();
@@ -908,12 +893,12 @@ void WizardDigitizationFrame::on_pushButton_AllPrev_clicked()
 	track();
 }
 
-void WizardDigitizationFrame::on_pushButton_AllForw_clicked(bool checked)
+void WizardDigitizationFrame::on_toolButton_AllForw_clicked(bool checked)
 {
 	uncheckTrackButtons();
 	if (checked)
 	{
-		frame->pushButton_AllForw->setChecked(true);
+		frame->toolButton_AllForw->setChecked(true);
 
 		trackID = -1;
 		trackType = 3;
@@ -923,12 +908,12 @@ void WizardDigitizationFrame::on_pushButton_AllForw_clicked(bool checked)
 	}
 }
 
-void WizardDigitizationFrame::on_pushButton_AllBack_clicked(bool checked)
+void WizardDigitizationFrame::on_toolButton_AllBack_clicked(bool checked)
 {
 	uncheckTrackButtons();
 	if (checked)
 	{
-		frame->pushButton_AllBack->setChecked(true);
+		frame->toolButton_AllBack->setChecked(true);
 
 		trackID = -1;
 		trackType = 3;
@@ -938,14 +923,14 @@ void WizardDigitizationFrame::on_pushButton_AllBack_clicked(bool checked)
 	}
 }
 
-void WizardDigitizationFrame::on_pushButton_InterpolateActive_clicked(bool checked)
+void WizardDigitizationFrame::on_toolButton_InterpolateActive_clicked(bool checked)
 {
 	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker()->interpolate();
 
 	MainWindow::getInstance()->redrawGL();
 }
 
-void WizardDigitizationFrame::on_pushButton_InterpolateAll_clicked(bool checked)
+void WizardDigitizationFrame::on_toolButton_InterpolateAll_clicked(bool checked)
 {
 	for (std::vector<Marker *>::const_iterator it = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().begin();
 		it < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().end(); ++it)
@@ -956,12 +941,12 @@ void WizardDigitizationFrame::on_pushButton_InterpolateAll_clicked(bool checked)
 
 void WizardDigitizationFrame::uncheckTrackButtons()
 {
-	frame->pushButton_PointForw->setChecked(false);
-	frame->pushButton_PointBack->setChecked(false);
-	frame->pushButton_RBForw->setChecked(false);
-	frame->pushButton_RBBack->setChecked(false);
-	frame->pushButton_AllForw->setChecked(false);
-	frame->pushButton_AllBack->setChecked(false);
+	frame->toolButton_PointForw->setChecked(false);
+	frame->toolButton_PointBack->setChecked(false);
+	frame->toolButton_RBForw->setChecked(false);
+	frame->toolButton_RBBack->setChecked(false);
+	frame->toolButton_AllForw->setChecked(false);
+	frame->toolButton_AllBack->setChecked(false);
 	trackID = -1;
 	trackType = 0;
 	trackDirection = 0;
@@ -970,26 +955,3 @@ void WizardDigitizationFrame::uncheckTrackButtons()
 	setDialog();
 }
 
-void WizardDigitizationFrame::on_checkBoxMarkerIds_clicked()
-{
-	Settings::getInstance()->set("TrialDrawMarkerIds", frame->checkBoxMarkerIds->isChecked());
-	MainWindow::getInstance()->redrawGL();
-}
-
-void WizardDigitizationFrame::on_checkBoxRigidBodyConstellation_clicked()
-{
-	Settings::getInstance()->set("TrialDrawRigidBodyConstellation", frame->checkBoxRigidBodyConstellation->isChecked());
-	MainWindow::getInstance()->redrawGL();
-}
-
-void WizardDigitizationFrame::on_checkBoxRigidBodyMeshmodels_clicked()
-{
-	Settings::getInstance()->set("TrialDrawRigidBodyMeshmodels", frame->checkBoxRigidBodyMeshmodels->isChecked());
-	MainWindow::getInstance()->redrawGL();
-}
-
-void WizardDigitizationFrame::on_checkBox_DrawFiltered_clicked()
-{
-	Settings::getInstance()->set("TrialDrawFiltered", frame->checkBox_DrawFiltered->isChecked());
-	MainWindow::getInstance()->redrawGL();
-}

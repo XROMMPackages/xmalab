@@ -50,6 +50,7 @@ Settings::Settings()
 
 	//UI
 	addBoolSetting("ShowDetailView", true);
+	addBoolSetting("ShowDisplayOptions", true);
 	addBoolSetting("ShowPlot", true);
 	addBoolSetting("Show3DView", true);
 	addBoolSetting("Console", false);
@@ -170,10 +171,15 @@ Settings::Settings()
 	addBoolSetting("ExportTransNoCols", true);
 	addBoolSetting("ExportTransOffsetCols", false);
 
+	addBoolSetting("TrialDrawHideAll", false);
+	addBoolSetting("TrialDrawMarkers", true);
 	addBoolSetting("TrialDrawMarkerIds", false);
+	addBoolSetting("TrialDrawEpipolar", true);
 	addBoolSetting("TrialDrawRigidBodyConstellation", true);
 	addBoolSetting("TrialDrawRigidBodyMeshmodels", true);
 	addBoolSetting("TrialDrawFiltered", false);
+
+
 	addBoolSetting("ShowMarkerStates", false);
 
 	addIntSetting("EpipolarLinePrecision", 5);

@@ -495,111 +495,114 @@ bool Trial::renderMeshes()
 void Trial::drawPoints(int cameraId, bool detailView)
 {
 	int idx = 0;
-	if (!detailView)
-	{
-		glBegin(GL_LINES);
-		for (std::vector<Marker *>::const_iterator it = markers.begin(); it != markers.end(); ++it)
+	if (Settings::getInstance()->getBoolSetting("TrialDrawMarkers")){
+		if (!detailView)
 		{
-			if (((*it)->getStatus2D()[cameraId][activeFrame] > 0))
+			glBegin(GL_LINES);
+			for (std::vector<Marker *>::const_iterator it = markers.begin(); it != markers.end(); ++it)
 			{
-				if (Settings::getInstance()->getBoolSetting("ShowColoredMarkerCross"))
+				if (((*it)->getStatus2D()[cameraId][activeFrame] > 0))
 				{
-					QColor color = (*it)->getStatusColor(cameraId, activeFrame);
-					glColor3f(color.redF(), color.greenF(), color.blueF());
-				}
-				else{
-					if (idx == activeMarkerIdx)
+					if (Settings::getInstance()->getBoolSetting("ShowColoredMarkerCross"))
 					{
-						glColor3f(1.0, 0.0, 0.0);
+						QColor color = (*it)->getStatusColor(cameraId, activeFrame);
+						glColor3f(color.redF(), color.greenF(), color.blueF());
 					}
-					else
-					{
-						glColor3f(0.0, 1.0, 0.0);
+					else{
+						if (idx == activeMarkerIdx)
+						{
+							glColor3f(1.0, 0.0, 0.0);
+						}
+						else
+						{
+							glColor3f(0.0, 1.0, 0.0);
+						}
 					}
+
+					glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x - 5, (*it)->getPoints2D()[cameraId][activeFrame].y);
+					glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x + 5, (*it)->getPoints2D()[cameraId][activeFrame].y);
+					glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x, (*it)->getPoints2D()[cameraId][activeFrame].y - 5);
+					glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x, (*it)->getPoints2D()[cameraId][activeFrame].y + 5);
 				}
-
-				glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x - 5, (*it)->getPoints2D()[cameraId][activeFrame].y);
-				glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x + 5, (*it)->getPoints2D()[cameraId][activeFrame].y);
-				glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x, (*it)->getPoints2D()[cameraId][activeFrame].y - 5);
-				glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x, (*it)->getPoints2D()[cameraId][activeFrame].y + 5);
-			}
-			idx++;
-		}
-		glEnd();
-	}
-	else if (activeMarkerIdx >= 0 && activeMarkerIdx < (int) markers.size())
-	{
-		double x = markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].x;
-		double y = markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].y;
-
-		glBegin(GL_LINES);
-		glColor3f(1.0, 0.0, 0.0);
-		glVertex2f(x - 12, y);
-		glVertex2f(x + 12, y);
-		glVertex2f(x, y - 12);
-		glVertex2f(x, y + 12);
-		glEnd();
-
-		if (Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView"))
-		{
-			glBegin(GL_LINES);
-			for (int i = 0; i < 6; i++)
-			{
-				glVertex2f(x - 1, y + i * 2);
-				glVertex2f(x + 1, y + i * 2);
-
-				glVertex2f(x - 1, y - i * 2);
-				glVertex2f(x + 1, y - i * 2);
-
-				glVertex2f(x + i * 2, y - 1);
-				glVertex2f(x + i * 2, y + 1);
-
-				glVertex2f(x - i * 2, y - 1);
-				glVertex2f(x - i * 2, y + 1);
+				idx++;
 			}
 			glEnd();
-			double size = markers[activeMarkerIdx]->getSize();;
-			if (size > 0)
+		}
+		else if (activeMarkerIdx >= 0 && activeMarkerIdx < (int)markers.size())
+		{
+			double x = markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].x;
+			double y = markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].y;
+
+			glBegin(GL_LINES);
+			glColor3f(1.0, 0.0, 0.0);
+			glVertex2f(x - 12, y);
+			glVertex2f(x + 12, y);
+			glVertex2f(x, y - 12);
+			glVertex2f(x, y + 12);
+			glEnd();
+
+			if (Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView"))
 			{
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glBegin(GL_LINES);
-				glColor4f(1.0f, 0.0f, 0.0f, 0.3f);
-				glVertex2f(x - size, y - size);
-				glVertex2f(x - size, y + size);
+				for (int i = 0; i < 6; i++)
+				{
+					glVertex2f(x - 1, y + i * 2);
+					glVertex2f(x + 1, y + i * 2);
 
-				glVertex2f(x + size, y - size);
-				glVertex2f(x + size, y + size);
+					glVertex2f(x - 1, y - i * 2);
+					glVertex2f(x + 1, y - i * 2);
 
-				glVertex2f(x - size, y - size);
-				glVertex2f(x + size, y - size);
+					glVertex2f(x + i * 2, y - 1);
+					glVertex2f(x + i * 2, y + 1);
 
-				glVertex2f(x - size, y + size);
-				glVertex2f(x + size, y + size);
+					glVertex2f(x - i * 2, y - 1);
+					glVertex2f(x - i * 2, y + 1);
+				}
 				glEnd();
-				glDisable(GL_BLEND);
+				double size = markers[activeMarkerIdx]->getSize();;
+				if (size > 0)
+				{
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					glBegin(GL_LINES);
+					glColor4f(1.0f, 0.0f, 0.0f, 0.3f);
+					glVertex2f(x - size, y - size);
+					glVertex2f(x - size, y + size);
+
+					glVertex2f(x + size, y - size);
+					glVertex2f(x + size, y + size);
+
+					glVertex2f(x - size, y - size);
+					glVertex2f(x + size, y - size);
+
+					glVertex2f(x - size, y + size);
+					glVertex2f(x + size, y + size);
+					glEnd();
+					glDisable(GL_BLEND);
+				}
+			}
+		}
+
+		if (activeMarkerIdx >= 0 && activeMarkerIdx < (int)markers.size() && markers[activeMarkerIdx]->getStatus3D()[activeFrame] > 0)
+		{
+			if (!detailView || Settings::getInstance()->getBoolSetting("Show3dPointDetailView"))
+			{
+				glBegin(GL_LINES);
+				glColor3f(0.0, 1.0, 1.0);
+				glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x - 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y - 5);
+				glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x + 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y + 5);
+				glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x + 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y - 5);
+				glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x - 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y + 5);
+				glEnd();
 			}
 		}
 	}
-
-	if (activeMarkerIdx >= 0 && activeMarkerIdx < (int) markers.size() && markers[activeMarkerIdx]->getStatus3D()[activeFrame] > 0)
+	if (Settings::getInstance()->getBoolSetting("TrialDrawEpipolar") &&
+		(!detailView || Settings::getInstance()->getBoolSetting("ShowEpiLineDetailView")))
 	{
-		if (!detailView || Settings::getInstance()->getBoolSetting("Show3dPointDetailView"))
+		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 		{
-			glBegin(GL_LINES);
-			glColor3f(0.0, 1.0, 1.0);
-			glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x - 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y - 5);
-			glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x + 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y + 5);
-			glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x + 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y - 5);
-			glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x - 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y + 5);
-			glEnd();
-		}
-	}
-
-	for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
-	{
-		if (!detailView || Settings::getInstance()->getBoolSetting("ShowEpiLineDetailView"))
-		{
+		
 			if (activeMarkerIdx >= 0 && activeMarkerIdx < (int) markers.size() && markers[activeMarkerIdx]->getStatus2D()[i][activeFrame] > 0)
 			{
 				if (cameraId != i)

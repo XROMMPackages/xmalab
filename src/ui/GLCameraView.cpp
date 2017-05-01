@@ -623,7 +623,7 @@ void GLCameraView::paintGL()
 	{
 		if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
 		{
-			if (!detailedView && Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyMeshmodels"))
+			if (!detailedView && Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyMeshmodels") && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll"))
 			{
 				renderMeshes = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->renderMeshes() && 
 					!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault();
@@ -842,18 +842,21 @@ void GLCameraView::paintGL()
 	}
 	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
-		if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
-		{
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawPoints(this->camera->getID(), detailedView);
-
-			if (!detailedView)
+		if (!Settings::getInstance()->getBoolSetting("TrialDrawHideAll")){
+			if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
 			{
-				if (Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyConstellation"))
-					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodies(this->camera);
 
-				if (Settings::getInstance()->getBoolSetting("TrialDrawMarkerIds"))
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawPoints(this->camera->getID(), detailedView);
+
+				if (!detailedView)
 				{
-					renderPointText(false);
+					if (Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyConstellation"))
+						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodies(this->camera);
+
+					if (Settings::getInstance()->getBoolSetting("TrialDrawMarkerIds"))
+					{
+						renderPointText(false);
+					}
 				}
 			}
 		}

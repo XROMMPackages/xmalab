@@ -45,6 +45,7 @@
 #include "ui/WizardDockWidget.h"
 #include "ui/ConsoleDockWidget.h"
 #include "ui/DetailViewDockWidget.h"
+#include "ui/DisplayOptionsDockWidget.h"
 #include "PointsDockWidget.h"
 #include "ui/UndistortSequenceDialog.h"
 #include "ui/SettingsDialog.h"
@@ -154,6 +155,9 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->actionDetailed_View->setChecked(Settings::getInstance()->getBoolSetting("ShowDetailView"));
 	ui->actionDetailed_View->setEnabled(false);
 
+	ui->actionDisplay_Options->setChecked(Settings::getInstance()->getBoolSetting("ShowDisplayOptions"));
+	ui->actionDisplay_Options->setEnabled(false);
+
 	ui->actionPlot->setChecked(Settings::getInstance()->getBoolSetting("ShowPlot"));
 	ui->actionPlot->setEnabled(false);
 
@@ -179,9 +183,8 @@ MainWindow::MainWindow(QWidget* parent) :
 	ConsoleDockWidget::getInstance();
 	PointsDockWidget::getInstance();
 	DetailViewDockWidget::getInstance();
+	DisplayOptionsDockWidget::getInstance();
 	PlotWindow::getInstance();
-
-
 
 	if (!restoreState(Settings::getInstance()->getUIState("XMALab"), UI_VERSION))
 	{
@@ -190,6 +193,7 @@ MainWindow::MainWindow(QWidget* parent) :
 		worldViewDockWidget->setFloating(true);
 		ConsoleDockWidget::getInstance()->setFloating(true);
 		DetailViewDockWidget::getInstance()->setFloating(false);
+		DisplayOptionsDockWidget::getInstance()->setFloating(false);
 		PlotWindow::getInstance()->setFloating(false);
 	}
 
@@ -205,6 +209,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	ProgressDialog::getInstance()->hide();
 	PointsDockWidget::getInstance()->hide();
 	DetailViewDockWidget::getInstance()->hide();
+	DisplayOptionsDockWidget::getInstance()->hide();
 	PlotWindow::getInstance()->hide();
 
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
@@ -225,7 +230,8 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->actionMarkertoMarkerDistances->setEnabled(false);
 	ui->actionImport2D_Points->setEnabled(false);
 	ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
-	ui->actionDetailed_View->setEnabled(false);
+	ui->actionDetailed_View->setEnabled(false);	
+	ui->actionDisplay_Options->setEnabled(false);
 	ui->actionPlot->setEnabled(false);
 	ui->action3D_world_view->setEnabled(false);
 	ui->actionImportTrial->setEnabled(false);
@@ -737,6 +743,7 @@ void MainWindow::closeProject()
 	WizardDockWidget::getInstance()->hide();
 	PointsDockWidget::getInstance()->hide();
 	DetailViewDockWidget::getInstance()->hide();
+	DisplayOptionsDockWidget::getInstance()->hide();
 	PlotWindow::getInstance()->hide();
 
 #ifndef BETA
@@ -751,6 +758,7 @@ void MainWindow::closeProject()
 	ui->actionDetectionSettings->setEnabled(false);
 	ui->action3D_world_view->setEnabled(false);
 	ui->actionDetailed_View->setEnabled(false);
+	ui->actionDisplay_Options->setEnabled(false);
 }
 
 void MainWindow::saveProject()
@@ -1064,6 +1072,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->actionImport2D_Points->setEnabled(false);
 		ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 		ui->actionDetailed_View->setEnabled(false);
+		ui->actionDisplay_Options->setEnabled(false);
 		ui->actionPlot->setEnabled(false);
 		ui->actionDetectionSettings->setEnabled(false);
 		ui->action3D_world_view->setEnabled(false);
@@ -1071,6 +1080,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		PointsDockWidget::getInstance()->hide();
 		DetectionSettings::getInstance()->hide();
 		DetailViewDockWidget::getInstance()->hide();
+		DisplayOptionsDockWidget::getInstance()->hide();
 		PlotWindow::getInstance()->hide();
 		worldViewDockWidget->hide();
 	}
@@ -1098,12 +1108,14 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->actionDetectionSettings->setEnabled(false);
 
 		ui->actionDetailed_View->setEnabled(false);
+		ui->actionDisplay_Options->setEnabled(false);
 		ui->actionPlot->setEnabled(false);
 		ui->actionDetectionSettings->setEnabled(false);
 		ui->action3D_world_view->setEnabled(true);
 
 		PointsDockWidget::getInstance()->hide();
 		DetailViewDockWidget::getInstance()->hide();
+		DisplayOptionsDockWidget::getInstance()->hide();
 		DetectionSettings::getInstance()->hide();
 		PlotWindow::getInstance()->hide();
 		if (Settings::getInstance()->getBoolSetting("Show3DView"))
@@ -1131,6 +1143,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 				ui->pushButtonDefaultTrial->setVisible(true);
 
 				ui->actionDetailed_View->setEnabled(true);
+				ui->actionDisplay_Options->setEnabled(true);
 				ui->actionPlot->setEnabled(true);
 				ui->actionDetectionSettings->setEnabled(true);
 				ui->action3D_world_view->setEnabled(true);
@@ -1163,6 +1176,15 @@ void MainWindow::workspaceChanged(work_state workspace)
 				{
 					DetailViewDockWidget::getInstance()->hide();
 				}
+
+				if (Settings::getInstance()->getBoolSetting("ShowDisplayOptions"))
+				{
+					DisplayOptionsDockWidget::getInstance()->show();
+				}
+				else
+				{
+					DisplayOptionsDockWidget::getInstance()->hide();
+				}
 			}
 			else 
 			{
@@ -1171,6 +1193,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 				ui->pushButtonDefaultTrial->setVisible(false);
 
 				ui->actionDetailed_View->setEnabled(false);
+				ui->actionDisplay_Options->setEnabled(false);
 				ui->actionPlot->setEnabled(false);
 				ui->actionDetectionSettings->setEnabled(false);
 				ui->action3D_world_view->setEnabled(false);
@@ -1178,6 +1201,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 				
 				PointsDockWidget::getInstance()->hide();
 				DetailViewDockWidget::getInstance()->hide();
+				DisplayOptionsDockWidget::getInstance()->hide();
 				PlotWindow::getInstance()->hide();
 				DetectionSettings::getInstance()->hide();
 				worldViewDockWidget->hide();
@@ -1217,12 +1241,14 @@ void MainWindow::workspaceChanged(work_state workspace)
 			ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 
 			ui->actionDetailed_View->setEnabled(false);
+			ui->actionDisplay_Options->setEnabled(false);
 			ui->actionPlot->setEnabled(false);
 			ui->actionDetectionSettings->setEnabled(false);
 			ui->actionShow_3D_View->setEnabled(false);
 
 			PointsDockWidget::getInstance()->hide();
 			DetailViewDockWidget::getInstance()->hide();
+			DisplayOptionsDockWidget::getInstance()->hide();
 			PlotWindow::getInstance()->hide();
 			DetectionSettings::getInstance()->hide();
 			worldViewDockWidget->hide();
@@ -1805,6 +1831,21 @@ void MainWindow::on_actionDetailed_View_triggered(bool checked)
 		ui->actionDetailed_View->setChecked(false);
 		DetailViewDockWidget::getInstance()->hide();
 		Settings::getInstance()->set("ShowDetailView", false);
+	}
+}
+
+void MainWindow::on_actionDisplay_Options_triggered(bool checked)
+{
+	if (checked)
+	{
+		DisplayOptionsDockWidget::getInstance()->show();
+		Settings::getInstance()->set("ShowDisplayOptions", true);
+	}
+	else
+	{
+		ui->actionDisplay_Options->setChecked(false);
+		DisplayOptionsDockWidget::getInstance()->hide();
+		Settings::getInstance()->set("ShowDisplayOptions", false);
 	}
 }
 

@@ -33,6 +33,7 @@
 #include "ui/SequenceNavigationFrame.h"
 #include "ui/PointsDockWidget.h"
 #include "ui/WizardDockWidget.h"
+#include "ui/DisplayOptionsDockWidget.h"
 #include "ui/PlotWindow.h"
 #include <QtGui/QShortcut>
 #include <QKeyEvent>
@@ -110,6 +111,9 @@ void Shortcuts::bindApplicationShortcuts()
 	shortcut->setContext(Qt::ApplicationShortcut);
 
 	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_Backspace), PlotWindow::getInstance(), SLOT(deleteAllAboveBackprojectionError()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_H), DisplayOptionsDockWidget::getInstance(), SLOT(toggleHideAll()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 }
 
@@ -258,6 +262,11 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 		if (_keyEvent->key() == Qt::Key_Backspace&& _keyEvent->modifiers().testFlag(Qt::ShiftModifier))
 		{
 			PlotWindow::getInstance()->deleteAllAboveBackprojectionError();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_H)
+		{
+			DisplayOptionsDockWidget::getInstance()->toggleHideAll();
 			return true;
 		}
 	}
