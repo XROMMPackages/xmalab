@@ -57,6 +57,7 @@ namespace xma
 		void save3DPoints(std::vector<int> markers);
 		void saveRigidBodies(std::vector<int> bodies);
 		void setUndo(bool value);
+		void showAndLoad(QString file);
 
 	private:
 		Ui::MainWindow* ui;

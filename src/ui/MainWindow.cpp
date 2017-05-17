@@ -1008,6 +1008,12 @@ void MainWindow::setUndo(bool value)
 	ui->actionUndo->setEnabled(value);
 }
 
+void MainWindow::showAndLoad(QString file)
+{
+	this->show();
+	loadProject(file);
+}
+
 void MainWindow::setCameraViewWidgetTitles()
 {
 	if (State::getInstance()->getWorkspace() == CALIBRATION)
@@ -1760,8 +1766,9 @@ void MainWindow::on_actionAbout_triggered(bool checked)
 void MainWindow::on_actionHelp_triggered(bool checked)
 {
 	HelpDialog* diag = new HelpDialog(this);
-	diag->exec();
-	delete diag;
+	diag->show();
+	diag->setAttribute(Qt::WA_DeleteOnClose);
+	//delete diag;
 }
 
 //startMainFrameButtons

@@ -81,11 +81,17 @@ int main(int argc, char** argv)
 {
 	MApplication app(argc, argv);
 
+	
+
 	Settings::getInstance();
 	MainWindow* widget = MainWindow::getInstance();
-
-	widget->show();
-
+	if (argc > 1)
+	{
+		widget->showAndLoad(argv[1]);
+	}
+	else{
+		widget->show();
+	}
 	return app.exec();
 }
 
