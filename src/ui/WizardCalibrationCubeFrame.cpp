@@ -436,7 +436,17 @@ void WizardCalibrationCubeFrame::setDialog()
 			frame->checkBoxDistortion->hide();
 		}
 
-		frame->checkBoxOptimized->setChecked(Project::getInstance()->camerasOptimized());
+		
+		if (Project::getInstance()->camerasOptimized())
+		{
+			frame->checkBoxOptimized->setChecked(true);
+			frame->checkBoxOptimized->setEnabled(true);
+		} 
+		else
+		{
+			frame->checkBoxOptimized->setChecked(false);
+			frame->checkBoxOptimized->setEnabled(false);
+		}
 		frame->checkBoxDistortion->setChecked(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->hasModelDistortion());
 
 		frame->checkBoxManual->show();
@@ -1026,3 +1036,18 @@ void WizardCalibrationCubeFrame::on_pushButtonResetFrame_clicked()
 	}
 }
 
+void WizardCalibrationCubeFrame::on_checkBoxOptimized_clicked()
+{
+	if (ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to remove the optimization?"))
+	{
+		for (auto cam : Project::getInstance()->getCameras())
+		{
+			cam->setRecalibrationRequired(1);
+		}
+		on_pushButton_clicked();
+	} 
+	else
+	{
+		frame->checkBoxOptimized->setChecked(true);
+	}
+}

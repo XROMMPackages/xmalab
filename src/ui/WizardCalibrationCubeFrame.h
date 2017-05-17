@@ -102,6 +102,8 @@ namespace xma
 		void on_pushButtonResetCamera_clicked();
 		void on_pushButtonResetFrame_clicked();
 
+		void on_checkBoxOptimized_clicked();
+
 		void runCalibration();
 		void runCalibrationFinished();
 		void runCalibrationCameraAllFramesFinished();
