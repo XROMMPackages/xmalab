@@ -1564,6 +1564,65 @@ void Marker::reprojectPoint(int frame)
 	updateError(frame);
 }
 
+int Marker::getFirstTrackedFrame()
+{
+	for (int i = 0; i < status2D[0].size(); i++)
+	{
+		for (int c = 0; c < status2D.size(); c++)
+		{
+			if (status2D[c][i] >= TRACKED) return i + 1;
+		}
+	}
+	return -1;
+}
+
+int Marker::getLastTrackedFrame()
+{
+	for (int i = status2D[0].size() - 1; i >= 0 ; i--)
+	{
+		for (int c = 0; c < status2D.size(); c++)
+		{
+			if (status2D[c][i] >= TRACKED) return i + 1;
+		}
+	}
+	return -1;
+}
+
+int Marker::getFramesTracked()
+{
+	int count = 0;
+	bool tracked;
+	for (int i = 0; i < status2D[0].size(); i++)
+	{
+		tracked = true;
+		for (int c = 0; c < status2D.size(); c++)
+		{
+			if (status2D[c][i] < TRACKED) tracked = false;
+		}
+		if (tracked) count++;
+	}
+	return count;
+}
+
+double Marker::getReprojectionError()
+{
+	int count = 0;
+	double error = 0;
+	for (int i = 0; i < status2D[0].size(); i++)
+	{
+		if (status3D[i] >= TRACKED) {
+			for (int c = 0; c < status2D.size(); c++)
+			{
+				count++;
+				error += error2D[c][i];
+			}
+		}
+	}
+	if (count != 0) error /= count;
+
+	return error;
+}
+
 void Marker::updateError(int frame)
 {
 	if (status3D[frame] > 0)

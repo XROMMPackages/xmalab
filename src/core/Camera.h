@@ -179,7 +179,8 @@ namespace xma
 		cv::Mat* getUndistortionMapY();
 
 		void setCalibrationSequence(QString filename, int nbImages, int width, int height);
-
+		int getCalibrationNbInlier();
+		double getCalibrationError();
 	private:
 		//InputData
 		CalibrationSequence* calibrationSequence;

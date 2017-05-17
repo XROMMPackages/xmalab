@@ -133,6 +133,7 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 	if (success)
 	{
 		success = writeProjectFile(tmpDir_path + "project.xml", trials);
+		writePortalFile(tmpDir_path, trials);
 	}
 
 	if (success)
@@ -1081,6 +1082,200 @@ void ProjectFileIO::upgradeTo13(Trial* trial)
 	for (std::vector<Marker*>::const_iterator it = trial->getMarkers().begin(); it < trial->getMarkers().end(); ++it){
 		(*it)->updateToProject13();
 	}
+}
+
+void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
+{
+	QString xml_filename = path + OS_SEP + "xma_metadata.xml";
+	if (!xml_filename.isNull())
+	{
+		QFile file(xml_filename);
+		if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+		{
+			QXmlStreamWriter xmlWriter(&file);
+			xmlWriter.writeStartDocument();
+			xmlWriter.setAutoFormatting(true);
+			xmlWriter.writeStartElement("data");
+
+			xmlWriter.writeStartElement("xmalab-version");
+			xmlWriter.writeCharacters(UI_VERSION);
+			xmlWriter.writeEndElement();
+
+			xmlWriter.writeStartElement("repository");
+			xmlWriter.writeCharacters(Project::getInstance()->getRepository());
+			xmlWriter.writeEndElement();
+
+			xmlWriter.writeStartElement("studyid");
+			xmlWriter.writeCharacters(QString::number(Project::getInstance()->getStudyId()));
+			xmlWriter.writeEndElement();
+
+			xmlWriter.writeStartElement("studyname");
+			xmlWriter.writeCharacters(Project::getInstance()->getStudyName());
+			xmlWriter.writeEndElement();
+
+			//TOFIX
+			xmlWriter.writeStartElement("date-created");
+			QDateTime local = QDateTime::currentDateTime();
+			QDateTime utc = local.toUTC();
+			utc.setTimeSpec(Qt::LocalTime);
+			int utcOffset = utc.secsTo(local);
+			local.setUtcOffset(utcOffset);
+			xmlWriter.writeCharacters(local.toString(Qt::ISODate));
+			xmlWriter.writeEndElement();
+
+			xmlWriter.writeStartElement("date-modified");
+			//QDateTime local = QDateTime::currentDateTime();
+			//QDateTime utc = local.toUTC();
+			//utc.setTimeSpec(Qt::LocalTime);
+			//int utcOffset = utc.secsTo(local);
+			local.setUtcOffset(utcOffset);
+			xmlWriter.writeCharacters(local.toString(Qt::ISODate));
+			xmlWriter.writeEndElement();
+
+			xmlWriter.writeStartElement("CalibrationTrial");
+			xmlWriter.writeAttribute("id", QString::number(Project::getInstance()->getTrialId()));
+			xmlWriter.writeAttribute("name", Project::getInstance()->getTrialName());
+			xmlWriter.writeStartElement("Undistortion");
+			for (auto c : Project::getInstance()->getCameras())
+			{
+				xmlWriter.writeStartElement("Camera ");
+				xmlWriter.writeAttribute("camera-id", QString::number(c->getID()));
+				xmlWriter.writeCharacters(c->getUndistortionObject()->getFilename());
+				xmlWriter.writeEndElement();
+			}
+			xmlWriter.writeEndElement();
+
+			xmlWriter.writeStartElement("Calibration");
+			for (auto c : Project::getInstance()->getCameras())
+			{
+				xmlWriter.writeStartElement("Camera");
+				xmlWriter.writeAttribute("camera-id", QString::number(c->getID()));
+				xmlWriter.writeAttribute("points", QString::number(c->getCalibrationNbInlier()));
+				xmlWriter.writeAttribute("error", QString::number(c->getCalibrationError()));
+				for (auto f : c->getCalibrationImages())
+				{
+					xmlWriter.writeStartElement("File");
+					xmlWriter.writeAttribute("points", QString::number(f->getCalibrationNbInlier()));
+					xmlWriter.writeAttribute("error", QString::number(f->getCalibrationError()));
+					xmlWriter.writeCharacters(f->getFilename());
+					xmlWriter.writeEndElement();
+				}
+				xmlWriter.writeEndElement(); // Camera
+			}
+			
+
+			xmlWriter.writeStartElement("Object");
+			if (CalibrationObject::getInstance()->isCheckerboard())
+			{
+				xmlWriter.writeAttribute("type", "checkerboard");
+				xmlWriter.writeAttribute("width", QString::number(CalibrationObject::getInstance()->getNbHorizontalSquares()));
+				xmlWriter.writeAttribute("height", QString::number(CalibrationObject::getInstance()->getNbVerticalSquares()));
+				xmlWriter.writeAttribute("size", QString::number(CalibrationObject::getInstance()->getSquareSize()));
+			} 
+			else
+			{
+				xmlWriter.writeAttribute("type", "cube");
+				QFileInfo info(CalibrationObject::getInstance()->getFrameSpecificationsFilename());
+				xmlWriter.writeAttribute("csv", info.fileName());
+				info = QFileInfo(CalibrationObject::getInstance()->getReferencesFilename());
+				xmlWriter.writeAttribute("ref", info.fileName());
+			}
+			xmlWriter.writeEndElement(); //Object
+			xmlWriter.writeEndElement(); //Calibration
+			xmlWriter.writeEndElement(); //CalibrationTrial
+			for (auto t : trials)
+			{
+				if (!t->getIsDefault()){
+					xmlWriter.writeStartElement("Trial");
+					xmlWriter.writeAttribute("id", QString::number(t->getTrialId()));
+					xmlWriter.writeAttribute("name", t->getTrialName());
+					xmlWriter.writeAttribute("xmalab-name", t->getName());
+					xmlWriter.writeAttribute("firstTracked", QString::number(t->getFirstTrackedFrame()));
+					xmlWriter.writeAttribute("lastTracked", QString::number(t->getLastTrackedFrame()));
+					xmlWriter.writeAttribute("filterfrequency", QString::number(t->getCutoffFrequency()));
+					xmlWriter.writeAttribute("framerate", QString::number(t->getRecordingSpeed()));
+					xmlWriter.writeAttribute("reprojectionerror", QString::number(t->getReprojectionError()));
+					xmlWriter.writeAttribute("averageSD", QString::number(t->getMarkerToMarkerSD()));
+
+					xmlWriter.writeStartElement("Movies");
+					for (int m = 0; m < t->getVideoStreams().size(); m++)
+					{
+						xmlWriter.writeStartElement("File");
+						xmlWriter.writeAttribute("camera-id", QString::number(m));
+						xmlWriter.writeAttribute("FileId", QString::number(t->getVideoStreams()[m]->getFileId()));
+						xmlWriter.writeAttribute("FileName", t->getVideoStreams()[m]->getFilename());
+
+						QFileInfo info(t->getVideoStreams()[m]->getFilenames()[0]);
+						xmlWriter.writeCharacters(info.fileName());
+						xmlWriter.writeEndElement(); // File
+					}
+					xmlWriter.writeEndElement(); // Movies
+
+					std::vector <bool> pointsWritten(t->getMarkers().size(), false);
+
+					for (auto rb : t->getRigidBodies())
+					{
+						xmlWriter.writeStartElement("RigidBody");
+						xmlWriter.writeAttribute("name", rb->getDescription());
+						xmlWriter.writeAttribute("firstTracked", QString::number(rb->getFirstTrackedFrame()));
+						xmlWriter.writeAttribute("lastTracked", QString::number(rb->getLastTrackedFrame()));
+						xmlWriter.writeAttribute("numberTracked", QString::number(rb->getFramesTracked()));
+						double averageSD;
+						int count;
+						rb->getMarkerToMarkerSD(averageSD, count);
+						xmlWriter.writeAttribute("averageSD", QString::number(averageSD));
+						xmlWriter.writeAttribute("error3DUnfiltered", QString::number(rb->getError3D(false)));
+						xmlWriter.writeAttribute("error3DFiltered", QString::number(rb->getError3D(true)));
+						if (rb->getOverrideCutoffFrequency()){
+							xmlWriter.writeAttribute("filterfrequency", QString::number(rb->getCutoffFrequency()));
+						}
+						else
+						{
+							xmlWriter.writeAttribute("filterfrequency", QString::number(t->getCutoffFrequency()));
+						}
+						for (auto idx : rb->getPointsIdx())
+						{
+							pointsWritten[idx] = true;
+							xmlWriter.writeStartElement("Marker");
+							xmlWriter.writeAttribute("name", t->getMarkers()[idx]->getDescription());
+							xmlWriter.writeAttribute("id", QString::number(idx + 1));
+							xmlWriter.writeAttribute("firstTracked", QString::number(t->getMarkers()[idx]->getFirstTrackedFrame()));
+							xmlWriter.writeAttribute("lastTracked", QString::number(t->getMarkers()[idx]->getLastTrackedFrame()));
+							xmlWriter.writeAttribute("numberTracked", QString::number(t->getMarkers()[idx]->getFramesTracked()));
+							xmlWriter.writeAttribute("reprojectionerror", QString::number(t->getMarkers()[idx]->getReprojectionError()));
+							xmlWriter.writeEndElement(); // Marker
+						}
+
+						xmlWriter.writeEndElement(); // RigidBody
+					}
+
+					for (int idx = 0; idx < pointsWritten.size(); idx++)
+					{
+						if (!pointsWritten[idx])
+						{
+							pointsWritten[idx] = true;
+							xmlWriter.writeStartElement("Marker");
+							xmlWriter.writeAttribute("name", t->getMarkers()[idx]->getDescription());
+							xmlWriter.writeAttribute("id", QString::number(idx + 1));
+							xmlWriter.writeAttribute("firstTracked", QString::number(t->getMarkers()[idx]->getFirstTrackedFrame()));
+							xmlWriter.writeAttribute("lastTracked", QString::number(t->getMarkers()[idx]->getLastTrackedFrame()));
+							xmlWriter.writeAttribute("numberTracked", QString::number(t->getMarkers()[idx]->getFramesTracked()));
+							xmlWriter.writeAttribute("reprojectionerror", QString::number(t->getMarkers()[idx]->getReprojectionError()));
+							xmlWriter.writeEndElement(); // Marker
+						}
+					}
+
+					xmlWriter.writeEndElement(); //Trial
+				}
+			}
+
+
+			xmlWriter.writeEndElement(); //data
+			xmlWriter.writeEndDocument();
+			file.close();
+		}		
+	}
+
 }
 
 void ProjectFileIO::removeTmpDir()

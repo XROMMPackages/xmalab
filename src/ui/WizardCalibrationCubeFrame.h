@@ -110,7 +110,7 @@ namespace xma
 		void on_checkBoxManual_clicked();
 		void checkBoxManualReference_clicked();
 		void on_pushButtonOptimize_clicked();
-		void on_OptimizationDone_clicked();
+		void optimizationDone();
 		void on_checkBoxDistortion_clicked();
 	};
 }

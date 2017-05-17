@@ -107,6 +107,7 @@ Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
 
 	startFrame = 1;
 	endFrame = nbImages;
+	trialID = -1;
 }
 
 Trial::Trial(QString trialname, QString folder)
@@ -169,6 +170,7 @@ Trial::Trial(QString trialname, QString folder)
 
 	startFrame = 1;
 	endFrame = nbImages;
+	trialID = -1;
 }
 
 Trial::Trial()
@@ -2018,4 +2020,68 @@ void Trial::clearMarkerAndRigidBodies()
 		delete *marker;
 	}
 	markers.clear();
+}
+
+int Trial::getFirstTrackedFrame()
+{
+	int firstFrame = -1;
+	for (auto m : getMarkers())
+	{
+		int f = m->getFirstTrackedFrame();
+		if (f >= 0)
+		{
+			if (f < firstFrame || firstFrame == -1)
+				firstFrame = f;
+		}
+	}
+	return firstFrame;
+}
+
+int Trial::getLastTrackedFrame()
+{
+	int lastFrame = -1;
+	for (auto m : getMarkers())
+	{
+		int f = m->getLastTrackedFrame();
+		if (f > lastFrame)
+				lastFrame = f;
+	}
+	return lastFrame;
+}
+
+double Trial::getReprojectionError()
+{
+	int count = 0;
+	double error = 0.0;
+	for (auto m : getMarkers())
+	{
+		int c = m->getFramesTracked();
+		error = c * m->getReprojectionError();
+		count += c;
+	}
+
+	if (count != 0) error /= count;
+	return error;
+}
+
+double Trial::getMarkerToMarkerSD()
+{
+	int count = 0;
+	double sd = 0.0;
+
+	for (auto rb : getRigidBodies())
+	{
+		int c;
+		double s;
+		rb->getMarkerToMarkerSD(s,c);
+		
+		if (c > 0){
+			sd += pow(s, 2) * (c - 1);
+			count += c;
+ 		}
+	}
+
+	if (count != 0 )sd = sqrt(sd / (count - 1));
+
+	return sd;
 }

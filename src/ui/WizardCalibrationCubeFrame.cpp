@@ -895,7 +895,7 @@ void WizardCalibrationCubeFrame::on_pushButtonOptimize_clicked()
 		if (optdiag->result())
 		{
 			MultiCameraCalibration* multi = new MultiCameraCalibration(optdiag->getMethod(), optdiag->getIterations(), optdiag->getInitial());
-			connect(multi, SIGNAL(optimizeCameraSetup_finished()), this, SLOT(on_OptimizationDone_clicked()));
+			connect(multi, SIGNAL(optimizeCameraSetup_finished()), this, SLOT(optimizationDone()));
 			multi->optimizeCameraSetup();
 		}
 		delete optdiag;
@@ -908,14 +908,14 @@ void WizardCalibrationCubeFrame::on_pushButtonOptimize_clicked()
 		if (ok)
 		{
 			MultiCameraCalibration* multi = new MultiCameraCalibration(0, nbIterations, 0.01);
-			connect(multi, SIGNAL(optimizeCameraSetup_finished()), this, SLOT(on_OptimizationDone_clicked()));
+			connect(multi, SIGNAL(optimizeCameraSetup_finished()), this, SLOT(optimizationDone()));
 			multi->optimizeCameraSetup();
 		}
 		
 	}
 }
 
-void WizardCalibrationCubeFrame::on_OptimizationDone_clicked()
+void WizardCalibrationCubeFrame::optimizationDone()
 {
 	setDialog();
 	MainWindow::getInstance()->redrawGL();
@@ -956,29 +956,31 @@ void WizardCalibrationCubeFrame::setTransformationMatrix()
 
 void WizardCalibrationCubeFrame::on_pushButtonDeleteFrame_clicked()
 {
-	if (Project::getInstance()->getNbImagesCalibration() > 1 && ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete frame " + QString::number(State::getInstance()->getActiveFrameCalibration()) + "  for all cameras?"))
+	if (Project::getInstance()->getNbImagesCalibration() > 1 
+		&& ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to delete frame " + QString::number(State::getInstance()->getActiveFrameCalibration()) + "  for all cameras?"))
 	{
-		for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j ++)
+		for (auto cam : Project::getInstance()->getCameras())
 		{
-			Project::getInstance()->getCameras()[j]->deleteFrame(State::getInstance()->getActiveFrameCalibration());
+			cam->deleteFrame(State::getInstance()->getActiveFrameCalibration());
 		}
 		MainWindow::getInstance()->recountFrames();
 
 
-		for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j ++)
+		for (auto cam : Project::getInstance()->getCameras())
 		{
 			int countCalibrated = 0;
-			for (std::vector<CalibrationImage*>::const_iterator it = Project::getInstance()->getCameras()[j]->getCalibrationImages().begin(); it != Project::getInstance()->getCameras()[j]->getCalibrationImages().end(); ++it)
+			for (auto it : cam->getCalibrationImages())
 			{
-				if ((*it)->isCalibrated())countCalibrated++;
+				if (it->isCalibrated())
+					countCalibrated++;
 			}
 			if (countCalibrated == 0)
 			{
-				Project::getInstance()->getCameras()[j]->reset();
+				cam->reset();
 			}
 			else if (countCalibrated > 0)
 			{
-				Project::getInstance()->getCameras()[j]->setRecalibrationRequired(1);
+				cam->setRecalibrationRequired(1);
 			}
 		}
 
@@ -1003,9 +1005,9 @@ void WizardCalibrationCubeFrame::on_pushButtonResetFrame_clicked()
 	if (ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to reset Frame " + QString::number(State::getInstance()->getActiveFrameCalibration() + 1) + " for " + Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getName()))
 	{
 		int countCalibrated = 0;
-		for (std::vector<CalibrationImage*>::const_iterator it = Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages().begin(); it != Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages().end(); ++it)
+		for (auto im : Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages())
 		{
-			if ((*it)->isCalibrated())countCalibrated++;
+			if (im->isCalibrated())countCalibrated++;
 		}
 
 		if (countCalibrated == 1)

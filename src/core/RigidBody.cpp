@@ -369,6 +369,101 @@ void RigidBody::setMeshScale(double value)
 	meshScale = value;
 }
 
+int RigidBody::getFirstTrackedFrame()
+{
+	for (int i = 0; i < poseComputed.size(); i++)
+	{
+		if (poseComputed[i] >= 0) return i + 1;
+	}
+	return -1;
+}
+
+int RigidBody::getLastTrackedFrame()
+{
+	for (int i = poseComputed.size() - 1; i >= 0 ; i--)
+	{
+		if (poseComputed[i] >= 0) return i + 1;
+	}
+	return -1;
+}
+
+int RigidBody::getFramesTracked()
+{
+	int count = 0;
+	for (int i = 0; i < poseComputed.size(); i++)
+	{
+		if (poseComputed[i] >= 0) count++;
+	}
+	return count;
+}
+
+void RigidBody::getMarkerToMarkerSD(double & sd_all,  int & count_all)
+{
+	sd_all = 0;
+	count_all = 0;
+	for (unsigned i = 0; i < pointsIdx.size(); i++)
+	{
+		for (unsigned j = i + 1; j < pointsIdx.size(); j++)
+		{
+			double mean = 0;
+			int count = 0;
+			for (int f = 0; f <= trial->getMarkers()[pointsIdx[i]]->getStatus3D().size(); f++)
+			{
+				if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[f] > UNDEFINED && trial->getMarkers()[pointsIdx[j]]->getStatus3D()[f] > UNDEFINED)
+				{
+					cv::Point3d diff = trial->getMarkers()[pointsIdx[i]]->getPoints3D()[f] - trial->getMarkers()[pointsIdx[j]]->getPoints3D()[f];
+					mean += cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+					count++;
+				}
+			}
+			if (count > 0) mean = mean / count;
+
+			for (int f = 0; f <= trial->getMarkers()[pointsIdx[i]]->getStatus3D().size(); f++)
+			{
+				if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[f] > UNDEFINED && trial->getMarkers()[pointsIdx[j]]->getStatus3D()[f] > UNDEFINED)
+				{
+					cv::Point3d diff = trial->getMarkers()[pointsIdx[i]]->getPoints3D()[f] - trial->getMarkers()[pointsIdx[j]]->getPoints3D()[f];
+					double err = cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+					sd_all += pow(err - mean, 2);
+				}
+			}		
+			count_all += count;
+		}
+	}
+
+	if (count_all > 1)
+		sd_all = sqrt(sd_all / (count_all -1));
+}
+
+double RigidBody::getError3D(bool filtered)
+{
+	double error3D = 0.0;
+	int count = 0;
+
+	for (int i = 0; i < poseComputed.size(); i++)
+	{
+		if (filtered)
+		{
+			if (poseFiltered[i])
+			{
+				count++;
+				error3D += errorMean3D_filtered[i];
+			}
+		}
+		else{
+			if (poseComputed[i])
+			{
+				count++;
+				error3D += errorMean3D[i];
+			}
+		}
+	}
+
+	if (count != 0) error3D /= count;
+
+	return error3D;
+}
+
 void RigidBody::setReferenceMarkerReferences()
 {
 	if (allReferenceMarkerReferencesSet())
@@ -1256,7 +1351,7 @@ void RigidBody::save(QString filename_referenceNames, QString filename_points3D)
 	{
 		if (hasOptimizedCoordinates){
 			outfile_Points << points3D_original[j].x << " , " << points3D_original[j].y << " , " << points3D_original[j].z << std::endl;
-			std::cerr << points3D_original[j].x << " , " << points3D_original[j].y << " , " << points3D_original[j].z << std::endl;
+			//std::cerr << points3D_original[j].x << " , " << points3D_original[j].y << " , " << points3D_original[j].z << std::endl;
 		} 
 		else
 		{

@@ -158,6 +158,11 @@ namespace xma
 		QColor getStatusColor(int camera, int frame);
 		void reprojectPoint(int frame);
 
+		int getFirstTrackedFrame();
+		int getLastTrackedFrame();
+		int getFramesTracked();
+		double getReprojectionError();
+
 	private:
 		void init(int nbCameras, int size);
 		void addFrame();

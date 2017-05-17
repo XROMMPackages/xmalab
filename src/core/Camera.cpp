@@ -192,6 +192,33 @@ void Camera::setCalibrationSequence(QString filename, int nbImages, int width, i
 	calibrationSequence->setCalibrationSequence(filename, nbImages, width, height);
 }
 
+int Camera::getCalibrationNbInlier()
+{
+	int countInlierAll = 0;
+	for (auto f : getCalibrationImages())
+	{
+		countInlierAll += f->getCalibrationNbInlier();
+	}
+	return countInlierAll;
+}
+
+double Camera::getCalibrationError()
+{
+	int countInlier = 0;
+	double meanDist = 0;
+
+	for (auto f : getCalibrationImages())
+	{
+		int inlier = f->getCalibrationNbInlier();
+		meanDist += f->getCalibrationError() * inlier;
+		countInlier += inlier;
+	}
+
+	if (countInlier > 0) meanDist = meanDist / countInlier;
+
+	return meanDist;
+}
+
 void Camera::loadImages(QStringList fileNames)
 {
 	calibrationSequence->loadImages(fileNames);

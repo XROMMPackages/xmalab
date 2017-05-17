@@ -58,7 +58,7 @@ namespace xma
 		QString getFilenameBase();
 
 		Image* getImage()
-		{
+		{ 
 			return image;
 		}
 
@@ -151,6 +151,9 @@ namespace xma
 
 		void reset();
 		void sortGridByReference(double x, double y);
+
+		int getCalibrationNbInlier();
+		double getCalibrationError();
 
 	private:
 		void savePoints(std::vector<cv::Point2d>& points, QString filename);

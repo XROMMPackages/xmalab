@@ -150,6 +150,11 @@ namespace xma
 
 		void clearMarkerAndRigidBodies();
 
+		int getFirstTrackedFrame();
+		int getLastTrackedFrame();
+		double getReprojectionError();
+		double getMarkerToMarkerSD();
+
 	private:
 		QString name;
 		void setNbImages();

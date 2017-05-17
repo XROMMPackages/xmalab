@@ -149,6 +149,12 @@ namespace xma
 		double getMeshScale();
 		void setMeshScale(double value);
 
+		int getFirstTrackedFrame();
+		int getLastTrackedFrame();
+		int getFramesTracked();
+		void getMarkerToMarkerSD(double & sd_all, int & count_all);
+		double getError3D(bool filtered);
+
 	private:
 		void init(int size);
 		void clear();

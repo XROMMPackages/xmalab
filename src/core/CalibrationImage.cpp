@@ -39,11 +39,8 @@
 
 using namespace xma;
 
-CalibrationImage::CalibrationImage(Camera* _camera, QString _imageFileName, bool createImage)
+CalibrationImage::CalibrationImage(Camera* _camera, QString _imageFileName, bool createImage) : camera(_camera), imageFileName(_imageFileName), calibrated(0), nbInlier(0)
 {
-	camera = _camera;
-	imageFileName = _imageFileName;
-
 	if (createImage){
 		image = new Image(imageFileName);
 
@@ -51,18 +48,15 @@ CalibrationImage::CalibrationImage(Camera* _camera, QString _imageFileName, bool
 		height = image->getHeight();
 
 		undistortedImage = new Image(image);
-	} else
+	} 
+	else
 	{
 		image = NULL;
 		undistortedImage = NULL;
 	}
 
-
-	calibrated = 0;
-
 	rotationvector.create(3, 1,CV_64F);
 	translationvector.create(3, 1,CV_64F);
-	nbInlier = 0;
 }
 
 
@@ -122,49 +116,33 @@ void CalibrationImage::init(int nbPoints)
 	projectedPointsUndistorted.clear();
 	Inlier.clear();
 
-	for (int i = 0; i < nbPoints; i++)
-	{
-		detectedPoints.push_back(cv::Point2d(-1, -1));
-		projectedPoints.push_back(cv::Point2d(-1, -1));
-		detectedPointsUndistorted.push_back(cv::Point2d(-1, -1));
-		projectedPointsUndistorted.push_back(cv::Point2d(-1, -1));
-		Inlier.push_back(0);
-	}
+	detectedPoints.resize(nbPoints, cv::Point2d(-1, -1));
+	projectedPoints.resize(nbPoints, cv::Point2d(-1, -1));
+	detectedPointsUndistorted.resize(nbPoints, cv::Point2d(-1, -1));
+	projectedPointsUndistorted.resize(nbPoints, cv::Point2d(-1, -1));
+	Inlier.resize(nbPoints, 0);
 }
 
 void CalibrationImage::setDetectedPoints(cv::vector<cv::Point2d>& points)
 {
-	detectedPoints_ALL.clear();
-	for (std::vector<cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it)
-	{
-		detectedPoints_ALL.push_back(cv::Point2d((*it).x, (*it).y));
-	}
+	detectedPoints_ALL = points;
 }
 
 void CalibrationImage::setPointsUndistorted(cv::vector<cv::Point2d>& _detectedPoints, cv::vector<cv::Point2d>& _projectedPoints, cv::vector<bool>& _Inlier)
 {
-	detectedPointsUndistorted.clear();
-	for (std::vector<cv::Point2d>::const_iterator it = _detectedPoints.begin(); it != _detectedPoints.end(); ++it)
-	{
-		detectedPointsUndistorted.push_back(cv::Point2d((*it).x, (*it).y));
-	}
+	detectedPointsUndistorted = _detectedPoints;
+	projectedPointsUndistorted = _projectedPoints;
 
 	detectedPoints.clear();
-	for (std::vector<cv::Point2d>::const_iterator it = detectedPointsUndistorted.begin(); it != detectedPointsUndistorted.end(); ++it)
+	for (auto pt : detectedPointsUndistorted)
 	{
-		detectedPoints.push_back(camera->undistortPoint((*it), false));
+		detectedPoints.push_back(camera->undistortPoint(pt, false));
 	}
-
-	projectedPointsUndistorted.clear();
-	for (std::vector<cv::Point2d>::const_iterator it = _projectedPoints.begin(); it != _projectedPoints.end(); ++it)
-	{
-		projectedPointsUndistorted.push_back(cv::Point2d((*it).x, (*it).y));
-	}
-
+	
 	projectedPoints.clear();
-	for (std::vector<cv::Point2d>::const_iterator it = projectedPointsUndistorted.begin(); it != projectedPointsUndistorted.end(); ++it)
+	for(auto pt :projectedPointsUndistorted)
 	{
-		projectedPoints.push_back(camera->undistortPoint((*it), false));
+		projectedPoints.push_back(camera->undistortPoint(pt, false));
 	}
 
 	Inlier.clear();
@@ -194,15 +172,15 @@ void CalibrationImage::setPointsUndistorted(cv::vector<cv::Point2d>& _detectedPo
 void CalibrationImage::undistortPoints()
 {
 	detectedPointsUndistorted.clear();
-	for (std::vector<cv::Point2d>::const_iterator it = detectedPoints.begin(); it != detectedPoints.end(); ++it)
+	for (auto pt : detectedPoints)
 	{
-		detectedPointsUndistorted.push_back(camera->undistortPoint((*it), true));
+		detectedPointsUndistorted.push_back(camera->undistortPoint(pt, true));
 	}
 
 	projectedPointsUndistorted.clear();
-	for (std::vector<cv::Point2d>::const_iterator it = projectedPoints.begin(); it != projectedPoints.end(); ++it)
+	for (auto pt : projectedPoints)
 	{
-		projectedPointsUndistorted.push_back(camera->undistortPoint((*it), true));
+		projectedPointsUndistorted.push_back(camera->undistortPoint(pt, true));
 	}
 	computeError();
 }
@@ -210,16 +188,12 @@ void CalibrationImage::undistortPoints()
 
 void CalibrationImage::setPointsProjectedUndistorted(cv::vector<cv::Point2d>& _projectedPoints)
 {
-	projectedPointsUndistorted.clear();
-	for (std::vector<cv::Point2d>::const_iterator it = _projectedPoints.begin(); it != _projectedPoints.end(); ++it)
-	{
-		projectedPointsUndistorted.push_back(cv::Point2d((*it).x, (*it).y));
-	}
+	projectedPointsUndistorted = _projectedPoints;
 
 	projectedPoints.clear();
-	for (std::vector<cv::Point2d>::const_iterator it = projectedPointsUndistorted.begin(); it != projectedPointsUndistorted.end(); ++it)
+	for (auto pt : projectedPointsUndistorted)
 	{
-		projectedPoints.push_back(camera->undistortPoint((*it), false));
+		projectedPoints.push_back(camera->undistortPoint(pt, false));
 	}
 
 	computeError();
@@ -827,3 +801,39 @@ void CalibrationImage::sortGridByReference(double x, double y)
 	}
 }
 
+int CalibrationImage::getCalibrationNbInlier()
+{
+	int nbInlier = 0;
+	if (isCalibrated()){
+		for (auto pt : getInliers())
+		{
+			if (pt > 0)
+			{
+				nbInlier++;
+			}
+		}
+	}
+	return nbInlier;
+}
+
+double CalibrationImage::getCalibrationError()
+{
+	int countInlier = 0;
+	double meanDist = 0;
+
+	if (isCalibrated())
+	{
+		for (unsigned int pt = 0; pt < getErrorDist().size(); pt++)
+		{
+			if (getInliers()[pt] > 0)
+			{
+					countInlier++;
+					meanDist += getErrorDist()[pt];
+			}
+		}
+	}
+
+	if (countInlier > 0) meanDist = meanDist / countInlier;
+
+	return meanDist;
+}
