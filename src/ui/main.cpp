@@ -88,10 +88,10 @@ public:
                 if(fileOpenEvent)
                 {
                     QString m_macFileOpenOnStart = fileOpenEvent->file();
-                    ErrorDialog::getInstance()->showErrorDialog(m_macFileOpenOnStart);
-                    if(!m_macFileOpenOnStart.isEmpty())
+                   
+					if(!m_macFileOpenOnStart.isEmpty())
                     {
-                        MainWindow::getInstance()->loadProject(m_macFileOpenOnStart);  // open file in existing window
+						MainWindow::getInstance()->loadProjectFromEvent(m_macFileOpenOnStart);  // open file in existing window
                         return true;
                     }
                 }

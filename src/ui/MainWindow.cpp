@@ -1022,6 +1022,13 @@ void MainWindow::showAndLoad(QString file)
 	loadProject(file);
 }
 
+void MainWindow::loadProjectFromEvent(QString filename)
+{
+	if (project && !ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to close your dataset. Please make sure your data have been saved. \nAre you sure you want to close current dataset and load an existing dataset?"))
+		return;
+	loadProject(filename);
+}
+
 void MainWindow::setCameraViewWidgetTitles()
 {
 	if (State::getInstance()->getWorkspace() == CALIBRATION)
