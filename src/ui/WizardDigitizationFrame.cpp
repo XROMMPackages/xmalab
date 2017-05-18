@@ -52,7 +52,7 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 	frame->setupUi(this);
 
 #ifdef __APPLE__
-	frame->toolButton->setMinimumHeight(26);
+	frame->pushButton->setMinimumHeight(26);
                                                     
     frame->toolButton_RBBack->setMinimumHeight(26);
     frame->toolButton_RBPrev->setMinimumHeight(26);

@@ -58,7 +58,8 @@ namespace xma
 		void saveRigidBodies(std::vector<int> bodies);
 		void setUndo(bool value);
 		void showAndLoad(QString file);
-
+		void loadProject(QString filename);
+        
 	private:
 		Ui::MainWindow* ui;
 		static MainWindow* instance;
@@ -77,7 +78,6 @@ namespace xma
 		void newProject();
 		void newProjectFromXMALab(QString filename);
 		void loadProject();
-		void loadProject(QString filename);
 		void closeProject();
 		void saveProject();
 		void saveProjectAs(bool subset = false);

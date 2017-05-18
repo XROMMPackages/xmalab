@@ -34,6 +34,7 @@
 #include "core/Settings.h"
 
 #include <QApplication>
+#include <QFileOpenEvent>
 #include <QPushButton>
 
 #include <iostream>
@@ -74,14 +75,38 @@ public:
 		}
 		return false;
 	}
+    
+    // responds to FileOpenEvent specific for mac
+    bool event(QEvent *event)
+    {
+        
+        switch(event->type())
+        {
+            case QEvent::FileOpen:
+            {
+                QFileOpenEvent * fileOpenEvent = static_cast<QFileOpenEvent *>(event);
+                if(fileOpenEvent)
+                {
+                    QString m_macFileOpenOnStart = fileOpenEvent->file();
+                    ErrorDialog::getInstance()->showErrorDialog(m_macFileOpenOnStart);
+                    if(!m_macFileOpenOnStart.isEmpty())
+                    {
+                        MainWindow::getInstance()->loadProject(m_macFileOpenOnStart);  // open file in existing window
+                        return true;
+                    }
+                }
+            }
+            default:
+                return QApplication::event(event);
+        }
+        return QApplication::event(event);
+    }
 };
 
 
 int main(int argc, char** argv)
 {
 	MApplication app(argc, argv);
-
-	
 
 	Settings::getInstance();
 	MainWindow* widget = MainWindow::getInstance();
