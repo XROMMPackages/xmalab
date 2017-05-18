@@ -44,7 +44,9 @@ namespace xma
 	private:
 		Ui::ProgressDockWidget* diag;
 		static ProgressDialog* instance;
-
+#ifdef __APPLE__
+		QTimer* timer;
+#endif
 	protected:
 		ProgressDialog(QWidget* parent = 0);
 	public:
@@ -56,6 +58,9 @@ namespace xma
 		void closeProgressbar();
 
 	public slots:
+#ifdef __APPLE__
+		void update(); 
+#endif
 	};
 }
 

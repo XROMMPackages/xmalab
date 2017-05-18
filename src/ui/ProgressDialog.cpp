@@ -31,6 +31,7 @@
 #include "ui/ProgressDialog.h"
 #include "ui_ProgressDockWidget.h"
 #include "ui/MainWindow.h"
+#include <iostream>
 
 using namespace xma;
 
@@ -42,12 +43,20 @@ ProgressDialog::ProgressDialog(QWidget* parent) :
 {
 	diag->setupUi(this);
 	diag->progressBar->setValue(0.0);
+#ifdef __APPLE__
+	timer = new QTimer(this);
+	connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+#endif
 }
 
 ProgressDialog::~ProgressDialog()
 {
 	delete diag;
 	instance = NULL;
+#ifdef __APPLE__
+	timer->stop();
+	delete timer;
+#endif
 }
 
 ProgressDialog* ProgressDialog::getInstance()
@@ -69,12 +78,25 @@ void ProgressDialog::setProgress(double progress)
 	QApplication::processEvents();
 }
 
-void ProgressDialog::showProgressbar(int min, int max, const char* key)
+void ProgressDialog::showProgressbar(int min_, int max_, const char* key)
 {
 	MainWindow::getInstance()->setEnabled(false);
 	this->show();
-	diag->progressBar->setMaximum(max);
-	diag->progressBar->setMinimum(min);
+#ifdef __APPLE__
+	if (min_ == 0 && max_ == 0)
+	{
+		diag->progressBar->setMaximum(100);
+		diag->progressBar->setMinimum(0);
+		timer->start(100);
+	}
+	else{
+		diag->progressBar->setMaximum(max_);
+		diag->progressBar->setMinimum(min_);
+	}
+#else
+	diag->progressBar->setMaximum(max_);
+	diag->progressBar->setMinimum(min_);
+#endif
 	diag->progressBar->setTextVisible(false);
 	setWindowTitle(QApplication::translate("ProgressDialog", key, 0, QApplication::UnicodeUTF8));
 	QApplication::processEvents();
@@ -82,7 +104,18 @@ void ProgressDialog::showProgressbar(int min, int max, const char* key)
 
 void ProgressDialog::closeProgressbar()
 {
+#ifdef __APPLE__
+	timer->stop();
+#endif
 	MainWindow::getInstance()->setEnabled(true);
 	this->close();
 }
 
+#ifdef __APPLE__
+void ProgressDialog::update()
+{
+	int val = diag->progressBar->value() + 1;
+	if (val > 100) val = 0;
+	diag->progressBar->setValue(val);
+}
+#endif
