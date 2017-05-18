@@ -117,6 +117,12 @@ void CameraViewWidget::setRenderTransparentModels(bool value)
 		widget->glCameraView->setRenderTransparentModels(value);
 }
 
+void CameraViewWidget::centerViewToPoint()
+{
+	widget->glCameraView->centerViewToPoint(false);
+	widget->glCameraView->update();
+}
+
 void CameraViewWidget::setSharedGLContext(const QGLContext* sharedContext)
 {
 	QGLContext* context = new QGLContext(sharedContext->format(), widget->glCameraView);

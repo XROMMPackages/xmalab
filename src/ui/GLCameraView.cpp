@@ -577,7 +577,7 @@ void GLCameraView::drawQuad()
 
 void GLCameraView::centerViewToPoint(bool resetZoom)
 {
-	if (detailedView && State::getInstance()->getWorkspace() == DIGITIZATION)
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
 		{

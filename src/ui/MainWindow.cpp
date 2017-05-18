@@ -274,6 +274,14 @@ void MainWindow::resizeDone()
 	}
 }
 
+void MainWindow::centerViews()
+{
+	for (auto v : cameraViews)
+	{
+		v->centerViewToPoint();
+	}
+}
+
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
 	resizeTimer.start(500);

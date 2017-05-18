@@ -67,6 +67,8 @@ namespace xma
 		void setTransparency(double value);
 		void setRenderTransparentModels(bool value);
 
+		void centerViewToPoint();
+
 	protected:
 		bool eventFilter(QObject* obj, QEvent* event);
 

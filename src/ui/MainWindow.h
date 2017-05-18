@@ -164,6 +164,8 @@ namespace xma
 
 		//resizing
 		void resizeDone();
+
+		void centerViews();
 	};
 }
 
