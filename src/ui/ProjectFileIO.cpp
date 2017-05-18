@@ -266,6 +266,7 @@ int ProjectFileIO::loadProject(QString filename)
 	bool success = true;
 	Project::getInstance()->projectFilename = filename;
 	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+	removeDir(tmpDir_path);
 
 	unzipFromFileToFolder(filename, tmpDir_path);
 	
@@ -276,16 +277,18 @@ int ProjectFileIO::loadProject(QString filename)
 	}
 	else
 	{
-		QFileInfo info(filename);
-		if (QFile::exists(tmpDir_path + OS_SEP + info.completeBaseName() + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml"))
-		{
-			return 1;
+		QDir myDir(tmpDir_path);
+		QStringList filesList = myDir.entryList(QDir::NoDotAndDotDot | QDir::Dirs);
+
+		if (filesList.size() > 0){
+			if (QFile::exists(tmpDir_path + OS_SEP + filesList[0] + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml"))
+			{
+				return 1;
+			}
 		}
-		else
-		{
-			removeDir(tmpDir_path);
-			return -1;
-		}
+
+		removeDir(tmpDir_path);
+		return -1;		
 	}
 
 	removeDir(tmpDir_path);
@@ -819,6 +822,7 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
 {
 	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+	removeDir(tmpDir_path);
 	unzipFromFileToFolder(filename, tmpDir_path);
 	QString studyName;
 	QString trialName;
@@ -826,14 +830,16 @@ void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
 	std::vector<int> camera_vec;
 	std::vector<QString> filename_vec;
 
-	QFileInfo info(filename);
-	if (QFile::exists(tmpDir_path + OS_SEP + info.completeBaseName() + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml"))
+	QDir myDir(tmpDir_path);
+	QStringList filesList = myDir.entryList(QDir::NoDotAndDotDot | QDir::Dirs);
+
+	if (QFile::exists(tmpDir_path + OS_SEP + filesList[0] + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml"))
 	{
-		QString xml_filename = tmpDir_path + OS_SEP + info.completeBaseName() + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml";
+		QString xml_filename = tmpDir_path + OS_SEP + filesList[0] + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml";
 		
 		if (xml_filename.isNull() == false)
 		{
-			QString basedir = tmpDir_path + OS_SEP + info.completeBaseName() + OS_SEP;
+			QString basedir = tmpDir_path + OS_SEP + filesList[0] + OS_SEP;
 
 			QFile file(xml_filename);
 			if (file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -917,7 +923,7 @@ void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
 			folder = folder + OS_SEP + trialName;
 			QDir().mkpath(folder);
 		}
-		littleHelper::copyPath(tmpDir_path + OS_SEP + info.completeBaseName(), folder);
+		littleHelper::copyPath(tmpDir_path + OS_SEP + filesList[0], folder);
 		//Fill Dialog
 
 		//check for zip
@@ -948,8 +954,10 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog* dialog
 	Project::getInstance()->projectFilename = filename;
 	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
 
-	QFileInfo infoDir(filename);
-	QString xml_filename = tmpDir_path + OS_SEP + infoDir.completeBaseName() + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml";
+	QDir myDir(tmpDir_path);
+	QStringList filesList = myDir.entryList(QDir::NoDotAndDotDot | QDir::Dirs);
+
+	QString xml_filename = tmpDir_path + OS_SEP + filesList[0] + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml";
 	
 	loadProjectMetaData(xml_filename);
 
@@ -959,7 +967,7 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog* dialog
 
 	if (xml_filename.isNull() == false)
 	{
-		QString basedir = tmpDir_path + OS_SEP + infoDir.completeBaseName() + OS_SEP;
+		QString basedir = tmpDir_path + OS_SEP + filesList[0] + OS_SEP;
 
 		QFile file(xml_filename);
 		if (file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -1044,13 +1052,13 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog* dialog
 	}
 
 	//check for calibration csv and ref
-	QDir directory(tmpDir_path + OS_SEP + infoDir.completeBaseName());
+	QDir directory(tmpDir_path + OS_SEP + filesList[0]);
 	QStringList filtersCSV;
 	filtersCSV << "*.csv";
 	QStringList csvFiles = directory.entryList(filtersCSV);
 	if (csvFiles.size() == 1)
 	{
-		dialog->setCalibrationCubeCSV(tmpDir_path + OS_SEP + infoDir.completeBaseName() + OS_SEP + csvFiles.at(0));
+		dialog->setCalibrationCubeCSV(tmpDir_path + OS_SEP + filesList[0] + OS_SEP + csvFiles.at(0));
 	}
 
 	QStringList filterREF;
@@ -1058,7 +1066,7 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog* dialog
 	QStringList refFiles = directory.entryList(filterREF);
 	if (refFiles.size() == 1)
 	{
-		dialog->setCalibrationCubeREF(tmpDir_path + OS_SEP + infoDir.completeBaseName() + OS_SEP + refFiles.at(0));
+		dialog->setCalibrationCubeREF(tmpDir_path + OS_SEP + filesList[0] + OS_SEP + refFiles.at(0));
 	}
 }
 
