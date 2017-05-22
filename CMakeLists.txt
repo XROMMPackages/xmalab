@@ -355,7 +355,9 @@ SET(XMALab_FORMS
 		src/ui/ui-files/HelpDialog.ui
 		src/ui/ui-files/DetectionSettings.ui
 		src/ui/ui-files/DisplayOptionsDockWidget.ui
+		src/ui/ui-files/WorldViewDockWidget.ui
 	)
+	
 
 SOURCE_GROUP(UI_Files FILES ${XMALab_FORMS})
 
@@ -401,6 +403,7 @@ SET(XMALab_FORMS_MOC
 		${CMAKE_CURRENT_BINARY_DIR}/ui_HelpDialog.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_DetectionSettings.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_DisplayOptionsDockWidget.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_WorldViewDockWidget.h
 		)
 
 SOURCE_GROUP(UI_Generated FILES ${XMALab_FORMS_MOC})

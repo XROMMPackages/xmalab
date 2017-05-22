@@ -31,6 +31,14 @@
 #include <QGridLayout>
 #include <QDockWidget>
 
+#include "ui/State.h"
+
+namespace Ui
+{
+	class WorldViewDockWidget;
+}
+
+
 namespace xma
 {
 	class WorldViewDockWidget : public QDockWidget
@@ -39,16 +47,40 @@ namespace xma
 
 	public:
 		WorldViewDockWidget(QWidget* parent);
-		WorldViewDockGLWidget* openGL;
+		//WorldViewDockGLWidget* openGL;
 
 		void setSharedGLContext(const QGLContext* sharedContext);
 		void draw();
+		void setStartEndSequence(int start, int end);
 
 	private:
-		QGridLayout* layout;
+		//QGridLayout* layout;
+		Ui::WorldViewDockWidget* dock;
+
+		void setTimeline(bool enabled);
+		void changeFrame(int frame);
+
+		int play_tag;
+		QTimer* play_timer;
+
+		bool updating;
 	protected:
 		void resizeEvent(QResizeEvent* event) override;
 		void closeEvent(QCloseEvent* event) override;
+	public slots:
+
+		void activeTrialChanged(int activeTrial);
+		void workspaceChanged(work_state workspace);
+
+		void on_checkBoxEnable_clicked(bool state);
+		void on_horizontalSlider_valueChanged(int value);
+		void on_spinBoxFrame_valueChanged(int value);
+		void on_toolButtonNext_clicked();
+		void on_toolButtonPrev_clicked();
+		void on_toolButtonPlay_clicked();
+		void on_toolButtonPlayBackward_clicked();
+		void on_toolButtonStop_clicked();
+		void play_update();
 	};
 }
 

@@ -57,7 +57,7 @@ GLfloat LightDiffuse[] = {0.5f, 0.5f, 0.5f, 1.0f}; // Diffuse Light Values
 GLfloat LightPosition[] = {0.0f, 10.0f, 0.0f, 1.0f}; // Light Position
 
 WorldViewDockGLWidget::WorldViewDockGLWidget(QWidget* parent)
-	: QGLWidget(GLSharedWidget::getInstance()->format(), parent)
+	: QGLWidget(GLSharedWidget::getInstance()->format(), parent), useCustomTimeline(false), frame(0)
 {
 	eyedistance = 500.0;
 	azimuth = 45.0;
@@ -70,6 +70,11 @@ WorldViewDockGLWidget::WorldViewDockGLWidget(QWidget* parent)
 	opengl_initialised = false;
 }
 
+void WorldViewDockGLWidget::setFrame(int value)
+{
+	frame = value;
+}
+
 void WorldViewDockGLWidget::animate()
 {
 	//    repaint();
@@ -78,6 +83,11 @@ void WorldViewDockGLWidget::animate()
 WorldViewDockGLWidget::~WorldViewDockGLWidget()
 {
 	if (opengl_initialised)gluDeleteQuadric(sphere_quadric);
+}
+
+void WorldViewDockGLWidget::setUseCustomTimeline(bool value)
+{
+	useCustomTimeline = value;
 }
 
 void WorldViewDockGLWidget::mouseMoveEvent(QMouseEvent* e)
@@ -199,8 +209,6 @@ void WorldViewDockGLWidget::paintGL()
 				if (trial->getStartFrame() - 1 <= State::getInstance()->getActiveFrameTrial()
 					&& trial->getEndFrame() - 1 >= State::getInstance()->getActiveFrameTrial())
 				{
-					int frame = State::getInstance()->getActiveFrameTrial();
-
 					drawCameras();
 					drawMarkers(trial, frame);
 					drawRigidBodies(trial, frame);
@@ -331,6 +339,7 @@ void WorldViewDockGLWidget::drawCameras()
 					State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
 				{
 					if (!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault())
+						if (!useCustomTimeline)
 						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getVideoStreams()[cam]->getImage()->bindTexture();
 				}
 			}

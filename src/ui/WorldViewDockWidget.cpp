@@ -29,49 +29,292 @@
 #endif
 
 #include "ui/WorldViewDockWidget.h"
+#include "ui_WorldViewDockWidget.h"
 #include "ui/MainWindow.h"
 #include "ui/Shortcuts.h"
+#include "core/Project.h"
+#include "core/Trial.h"
 
 #include <QtGui/QApplication>
 #include <QtGui/QCloseEvent>
 
 using namespace xma;
 
-WorldViewDockWidget::WorldViewDockWidget(QWidget* parent): QDockWidget(parent)
+WorldViewDockWidget::WorldViewDockWidget(QWidget* parent) : QDockWidget(parent), dock(new Ui::WorldViewDockWidget)
 {
-	setObjectName(QString::fromUtf8("WorldViewDockWidget"));
-	openGL = new WorldViewDockGLWidget(this);
-	setFeatures(DockWidgetFloatable | DockWidgetMovable | DockWidgetClosable);
+	dock->setupUi(this);
 	setAllowedAreas(Qt::AllDockWidgetAreas);
 	resize(500, 500);
-	layout = new QGridLayout;
-	layout->addWidget(openGL, 0, 0);
-	setWidget(openGL);
-	setWindowTitle(QApplication::translate("WorldViewDockWidget", "External view", 0, QApplication::UnicodeUTF8));
 
 	Shortcuts::getInstance()->installEventFilterToChildren(this);
+
+	dock->spinBoxFrame->setMinimum(1);
+	dock->horizontalSlider->setValue(0);
+	dock->spinBoxFrame->setValue(1);
+
+	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
+	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
+
+	play_tag = 0;
+	play_timer = new QTimer(this);
+	connect(play_timer, SIGNAL(timeout()), this, SLOT(play_update()));
+
+	updating = false;
+}
+
+void WorldViewDockWidget::setTimeline(bool enabled)
+{
+	if (enabled)
+	{
+		dock->openGL->setUseCustomTimeline(true);
+		dock->horizontalSlider->setEnabled(true);
+		dock->spinBoxFrame->setEnabled(true);
+		dock->toolButtonNext->setEnabled(true);
+		dock->toolButtonPlay->setEnabled(true);
+		dock->toolButtonPlayBackward->setEnabled(true);
+		dock->toolButtonPrev->setEnabled(true);
+		dock->toolButtonStop->setEnabled(true);
+
+		setStartEndSequence(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
+	}
+	else
+	{
+		dock->openGL->setUseCustomTimeline(false);
+		dock->horizontalSlider->setEnabled(false);
+		dock->spinBoxFrame->setEnabled(false);
+		dock->toolButtonNext->setEnabled(false);
+		dock->toolButtonPlay->setEnabled(false);
+		dock->toolButtonPlayBackward->setEnabled(false);
+		dock->toolButtonPrev->setEnabled(false);
+		dock->toolButtonStop->setEnabled(false);
+		on_toolButtonStop_clicked();
+	}
+}
+
+void WorldViewDockWidget::changeFrame(int frame)
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		if (Project::getInstance()->getTrials().size() > 0 && frame >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
+			frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1)
+		{
+			if (frame + 1 != dock->spinBoxFrame->value())
+			{
+				dock->spinBoxFrame->setValue(frame + 1);
+				draw();
+			}
+			if (frame != dock->horizontalSlider->value())
+			{
+				dock->horizontalSlider->setValue(frame);
+				draw();
+			}
+
+			if (dock->spinBoxFrame->value() == dock->spinBoxFrame->maximum())
+			{
+				dock->toolButtonNext->setEnabled(false);
+			}
+			else
+			{
+				dock->toolButtonNext->setEnabled(true);
+			}
+
+			if (dock->spinBoxFrame->value() == dock->spinBoxFrame->minimum())
+			{
+				dock->toolButtonPrev->setEnabled(false);
+			}
+			else
+			{
+				dock->toolButtonPrev->setEnabled(true);
+			}
+		}
+	}
+	
 }
 
 void WorldViewDockWidget::resizeEvent(QResizeEvent* event)
 {
-	openGL->repaint();
+	dock->openGL->repaint();
 }
 
 void WorldViewDockWidget::setSharedGLContext(const QGLContext* sharedContext)
 {
-	QGLContext* context = new QGLContext(sharedContext->format(), openGL);
+	QGLContext* context = new QGLContext(sharedContext->format(), dock->openGL);
 	context->create(sharedContext);
-	openGL->setContext(context, sharedContext, true);
+	dock->openGL->setContext(context, sharedContext, true);
 }
 
 void WorldViewDockWidget::draw()
 {
-	openGL->update();
+	if (!dock->checkBoxEnable->isChecked()){
+		dock->openGL->setFrame(State::getInstance()->getActiveFrameTrial());
+	}
+	else
+	{
+		dock->openGL->setFrame(dock->spinBoxFrame->value() - 1);
+	}
+	dock->openGL->update();
+}
+
+void WorldViewDockWidget::setStartEndSequence(int start, int end)
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
+		{
+			if (start > Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame())
+			{
+				changeFrame(start - 1);
+			}
+			else if (end < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame())
+			{
+				changeFrame(end - 1);
+			}
+		}
+	}
+
+	updating = true;
+	dock->horizontalSlider->setMinimum(start - 1);
+	dock->horizontalSlider->setMaximum(end - 1);
+
+	dock->spinBoxFrame->setMinimum(start);
+	dock->spinBoxFrame->setMaximum(end);
+	updating = false;
+
+	if (dock->checkBoxEnable->isChecked()){
+		dock->toolButtonPrev->setEnabled(dock->horizontalSlider->value() != start - 1);
+		dock->toolButtonNext->setEnabled(dock->horizontalSlider->value() != end - 1);
+	}
 }
 
 void WorldViewDockWidget::closeEvent(QCloseEvent* event)
 {
+	on_toolButtonStop_clicked();
 	event->ignore();
 	MainWindow::getInstance()->on_action3D_world_view_triggered(false);
 }
 
+void WorldViewDockWidget::activeTrialChanged(int activeTrial)
+{
+	if (activeTrial >= 0)
+	{
+		on_toolButtonStop_clicked();
+		if (State::getInstance()->getWorkspace() == DIGITIZATION && Project::getInstance()->getTrials().size() > 0)
+		{
+			if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
+			{
+				setStartEndSequence(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
+			}
+		}
+	}
+}
+
+void WorldViewDockWidget::workspaceChanged(work_state workspace)
+{
+	on_toolButtonStop_clicked();
+	setTimeline(false);
+
+	if (workspace == DIGITIZATION && Project::getInstance()->getTrials().size() > 0)
+	{
+		
+		if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
+		{
+			dock->checkBoxEnable->setEnabled(true);
+			setStartEndSequence(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
+		}
+	} 
+	else
+	{	
+		dock->checkBoxEnable->setChecked(false);
+		dock->checkBoxEnable->setEnabled(false);
+		dock->spinBoxFrame->setMinimum(1);
+		dock->horizontalSlider->setValue(0);
+		dock->spinBoxFrame->setValue(1);
+	}
+}
+
+void WorldViewDockWidget::on_checkBoxEnable_clicked(bool state)
+{
+	setTimeline(dock->checkBoxEnable->isChecked());
+
+	draw();
+}
+
+void WorldViewDockWidget::on_horizontalSlider_valueChanged(int value)
+{
+	if (!updating)changeFrame(value);
+	QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+}
+
+void WorldViewDockWidget::on_spinBoxFrame_valueChanged(int value)
+{
+	if (!updating)changeFrame(value - 1);
+}
+
+void WorldViewDockWidget::play_update()
+{
+	if (play_tag > 0)
+	{
+		on_toolButtonNext_clicked();
+	}
+	else if (play_tag < 0)
+	{
+		on_toolButtonPrev_clicked();
+	}
+
+	QApplication::processEvents();
+
+	if ((play_tag < 0 && dock->toolButtonPrev->isEnabled() == false) ||
+		(play_tag > 0 && dock->toolButtonNext->isEnabled() == false))
+	{
+		on_toolButtonStop_clicked();
+	}
+}
+
+
+void WorldViewDockWidget::on_toolButtonPlay_clicked()
+{
+	on_toolButtonStop_clicked();
+
+	if (play_tag == 0)
+	{
+		play_tag = 1;
+		play_timer->start(1);
+	}
+
+	dock->toolButtonPlay->setChecked(true);
+}
+
+void WorldViewDockWidget::on_toolButtonPlayBackward_clicked()
+{
+	on_toolButtonStop_clicked();
+
+	if (play_tag == 0)
+	{
+		play_tag = -1;
+		play_timer->start(1);
+	}
+
+	dock->toolButtonPlayBackward->setChecked(true);
+}
+
+void WorldViewDockWidget::on_toolButtonStop_clicked()
+{
+	if (play_tag != 0)
+	{
+		play_tag = 0;
+		play_timer->stop();
+	}
+
+	dock->toolButtonPlayBackward->setChecked(false);
+	dock->toolButtonPlay->setChecked(false);
+}
+
+void WorldViewDockWidget::on_toolButtonNext_clicked()
+{
+	changeFrame(dock->horizontalSlider->value() + 1);
+}
+
+void WorldViewDockWidget::on_toolButtonPrev_clicked()
+{
+	changeFrame(dock->horizontalSlider->value() - 1);
+}

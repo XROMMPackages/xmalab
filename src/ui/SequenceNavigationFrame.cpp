@@ -218,7 +218,8 @@ void SequenceNavigationFrame::changeFrame(int frame)
 	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		if (Project::getInstance()->getTrials().size() > 0 && frame >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
-			frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1)
+			frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1 &&
+			frame != Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame())
 		{
 			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setActiveFrame(frame);
 			State::getInstance()->changeActiveFrameTrial(frame);

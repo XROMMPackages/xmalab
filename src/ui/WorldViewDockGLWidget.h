@@ -52,6 +52,9 @@ namespace xma
 		WorldViewDockGLWidget(QWidget* parent);
 		virtual ~WorldViewDockGLWidget();
 
+		void setUseCustomTimeline(bool value);
+		void setFrame(int value);
+
 	public slots:
 		void animate();
 
@@ -72,6 +75,9 @@ namespace xma
 		double polar;
 		double prev_azi;
 		double prev_pol;
+
+		int frame;
+		bool useCustomTimeline;
 
 		void drawMarkers(Trial* trial, int frame);
 		void drawRigidBodies(Trial* trial, int frame);
