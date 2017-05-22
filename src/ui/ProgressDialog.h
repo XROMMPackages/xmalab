@@ -47,6 +47,8 @@ namespace xma
 #ifdef __APPLE__
 		QTimer* timer;
 #endif
+		bool isCanceled;
+
 	protected:
 		ProgressDialog(QWidget* parent = 0);
 	public:
@@ -54,10 +56,17 @@ namespace xma
 		static ProgressDialog* getInstance();
 
 		void setProgress(double progress);
-		void showProgressbar(int min, int max, const char* key = "Computing");
+		void showProgressbar(int min, int max, const char* key = "Computing", bool cancelable = false);
 		void closeProgressbar();
 
+		const bool &getIsCanceled();
+
 	public slots:
+		void on_cancelButton_clicked(); 
+
+	signals:
+		void actionCanceled();
+
 #ifdef __APPLE__
 		void update(); 
 #endif

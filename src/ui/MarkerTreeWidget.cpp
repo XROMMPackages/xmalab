@@ -299,9 +299,11 @@ void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 
 			QList<QTreeWidgetItem *> items = this->selectedItems();
 
-			ProgressDialog::getInstance()->showProgressbar(start, end, "Refining center");
+			ProgressDialog::getInstance()->showProgressbar(start, end, "Refining center",true);
 			for (int i = start; i <= end; i++)
 			{
+				if (ProgressDialog::getInstance()->getIsCanceled())
+					break;
 				ProgressDialog::getInstance()->setProgress(i);
 				Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveFrame(i);
 				xma::State::getInstance()->changeActiveFrameTrial(i);
@@ -345,6 +347,7 @@ void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 				QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 			}
 			ProgressDialog::getInstance()->closeProgressbar();
+
 			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->setActiveFrame(frame);
 			xma::State::getInstance()->changeActiveFrameTrial(frame);
 		}
