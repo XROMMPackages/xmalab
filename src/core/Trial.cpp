@@ -54,6 +54,7 @@
 #define OS_SEP "/"
 #endif
 #include <QtGui/QApplication>
+#include <opencv2/highgui/highgui.hpp>
 
 
 using namespace xma;
@@ -1023,7 +1024,7 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 {
 	if (isDefault)
 		return;
-
+	
 	for (unsigned int i = 0; i < videos.size(); i++)
 	{
 		QFileInfo info(videos[i]->getFileBasename());
@@ -1032,22 +1033,61 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 		{
 			return;
 		}
-		if (Project::getInstance()->getCameras()[i]->hasUndistortion())
+
+		if (format == "avi")
 		{
-			for (int j = from - 1; j < to; j++)
+			cv::VideoWriter outputVideo;
+			QString outname = foldername + OS_SEP + info.completeBaseName() + "." + format;
+			outputVideo.open(outname.toAscii().data(), -1, (getRecordingSpeed() <= 0) ? 30 : getRecordingSpeed(), cv::Size(Project::getInstance()->getCameras()[i]->getWidth(), Project::getInstance()->getCameras()[i]->getHeight()), false);
+
+			if (outputVideo.isOpened())
 			{
-				QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
-				videos[i]->setActiveFrame(j);
-				Project::getInstance()->getCameras()[i]->getUndistortionObject()->undistort(videos[i]->getImage(), outname);
+
+				if (Project::getInstance()->getCameras()[i]->hasUndistortion())
+				{
+					for (int j = from - 1; j < to; j++)
+					{
+						videos[i]->setActiveFrame(j);
+						Image * tmp = new Image(videos[i]->getImage());
+						Project::getInstance()->getCameras()[i]->getUndistortionObject()->undistort(videos[i]->getImage(), tmp);
+						cv::Mat tmpMat;
+						tmp->getImage(tmpMat);
+						outputVideo << tmpMat;
+						delete tmp;
+						tmpMat.release();
+					}
+				}
+				else
+				{
+					for (int j = from - 1; j < to; j++)
+					{
+						videos[i]->setActiveFrame(j);
+						cv::Mat tmpMat;
+						videos[i]->getImage()->getImage(tmpMat);
+						outputVideo << tmpMat;
+						tmpMat.release();
+					}
+				}
 			}
 		}
-		else
-		{
-			for (int j = from - 1; j < to; j++)
+		else{
+			if (Project::getInstance()->getCameras()[i]->hasUndistortion())
 			{
-				QString outname = foldername + OS_SEP + info.completeBaseName() + "." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
-				videos[i]->setActiveFrame(j);
-				videos[i]->getImage()->save(outname);
+				for (int j = from - 1; j < to; j++)
+				{
+					QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
+					videos[i]->setActiveFrame(j);
+					Project::getInstance()->getCameras()[i]->getUndistortionObject()->undistort(videos[i]->getImage(), outname);
+				}
+			}
+			else
+			{
+				for (int j = from - 1; j < to; j++)
+				{
+					QString outname = foldername + OS_SEP + info.completeBaseName() + "." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
+					videos[i]->setActiveFrame(j);
+					videos[i]->getImage()->save(outname);
+				}
 			}
 		}
 	}

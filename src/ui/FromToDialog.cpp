@@ -70,9 +70,13 @@ QString FromToDialog::getFormat()
 	{
 		return "jpg";
 	}
-	else
+	else if (diag->radioButtonTIF->isChecked())
 	{
 		return "tif";
+	} 
+	else
+	{
+		return "avi";
 	}
 }
 
