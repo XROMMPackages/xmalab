@@ -1001,11 +1001,11 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog* dialog
 								else if (xml.name() == "FileCategory")
 								{
 									QString text = xml.readElementText();
-									if (text == "XCalibObject")
+									if (text == "XCalibObject" || text == "CalibObject")
 									{
 										type = 1;
 									}
-									else if (text == "XCalibGrid")
+									else if (text == "XCalibGrid" || text == "DistortionGrid")
 									{
 										type = 2;
 									}
@@ -1146,10 +1146,12 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 			xmlWriter.writeStartElement("Undistortion");
 			for (auto c : Project::getInstance()->getCameras())
 			{
-				xmlWriter.writeStartElement("Camera ");
-				xmlWriter.writeAttribute("camera-id", QString::number(c->getID()));
-				xmlWriter.writeCharacters(c->getUndistortionObject()->getFilename());
-				xmlWriter.writeEndElement();
+				if (c->hasUndistortion()){
+					xmlWriter.writeStartElement("Camera ");
+					xmlWriter.writeAttribute("camera-id", QString::number(c->getID()));
+					xmlWriter.writeCharacters(c->getUndistortionObject()->getFilename());
+					xmlWriter.writeEndElement();
+				}
 			}
 			xmlWriter.writeEndElement();
 

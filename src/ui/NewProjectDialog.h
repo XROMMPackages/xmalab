@@ -57,7 +57,7 @@ namespace xma
 		void addGridImage(int id_camera, QString filename);
 		void setCalibrationCubeCSV(QString filename);
 		void setCalibrationCubeREF(QString filename);
-
+		void setupBasedOnMissingParameters();
 		//bool isCubeCalibrationObject();
 		//QString getFrameSpecificationsFileName();
 		//QString getReferencePointsFileName();

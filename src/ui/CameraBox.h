@@ -59,8 +59,10 @@ namespace xma
 		const bool hasUndistortion();
 		const QString getUndistortionGridFileName();
 		const QString getCameraName();
+		
 		void setCameraName(QString name);
 		bool isLightCamera();
+		void setIsLightCamera();
 
 		void addCalibrationImage(QString filename);
 		void addUndistortionImage(QString filename);

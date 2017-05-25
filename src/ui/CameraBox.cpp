@@ -75,6 +75,11 @@ bool CameraBox::isLightCamera()
 	return widget->radioButtonLightCamera->isChecked();
 }
 
+void CameraBox::setIsLightCamera()
+{
+	widget->radioButtonLightCamera->click();
+}
+
 QString commonPrefix(QStringList fileNames)
 {
 	bool isValid = true;

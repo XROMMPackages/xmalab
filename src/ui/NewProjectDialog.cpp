@@ -104,6 +104,21 @@ void NewProjectDialog::setCalibrationCubeREF(QString filename)
 	diag->lineEditReferencePoints->setText(filename);
 }
 
+void NewProjectDialog::setupBasedOnMissingParameters()
+{
+	for (std::vector<CameraBox*>::const_iterator it = getCameras().begin(); it != getCameras().end(); ++it)
+	{
+		if ((*it)->getUndistortionGridFileName().isEmpty())
+		{
+			(*it)->setIsLightCamera();
+		}
+	}
+	if (diag->lineEditFrameSpecifications->text().isEmpty() && diag->lineEditReferencePoints->text().isEmpty())
+	{
+		diag->radioButtonCheckerboard->click();
+	}
+}
+
 int NewProjectDialog::createProject()
 {
 	Project::getInstance()->setFlipImages(diag->checkBoxFlip->isChecked());

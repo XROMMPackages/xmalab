@@ -548,6 +548,7 @@ void MainWindow::newProjectFromXMALab(QString filename)
 	newProjectdialog = new NewProjectDialog();
 
 	ProjectFileIO::getInstance()->loadXMALabProject(filename, newProjectdialog);
+	newProjectdialog->setupBasedOnMissingParameters();
 
 	newProjectdialog->exec();
 
