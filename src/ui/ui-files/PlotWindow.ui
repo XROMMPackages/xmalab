@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1369</width>
+    <width>1099</width>
     <height>555</height>
    </rect>
   </property>
@@ -39,117 +39,112 @@
        <property name="margin">
         <number>0</number>
        </property>
-       <item row="0" column="3" rowspan="2">
-        <widget class="QLabel" name="labelError">
-         <property name="text">
-          <string>Error threshold : </string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="4" rowspan="2">
-        <widget class="QDoubleSpinBox" name="doubleSpinBoxError">
-         <property name="singleStep">
-          <double>0.010000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="6">
-        <widget class="QFrame" name="frameMarkerPlot">
+       <item row="0" column="0" rowspan="2">
+        <widget class="QLabel" name="labelPlotType">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
+         <property name="text">
+          <string>Plot type : </string>
          </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_4">
-          <property name="horizontalSpacing">
-           <number>5</number>
-          </property>
-          <property name="verticalSpacing">
-           <number>0</number>
-          </property>
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelCamera">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Camera : </string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="comboBoxCamera">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="labelMarker1">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Marker : </string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
-           <widget class="QComboBox" name="comboBoxMarker1">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="4">
-           <widget class="QLabel" name="labelMarker2">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Marker : </string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="5">
-           <widget class="QComboBox" name="comboBoxMarker2">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
-          </item>
-         </layout>
         </widget>
        </item>
-       <item row="1" column="6">
+       <item row="0" column="9" rowspan="2">
+        <widget class="QPushButton" name="pushButtonSave">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Export</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="8" rowspan="2">
+        <widget class="QPushButton" name="pushButton_Reset">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Fit plot</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="7" rowspan="2">
+        <widget class="QCheckBox" name="checkBoxTime">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Display time </string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="6" rowspan="2">
+        <widget class="QCheckBox" name="checkBoxStatus">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Display status</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1" rowspan="2">
+        <widget class="QComboBox" name="comboBoxPlotType">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <item>
+          <property name="text">
+           <string>2D positions</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>3D positions</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Marker to Marker distance</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Reprojection Error</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Rigid Body transformation</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Rigid Body Error</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="1" column="5">
         <widget class="QFrame" name="frameRigidBodyPlot">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -306,131 +301,115 @@
          </layout>
         </widget>
        </item>
-       <item row="0" column="7" rowspan="2">
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="0" column="9" rowspan="2">
-        <widget class="QCheckBox" name="checkBoxTime">
-         <property name="text">
-          <string>Display time </string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="10" rowspan="2">
-        <widget class="QPushButton" name="pushButton_Reset">
+       <item row="0" column="5">
+        <widget class="QFrame" name="frameMarkerPlot">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="text">
-          <string>Fit plot</string>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
          </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <property name="horizontalSpacing">
+           <number>5</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>0</number>
+          </property>
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item row="0" column="1">
+           <widget class="QLabel" name="labelError">
+            <property name="text">
+             <string>Error threshold : </string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="6">
+           <widget class="QComboBox" name="comboBoxMarker1">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QComboBox" name="comboBoxCamera">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="5">
+           <widget class="QLabel" name="labelMarker1">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Marker : </string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QLabel" name="labelCamera">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Camera : </string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="8">
+           <widget class="QComboBox" name="comboBoxMarker2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="7">
+           <widget class="QLabel" name="labelMarker2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Marker : </string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QDoubleSpinBox" name="doubleSpinBoxError">
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
-       </item>
-       <item row="0" column="0" rowspan="2">
-        <widget class="QLabel" name="labelPlotType">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Plot type : </string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="11" rowspan="2">
-        <widget class="QPushButton" name="pushButtonSave">
-         <property name="text">
-          <string>Export</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="5" rowspan="2">
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="0" column="1" rowspan="2">
-        <widget class="QComboBox" name="comboBoxPlotType">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <item>
-          <property name="text">
-           <string>2D positions</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>3D positions</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Marker to Marker distance</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Reprojection Error</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Rigid Body transformation</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Rigid Body Error</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="0" column="8" rowspan="2">
-        <widget class="QCheckBox" name="checkBoxStatus">
-         <property name="text">
-          <string>Display status</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2" rowspan="2">
-        <spacer name="horizontalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>

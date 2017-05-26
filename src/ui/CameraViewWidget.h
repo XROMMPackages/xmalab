@@ -59,7 +59,6 @@ namespace xma
 		void draw();
 		void updateInfo();
 
-		void setCameraName(QString name);
 		void setImageName(QString name);
 
 		void setBias(double value);
@@ -94,6 +93,8 @@ namespace xma
 		Camera* camera;
 
 		Ui::CameraViewWidget* widget;
+
+		QString cameraName;
 	};
 }
 

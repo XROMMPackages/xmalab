@@ -45,7 +45,7 @@ CameraViewWidget::CameraViewWidget(Camera* _camera, QWidget* parent) :
 	camera = _camera;
 
 	widget->setupUi(this);
-	setCameraName(camera->getName());
+	cameraName = camera->getName();
 	widget->glCameraView->setCamera(camera);
 	widget->frameInfo->hide();
 
@@ -83,14 +83,9 @@ CameraViewWidget::~CameraViewWidget()
 {
 }
 
-void CameraViewWidget::setCameraName(QString name)
-{
-	widget->cameraTitleLabel->setText(name);
-}
-
 void CameraViewWidget::setImageName(QString name)
 {
-	widget->imageTitleLabel->setText(name);
+	widget->imageTitleLabel->setText(cameraName + " - " + name);
 }
 
 void CameraViewWidget::setBias(double value)
