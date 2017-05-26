@@ -7,17 +7,17 @@
     <x>0</x>
     <y>0</y>
     <width>381</width>
-    <height>273</height>
+    <height>345</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Detection Settings</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="0" colspan="2">
-    <widget class="QLabel" name="label">
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_4">
      <property name="text">
-      <string>Threshold offset in percent</string>
+      <string>Detectionmethod</string>
      </property>
     </widget>
    </item>
@@ -60,7 +60,82 @@
      </item>
     </widget>
    </item>
-   <item row="1" column="2">
+   <item row="8" column="0" colspan="3">
+    <widget class="QFrame" name="frame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+       <widget class="QLabel" name="label_Image">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QCheckBox" name="checkBoxCrosshair">
+     <property name="text">
+      <string>draw crosshair</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1" colspan="2">
+    <widget class="QComboBox" name="comboBox_Method">
+     <item>
+      <property name="text">
+       <string>default Xray marker</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Blobdetection</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>white marker</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>corner detection</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>no detection</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>xray marker (center of mass)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>white Blobdetection</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Threshold offset in percent</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2">
     <widget class="QSpinBox" name="spinBox_ThresholdOffset">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -71,25 +146,6 @@
      <property name="maximum">
       <number>100</number>
      </property>
-    </widget>
-   </item>
-   <item row="2" column="0" colspan="3">
-    <widget class="QFrame" name="frame">
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-       <widget class="QLabel" name="label_Image">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
     </widget>
    </item>
   </layout>

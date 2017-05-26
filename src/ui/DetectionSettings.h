@@ -62,11 +62,13 @@ namespace xma
 		std::vector <cv::Mat> m_images;
 		cv::Point2d m_lastCenter;
 		int m_lastCam;
-		
+		bool updating;
 	public slots:
 		void on_comboBox_currentIndexChanged(int index);
+		void on_comboBox_Method_currentIndexChanged(int index);
 		void activePointChanged(int idx);
 		void on_spinBox_ThresholdOffset_valueChanged(int value);
+		void on_checkBoxCrosshair_clicked(bool state);
 	};
 }
 

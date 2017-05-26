@@ -98,7 +98,7 @@ void MarkerDetection::detectMarker()
 	m_FutureWatcher->setFuture(future);
 }
 
-cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2d center, int searchArea, int masksize, double threshold, double* size, std::vector <cv::Mat> * images)
+cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2d center, int searchArea, int masksize, double threshold, double* size, std::vector <cv::Mat> * images, bool drawCrosshairs)
 {
 	if (images != NULL) images->clear();
 
@@ -273,10 +273,15 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 				cv::Mat tmp;
 				image->getSubImage(subimage, searchArea, off_x, off_y);
 				subimage.copyTo(tmp);
-				cv::Point2d cent = detected_center - cv::Point2f(off_x, off_y);
-				cv::line(tmp, cent - cv::Point2d(2, 0), cent + cv::Point2d(2, 0), cv::Scalar(255));
-				cv::line(tmp, cent - cv::Point2d(0, 2), cent + cv::Point2d(0, 2), cv::Scalar(255));
 				images->push_back(tmp);
+
+				if (drawCrosshairs){				
+					for (auto im : *images){
+						cv::Point2d cent = detected_center - cv::Point2f(off_x, off_y);
+						cv::line(im, cent - cv::Point2d(2, 0), cent + cv::Point2d(2, 0), cv::Scalar(127));
+						cv::line(im, cent - cv::Point2d(0, 2), cent + cv::Point2d(0, 2), cv::Scalar(127));
+					}
+				}
 			}
 
 		}

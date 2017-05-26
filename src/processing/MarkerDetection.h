@@ -50,7 +50,7 @@ namespace xma
 			return (nbInstances > 0);
 		}
 
-		static cv::Point2d detectionPoint(Image* image, int method, cv::Point2d center, int searchArea, int masksize, double threshold = 8, double* size = NULL, std::vector <cv::Mat> * images = NULL);
+		static cv::Point2d detectionPoint(Image* image, int method, cv::Point2d center, int searchArea, int masksize, double threshold = 8, double* size = NULL, std::vector <cv::Mat> * images = NULL, bool drawCrosshairs = false);
 
 		static bool refinePointPolynomialFit(cv::Point2d& pt, double& radius, bool darkMarker, int camera, int trial);
 

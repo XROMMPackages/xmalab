@@ -43,7 +43,8 @@ DetectionSettings* DetectionSettings::instance = NULL;
 
 DetectionSettings::DetectionSettings(QWidget* parent) :
 	QDialog(parent),
-	diag(new Ui::DetectionSettings)
+	diag(new Ui::DetectionSettings), 
+	updating(false)
 {
 	m_lastCam = -1;
 	diag->setupUi(this);
@@ -58,6 +59,15 @@ void DetectionSettings::on_comboBox_currentIndexChanged(int index)
 {
 	if(m_images.size() > 0)
 		diag->label_Image->setPixmap(getPixmap(m_images[diag->comboBox->currentIndex()]));
+}
+
+void DetectionSettings::on_comboBox_Method_currentIndexChanged(int index)
+{
+	if (m_marker != NULL)
+	{
+		m_marker->setMethod(diag->comboBox_Method->currentIndex());
+		if (m_lastCam >= 0) update(m_lastCam, m_lastCenter);
+	}
 }
 
 DetectionSettings::~DetectionSettings()
@@ -78,30 +88,42 @@ DetectionSettings* DetectionSettings::getInstance()
 void DetectionSettings::setMarker(Marker* marker)
 {
 	m_marker = marker;
+	updating = true;
+	if (m_marker != NULL)
+	{
+		diag->comboBox_Method->setCurrentIndex(m_marker->getMethod());
+	}
 	if (m_marker == NULL || (m_marker->getMethod() != 0 && m_marker->getMethod() != 2 && m_marker->getMethod() != 5))
 	{
 		m_marker = NULL;
-		diag->spinBox_ThresholdOffset->setValue(0);
+		diag->spinBox_ThresholdOffset->setValue(0); 	
 	}
 	else{
 		diag->spinBox_ThresholdOffset->setValue(marker->getThresholdOffset());
 	}
+	updating = false;
 }
 
 
 void DetectionSettings::update(int camera, cv::Point2d center)
 {
-	if (m_marker != NULL){
+	if (m_marker != NULL && (m_marker->getMethod() == 0 || m_marker->getMethod() == 2 || m_marker->getMethod() == 5)){
 		double m_input_size = (m_marker->getSizeOverride() > 0) ? m_marker->getSizeOverride() : (m_marker->getSize() > 0) ? m_marker->getSize() : 5;
 
 		int trial = State::getInstance()->getActiveTrial();
-		MarkerDetection::detectionPoint(Project::getInstance()->getTrials()[trial]->getVideoStreams()[camera]->getImage(), m_marker->getMethod(), center, 30.5, m_input_size, m_marker->getThresholdOffset(), NULL, &m_images);
-
+		MarkerDetection::detectionPoint(Project::getInstance()->getTrials()[trial]->getVideoStreams()[camera]->getImage(), m_marker->getMethod(), center, 30.5, m_input_size, m_marker->getThresholdOffset(), NULL, &m_images, diag->checkBoxCrosshair->isChecked());
+		
+		diag->label_Image->setText("");
 		diag->label_Image->setPixmap(getPixmap(m_images[diag->comboBox->currentIndex()]));
-
-		m_lastCam = camera;
-		m_lastCenter = center;
+	} 
+	else
+	{
+		diag->label_Image->setPixmap(QPixmap());
+		diag->label_Image->setText("Method not supported");	
 	}
+
+	m_lastCam = camera;
+	m_lastCenter = center;
 }
 
 void DetectionSettings::closeEvent(QCloseEvent* e)
@@ -145,6 +167,7 @@ void DetectionSettings::activePointChanged(int idx)
 	if (this->isVisible()){
 		setMarker(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker());
 		diag->label_Image->setPixmap(QPixmap());
+		diag->label_Image->setText("");
 		m_lastCam = -1;
 		m_images.clear();
 	}
@@ -152,9 +175,17 @@ void DetectionSettings::activePointChanged(int idx)
 
 void DetectionSettings::on_spinBox_ThresholdOffset_valueChanged(int value)
 {
-	if (m_marker != NULL)
+	if (m_marker != NULL && !updating)
 	{
 		m_marker->setThresholdOffset(diag->spinBox_ThresholdOffset->value());
+		if (m_lastCam >= 0) update(m_lastCam, m_lastCenter);
+	}
+}
+
+void DetectionSettings::on_checkBoxCrosshair_clicked(bool state)
+{
+	if (m_marker != NULL)
+	{
 		if (m_lastCam >= 0) update(m_lastCam, m_lastCenter);
 	}
 }
