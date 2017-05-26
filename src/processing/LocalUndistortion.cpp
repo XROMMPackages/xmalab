@@ -662,6 +662,35 @@ cv::vector<cv::Point2d> LocalUndistortion::get6adjCells(cv::Point2d center, cv::
 	return sixN;
 }
 
+bool LocalUndistortion::contains(cv::Point2d centercont, cv::vector<cv::Point2d>& pts)
+{
+	for (auto pt : pts)
+	{
+		if (pt == centercont) return true;
+	}
+
+	return false;
+}
+
+void LocalUndistortion::checkAndAddPoint(cv::Point2d centerdet, cv::Point2d ptA1cont, cv::Point2d ptA1det, double thresh, cv::vector<double>& dy_vec, bool & newPoint)
+{
+	cv::vector<cv::Point2d> ptB1det;
+	if (findNClosestPoint(1, ptA1det, ptB1det, detectedPoints, false) &&
+		//Control point not yet present
+		!contains(ptA1cont, tmpPoints_references) &&
+		//Detected point not yet present
+		!contains(ptB1det[0], tmpPoints_distorted) &&
+		//detected point close to expected one
+		(sqrt((ptA1det.x - ptB1det[0].x) * (ptA1det.x - ptB1det[0].x) + (ptA1det.y - ptB1det[0].y) * (ptA1det.y - ptB1det[0].y)) < thresh))
+	{
+		tmpPoints_references.push_back(cv::Point2d(ptA1cont.x, ptA1cont.y));
+		tmpPoints_distorted.push_back(cv::Point2d(ptB1det[0].x, ptB1det[0].y));
+		dy_vec.push_back(sqrt((centerdet.x - ptB1det[0].x) * (centerdet.x - ptB1det[0].x) + (centerdet.y - ptB1det[0].y) * (centerdet.y - ptB1det[0].y)));
+		newPoint = true;
+	}
+
+}
+
 bool LocalUndistortion::addNeighbours(cv::Point2d centercont, cv::Point2d centerdet, double dY, double dX, double dOffY, double dYdist, cv::vector<double>& dy_vec)
 {
 	bool newPoint = false;
@@ -671,104 +700,38 @@ bool LocalUndistortion::addNeighbours(cv::Point2d centercont, cv::Point2d center
 
 	cv::Point2d ptA1cont;
 	cv::Point2d ptA1det;
-	cv::vector<cv::Point2d> ptB1cont;
 	cv::vector<cv::Point2d> ptB1det;
 
 	//Test 1st Point dY
 	ptA1cont = cv::Point2d(centercont.x, centercont.y + dY);
 	ptA1det = cv::Point2d(centerdet.x, centerdet.y + dYdist);
-	if (findNClosestPoint(1, ptA1cont, ptB1cont, tmpPoints_references, false) &&
-		findNClosestPoint(1, ptA1det, ptB1det, detectedPoints, false) &&
-		//Control point not yet present
-		(sqrt((ptA1cont.x - ptB1cont[0].x) * (ptA1cont.x - ptB1cont[0].x) + (ptA1cont.y - ptB1cont[0].y) * (ptA1cont.y - ptB1cont[0].y)) > thresh)
-		//detected point close to expected one
-		&& (sqrt((ptA1det.x - ptB1det[0].x) * (ptA1det.x - ptB1det[0].x) + (ptA1det.y - ptB1det[0].y) * (ptA1det.y - ptB1det[0].y)) < thresh))
-	{
-		tmpPoints_references.push_back(cv::Point2d(ptA1cont.x, ptA1cont.y));
-		tmpPoints_distorted.push_back(cv::Point2d(ptB1det[0].x, ptB1det[0].y));
-		dy_vec.push_back(sqrt((centerdet.x - ptB1det[0].x) * (centerdet.x - ptB1det[0].x) + (centerdet.y - ptB1det[0].y) * (centerdet.y - ptB1det[0].y)));
-		newPoint = true;
-	}
+	checkAndAddPoint(centerdet, ptA1cont, ptA1det, thresh, dy_vec, newPoint);
 
 	//Test 2nd Point -dY
 	ptA1cont = cv::Point2d(centercont.x, centercont.y - dY);
 	ptA1det = cv::Point2d(centerdet.x, centerdet.y - dYdist);
-	if (findNClosestPoint(1, ptA1cont, ptB1cont, tmpPoints_references, false) &&
-		findNClosestPoint(1, ptA1det, ptB1det, detectedPoints, false) &&
-		//Control point not yet present
-		(sqrt((ptA1cont.x - ptB1cont[0].x) * (ptA1cont.x - ptB1cont[0].x) + (ptA1cont.y - ptB1cont[0].y) * (ptA1cont.y - ptB1cont[0].y)) > thresh)
-		//detected point close to expected one
-		&& (sqrt((ptA1det.x - ptB1det[0].x) * (ptA1det.x - ptB1det[0].x) + (ptA1det.y - ptB1det[0].y) * (ptA1det.y - ptB1det[0].y)) < thresh))
-	{
-		tmpPoints_references.push_back(cv::Point2d(ptA1cont.x, ptA1cont.y));
-		tmpPoints_distorted.push_back(cv::Point2d(ptB1det[0].x, ptB1det[0].y));
-		dy_vec.push_back(sqrt((centerdet.x - ptB1det[0].x) * (centerdet.x - ptB1det[0].x) + (centerdet.y - ptB1det[0].y) * (centerdet.y - ptB1det[0].y)));
-		newPoint = true;
-	}
+	checkAndAddPoint(centerdet, ptA1cont, ptA1det, thresh, dy_vec, newPoint);
 
 	//Test 3rd Point dX dOffY  
 	ptA1cont = cv::Point2d(centercont.x + dX, centercont.y + dOffY);
 	ptA1det = cv::Point2d(centerdet.x + dXdist, centerdet.y + dOffYdist);
-	if (findNClosestPoint(1, ptA1cont, ptB1cont, tmpPoints_references, false) &&
-		findNClosestPoint(1, ptA1det, ptB1det, detectedPoints, false) &&
-		//Control point not yet present
-		(sqrt((ptA1cont.x - ptB1cont[0].x) * (ptA1cont.x - ptB1cont[0].x) + (ptA1cont.y - ptB1cont[0].y) * (ptA1cont.y - ptB1cont[0].y)) > thresh)
-		//detected point close to expected one
-		&& (sqrt((ptA1det.x - ptB1det[0].x) * (ptA1det.x - ptB1det[0].x) + (ptA1det.y - ptB1det[0].y) * (ptA1det.y - ptB1det[0].y)) < thresh))
-	{
-		tmpPoints_references.push_back(cv::Point2d(ptA1cont.x, ptA1cont.y));
-		tmpPoints_distorted.push_back(cv::Point2d(ptB1det[0].x, ptB1det[0].y));
-		dy_vec.push_back(sqrt((centerdet.x - ptB1det[0].x) * (centerdet.x - ptB1det[0].x) + (centerdet.y - ptB1det[0].y) * (centerdet.y - ptB1det[0].y)));
-		newPoint = true;
-	}
+	checkAndAddPoint(centerdet, ptA1cont, ptA1det, thresh, dy_vec, newPoint);
 
 	//Test 4th Point -dX dOffY  
 	ptA1cont = cv::Point2d(centercont.x - dX, centercont.y + dOffY);
 	ptA1det = cv::Point2d(centerdet.x - dXdist, centerdet.y + dOffYdist);
-	if (findNClosestPoint(1, ptA1cont, ptB1cont, tmpPoints_references, false) &&
-		findNClosestPoint(1, ptA1det, ptB1det, detectedPoints, false) &&
-		//Control point not yet present
-		(sqrt((ptA1cont.x - ptB1cont[0].x) * (ptA1cont.x - ptB1cont[0].x) + (ptA1cont.y - ptB1cont[0].y) * (ptA1cont.y - ptB1cont[0].y)) > thresh)
-		//detected point close to expected one
-		&& (sqrt((ptA1det.x - ptB1det[0].x) * (ptA1det.x - ptB1det[0].x) + (ptA1det.y - ptB1det[0].y) * (ptA1det.y - ptB1det[0].y)) < thresh))
-	{
-		tmpPoints_references.push_back(cv::Point2d(ptA1cont.x, ptA1cont.y));
-		tmpPoints_distorted.push_back(cv::Point2d(ptB1det[0].x, ptB1det[0].y));
-		dy_vec.push_back(sqrt((centerdet.x - ptB1det[0].x) * (centerdet.x - ptB1det[0].x) + (centerdet.y - ptB1det[0].y) * (centerdet.y - ptB1det[0].y)));
-		newPoint = true;
-	}
+	checkAndAddPoint(centerdet, ptA1cont, ptA1det, thresh, dy_vec, newPoint);
 
 	//Test 5th Point dX -dOffY  
 	ptA1cont = cv::Point2d(centercont.x + dX, centercont.y - dOffY);
 	ptA1det = cv::Point2d(centerdet.x + dXdist, centerdet.y - dOffYdist);
-	if (findNClosestPoint(1, ptA1cont, ptB1cont, tmpPoints_references, false) &&
-		findNClosestPoint(1, ptA1det, ptB1det, detectedPoints, false) &&
-		//Control point not yet present
-		(sqrt((ptA1cont.x - ptB1cont[0].x) * (ptA1cont.x - ptB1cont[0].x) + (ptA1cont.y - ptB1cont[0].y) * (ptA1cont.y - ptB1cont[0].y)) > thresh)
-		//detected point close to expected one
-		&& (sqrt((ptA1det.x - ptB1det[0].x) * (ptA1det.x - ptB1det[0].x) + (ptA1det.y - ptB1det[0].y) * (ptA1det.y - ptB1det[0].y)) < thresh))
-	{
-		tmpPoints_references.push_back(cv::Point2d(ptA1cont.x, ptA1cont.y));
-		tmpPoints_distorted.push_back(cv::Point2d(ptB1det[0].x, ptB1det[0].y));
-		dy_vec.push_back(sqrt((centerdet.x - ptB1det[0].x) * (centerdet.x - ptB1det[0].x) + (centerdet.y - ptB1det[0].y) * (centerdet.y - ptB1det[0].y)));
-		newPoint = true;
-	}
+	checkAndAddPoint(centerdet, ptA1cont, ptA1det, thresh, dy_vec, newPoint);
 
 	//Test 6th Point -dX -dOffY  
 	ptA1cont = cv::Point2d(centercont.x - dX, centercont.y - dOffY);
 	ptA1det = cv::Point2d(centerdet.x - dXdist, centerdet.y - dOffYdist);
-	if (findNClosestPoint(1, ptA1cont, ptB1cont, tmpPoints_references, false) &&
-		findNClosestPoint(1, ptA1det, ptB1det, detectedPoints, false) &&
-		//Control point not yet present
-		(sqrt((ptA1cont.x - ptB1cont[0].x) * (ptA1cont.x - ptB1cont[0].x) + (ptA1cont.y - ptB1cont[0].y) * (ptA1cont.y - ptB1cont[0].y)) > thresh)
-		//detected point close to expected one
-		&& (sqrt((ptA1det.x - ptB1det[0].x) * (ptA1det.x - ptB1det[0].x) + (ptA1det.y - ptB1det[0].y) * (ptA1det.y - ptB1det[0].y)) < thresh))
-	{
-		tmpPoints_references.push_back(cv::Point2d(ptA1cont.x, ptA1cont.y));
-		tmpPoints_distorted.push_back(cv::Point2d(ptB1det[0].x, ptB1det[0].y));
-		dy_vec.push_back(sqrt((centerdet.x - ptB1det[0].x) * (centerdet.x - ptB1det[0].x) + (centerdet.y - ptB1det[0].y) * (centerdet.y - ptB1det[0].y)));
-		newPoint = true;
-	}
+	checkAndAddPoint(centerdet, ptA1cont, ptA1det, thresh, dy_vec, newPoint);
+
 	return newPoint;
 }
 

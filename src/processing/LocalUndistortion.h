@@ -91,8 +91,11 @@ namespace xma
 		double getHexagonalGridOrientation(cv::Point2d center, cv::vector<cv::Point2d> all_pts);
 		double getHexagonalGridSize(cv::Point2d center);
 		cv::vector<cv::Point2d> get6adjCells(cv::Point2d center, cv::vector<cv::Point2d> all_pts);
+		bool contains(cv::Point2d centercont, cv::vector<cv::Point2d>& pts);
+		void checkAndAddPoint(cv::Point2d centerdet, cv::Point2d ptA1cont, cv::Point2d ptA1det, double thresh, cv::vector<double>& dy_vec, bool & newPoint);
 		bool addNeighbours(cv::Point2d centercont, cv::Point2d centerdet, double dY, double dX, double dOffY, double dYdist, cv::vector<double>& dy_vec);
 		void setupHexagonalGrid(cv::Point2d center, double dY);
+		
 	};
 }
 
