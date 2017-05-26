@@ -213,6 +213,14 @@ void Image::deleteTexture()
 
 void Image::save(QString filename)
 {
-	cv::imwrite(filename.toAscii().data(), image);
+	if (Project::getInstance()->getFlipImages())
+	{
+		cv::Mat image_tmp;
+		cv::flip(image, image_tmp, 1);
+		cv::imwrite(filename.toAscii().data(), image_tmp);
+	}
+	else{
+		cv::imwrite(filename.toAscii().data(), image);
+	}
 }
 
