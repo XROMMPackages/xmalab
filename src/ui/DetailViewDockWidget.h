@@ -51,6 +51,8 @@ namespace xma
 		void setup();
 		void clear();
 		void centerViews();
+		void relayout();
+		void setCameraVisible(int idx, bool visible);
 	protected:
 		void closeEvent(QCloseEvent* event) override;
 

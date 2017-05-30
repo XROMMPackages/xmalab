@@ -258,6 +258,7 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/HelpDialog.h
 	src/ui/DetectionSettings.h
 	src/ui/DisplayOptionsDockWidget.h
+	src/ui/CameraSelector.h
 )
 
 SET(XMALab_FORMS_SOURCES
@@ -310,6 +311,7 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/HelpDialog.cpp
 		src/ui/DetectionSettings.cpp
 		src/ui/DisplayOptionsDockWidget.cpp
+		src/ui/CameraSelector.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
@@ -356,6 +358,7 @@ SET(XMALab_FORMS
 		src/ui/ui-files/DetectionSettings.ui
 		src/ui/ui-files/DisplayOptionsDockWidget.ui
 		src/ui/ui-files/WorldViewDockWidget.ui
+		src/ui/ui-files/CameraSelector.ui
 	)
 	
 
@@ -404,6 +407,7 @@ SET(XMALab_FORMS_MOC
 		${CMAKE_CURRENT_BINARY_DIR}/ui_DetectionSettings.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_DisplayOptionsDockWidget.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_WorldViewDockWidget.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_CameraSelector.h
 		)
 
 SOURCE_GROUP(UI_Generated FILES ${XMALab_FORMS_MOC})

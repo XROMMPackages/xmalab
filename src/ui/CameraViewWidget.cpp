@@ -39,8 +39,9 @@
 using namespace xma;
 
 CameraViewWidget::CameraViewWidget(Camera* _camera, QWidget* parent) :
-	QWidget(parent),
-	widget(new Ui::CameraViewWidget)
+QWidget(parent),
+widget(new Ui::CameraViewWidget),
+m_visible(true)
 {
 	camera = _camera;
 
@@ -115,7 +116,17 @@ void CameraViewWidget::setRenderTransparentModels(bool value)
 void CameraViewWidget::centerViewToPoint()
 {
 	widget->glCameraView->centerViewToPoint(false);
-	widget->glCameraView->update();
+	if (m_visible)widget->glCameraView->update();
+}
+
+const bool& CameraViewWidget::isVisible()
+{
+	return m_visible;
+}
+
+void CameraViewWidget::setIsVisible(bool value)
+{
+	m_visible = value;
 }
 
 void CameraViewWidget::setSharedGLContext(const QGLContext* sharedContext)
@@ -127,13 +138,15 @@ void CameraViewWidget::setSharedGLContext(const QGLContext* sharedContext)
 
 void CameraViewWidget::draw()
 {
-	widget->glCameraView->update();
+	if (m_visible)widget->glCameraView->update();
 }
 
 void CameraViewWidget::updateInfo()
 {
-	calibrationFrame->update(camera);
-	undistortionFrame->update(camera);
+	if (m_visible){
+		calibrationFrame->update(camera);
+		undistortionFrame->update(camera);
+	}
 }
 
 
@@ -145,7 +158,7 @@ void CameraViewWidget::setMinimumWidthGL(bool set)
 void CameraViewWidget::on_toolButtonFitZoom_clicked(bool checked)
 {
 	widget->glCameraView->setAutoZoom(checked);
-	widget->glCameraView->update();
+	if (m_visible) widget->glCameraView->update();
 }
 
 void CameraViewWidget::on_toolButtonInfo_clicked(bool checked)
@@ -164,7 +177,7 @@ void CameraViewWidget::on_toolButtonInfo_clicked(bool checked)
 void CameraViewWidget::on_spinBoxZoom_valueChanged(int value)
 {
 	widget->glCameraView->setZoom(value);
-	widget->glCameraView->update();
+	if (m_visible) widget->glCameraView->update();
 }
 
 void CameraViewWidget::autozoomChanged(bool on)
@@ -213,7 +226,7 @@ void CameraViewWidget::workspaceChanged(work_state workspace)
 
 void CameraViewWidget::activeFrameCalibrationChanged(int activeFrame)
 {
-	calibrationFrame->updateFrame(camera);
+	if (m_visible) calibrationFrame->updateFrame(camera);
 }
 
 bool CameraViewWidget::eventFilter(QObject* obj, QEvent* event)

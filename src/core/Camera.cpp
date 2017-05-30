@@ -54,7 +54,7 @@
 
 using namespace xma;
 
-Camera::Camera(QString cameraName, int _id)
+Camera::Camera(QString cameraName, int _id) : visible(true)
 {
 	calibrationSequence = new CalibrationSequence(this);
 	undistortionObject = NULL;
@@ -81,6 +81,16 @@ Camera::~Camera()
 		delete undistortionObject;
 
 	cameramatrix.release();
+}
+
+const bool& Camera::isVisible()
+{
+	return visible;
+}
+
+void Camera::setVisible(bool value)
+{
+	visible = value;
 }
 
 void Camera::reset()

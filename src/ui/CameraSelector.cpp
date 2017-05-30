@@ -20,63 +20,59 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file WorkspaceNavigationFrame.h
+///\file CameraSelector.cpp
 ///\author Benjamin Knorlein
-///\date 11/20/2015
+///\date 05/30/2017
 
-#ifndef WORKSPACENAVIGATIONFRAME_H_
-#define WORKSPACENAVIGATIONFRAME_H_
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 
-#include <QFrame>
-#include "ui/State.h"
 
-namespace Ui
+#include "ui/CameraSelector.h"
+#include "ui_CameraSelector.h"
+#include "ui/MainWindow.h"
+#include "core/Project.h"
+#include "core/Camera.h"
+
+
+#include <QCheckBox>
+
+using namespace xma;
+
+CameraSelector::CameraSelector(QWidget* parent) :
+	QDialog(parent),
+	diag(new Ui::CameraSelector)
 {
-	class WorkspaceNavigationFrame;
+	diag->setupUi(this);
+	int cam_count = 0;
+	for (auto cam : Project::getInstance()->getCameras()){
+		QCheckBox * box = new QCheckBox(cam->getName(), this);
+		box->setChecked(cam->isVisible());
+		boxes.push_back(box);
+		diag->gridLayout_2->addWidget(box, cam_count, 0, 1, 1);
+		cam_count++;
+	}
 }
 
-namespace xma
+CameraSelector::~CameraSelector()
 {
-	class WorkspaceNavigationFrame : public QFrame
+	boxes.clear();
+	delete diag;
+}
+
+void CameraSelector::on_pushButton_OK_clicked()
+{
+	for (int i = 0; i < boxes.size(); i++)
 	{
-		Q_OBJECT
-
-	private:
-		Ui::WorkspaceNavigationFrame* frame;
-		WorkspaceNavigationFrame(QWidget* parent = 0);
-		static WorkspaceNavigationFrame* instance;
-		int currentComboBoxWorkspaceIndex;
-		void setTrialVisible(bool visible);
-
-		bool updating;
-	protected:
-
-	public:
-		virtual ~WorkspaceNavigationFrame();
-
-		static WorkspaceNavigationFrame* getInstance();
-
-		void setUndistortion(bool hasUndistortion);
-		void addTrial(QString name);
-		void closeProject();
-
-		void setWorkState(work_state workspace);
-
-	public slots:
-
-		void workspaceChanged(work_state workspace);
-		void displayChanged(ui_state display);
-		void activeTrialChanged(int activeTrial);
-
-		void on_comboBoxWorkspace_currentIndexChanged(QString value);
-		void on_comboBoxTrial_currentIndexChanged(int idx);
-		void on_comboBoxViewspace_currentIndexChanged(QString value);
-		void on_toolButtonAddTrial_clicked();
-		void on_toolButtonTrialSettings_clicked();
-		void on_toolButtonCameraSettings_clicked();
-	};
+		Project::getInstance()->getCameras()[i]->setVisible(boxes[i]->isChecked());
+		MainWindow::getInstance()->setCameraVisible(i, boxes[i]->isChecked());
+	}
+	this->accept();
 }
 
-
-#endif /* WORKSPACENAVIGATIONFRAME_H_ */
+void CameraSelector::on_pushButton_Cancel_clicked()
+{
+	this->reject();
+}
 

@@ -40,6 +40,8 @@
 #include "core/CalibrationImage.h"
 
 #include "processing/ThreadScheduler.h"
+#include "ui/CameraSelector.h"
+#include "ui/DetailViewDockWidget.h"
 
 using namespace xma;
 
@@ -55,7 +57,6 @@ WorkspaceNavigationFrame::WorkspaceNavigationFrame(QWidget* parent) :
 
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(State::getInstance(), SIGNAL(displayChanged(ui_state)), this, SLOT(displayChanged(ui_state)));
-	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 }
 
@@ -94,10 +95,6 @@ void WorkspaceNavigationFrame::setUndistortion(bool hasUndistortion)
 	}
 }
 
-void WorkspaceNavigationFrame::addCamera(int idx, QString name)
-{
-	frame->comboBoxViewspace->insertItem(idx, name);
-}
 
 void WorkspaceNavigationFrame::addTrial(QString name)
 {
@@ -112,25 +109,34 @@ void WorkspaceNavigationFrame::closeProject()
 	updating = false;
 }
 
-void WorkspaceNavigationFrame::removeCamera(int idx)
-{
-	frame->comboBoxViewspace->removeItem(idx);
-}
-
 void WorkspaceNavigationFrame::workspaceChanged(work_state workspace)
 {
 	if (workspace == UNDISTORTION)
 	{
+		frame->comboBoxViewspace->setEnabled(true);
+		frame->toolButtonCameraSettings->setEnabled(true);
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion"));
 		frame->label_Optimized->hide();
 	}
 	else if (workspace == CALIBRATION)
 	{
+		frame->comboBoxViewspace->setEnabled(true);
+		frame->toolButtonCameraSettings->setEnabled(true);
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration"));
 		frame->label_Optimized->hide();
 	}
 	else if (workspace == DIGITIZATION)
 	{
+		if (Project::getInstance()->getTrials().size() > 0 && Project::getInstance()->isCalibrated()){
+			frame->comboBoxViewspace->setEnabled(true);
+			frame->toolButtonCameraSettings->setEnabled(true);
+		} 
+		else
+		{
+			frame->comboBoxViewspace->setEnabled(false);
+			frame->toolButtonCameraSettings->setEnabled(false);
+		}
+
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Marker tracking"));
 		if (!State::getInstance()->isLoading() && State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
 		{
@@ -168,24 +174,14 @@ void WorkspaceNavigationFrame::displayChanged(ui_state display)
 	{
 		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText("All Cameras - 3 Row Scaled"));
 	}
-	else if (display == SINGLE_CAMERA)
-	{
-		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getName()));
-	}
-}
-
-void WorkspaceNavigationFrame::activeCameraChanged(int activeCamera)
-{
-	if (State::getInstance()->getDisplay() == SINGLE_CAMERA)
-	{
-		frame->comboBoxViewspace->setCurrentIndex(frame->comboBoxViewspace->findText(Project::getInstance()->getCameras()[activeCamera]->getName()));
-	}
 }
 
 void WorkspaceNavigationFrame::activeTrialChanged(int activeTrial)
 {
 	if (activeTrial >= 0)
 	{
+		frame->comboBoxViewspace->setEnabled(true);
+		frame->toolButtonCameraSettings->setEnabled(true);
 		frame->comboBoxTrial->setCurrentIndex(activeTrial);
 		if (!State::getInstance()->isLoading() && State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
 		{
@@ -277,21 +273,6 @@ void WorkspaceNavigationFrame::on_comboBoxViewspace_currentIndexChanged(QString 
 	{
 		State::getInstance()->changeDisplay(ALL_CAMERAS_3ROW_SCALED);
 	}
-	else
-	{
-		//Single cameras
-		int count = 0;
-		for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
-		{
-			if ((*it)->getName() == value)
-			{
-				State::getInstance()->changeActiveCamera(count);
-				State::getInstance()->changeDisplay(SINGLE_CAMERA);
-				return;
-			}
-			count ++;
-		}
-	}
 }
 
 void WorkspaceNavigationFrame::on_toolButtonTrialSettings_clicked()
@@ -353,6 +334,19 @@ void WorkspaceNavigationFrame::on_toolButtonTrialSettings_clicked()
 
 		delete dialog;
 	}
+}
+
+void WorkspaceNavigationFrame::on_toolButtonCameraSettings_clicked()
+{
+	CameraSelector * diag = new CameraSelector(this); 
+	bool ok = diag->exec();
+	if (ok)
+	{
+		DetailViewDockWidget::getInstance()->relayout();
+		MainWindow::getInstance()->relayoutCameras();
+		MainWindow::getInstance()->redrawGL();
+	}
+	delete diag;
 }
 
 void WorkspaceNavigationFrame::on_toolButtonAddTrial_clicked()

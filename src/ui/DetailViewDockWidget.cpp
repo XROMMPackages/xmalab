@@ -39,6 +39,7 @@
 
 #include <QLabel>
 #include <QCloseEvent>
+#include <iostream>
 
 
 using namespace xma;
@@ -95,6 +96,7 @@ void DetailViewDockWidget::setup()
 	for (unsigned int i = 0; i < cameraViews.size(); i++)
 	{
 		dock->horizontalLayout->addWidget(cameraViews[i]);
+		cameraViews[i]->setVisible(cameraViews[i]->getIsVisible());
 	}
 
 	Shortcuts::getInstance()->installEventFilterToChildren(this);
@@ -120,6 +122,20 @@ void DetailViewDockWidget::centerViews()
 	{
 		cameraViews[i]->centerViews();
 	}
+}
+
+void DetailViewDockWidget::relayout()
+{
+
+	for (unsigned int i = 0; i < cameraViews.size(); i++)
+	{
+		cameraViews[i]->setVisible(cameraViews[i]->getIsVisible());		
+	}
+}
+
+void DetailViewDockWidget::setCameraVisible(int idx, bool visible)
+{
+	cameraViews[idx]->setIsVisible(visible);
 }
 
 void DetailViewDockWidget::closeEvent(QCloseEvent* event)

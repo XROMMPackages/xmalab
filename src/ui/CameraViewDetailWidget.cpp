@@ -38,7 +38,8 @@ using namespace xma;
 
 CameraViewDetailWidget::CameraViewDetailWidget(Camera* _camera, QWidget* parent) :
 	QWidget(parent),
-	widget(new Ui::CameraViewDetailWidget)
+	widget(new Ui::CameraViewDetailWidget),
+	m_visible(true)
 {
 	camera = _camera;
 	widget->setupUi(this);
@@ -64,18 +65,29 @@ void CameraViewDetailWidget::setSharedGLContext(const QGLContext* sharedContext)
 
 void CameraViewDetailWidget::draw()
 {
-	widget->glCameraView->update();
+	if (m_visible) widget->glCameraView->update();
 }
 
 void CameraViewDetailWidget::centerViews()
 {
 	widget->glCameraView->centerViewToPoint();
-	widget->glCameraView->update();
+	if (m_visible) widget->glCameraView->update();
 }
 
 void CameraViewDetailWidget::setMinimumWidthGL(bool set)
 {
 	widget->glCameraView->setMinimumWidthGL(set);
+}
+
+
+const bool& CameraViewDetailWidget::getIsVisible()
+{
+	return m_visible;
+}
+
+void CameraViewDetailWidget::setIsVisible(bool value)
+{
+	m_visible = value;
 }
 
 void CameraViewDetailWidget::on_doubleSpinBoxBias_valueChanged(double value)
@@ -118,7 +130,7 @@ void CameraViewDetailWidget::on_horizontalSliderScale_valueChanged(int value)
 void CameraViewDetailWidget::workspaceChanged(work_state workspace)
 {
 	widget->glCameraView->centerViewToPoint(true);
-	widget->glCameraView->update();
+	if (m_visible) widget->glCameraView->update();
 }
 
 void CameraViewDetailWidget::activeFrameTrialChanged(int)
@@ -126,19 +138,19 @@ void CameraViewDetailWidget::activeFrameTrialChanged(int)
 	if (!State::getInstance()->getDisableDraw())
 	{
 		widget->glCameraView->centerViewToPoint();
-		widget->glCameraView->update();
+		if (m_visible) widget->glCameraView->update();
 	}
 }
 
 void CameraViewDetailWidget::activeTrialChanged(int)
 {
 	widget->glCameraView->centerViewToPoint(true);
-	widget->glCameraView->update();
+	if (m_visible) widget->glCameraView->update();
 }
 
 void CameraViewDetailWidget::activePointChanged(int)
 {
 	widget->glCameraView->centerViewToPoint(true);
-	widget->glCameraView->update();
+	if (m_visible) widget->glCameraView->update();
 }
 

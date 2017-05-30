@@ -60,6 +60,9 @@ namespace xma
 		void showAndLoad(QString file);
 		void loadProjectFromEvent(QString filename);
         
+		void setCameraVisible(int idx, bool visible);
+		void relayoutCameras();
+
 	private:
 		Ui::MainWindow* ui;
 		static MainWindow* instance;
@@ -67,7 +70,7 @@ namespace xma
 		Project* project;
 
 		std::vector<CameraViewWidget *> cameraViews;
-		void relayoutCameras();
+		
 		void clearSplitters();
 
 		//Functions to setup and tearDown the UI

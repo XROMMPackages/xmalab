@@ -56,6 +56,9 @@ namespace xma
 		void draw();
 		void centerViews();
 
+		const bool &getIsVisible();
+		void setIsVisible(bool value);
+
 	public slots:
 		void on_doubleSpinBoxBias_valueChanged(double value);
 		void on_horizontalSliderBias_valueChanged(int value);
@@ -71,6 +74,8 @@ namespace xma
 		Camera* camera;
 
 		Ui::CameraViewDetailWidget* widget;
+
+		bool m_visible;
 	};
 }
 

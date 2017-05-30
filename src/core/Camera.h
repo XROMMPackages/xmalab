@@ -46,6 +46,9 @@ namespace xma
 		Camera(QString cameraName, int _id);
 		virtual ~Camera();
 
+		const bool &isVisible();
+		void setVisible(bool value);
+
 		void loadImages(QStringList fileNames);
 		CalibrationImage* addImage(QString fileName);
 		void loadUndistortionImage(QString undistortionImage);
@@ -204,6 +207,8 @@ namespace xma
 
 		cv::Mat undistortionMapX;
 		cv::Mat undistortionMapY;
+
+		bool visible;
 	};
 }
 

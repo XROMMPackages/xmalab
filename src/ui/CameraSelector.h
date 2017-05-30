@@ -20,63 +20,43 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file WorkspaceNavigationFrame.h
+///\file CameraSelector.h
 ///\author Benjamin Knorlein
-///\date 11/20/2015
+///\date 05/30/2017
 
-#ifndef WORKSPACENAVIGATIONFRAME_H_
-#define WORKSPACENAVIGATIONFRAME_H_
+#ifndef CAMERASELECTOR_H_
+#define CAMERASELECTOR_H_
 
-#include <QFrame>
-#include "ui/State.h"
+#include <QDialog>
+#include <QString>
 
 namespace Ui
 {
-	class WorkspaceNavigationFrame;
+	class CameraSelector;
 }
+
+class QCheckBox;
 
 namespace xma
 {
-	class WorkspaceNavigationFrame : public QFrame
+	class CameraSelector : public QDialog
 	{
 		Q_OBJECT
 
 	private:
-		Ui::WorkspaceNavigationFrame* frame;
-		WorkspaceNavigationFrame(QWidget* parent = 0);
-		static WorkspaceNavigationFrame* instance;
-		int currentComboBoxWorkspaceIndex;
-		void setTrialVisible(bool visible);
-
-		bool updating;
-	protected:
-
+		Ui::CameraSelector* diag;
+		std::vector<QCheckBox * > boxes;
 	public:
-		virtual ~WorkspaceNavigationFrame();
-
-		static WorkspaceNavigationFrame* getInstance();
-
-		void setUndistortion(bool hasUndistortion);
-		void addTrial(QString name);
-		void closeProject();
-
-		void setWorkState(work_state workspace);
+		CameraSelector(QWidget* parent = 0);
+		virtual ~CameraSelector();
 
 	public slots:
 
-		void workspaceChanged(work_state workspace);
-		void displayChanged(ui_state display);
-		void activeTrialChanged(int activeTrial);
+	void on_pushButton_OK_clicked();
+	void on_pushButton_Cancel_clicked();
 
-		void on_comboBoxWorkspace_currentIndexChanged(QString value);
-		void on_comboBoxTrial_currentIndexChanged(int idx);
-		void on_comboBoxViewspace_currentIndexChanged(QString value);
-		void on_toolButtonAddTrial_clicked();
-		void on_toolButtonTrialSettings_clicked();
-		void on_toolButtonCameraSettings_clicked();
 	};
 }
 
-
-#endif /* WORKSPACENAVIGATIONFRAME_H_ */
+#endif /* CAMERASELECTOR_H_ */
 

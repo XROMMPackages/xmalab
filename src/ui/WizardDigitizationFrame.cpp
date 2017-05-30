@@ -39,6 +39,7 @@
 #include "core/Trial.h"
 #include "core/Settings.h"
 #include "core/Marker.h"
+#include "core/Camera.h"
 #include <processing/MarkerDetection.h>
 #include <processing/MarkerTracking.h>
 
@@ -267,7 +268,8 @@ void WizardDigitizationFrame::trackSinglePoint()
 		std::vector<MarkerTracking *> trackers;
 		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 		{
-			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][startFrame] > UNDEFINED &&
+			if (Project::getInstance()->getCameras()[i]->isVisible() &&
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][startFrame] > UNDEFINED &&
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][endFrame] != UNTRACKABLE &&
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][endFrame] <= (Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
 				&& !(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][endFrame] == INTERPOLATED && !Settings::getInstance()->getBoolSetting("TrackInterpolatedPoints")))
@@ -305,7 +307,8 @@ void WizardDigitizationFrame::trackSinglePointFinished()
 	std::vector<MarkerDetection *> detectors;
 	for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 	{
-		if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[tmptrackID]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED)
+		if (Project::getInstance()->getCameras()[i]->isVisible() && 
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[tmptrackID]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED)
 		{
 			MarkerDetection* markerdetection = new MarkerDetection(i, State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), tmptrackID,
 			                                                       Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[tmptrackID]->getSize() * 2, true);
@@ -349,7 +352,8 @@ void WizardDigitizationFrame::trackRB()
 	{
 		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 		{
-			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][startFrame] > UNDEFINED &&
+			if (Project::getInstance()->getCameras()[i]->isVisible() && 
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][startFrame] > UNDEFINED &&
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][endFrame] > UNTRACKABLE &&
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][endFrame] <= (Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
 				&& !(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][endFrame] == INTERPOLATED && !Settings::getInstance()->getBoolSetting("TrackInterpolatedPoints")))
@@ -385,7 +389,8 @@ void WizardDigitizationFrame::trackRBFinished()
 	{
 		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 		{
-			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED)
+			if (Project::getInstance()->getCameras()[i]->isVisible() &&
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED)
 			{
 				MarkerDetection* markerdetection = new MarkerDetection(i, State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), *it,
 					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getSize() * 2, true);
@@ -427,7 +432,8 @@ void WizardDigitizationFrame::trackAll()
 	{
 		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 		{
-			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][startFrame] > UNDEFINED &&
+			if (Project::getInstance()->getCameras()[i]->isVisible() && 
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][startFrame] > UNDEFINED &&
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][endFrame] > UNTRACKABLE &&
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][endFrame] <= (Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
 				&& !(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][endFrame] == INTERPOLATED && !Settings::getInstance()->getBoolSetting("TrackInterpolatedPoints")))
@@ -462,7 +468,8 @@ void WizardDigitizationFrame::trackAllFinished()
 	{
 		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 		{
-			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED)
+			if (Project::getInstance()->getCameras()[i]->isVisible() && 
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED)
 			{
 				MarkerDetection* markerdetection = new MarkerDetection(i, State::getInstance()->getActiveTrial(), State::getInstance()->getActiveFrameTrial(), j,
 				                                                       Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getSize() * 2, true);
@@ -494,7 +501,8 @@ void WizardDigitizationFrame::checkIfValid()
 	{
 		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 		{
-			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED &&
+			if (Project::getInstance()->getCameras()[i]->isVisible() && 
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED &&
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getMethod() != 4)
 			{
 				valid = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->isValid(i, State::getInstance()->getActiveFrameTrial()) && valid;
@@ -508,7 +516,8 @@ void WizardDigitizationFrame::checkIfValid()
 		{
 			for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 			{
-				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED &&
+				if (Project::getInstance()->getCameras()[i]->isVisible() &&
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED &&
 					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getMethod() != 4)
 				{
 					valid = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->isValid(i, State::getInstance()->getActiveFrameTrial()) && valid;
@@ -522,7 +531,8 @@ void WizardDigitizationFrame::checkIfValid()
 		{
 			for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 			{
-				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED &&
+				if (Project::getInstance()->getCameras()[i]->isVisible() && 
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][State::getInstance()->getActiveFrameTrial()] == TRACKED &&
 					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getMethod() != 4)
 				{
 					valid = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->isValid(i, State::getInstance()->getActiveFrameTrial()) && valid;

@@ -306,9 +306,10 @@ void Trial::setActiveFrame(int _activeFrame)
 	if (isDefault)
 		return;
 	
-	for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
+	for (int i = 0; i < videos.size(); i++)
 	{
-		(*video)->setActiveFrame(activeFrame);
+		if (Project::getInstance()->getCameras()[i]->isVisible())
+			videos[i]->setActiveFrame(activeFrame);
 	}
 }
 

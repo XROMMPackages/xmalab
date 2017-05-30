@@ -68,6 +68,9 @@ namespace xma
 
 		void centerViewToPoint();
 
+		const bool &isVisible();
+		void setIsVisible(bool value);
+
 	protected:
 		bool eventFilter(QObject* obj, QEvent* event);
 
@@ -86,7 +89,7 @@ namespace xma
 
 	private:
 
-
+		bool m_visible;
 		UndistortionInfoFrame* undistortionFrame;
 		CalibrationInfoFrame* calibrationFrame;
 		DigitizationInfoFrame* digitizationFrame;

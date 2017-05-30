@@ -316,15 +316,15 @@ void MainWindow::setupProjectUI()
 	State::getInstance()->changeActiveFrameCalibration(0);
 
 	bool hasUndistorion = false;
-	int count = 0;
+	//int count = 0;
 	for (std::vector<Camera*>::const_iterator it = project->getCameras().begin(); it != project->getCameras().end(); ++it)
 	{
 		CameraViewWidget* cam_widget = new CameraViewWidget((*it), this);
 		cam_widget->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());
 		cameraViews.push_back(cam_widget);
 		hasUndistorion = hasUndistorion || (*it)->hasUndistortion();
-		WorkspaceNavigationFrame::getInstance()->addCamera(count, (*it)->getName());
-		count++;
+		//WorkspaceNavigationFrame::getInstance()->addCamera(count, (*it)->getName());
+		//count++;
 		QApplication::processEvents();
 	}
 
@@ -354,7 +354,6 @@ void MainWindow::tearDownProjectUI()
 	for (unsigned int i = 0; i < cameraViews.size(); i++)
 	{
 		delete cameraViews[i];
-		WorkspaceNavigationFrame::getInstance()->removeCamera(0);
 	}
 	cameraViews.clear();
 
@@ -402,24 +401,14 @@ void MainWindow::relayoutCameras()
 {
 	clearSplitters();
 
-	if (State::getInstance()->getDisplay() == SINGLE_CAMERA)
-	{
-		ui->imageScrollArea->setVisible(false);
-		ui->imageMainFrame->setVisible(true);
-
-		for (unsigned int i = 0; i < cameraViews.size(); i++)
-		{
-			cameraViews[i]->setMinimumWidthGL(false);
-		}
-		ui->gridLayout_4->addWidget(cameraViews[State::getInstance()->getActiveCamera()]);
-	}
-	else if (State::getInstance()->getDisplay() == ALL_CAMERAS_FULL_HEIGHT)
+	if (State::getInstance()->getDisplay() == ALL_CAMERAS_FULL_HEIGHT)
 	{
 		ui->imageScrollArea->setVisible(true);
 		ui->imageMainFrame->setVisible(false);
 		for (unsigned int i = 0; i < cameraViews.size(); i++)
 		{
-			ui->horizontalLayout->addWidget(cameraViews[i]);
+			if (cameraViews[i]->isVisible())
+				ui->horizontalLayout->addWidget(cameraViews[i]);
 		}
 		resizeTimer.start(500);
 	}
@@ -440,28 +429,39 @@ void MainWindow::relayoutCameras()
 			rows = 3;
 		}
 
+		int count_cams = 0;
+		for (unsigned int i = 0; i < cameraViews.size(); i++)
+		{
+			if (cameraViews[i]->isVisible())
+				count_cams++;
+		}
+
 		//Create New
-		QSize cameraViewArrangement = QSize(ceil(((double) cameraViews.size()) / rows), rows);
+		QSize cameraViewArrangement = QSize(ceil(((double) count_cams) / rows), rows);
 
 		QSplitter* splitter = new QSplitter(this);
 		splitter->setOrientation(Qt::Vertical);
-		for (int i = 0; i < cameraViewArrangement.height(); i ++)
+		for (int i = 0; i < cameraViewArrangement.height(); i++)
 		{
 			QSplitter* splitterHorizontal = new QSplitter(splitter);
 			splitterHorizontal->setOrientation(Qt::Horizontal);
 			splitter->addWidget(splitterHorizontal);
 		}
 
-		int freeSpaces = cameraViewArrangement.height() * cameraViewArrangement.width() - cameraViews.size();
+		int freeSpaces = cameraViewArrangement.height() * cameraViewArrangement.width() - count_cams;
 
 		int count = 0;
-		for (unsigned int i = 0; i < cameraViews.size(); i++, count++)
+		int count_cams2 = 0;
+		for (unsigned int i = 0; i < cameraViews.size(); i++)
 		{
-			cameraViews[i]->setMinimumWidthGL(false);
-			if ((int)cameraViews.size() < i + freeSpaces) count++;
-			QObject* obj = splitter->children().at(rows - 1 - count / (cameraViewArrangement.width()));
-			QSplitter* horsplit = dynamic_cast<QSplitter*>(obj);
-			if (horsplit)horsplit->addWidget(cameraViews[i]);
+			if (cameraViews[i]->isVisible()){
+				cameraViews[i]->setMinimumWidthGL(false);
+				if ((int)count_cams < count_cams2 + freeSpaces) count++;
+				QObject* obj = splitter->children().at(rows - 1 - count / (cameraViewArrangement.width()));
+				QSplitter* horsplit = dynamic_cast<QSplitter*>(obj);
+				if (horsplit)horsplit->addWidget(cameraViews[i]);
+				count_cams2++, count++;
+			}
 		}
 
 		ui->gridLayout_4->addWidget(splitter, 0, 0, 1, 1);
@@ -1030,6 +1030,12 @@ void MainWindow::loadProjectFromEvent(QString filename)
 	loadProject(filename);
 }
 
+void MainWindow::setCameraVisible(int idx, bool visible)
+{
+	cameraViews[idx]->setIsVisible(visible);
+	DetailViewDockWidget::getInstance()->setCameraVisible(idx, visible);
+}
+
 void MainWindow::setCameraViewWidgetTitles()
 {
 	if (State::getInstance()->getWorkspace() == CALIBRATION)
@@ -1290,10 +1296,6 @@ void MainWindow::displayChanged(ui_state display)
 
 void MainWindow::activeCameraChanged(int activeCamera)
 {
-	if (State::getInstance()->getDisplay() == SINGLE_CAMERA)
-	{
-		relayoutCameras();
-	}
 	redrawGL();
 }
 
