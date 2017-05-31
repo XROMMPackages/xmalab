@@ -1734,7 +1734,7 @@ std::vector<cv::Point2d> Marker::getEpipolarLine(int cameraOrigin, int CameraDes
 		double dist = Settings::getInstance()->getIntSetting("EpipolarLinePrecision");
 		dist *= dist;
 
-		for (double p = 0.0; p <= ((double) Project::getInstance()->getCameras()[CameraDestination]->getWidth()); p += 0.1)
+		for (double p = 0.0; p <= ((double) Project::getInstance()->getCameras()[CameraDestination]->getWidth()); p += 1.0)
 		{
 			cv::Point2d pt(p, line_pt.x * p + line_pt.y);
 			if (pt.y > 0 && pt.y < height && ((pt_prev.x - pt.x) * (pt_prev.x - pt.x) + (pt_prev.y - pt.y) * (pt_prev.y - pt.y)) > dist)
