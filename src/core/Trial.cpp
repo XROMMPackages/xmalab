@@ -1039,7 +1039,7 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 		{
 			cv::VideoWriter outputVideo;
 			QString outname = foldername + OS_SEP + info.completeBaseName() + "." + format;
-			outputVideo.open(outname.toAscii().data(), -1, (getRecordingSpeed() <= 0) ? 30 : getRecordingSpeed(), cv::Size(Project::getInstance()->getCameras()[i]->getWidth(), Project::getInstance()->getCameras()[i]->getHeight()), false);
+			outputVideo.open(outname.toAscii().data(), -1, (getRecordingSpeed() <= 0) ? 30 : getRecordingSpeed(), cv::Size(Project::getInstance()->getCameras()[i]->getWidth(), Project::getInstance()->getCameras()[i]->getHeight()), true);
 
 			if (outputVideo.isOpened())
 			{
@@ -1053,7 +1053,18 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 						Project::getInstance()->getCameras()[i]->getUndistortionObject()->undistort(videos[i]->getImage(), tmp);
 						cv::Mat tmpMat;
 						tmp->getImage(tmpMat);
-						outputVideo << tmpMat;
+						if (tmpMat.channels() > 1)
+						{
+							outputVideo << tmpMat;
+						} 
+						else
+						{
+							cv::Mat tmpMat2;
+							cvtColor(tmpMat, tmpMat2, CV_GRAY2RGB);
+							outputVideo << tmpMat2;
+							tmpMat2.release();
+						}
+						
 						delete tmp;
 						tmpMat.release();
 					}
@@ -1064,8 +1075,18 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 					{
 						videos[i]->setActiveFrame(j);
 						cv::Mat tmpMat;
-						videos[i]->getImage()->getImage(tmpMat);
-						outputVideo << tmpMat;
+						videos[i]->getImage()->getImage(tmpMat, true);
+						if (tmpMat.channels() > 1)
+						{
+							outputVideo << tmpMat;
+						}
+						else
+						{
+							cv::Mat tmpMat2;
+							cvtColor(tmpMat, tmpMat2, CV_GRAY2RGB);
+							outputVideo << tmpMat2;
+							tmpMat2.release();
+						}
 						tmpMat.release();
 					}
 				}

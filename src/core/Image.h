@@ -43,12 +43,18 @@
 
 namespace xma
 {
+	enum ColorMode
+	{
+		GRAY = 0,
+		COLOR_CONVERTED = 1,
+		COLOR_ORIGINAL = 2
+	};
+
 	class Image
 	{
 	public:
 		Image(QString imageFileName);
 		Image(Image* _image);
-		Image(cv::Mat& _image);
 		virtual ~Image();
 
 		void loadTexture();
@@ -66,16 +72,18 @@ namespace xma
 		}
 
 		void save(QString filename);
-		void getImage(cv::Mat& image);
+		void getImage(cv::Mat& image, bool color = false);
 		void getSubImage(cv::Mat& _image, int size, int off_x, int off_y);
 		void getSubImage(cv::Mat& _image, int size, double x, double y);
 		void setImage(cv::Mat& image, bool _color = false);
 		void setImage(QString imageFileName);
-
+		
 	private:
 		cv::Mat image;
-		int height, width;
-		bool color;
+		int height, width;	
+		ColorMode colorImage_set;
+		cv::Mat image_color;
+
 
 		bool textureLoaded;
 		bool image_reset;

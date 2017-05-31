@@ -77,9 +77,15 @@ bool UndistortionObject::undistort(Image* distorted, Image* undistorted)
 	if (computed)
 	{
 		cv::Mat imageMat;
-		distorted->getImage(imageMat);
+		distorted->getImage(imageMat, true);
 		cv::remap(imageMat, imageMat, undistortionMapX, undistortionMapY, cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
-		undistorted->setImage(imageMat);
+		if (imageMat.channels() > 1)
+		{
+			undistorted->setImage(imageMat,true);
+		}
+		else{
+			undistorted->setImage(imageMat);
+		}
 		imageMat.release();
 	}
 	return false;
@@ -91,7 +97,7 @@ bool UndistortionObject::undistort(Image* distorted, QString filenameOut)
 	if (computed)
 	{
 		cv::Mat imageMat;
-		distorted->getImage(imageMat);
+		distorted->getImage(imageMat,true);
 		if (imageMat.size().width == undistortionMapX.size().width &&
 			imageMat.size().height == undistortionMapX.size().height)
 		{

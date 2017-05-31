@@ -45,20 +45,43 @@ using namespace xma;
 
 Image::Image(QString _imageFileName)
 {
-	color = false;
 	cv::Mat imageTMP;
-	imageTMP = cv::imread(_imageFileName.toAscii().data(), CV_LOAD_IMAGE_GRAYSCALE | CV_LOAD_IMAGE_ANYDEPTH);
 
-	if (imageTMP.depth() == CV_16U)
-	{
-		imageTMP.convertTo(image,CV_8U, 1.0 / 256.0);
-	}
+	imageTMP = cv::imread(_imageFileName.toAscii().data(), CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH);
+
+	if (imageTMP.channels()> 1){
+		colorImage_set = COLOR_ORIGINAL;
+
+		if (imageTMP.depth() == CV_16U)
+		{
+			imageTMP.convertTo(image_color, CV_8UC3, 1.0 / 256.0);
+		}
+		else
+		{
+			image_color = imageTMP.clone();
+		}
+		cvtColor(image_color, image, CV_RGB2GRAY);
+	} 
 	else
 	{
-		image = imageTMP.clone();
+		colorImage_set = GRAY;
+		if (imageTMP.depth() == CV_16U)
+		{
+			imageTMP.convertTo(image, CV_8U, 1.0 / 256.0);
+		}
+		else
+		{
+			image = imageTMP.clone();
+		}
 	}
+
+
 	if (Project::getInstance()->getFlipImages())
+	{
 		cv::flip(image, image, 1);
+		if (colorImage_set)cv::flip(image_color, image_color, 1);
+	}
+
 	width = image.cols;
 	height = image.rows;
 	textureLoaded = false;
@@ -69,7 +92,7 @@ Image::Image(QString _imageFileName)
 
 Image::Image(Image* _image)
 {
-	color = _image->color;
+	colorImage_set = _image->colorImage_set;
 	if (_image->image.depth() == CV_16U)
 	{
 		_image->image.convertTo(image,CV_8U, 1.0 / 256.0);
@@ -79,6 +102,18 @@ Image::Image(Image* _image)
 		image = _image->image.clone();
 	}
 
+	if (colorImage_set > GRAY)
+	{
+		if (_image->image_color.depth() == CV_16U)
+		{
+			_image->image_color.convertTo(image_color, CV_8UC3, 1.0 / 256.0);
+		}
+		else
+		{
+			image_color = _image->image_color.clone();
+		}
+	}
+
 	width = image.cols;
 	height = image.rows;
 	textureLoaded = false;
@@ -87,28 +122,22 @@ Image::Image(Image* _image)
 	texture = 0;
 }
 
-Image::Image(cv::Mat& _image)
-{
-	color = false;
-	image = _image.clone();
-
-	width = image.cols;
-	height = image.rows;
-	textureLoaded = false;
-	image_reset = false;
-
-	texture = 0;
-}
 
 Image::~Image()
 {
 	deleteTexture();
 }
 
-void Image::getImage(cv::Mat& _image)
+void Image::getImage(cv::Mat& _image, bool color)
 {
 	_image.release();
-	_image = image.clone();
+	if (color &&  colorImage_set > COLOR_CONVERTED)
+	{
+		_image = image_color.clone();
+	}
+	else{
+		_image = image.clone();
+	}
 }
 
 void Image::getSubImage(cv::Mat& _image, int size, int off_x, int off_y)
@@ -129,29 +158,60 @@ void Image::getSubImage(cv::Mat& _image, int size, double x, double y)
 
 void Image::setImage(cv::Mat& _image, bool _color)
 {
-	color = _color;
 	image.release();
-	image = _image.clone();
+	if (_color)
+	{
+		colorImage_set = COLOR_ORIGINAL;
+		image_color.release();
+		image_color = _image.clone();
+		cvtColor(image_color, image, CV_RGB2GRAY);
+	}
+	else{
+		colorImage_set = GRAY;
+		image = _image.clone();
+	}
+
 	width = image.cols;
 	height = image.rows;
 	image_reset = true;
 }
 
 void Image::setImage(QString imageFileName)
-{
+{	
 	image.release();
 	cv::Mat imageTMP;
-	imageTMP = cv::imread(imageFileName.toAscii().data(), CV_LOAD_IMAGE_GRAYSCALE | CV_LOAD_IMAGE_ANYDEPTH);
-	if (imageTMP.depth() == CV_16U)
-	{
-		imageTMP.convertTo(image, CV_8U, 1.0 / 256.0);
+	imageTMP = cv::imread(imageFileName.toAscii().data(), CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH);
+
+	if (imageTMP.channels()> 1){
+		colorImage_set = COLOR_ORIGINAL;
+
+		if (imageTMP.depth() == CV_16U)
+		{
+			imageTMP.convertTo(image_color, CV_8UC3, 1.0 / 256.0);
+		}
+		else
+		{
+			image_color = imageTMP.clone();
+		}
+		cvtColor(image_color, image, CV_RGB2GRAY);
 	}
 	else
 	{
-		image = imageTMP.clone();
+		colorImage_set = GRAY;
+		if (imageTMP.depth() == CV_16U)
+		{
+			imageTMP.convertTo(image, CV_8U, 1.0 / 256.0);
+		}
+		else
+		{
+			image = imageTMP.clone();
+		}
 	}
-	if (Project::getInstance()->getFlipImages())
+
+	if (Project::getInstance()->getFlipImages()){
 		cv::flip(image, image, 1);
+		if (colorImage_set)cv::flip(image_color, image_color, 1);
+	}
 	image_reset = true;
 }
 
@@ -161,16 +221,13 @@ void Image::loadTexture()
 	{
 		if (!textureLoaded)((QGLContext*) (GLSharedWidget::getInstance()->getQGLContext()))->makeCurrent();
 
-		cv::Mat imageOut;
-		if (!color)
+		if (colorImage_set == GRAY)
 		{
-			imageOut.create(image.rows, image.cols, CV_8UC(3));
-			cvtColor(image, imageOut, CV_GRAY2RGB);
+			image_color.create(image.rows, image.cols, CV_8UC(3));
+			cvtColor(image, image_color, CV_GRAY2RGB);
+			colorImage_set = COLOR_CONVERTED;
 		}
-		else
-		{
-			imageOut = image.clone();
-		}
+
 		glEnable(GL_TEXTURE_2D);
 
 		if (!textureLoaded)
@@ -187,9 +244,8 @@ void Image::loadTexture()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.cols, image.rows,
-		                          0, GL_BGR, GL_UNSIGNED_BYTE, imageOut.ptr());
+			0, GL_BGR, GL_UNSIGNED_BYTE, image_color.ptr());
 
-		imageOut.release();
 		textureLoaded = true;
 		image_reset = false;
 	}
@@ -213,14 +269,28 @@ void Image::deleteTexture()
 
 void Image::save(QString filename)
 {
-	if (Project::getInstance()->getFlipImages())
+	if (colorImage_set > COLOR_CONVERTED)
 	{
-		cv::Mat image_tmp;
-		cv::flip(image, image_tmp, 1);
-		cv::imwrite(filename.toAscii().data(), image_tmp);
+		if (Project::getInstance()->getFlipImages())
+		{
+			cv::Mat image_tmp;
+			cv::flip(image_color, image_tmp, 1);
+			cv::imwrite(filename.toAscii().data(), image_tmp);
+		}
+		else{
+			cv::imwrite(filename.toAscii().data(), image_color);
+		}
 	}
 	else{
-		cv::imwrite(filename.toAscii().data(), image);
+		if (Project::getInstance()->getFlipImages())
+		{
+			cv::Mat image_tmp;
+			cv::flip(image, image_tmp, 1);
+			cv::imwrite(filename.toAscii().data(), image_tmp);
+		}
+		else{
+			cv::imwrite(filename.toAscii().data(), image);
+		}
 	}
 }
 

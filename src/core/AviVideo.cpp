@@ -59,12 +59,10 @@ void AviVideo::setActiveFrame(int _activeFrame)
 		cap.read(frame);
 		if (frame.channels() > 1)
 		{
-			cv::Mat grayimage;
-			cv::cvtColor(frame, grayimage, CV_BGR2GRAY);
+			std::cerr << "Color " << std::endl;
 			if (Project::getInstance()->getFlipImages())
-				cv::flip(grayimage, grayimage, 1);
-			image->setImage(grayimage);
-			grayimage.release();
+				cv::flip(frame, frame, 1);
+			image->setImage(frame, true);
 		}
 		else
 		{
@@ -98,12 +96,9 @@ void AviVideo::reloadFile()
 		cap.read(frame);
 		if (frame.channels() > 1)
 		{
-			cv::Mat grayimage;
-			cv::cvtColor(frame, grayimage, CV_BGR2GRAY);
 			if (Project::getInstance()->getFlipImages())
-				cv::flip(grayimage, grayimage, 1);
-			image->setImage(grayimage);
-			grayimage.release();
+				cv::flip(frame, frame, 1);
+			image->setImage(frame, true);
 		}
 		else
 		{
