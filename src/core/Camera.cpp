@@ -54,7 +54,7 @@
 
 using namespace xma;
 
-Camera::Camera(QString cameraName, int _id) : visible(true)
+Camera::Camera(QString cameraName, int _id) : visible(true), portal_id(-1)
 {
 	calibrationSequence = new CalibrationSequence(this);
 	undistortionObject = NULL;
@@ -270,6 +270,18 @@ CalibrationSequence* Camera::getCalibrationSequence()
 {
 	return calibrationSequence;
 }
+
+void Camera::setPortalId(int value)
+{
+	name = "Camera " + QString::number(value);
+	portal_id = value;
+}
+
+const int& Camera::getPortalId()
+{
+	return portal_id;
+}
+
 
 void Camera::save(QString folder)
 {

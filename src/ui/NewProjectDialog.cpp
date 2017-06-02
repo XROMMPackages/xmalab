@@ -78,16 +78,17 @@ NewProjectDialog::~NewProjectDialog()
 
 void NewProjectDialog::addCalibrationImage(int id_camera, QString filename)
 {
-	if (id_camera >= (int) cameras.size())
+	while (id_camera >= (int)cameras.size())
 	{
 		on_toolButtonCameraPlus_clicked();
 	}
+
 	cameras[id_camera]->addCalibrationImage(filename);
 }
 
 void NewProjectDialog::addGridImage(int id_camera, QString filename)
 {
-	if (id_camera >= (int) cameras.size())
+	while (id_camera >= (int)cameras.size())
 	{
 		on_toolButtonCameraPlus_clicked();
 	}

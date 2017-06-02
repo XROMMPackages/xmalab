@@ -81,7 +81,9 @@ MetaDataInfo::MetaDataInfo(QWidget* parent) :
 			itemTrial->addChild(new QTreeWidgetItem(QStringList() << "TrialDate" << Project::getInstance()->getTrials()[i]->getTrialDate()));
 			for (unsigned int j = 0; j < Project::getInstance()->getInstance()->getTrials()[i]->getVideoStreams().size(); j++)
 			{
-				QTreeWidgetItem * itemVideo = new QTreeWidgetItem(QStringList() << "Camera" + QString::number(j+1) << "");
+				int camera_id = Project::getInstance()->getTrials()[i]->getVideoStreams()[j]->getPortalID();
+				if (camera_id == -1) camera_id = j + 1;
+				QTreeWidgetItem * itemVideo = new QTreeWidgetItem(QStringList() << "Camera" + QString::number(camera_id) << "");
 				itemTrial->addChild(itemVideo);
 				itemVideo->addChild(new QTreeWidgetItem(QStringList() << "Filename:" << Project::getInstance()->getTrials()[i]->getVideoStreams()[j]->getFilename()));
 				itemVideo->addChild(new QTreeWidgetItem(QStringList() << "FileID:" << QString::number(Project::getInstance()->getTrials()[i]->getVideoStreams()[j]->getFileId())));

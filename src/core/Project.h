@@ -102,6 +102,8 @@ namespace xma
 		bool flipImages;
 
 		std::vector<Camera *> cameras;
+		std::vector<int> cameraIDs;
+
 		std::vector<Trial *> trials;
 
 		bool hasStudyData;

@@ -33,6 +33,8 @@
 
 #include <fstream>
 #include <QXmlStreamReader>
+#include "Project.h"
+#include "Camera.h"
 
 using namespace xma;
 
@@ -58,6 +60,7 @@ VideoStream::VideoStream(QStringList _filenames)
 	Pulsewidth = "";
 	FileDescription = "";
 	Lab = "";
+	portalID = -1;
 }
 
 VideoStream::~VideoStream()
@@ -223,7 +226,7 @@ void VideoStream::parseXMLData(int id, QString xml_data)
 					}
 					xml.readNext();
 				}
-				if (cameraNumber_tmp.replace("cam", "").toInt() - 1 == id)
+				if (cameraNumber_tmp.replace("cam", "").toInt() == Project::getInstance()->getCameras()[id]->getPortalId())
 				{
 					Filename = Filename_tmp;
 					FileID = FileID_tmp;
@@ -241,6 +244,7 @@ void VideoStream::parseXMLData(int id, QString xml_data)
 					Pulsewidth = Pulsewidth_tmp;
 					FileDescription = FileDescription_tmp;
 					Lab = Lab_tmp;
+					portalID = cameraNumber_tmp.replace("cam", "").toInt();
 					return;
 				}
 			}
@@ -326,6 +330,11 @@ const QString& VideoStream::getFileDescription() const
 const QString& VideoStream::getLab() const
 {
 	return Lab;
+}
+
+const int& VideoStream::getPortalID() const
+{
+	return portalID;
 }
 
 QString VideoStream::getFileBasename()

@@ -104,6 +104,9 @@ namespace xma
 			return height;
 		}
 
+		void setPortalId(int value);
+		const int &getPortalId();
+
 		void save(QString folder);
 		void loadTextures();
 
@@ -191,6 +194,7 @@ namespace xma
 
 		//Camera parameters
 		int id;
+		int portal_id;
 		QString name;
 		int height, width;
 		bool lightCamera;

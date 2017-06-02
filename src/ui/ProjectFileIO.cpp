@@ -886,7 +886,7 @@ void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
 											{
 												if (xml.name() == "cameraNumber")
 												{
-													camera = xml.readElementText().replace("cam", "").toInt() - 1;
+													camera = xml.readElementText().replace("cam", "").toInt();
 												}
 											}
 											xml.readNext();
@@ -928,6 +928,11 @@ void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
 
 		//check for zip
 
+		std::set <int> s;
+		for (auto c : camera_vec)
+		{
+			s.insert(c);
+		}
 
 		for (unsigned int i = 0; i < camera_vec.size(); i++)
 		{
@@ -937,8 +942,12 @@ void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
 				unzipFromFileToFolder(folder + OS_SEP + filename_vec[i], videoPath);
 				QFile(folder + OS_SEP + filename_vec[i]).remove();
 			}
+
+			int id = std::distance(s.begin(), s.find(camera_vec[i]));
 			dialog->setTrialName(trialName);
-			dialog->setCam(camera_vec[i], folder + OS_SEP + filename_vec[i]);
+			if (Project::getInstance()->getCameras()[id]->getPortalId() == -1 || Project::getInstance()->getCameras()[id]->getPortalId() == camera_vec[i]){
+				dialog->setCam(id, folder + OS_SEP + filename_vec[i]);
+			}
 		}
 		dialog->setXmlMetadata(folder + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml");
 	} 
@@ -1039,18 +1048,25 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog* dialog
 		}
 	}
 
+	std::set <int> s ;
+	for (auto c : camera_vec)
+	{
+		s.insert(c);
+	}
+
 	for (unsigned int i = 0; i < camera_vec.size(); i++)
 	{
+		int id = std::distance (s.begin(), s.find(camera_vec[i]));
 		if (type_vec[i] == 1)
 		{
-			dialog->addCalibrationImage(camera_vec[i], filename_vec[i]);
+			dialog->addCalibrationImage(id, filename_vec[i]);
 		}
 		else if (type_vec[i] == 2)
 		{
-			dialog->addGridImage(camera_vec[i], filename_vec[i]);
+			dialog->addGridImage(id, filename_vec[i]);
 		}
 	}
-
+	
 	//check for calibration csv and ref
 	QDir directory(tmpDir_path + OS_SEP + filesList[0]);
 	QStringList filtersCSV;
@@ -1149,6 +1165,7 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 				if (c->hasUndistortion()){
 					xmlWriter.writeStartElement("Camera ");
 					xmlWriter.writeAttribute("camera-id", QString::number(c->getID()));
+					xmlWriter.writeAttribute("camera-portalid", QString::number(c->getPortalId()));
 					xmlWriter.writeCharacters(c->getUndistortionObject()->getFilename());
 					xmlWriter.writeEndElement();
 				}
@@ -1160,6 +1177,7 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 			{
 				xmlWriter.writeStartElement("Camera");
 				xmlWriter.writeAttribute("camera-id", QString::number(c->getID()));
+				xmlWriter.writeAttribute("camera-portalid", QString::number(c->getPortalId()));
 				xmlWriter.writeAttribute("points", QString::number(c->getCalibrationNbInlier()));
 				xmlWriter.writeAttribute("error", QString::number(c->getCalibrationError()));
 				for (auto f : c->getCalibrationImages())
@@ -1212,6 +1230,7 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 					{
 						xmlWriter.writeStartElement("File");
 						xmlWriter.writeAttribute("camera-id", QString::number(m));
+						xmlWriter.writeAttribute("camera-portalid", QString::number(t->getVideoStreams()[m]->getPortalID()));
 						xmlWriter.writeAttribute("FileId", QString::number(t->getVideoStreams()[m]->getFileId()));
 						xmlWriter.writeAttribute("FileName", t->getVideoStreams()[m]->getFilename());
 

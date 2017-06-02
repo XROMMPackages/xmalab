@@ -249,6 +249,10 @@ void Project::checkCalibration()
 void Project::addCamera(Camera* cam)
 {
 	cameras.push_back(cam);
+	if (cameras.size() <= cameraIDs.size()){
+		int idx = cameras.size() - 1;
+		cameras[idx]->setPortalId(cameraIDs[idx]);
+	}
 	nbImagesCalibration = cam->getCalibrationImages().size();
 }
 
@@ -312,7 +316,7 @@ void Project::setXMLData(QString filename)
 void Project::parseXMLData(QString xmlData)
 {
 	QXmlStreamReader xml(xmlData);
-
+	std::set<int> s;
 	while (!xml.atEnd() && !xml.hasError())
 	{
 		QXmlStreamReader::TokenType token = xml.readNext();
@@ -367,8 +371,18 @@ void Project::parseXMLData(QString xmlData)
 			else if (xml.name() == "trialDate")
 			{
 				trialDate = xml.readElementText();
+			}else if (xml.name() == "cameraNumber")
+			{
+				int c = xml.readElementText().replace("cam", "").toInt();
+				s.insert(c);
 			}
 		}
+	}
+
+	for (int i = 0; i < s.size(); i++)
+	{ 
+		if (i <= cameraIDs.size())
+			cameraIDs.push_back(*std::next(s.begin(), i));
 	}
 }
 

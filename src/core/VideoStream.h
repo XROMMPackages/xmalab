@@ -71,6 +71,7 @@ namespace xma
 		const QString& getPulsewidth() const;
 		const QString& getFileDescription() const;
 		const QString& getLab() const;
+		const int& getPortalID() const;
 
 	protected:
 		Image* image;
@@ -95,6 +96,7 @@ namespace xma
 		QString Pulsewidth;
 		QString FileDescription;
 		QString Lab;
+		int portalID;
 	};
 }
 
