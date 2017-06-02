@@ -1057,7 +1057,7 @@ void RigidBody::computePose(int Frame)
 				}
 
 
-				cv::solvePnP(object_points, image_points, Project::getInstance()->getCameras()[goodCamera]->getCameraMatrix(), distortion_coeffs, rotationVec_tmp, translationVec_tmp, false, CV_EPNP);
+				cv::solvePnP(object_points, image_points, Project::getInstance()->getCameras()[goodCamera]->getCameraMatrix(), distortion_coeffs, rotationVec_tmp, translationVec_tmp, false, CV_ITERATIVE);
 
 				cv::Mat trans1;
 				trans1.create(4, 4, CV_64FC1);
@@ -1082,9 +1082,8 @@ void RigidBody::computePose(int Frame)
 					trans1.at<double>(3, j) = 0;
 				}
 				trans1.at<double>(3, 3) = 1;
-				trans1 = trans1.inv();
 
-				cv::Mat out = Project::getInstance()->getCameras()[goodCamera]->getCalibrationImages()[trial->getReferenceCalibrationImage()]->getTransformationMatrix().inv() * trans1;
+				cv::Mat out = Project::getInstance()->getCameras()[goodCamera]->getCalibrationImages()[trial->getReferenceCalibrationImage()]->getTransformationMatrix() * trans1;
 
 				out = out.inv();
 
