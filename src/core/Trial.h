@@ -155,6 +155,8 @@ namespace xma
 		double getReprojectionError();
 		double getMarkerToMarkerSD();
 
+		void setCameraSizes();
+
 	private:
 		QString name;
 		void setNbImages();

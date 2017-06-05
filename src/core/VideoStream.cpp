@@ -113,8 +113,57 @@ void VideoStream::parseXMLData(int id, QString xml_data)
 	QString FileDescription_tmp;
 	QString Lab_tmp;
 
-	QXmlStreamReader xml(xml_data);
+	int portal_id = Project::getInstance()->getCameras()[id]->getPortalId();
+	if (portal_id == -1)
+	{
+		std::set <int> s;
 
+		QXmlStreamReader xml2(xml_data);
+		int count = 0;
+		while (!xml2.atEnd() && !xml2.hasError())
+		{
+			QXmlStreamReader::TokenType token = xml2.readNext();
+
+			if (token == QXmlStreamReader::StartDocument)
+			{
+				continue;
+			}
+
+			if (token == QXmlStreamReader::StartElement)
+			{
+				if (xml2.name() == "File")
+				{
+					while (!(xml2.tokenType() == QXmlStreamReader::EndElement && xml2.name() == "File"))
+					{
+						if (xml2.tokenType() == QXmlStreamReader::StartElement)
+						{
+							if (xml2.name() == "metadata")
+							{
+								while (!(xml2.tokenType() == QXmlStreamReader::EndElement && xml2.name() == "metadata"))
+								{
+									if (xml2.tokenType() == QXmlStreamReader::StartElement)
+									{
+										if (xml2.name() == "cameraNumber")
+										{
+											s.insert(xml2.readElementText().replace("cam", "").toInt());
+										}
+									}
+									xml2.readNext();
+								}
+							}
+						}
+						xml2.readNext();
+					}
+				}
+			}
+		}
+
+		portal_id = *std::next(s.begin(), id);
+	}
+
+
+	QXmlStreamReader xml(xml_data);
+	int count = 0;
 	while (!xml.atEnd() && !xml.hasError())
 	{
 		QXmlStreamReader::TokenType token = xml.readNext();
@@ -226,7 +275,7 @@ void VideoStream::parseXMLData(int id, QString xml_data)
 					}
 					xml.readNext();
 				}
-				if (cameraNumber_tmp.replace("cam", "").toInt() == Project::getInstance()->getCameras()[id]->getPortalId())
+				if (cameraNumber_tmp.replace("cam", "").toInt() == portal_id)
 				{
 					Filename = Filename_tmp;
 					FileID = FileID_tmp;
@@ -247,7 +296,8 @@ void VideoStream::parseXMLData(int id, QString xml_data)
 					portalID = cameraNumber_tmp.replace("cam", "").toInt();
 					return;
 				}
-			}
+				count++;
+			}	
 		}
 	}
 }

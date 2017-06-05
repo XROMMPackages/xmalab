@@ -53,16 +53,20 @@ QDialog(MainWindow::getInstance()), m_trial(trial),
 	diag(new Ui::NewTrialDialog)
 {
 	diag->setupUi(this);
+	diag->frameNBCameras->hide();
 	trialname = "Trial " + QString::number(Project::getInstance()->getTrials().size() + 1);
 	diag->lineEditTrialName->setText(trialname);
 	xml_metadata = "";
+	nbCams = 0;
 	for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 	{
 		CameraBoxTrial* box = new CameraBoxTrial();
 		box->setCameraName(Project::getInstance()->getCameras()[i]->getName());
 		diag->gridLayout_6->addWidget(box, i, 0, 1, 1);
 		cameras.push_back(box);
+		nbCams++;
 	}
+	diag->labelNbCameras->setText(QString::number(nbCams));
 
 	if (m_trial)
 	{
@@ -71,10 +75,10 @@ QDialog(MainWindow::getInstance()), m_trial(trial),
 		diag->lineEditTrialName->setText(trialname);
 	}
 
-	if (Project::getInstance()->hasDefaultTrial()){
+	if (Project::getInstance()->hasDefaultTrial() || !Project::getInstance()->hasCalibration()){
 		diag->pushButton_Default->setEnabled(false);
 	}
-
+	noCalibration = false;
 }
 
 NewTrialDialog::~NewTrialDialog()
@@ -85,6 +89,23 @@ NewTrialDialog::~NewTrialDialog()
 		delete (*it);
 
 	cameras.clear();
+}
+
+void NewTrialDialog::setNBCamerasVisible()
+{
+	diag->pushButton_Default->setEnabled(false);
+	diag->frameNBCameras->show();
+	noCalibration = true;
+	if (nbCams < 1)
+	{
+		nbCams++;
+		CameraBoxTrial* box = new CameraBoxTrial();
+		box->setCameraName("Camera " + QString::number(nbCams));
+		diag->gridLayout_6->addWidget(box, nbCams - 1, 0, 1, 1);
+		cameras.push_back(box);	
+
+		diag->labelNbCameras->setText(QString::number(nbCams));
+	}
 }
 
 void NewTrialDialog::setCam(int i, QString filename)
@@ -116,12 +137,28 @@ bool NewTrialDialog::createTrial()
 	}
 	else
 	{
+		if (noCalibration)
+		{
+			for (std::vector<CameraBoxTrial*>::const_iterator it = getCameras().begin(); it != getCameras().end(); ++it)
+			{
+				Camera* cam = new Camera((*it)->getCameraName(), Project::getInstance()->getCameras().size());
+				Project::getInstance()->addCamera(cam);
+			}
+		}
+
 		std::vector<QStringList> list;
 		for (std::vector<CameraBoxTrial*>::const_iterator it = getCameras().begin(); it != getCameras().end(); ++it)
 		{
 			list.push_back((*it)->getImageFileNames());
 		}
-		Project::getInstance()->addTrial(new Trial(trialname, list));
+		Trial * t = new Trial(trialname, list);
+		Project::getInstance()->addTrial(t);
+		
+		if (noCalibration)
+		{
+			t->setCameraSizes();
+		}
+
 		WorkspaceNavigationFrame::getInstance()->addTrial(trialname);
 		State::getInstance()->changeActiveTrial(Project::getInstance()->getTrials().size() - 1, true);
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->bindTextures();
@@ -136,6 +173,11 @@ bool NewTrialDialog::createTrial()
 
 		return true;
 	}
+}
+
+int NewTrialDialog::getNBCameras()
+{
+	return cameras.size();
 }
 
 bool NewTrialDialog::isComplete()
@@ -189,6 +231,9 @@ void NewTrialDialog::on_pushButton_Cancel_clicked()
 
 void NewTrialDialog::on_pushButton_LoadXMA_clicked()
 {
+	if (!ConfirmationDialog::getInstance()->showConfirmationDialog("The data will be extracted to the folder where your xmatrial-file is located in case you did not setup a workspace. Also please make sure that you added enough cameras to the trial before importing. Do you want to proceed?", true))
+		return;
+
 	xmaTrial_filename = QFileDialog::getOpenFileName(this,
 		tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xmatrial  *.zip)"));
 	if (xmaTrial_filename.isNull() == false)
@@ -213,10 +258,7 @@ void NewTrialDialog::on_pushButton_Default_clicked()
 	State::getInstance()->changeActiveTrial(Project::getInstance()->getTrials().size() - 1, true);
 	State::getInstance()->changeActiveFrameTrial(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame(), true);
 	State::getInstance()->changeWorkspace(DIGITIZATION, true);
-	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setXMLData(xml_metadata);
-	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->parseXMLData();
-	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setFrameRateFromXML();
-
+	
 	this->close();
 }
 
@@ -233,3 +275,27 @@ void NewTrialDialog::on_lineEditTrialName_textChanged(QString text)
 	trialname = text;
 }
 
+//Cameras
+void NewTrialDialog::on_toolButtonCameraMinus_clicked()
+{
+	if (nbCams > 1)
+	{
+		diag->gridLayout_6->removeWidget(cameras[nbCams - 1]);
+		delete cameras[nbCams - 1];
+		cameras.pop_back();
+
+		nbCams -= 1;
+		diag->labelNbCameras->setText(QString::number(nbCams));
+	}
+}
+
+void NewTrialDialog::on_toolButtonCameraPlus_clicked()
+{
+	nbCams += 1;
+	CameraBoxTrial* box = new CameraBoxTrial();
+	box->setCameraName("Camera " + QString::number(nbCams));
+	diag->gridLayout_6->addWidget(box, nbCams -1, 0, 1, 1);
+	cameras.push_back(box);
+
+	diag->labelNbCameras->setText(QString::number(nbCams));		
+}

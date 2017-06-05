@@ -76,22 +76,32 @@ WorkspaceNavigationFrame* WorkspaceNavigationFrame::getInstance()
 	return instance;
 }
 
-void WorkspaceNavigationFrame::setUndistortion(bool hasUndistortion)
+void WorkspaceNavigationFrame::setUndistortionCalibration(bool hasUndistortion, bool hasCalibration)
 {
-	if (hasUndistortion)
+	if (!hasCalibration)
+	{
+		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Marker Tracking"));
+		on_comboBoxWorkspace_currentIndexChanged(frame->comboBoxWorkspace->currentText());
+		frame->horizontalSpacer->changeSize(10, 10, QSizePolicy::Expanding, QSizePolicy::Minimum);
+		frame->comboBoxWorkspace->setVisible(false);
+		frame->label->setVisible(false);
+	}
+	else if (hasUndistortion)
 	{
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Undistortion"));
 		on_comboBoxWorkspace_currentIndexChanged(frame->comboBoxWorkspace->currentText());
 		frame->horizontalSpacer->changeSize(10, 10, QSizePolicy::Expanding, QSizePolicy::Minimum);
 		frame->comboBoxWorkspace->setVisible(true);
+		frame->label->setVisible(true);
 	}
 	else
 	{
 		frame->comboBoxWorkspace->setCurrentIndex(frame->comboBoxWorkspace->findText("Calibration"));
 		on_comboBoxWorkspace_currentIndexChanged(frame->comboBoxWorkspace->currentText());
-		frame->horizontalSpacer->changeSize(10, 10, QSizePolicy::Ignored, QSizePolicy::Minimum);
+		frame->horizontalSpacer->changeSize(10, 10, QSizePolicy::Expanding, QSizePolicy::Minimum);
 		frame->comboBoxWorkspace->setVisible(true);
 		frame->comboBoxWorkspace->removeItem(frame->comboBoxWorkspace->findText("Undistortion"));
+		frame->label->setVisible(true);
 	}
 }
 
@@ -127,7 +137,7 @@ void WorkspaceNavigationFrame::workspaceChanged(work_state workspace)
 	}
 	else if (workspace == DIGITIZATION)
 	{
-		if (Project::getInstance()->getTrials().size() > 0 && Project::getInstance()->isCalibrated()){
+		if (Project::getInstance()->getTrials().size() > 0 && 1){
 			frame->comboBoxViewspace->setEnabled(true);
 			frame->toolButtonCameraSettings->setEnabled(true);
 		} 
@@ -233,7 +243,7 @@ void WorkspaceNavigationFrame::on_comboBoxWorkspace_currentIndexChanged(QString 
 			{
 				State::getInstance()->changeWorkspace(DIGITIZATION);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
-				if (Project::getInstance()->isCalibrated())
+				if (Project::getInstance()->isCalibrated() || !Project::getInstance()->hasCalibration())
 				{
 					setTrialVisible(true);
 				}
@@ -247,6 +257,21 @@ void WorkspaceNavigationFrame::on_comboBoxWorkspace_currentIndexChanged(QString 
 		{
 			frame->comboBoxWorkspace->setCurrentIndex(currentComboBoxWorkspaceIndex);
 		}
+	} 
+	else
+	{
+		if (value == "Marker tracking")
+		{
+			if (Project::getInstance()->isCalibrated() || !Project::getInstance()->hasCalibration())
+			{
+				setTrialVisible(true);
+			}
+			else
+			{
+				setTrialVisible(false);
+			}
+		}
+
 	}
 }
 
@@ -321,7 +346,7 @@ void WorkspaceNavigationFrame::on_toolButtonTrialSettings_clicked()
 			{
 				State::getInstance()->changeWorkspace(DIGITIZATION, true);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
-				if (Project::getInstance()->isCalibrated())
+				if (Project::getInstance()->isCalibrated() || !Project::getInstance()->hasCalibration())
 				{
 					setTrialVisible(true);
 				}

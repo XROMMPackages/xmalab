@@ -72,7 +72,7 @@ Project::Project()
 	ts = "";;
 	trialDate = "";;
 	flipImages = false;
-
+	noCalibration = false;
 	xml_data = QStringList();;
 }
 
@@ -145,6 +145,16 @@ void Project::setFlipImages(bool value)
 bool Project::getFlipImages()
 {
 	return flipImages;
+}
+
+bool Project::hasCalibration()
+{
+	return !noCalibration;
+}
+
+void Project::setNoCalibation()
+{
+	noCalibration = true;
 }
 
 bool Project::hasDefaultTrial()

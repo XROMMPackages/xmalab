@@ -53,6 +53,7 @@ namespace xma
 		CalibrationImage* addImage(QString fileName);
 		void loadUndistortionImage(QString undistortionImage);
 		bool setResolutions();
+		void setResolution(int w, int h);
 
 		//Getter of private members
 		UndistortionObject* getUndistortionObject()

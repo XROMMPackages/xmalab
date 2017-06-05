@@ -83,20 +83,20 @@
             <layout class="QGridLayout" name="gridLayout"/>
            </widget>
           </item>
-          <item row="6" column="1">
-           <widget class="QPushButton" name="pushButtonLoad_Project">
-            <property name="minimumSize">
+          <item row="5" column="0">
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
              <size>
-              <width>150</width>
-              <height>40</height>
+              <width>40</width>
+              <height>20</height>
              </size>
             </property>
-            <property name="text">
-             <string>Open .xma file</string>
-            </property>
-           </widget>
+           </spacer>
           </item>
-          <item row="8" column="1">
+          <item row="9" column="1">
            <spacer name="verticalSpacer_2">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -122,18 +122,18 @@
             </property>
            </spacer>
           </item>
-          <item row="5" column="0">
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
+          <item row="7" column="1">
+           <widget class="QPushButton" name="pushButtonLoad_Project">
+            <property name="minimumSize">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>150</width>
+              <height>40</height>
              </size>
             </property>
-           </spacer>
+            <property name="text">
+             <string>Open .xma file</string>
+            </property>
+           </widget>
           </item>
           <item row="5" column="1">
            <widget class="QPushButton" name="pushButtonNew_Project">
@@ -161,19 +161,6 @@
             </property>
            </spacer>
           </item>
-          <item row="4" column="1">
-           <spacer name="verticalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
           <item row="2" column="2" rowspan="3">
            <widget class="QLabel" name="labelXMAS">
             <property name="maximumSize">
@@ -190,6 +177,32 @@
             </property>
             <property name="scaledContents">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="6" column="1">
+           <widget class="QPushButton" name="pushButtonTrailWOCalibration">
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>New trial without calibration</string>
             </property>
            </widget>
           </item>
@@ -387,6 +400,7 @@
      </property>
     </widget>
     <addaction name="actionNew_Project"/>
+    <addaction name="actionNew_trial_without_calibration"/>
     <addaction name="actionLoad_Project"/>
     <addaction name="actionClose_Project"/>
     <addaction name="menuRecent_Files"/>
@@ -949,6 +963,11 @@
    </property>
    <property name="text">
     <string>Display Options</string>
+   </property>
+  </action>
+  <action name="actionNew_trial_without_calibration">
+   <property name="text">
+    <string>New trial without calibration</string>
    </property>
   </action>
  </widget>

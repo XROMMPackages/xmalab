@@ -209,6 +209,10 @@ int Marker::getMarkerPrediction(int camera, int frame, double& x, double& y, boo
 void Marker::reconstruct3DPoint(int frame, bool updateAll)
 {
 	status3D[frame] = UNDEFINED;
+
+	if (!Project::getInstance()->hasCalibration())
+		return;
+
 	switch (Settings::getInstance()->getIntSetting("TriangulationMethod"))
 	{
 	default:
@@ -1555,10 +1559,18 @@ void Marker::filterData(std::vector<int> idx, double cutoffFrequency, std::vecto
 
 void Marker::reprojectPoint(int frame)
 {
-	for (unsigned int i = 0; i < points2D.size(); i++)
+	if (!Project::getInstance()->hasCalibration())
 	{
-
-		points2D_projected[i][frame] = Project::getInstance()->getCameras()[i]->projectPoint(points3D[frame], trial->getReferenceCalibrationImage());	
+		for (unsigned int i = 0; i < points2D.size(); i++)
+		{
+			points2D_projected[i][frame] = points2D[i][frame];
+		}
+	}
+	else{
+		for (unsigned int i = 0; i < points2D.size(); i++)
+		{
+			points2D_projected[i][frame] = Project::getInstance()->getCameras()[i]->projectPoint(points3D[frame], trial->getReferenceCalibrationImage());
+		}
 	}
 
 	updateError(frame);
@@ -1671,6 +1683,10 @@ void Marker::updateMeanSize()
 std::vector<cv::Point2d> Marker::getEpipolarLine(int cameraOrigin, int CameraDestination, int frame)
 {
 	std::vector<cv::Point2d> epiline;
+
+	if (!Project::getInstance()->hasCalibration())
+		return epiline;
+
 	cv::Mat proj;
 	cv::Mat proj1;
 	cv::Mat proj2;

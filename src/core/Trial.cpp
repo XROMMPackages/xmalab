@@ -105,10 +105,12 @@ Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
 	setNbImages();
 
 	recordingSpeed = videos[0]->getFPS();
-
+	hasStudyData = false;
 	startFrame = 1;
 	endFrame = nbImages;
 	trialID = -1;
+	trialNumber = -1;
+	studyID = -1;
 }
 
 Trial::Trial(QString trialname, QString folder)
@@ -168,10 +170,12 @@ Trial::Trial(QString trialname, QString folder)
 	setNbImages();
 
 	recordingSpeed = videos[0]->getFPS();
-
+	hasStudyData = false;
 	startFrame = 1;
 	endFrame = nbImages;
 	trialID = -1;
+	trialNumber = -1;
+	studyID = -1;
 }
 
 Trial::Trial()
@@ -2124,6 +2128,14 @@ double Trial::getReprojectionError()
 
 	if (count != 0) error /= count;
 	return error;
+}
+
+void Trial::setCameraSizes()
+{
+	for (int i = 0; i < videos.size(); i++)
+	{
+		Project::getInstance()->getCameras()[i]->setResolution(videos[i]->getImage()->getWidth(), videos[i]->getImage()->getHeight());
+	}
 }
 
 double Trial::getMarkerToMarkerSD()

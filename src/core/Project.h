@@ -91,12 +91,15 @@ namespace xma
 
 		bool camerasOptimized();
 
+		bool hasCalibration();
+		void setNoCalibation();
+
 	private:
 		Project();
 		static Project* instance;
 
 		QString projectFilename;
-
+		bool noCalibration;
 		int nbImagesCalibration;
 		bool calibrated;
 		bool flipImages;

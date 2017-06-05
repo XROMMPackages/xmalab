@@ -56,7 +56,7 @@ namespace xma
 
 		static WorkspaceNavigationFrame* getInstance();
 
-		void setUndistortion(bool hasUndistortion);
+		void setUndistortionCalibration(bool hasUndistortion,bool hasCalibration);
 		void addTrial(QString name);
 		void closeProject();
 

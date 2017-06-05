@@ -629,6 +629,9 @@ void GLCameraView::paintGL()
 					!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault();
 			}
 		}
+
+		renderMeshes = renderMeshes & Project::getInstance()->hasCalibration();
+
 		if (renderMeshes){
 			if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
 			{

@@ -125,6 +125,7 @@ namespace xma
 
 		//File Menu Slots
 		void on_actionNew_Project_triggered(bool checked);
+		void on_actionNew_trial_without_calibration_triggered(bool checked);
 		void on_actionLoad_Project_triggered(bool checked);
 		void on_actionClose_Project_triggered(bool checked);
 		void on_actionSave_Project_triggered(bool checked);
@@ -165,6 +166,7 @@ namespace xma
 		void on_pushButtonLoad_Project_clicked();
 		void on_pushButtonNewTrial_clicked();
 		void on_pushButtonDefaultTrial_clicked();
+		void on_pushButtonTrailWOCalibration_clicked();
 
 		//resizing
 		void resizeDone();

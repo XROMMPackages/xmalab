@@ -334,9 +334,15 @@ void MainWindow::setupProjectUI()
 	SequenceNavigationFrame::getInstance()->setNbImages(project->getNbImagesCalibration());
 
 	WorkspaceNavigationFrame::getInstance()->setVisible(true);
-	WorkspaceNavigationFrame::getInstance()->setUndistortion(hasUndistorion);
+	WorkspaceNavigationFrame::getInstance()->setUndistortionCalibration(hasUndistorion, project->hasCalibration());
 
-	if (hasUndistorion) State::getInstance()->changeWorkspace(UNDISTORTION);
+	if (!project->hasCalibration())
+	{
+		State::getInstance()->changeWorkspace(DIGITIZATION, true);
+	}
+	else if (hasUndistorion) {
+		State::getInstance()->changeWorkspace(UNDISTORTION);
+	}
 	else
 	{
 		State::getInstance()->changeUndistortion(UNDISTORTED);
@@ -614,14 +620,27 @@ void MainWindow::loadProjectFinished()
 
 	if (m_FutureWatcher->result() == 0)
 	{
+		bool hasCalibration = false;
+		for (auto c : Project::getInstance()->getCameras())
+		{
+			if (c->getCalibrationImages().size() > 0)
+				hasCalibration = true;
+		}
+
+		if (!hasCalibration)
+		{
+			Project::getInstance()->setNoCalibation();
+			Project::getInstance()->getTrials()[0]->setCameraSizes();
+		}
+		
 		project->loadTextures();
 		for (std::vector<Trial*>::const_iterator trial = Project::getInstance()->getTrials().begin(); trial != Project::getInstance()->getTrials().end(); ++trial)
 		{
 			(*trial)->bindTextures();
 		}
-
+		QApplication::processEvents();
 		setupProjectUI();
-
+		QApplication::processEvents();
 		delete m_FutureWatcher;
 		ProgressDialog::getInstance()->closeProgressbar();
 		WizardDockWidget::getInstance()->updateDialog();
@@ -674,59 +693,61 @@ void MainWindow::loadProjectFinished()
 
 void MainWindow::UndistortionAfterloadProjectFinished()
 {
-	if (!LocalUndistortion::isRunning()){
-		bool allCamerasUndistorted = true;
+	if (Project::getInstance()->hasCalibration()){
+		if (!LocalUndistortion::isRunning()){
+			bool allCamerasUndistorted = true;
 
-		for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
-		{
-			if ((*it)->hasUndistortion())
+			for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
 			{
-				if (!(*it)->getUndistortionObject()->isComputed())
+				if ((*it)->hasUndistortion())
 				{
-					allCamerasUndistorted = false;
+					if (!(*it)->getUndistortionObject()->isComputed())
+					{
+						allCamerasUndistorted = false;
+					}
 				}
 			}
-		}
-		if (allCamerasUndistorted) State::getInstance()->changeUndistortion(UNDISTORTED);
+			if (allCamerasUndistorted) State::getInstance()->changeUndistortion(UNDISTORTED);
 
-		bool allCamerasCalibrated = true;
-		for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
-		{
-			bool calibrated = false;
-			for (std::vector<CalibrationImage*>::const_iterator it2 = (*it)->getCalibrationImages().begin(); it2 != (*it)->getCalibrationImages().end(); ++it2)
+			bool allCamerasCalibrated = true;
+			for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
 			{
-				if ((*it2)->isCalibrated()) calibrated = true;
+				bool calibrated = false;
+				for (std::vector<CalibrationImage*>::const_iterator it2 = (*it)->getCalibrationImages().begin(); it2 != (*it)->getCalibrationImages().end(); ++it2)
+				{
+					if ((*it2)->isCalibrated()) calibrated = true;
+				}
+				if (calibrated)
+				{
+					(*it)->setCalibrated(true);
+					(*it)->setRecalibrationRequired(0);
+					MultiCameraCalibration::reproject((*it)->getID());
+					Project::getInstance()->getCameras()[(*it)->getID()]->setUpdateInfoRequired(true);
+				}
+				else
+				{
+					allCamerasCalibrated = false;
+				}
 			}
-			if (calibrated)
+
+
+			ConsoleDockWidget::getInstance()->afterLoad();
+
+			WizardDockWidget::getInstance()->updateWizard();
+
+			State::getInstance()->setLoading(false);
+
+			if (allCamerasCalibrated)
 			{
-				(*it)->setCalibrated(true);
-				(*it)->setRecalibrationRequired(0);
-				MultiCameraCalibration::reproject((*it)->getID());
-				Project::getInstance()->getCameras()[(*it)->getID()]->setUpdateInfoRequired(true);
+				ui->actionImportTrial->setEnabled(true);
+				State::getInstance()->changeWorkspace(DIGITIZATION, true);
 			}
-			else
-			{
-				allCamerasCalibrated = false;
+			else if (State::getInstance()->getUndistortion() == UNDISTORTED){
+				State::getInstance()->changeWorkspace(CALIBRATION, true);
 			}
+
+			MainWindow::getInstance()->redrawGL();
 		}
-
-
-		ConsoleDockWidget::getInstance()->afterLoad();
-
-		WizardDockWidget::getInstance()->updateWizard();
-
-		State::getInstance()->setLoading(false);
-
-		if (allCamerasCalibrated)
-		{
-			ui->actionImportTrial->setEnabled(true);
-			State::getInstance()->changeWorkspace(DIGITIZATION, true);
-		}
-		else if (State::getInstance()->getUndistortion() == UNDISTORTED){
-			State::getInstance()->changeWorkspace(CALIBRATION, true);
-		}
-
-		MainWindow::getInstance()->redrawGL();
 	}
 }
 
@@ -1079,7 +1100,7 @@ UI - SLOTS
 void MainWindow::workspaceChanged(work_state workspace)
 {
 	ui->actionUndo->setEnabled(false);
-	if (project->isCalibrated())
+	if (project->isCalibrated() || !project->hasCalibration())
 	{
 		ui->actionImportTrial->setEnabled(true);
 	}
@@ -1164,7 +1185,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			SequenceNavigationFrame::getInstance()->setVisible(true);
 			ui->actionPlot->setEnabled(true);
 			ui->actionDetectionSettings->setEnabled(true);
-			if (project->isCalibrated())
+			if (project->isCalibrated() || !project->hasCalibration())
 			{
 				ui->labelCalibrateFirst->setVisible(false);
 				ui->pushButtonNewTrial->setVisible(true);
@@ -1249,7 +1270,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			SequenceNavigationFrame::getInstance()->setVisible(false);
 			ui->actionPlot->setEnabled(false);
 			ui->actionDetectionSettings->setEnabled(false);
-			if (project->isCalibrated())
+			if (project->isCalibrated() || !project->hasCalibration())
 			{
 				ui->labelCalibrateFirst->setVisible(false);
 				ui->pushButtonNewTrial->setVisible(true);
@@ -1330,6 +1351,39 @@ void MainWindow::on_actionNew_Project_triggered(bool checked)
 	if (project && !ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to close your dataset. Please make sure your data have been saved. \nAre you sure you want to close current dataset and create a new dataset?"))
 		return;
 	newProject();
+}
+
+void MainWindow::on_actionNew_trial_without_calibration_triggered(bool checked)
+{
+	if (project && !ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to close your dataset. Please make sure your data have been saved. \nAre you sure you want to close current dataset and create a new dataset?"))
+		return;
+	if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to create a trial without calibration? There will be no possibility to add a calibration afterwards."))
+		return;
+
+	if (project)
+		closeProject();
+
+	project = Project::getInstance();
+
+	NewTrialDialog* newTriaLdialog = new NewTrialDialog();
+	newTriaLdialog->setNBCamerasVisible(); 
+	newTriaLdialog->exec();
+	
+	if (newTriaLdialog->result())
+	{
+		project->setNoCalibation();
+		newTriaLdialog->createTrial();
+		State::getInstance()->changeActiveTrial(project->getTrials().size() - 1);
+		State::getInstance()->changeActiveFrameTrial(project->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
+
+		project->loadTextures();
+		setupProjectUI();
+
+		WizardDockWidget::getInstance()->updateDialog();
+		WizardDockWidget::getInstance()->show();	
+	}
+
+	delete newTriaLdialog;
 }
 
 void MainWindow::on_actionLoad_Project_triggered(bool checked)
@@ -1812,6 +1866,11 @@ void MainWindow::on_pushButtonDefaultTrial_clicked()
 	State::getInstance()->changeActiveTrial(project->getTrials().size() - 1);
 	State::getInstance()->changeActiveFrameTrial(project->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
 	delete newTriaLdialog;
+}
+
+void MainWindow::on_pushButtonTrailWOCalibration_clicked()
+{
+	on_actionNew_trial_without_calibration_triggered(false);
 }
 
 void MainWindow::on_action3D_world_view_triggered(bool checked)

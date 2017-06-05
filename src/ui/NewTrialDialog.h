@@ -54,12 +54,16 @@ namespace xma
 			return cameras;
 		}
 
+		void setNBCamerasVisible();
 		void setCam(int i, QString filename);
 		void setTrialName(QString trialName);
 		void setXmlMetadata(const QString& xml_metadata);
 
 		bool createTrial();
 		QString trialname;
+
+		int getNBCameras();
+
 	private:
 		std::vector<CameraBoxTrial *> cameras;
 		Trial * m_trial;
@@ -70,13 +74,17 @@ namespace xma
 		QString xml_metadata;
 		QString xmaTrial_filename;
 		bool deleteAfterLoad;
-
+		int nbCams;
+		bool noCalibration;
 	public slots:
 		//Footer buttons
 		void on_pushButton_OK_clicked();
 		void on_pushButton_Cancel_clicked();
 		void on_pushButton_LoadXMA_clicked();
 		void on_pushButton_Default_clicked();
+
+		void on_toolButtonCameraMinus_clicked();
+		void on_toolButtonCameraPlus_clicked();
 
 		void on_lineEditTrialName_textChanged(QString text);
 		void LoadXMAFinished();

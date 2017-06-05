@@ -912,10 +912,17 @@ void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
 		{
 			folder = Settings::getInstance()->getQStringSetting("WorkspacePath");
 			folder = folder + OS_SEP + studyName;
+
 			QDir().mkpath(folder);
 			folder = folder + OS_SEP + trialName;
 			QDir().mkpath(folder);
 		} 
+		else if (Project::getInstance()->getProjectFilename().isEmpty())
+		{
+			folder = QFileInfo(filename).absolutePath();
+			folder = folder + OS_SEP + trialName;
+			QDir().mkpath(folder);
+		}
 		else
 		{
 
@@ -945,7 +952,7 @@ void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
 
 			int id = std::distance(s.begin(), s.find(camera_vec[i]));
 			dialog->setTrialName(trialName);
-			if (Project::getInstance()->getCameras()[id]->getPortalId() == -1 || Project::getInstance()->getCameras()[id]->getPortalId() == camera_vec[i]){
+			if (Project::getInstance()->getCameras().size() == 0 || Project::getInstance()->getCameras()[id]->getPortalId() == -1 || Project::getInstance()->getCameras()[id]->getPortalId() == camera_vec[i]){
 				dialog->setCam(id, folder + OS_SEP + filename_vec[i]);
 			}
 		}
@@ -1156,61 +1163,63 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 			xmlWriter.writeCharacters(local.toString(Qt::ISODate));
 			xmlWriter.writeEndElement();
 
-			xmlWriter.writeStartElement("CalibrationTrial");
-			xmlWriter.writeAttribute("id", QString::number(Project::getInstance()->getTrialId()));
-			xmlWriter.writeAttribute("name", Project::getInstance()->getTrialName());
-			xmlWriter.writeStartElement("Undistortion");
-			for (auto c : Project::getInstance()->getCameras())
-			{
-				if (c->hasUndistortion()){
-					xmlWriter.writeStartElement("Camera ");
+			if (Project::getInstance()->hasCalibration()){
+				xmlWriter.writeStartElement("CalibrationTrial");
+				xmlWriter.writeAttribute("id", QString::number(Project::getInstance()->getTrialId()));
+				xmlWriter.writeAttribute("name", Project::getInstance()->getTrialName());
+				xmlWriter.writeStartElement("Undistortion");
+				for (auto c : Project::getInstance()->getCameras())
+				{
+					if (c->hasUndistortion()){
+						xmlWriter.writeStartElement("Camera ");
+						xmlWriter.writeAttribute("camera-id", QString::number(c->getID()));
+						xmlWriter.writeAttribute("camera-portalid", QString::number(c->getPortalId()));
+						xmlWriter.writeCharacters(c->getUndistortionObject()->getFilename());
+						xmlWriter.writeEndElement();
+					}
+				}
+				xmlWriter.writeEndElement();
+
+				xmlWriter.writeStartElement("Calibration");
+				for (auto c : Project::getInstance()->getCameras())
+				{
+					xmlWriter.writeStartElement("Camera");
 					xmlWriter.writeAttribute("camera-id", QString::number(c->getID()));
 					xmlWriter.writeAttribute("camera-portalid", QString::number(c->getPortalId()));
-					xmlWriter.writeCharacters(c->getUndistortionObject()->getFilename());
-					xmlWriter.writeEndElement();
+					xmlWriter.writeAttribute("points", QString::number(c->getCalibrationNbInlier()));
+					xmlWriter.writeAttribute("error", QString::number(c->getCalibrationError()));
+					for (auto f : c->getCalibrationImages())
+					{
+						xmlWriter.writeStartElement("File");
+						xmlWriter.writeAttribute("points", QString::number(f->getCalibrationNbInlier()));
+						xmlWriter.writeAttribute("error", QString::number(f->getCalibrationError()));
+						xmlWriter.writeCharacters(f->getFilename());
+						xmlWriter.writeEndElement();
+					}
+					xmlWriter.writeEndElement(); // Camera
 				}
-			}
-			xmlWriter.writeEndElement();
 
-			xmlWriter.writeStartElement("Calibration");
-			for (auto c : Project::getInstance()->getCameras())
-			{
-				xmlWriter.writeStartElement("Camera");
-				xmlWriter.writeAttribute("camera-id", QString::number(c->getID()));
-				xmlWriter.writeAttribute("camera-portalid", QString::number(c->getPortalId()));
-				xmlWriter.writeAttribute("points", QString::number(c->getCalibrationNbInlier()));
-				xmlWriter.writeAttribute("error", QString::number(c->getCalibrationError()));
-				for (auto f : c->getCalibrationImages())
+
+				xmlWriter.writeStartElement("Object");
+				if (CalibrationObject::getInstance()->isCheckerboard())
 				{
-					xmlWriter.writeStartElement("File");
-					xmlWriter.writeAttribute("points", QString::number(f->getCalibrationNbInlier()));
-					xmlWriter.writeAttribute("error", QString::number(f->getCalibrationError()));
-					xmlWriter.writeCharacters(f->getFilename());
-					xmlWriter.writeEndElement();
+					xmlWriter.writeAttribute("type", "checkerboard");
+					xmlWriter.writeAttribute("width", QString::number(CalibrationObject::getInstance()->getNbHorizontalSquares()));
+					xmlWriter.writeAttribute("height", QString::number(CalibrationObject::getInstance()->getNbVerticalSquares()));
+					xmlWriter.writeAttribute("size", QString::number(CalibrationObject::getInstance()->getSquareSize()));
 				}
-				xmlWriter.writeEndElement(); // Camera
+				else
+				{
+					xmlWriter.writeAttribute("type", "cube");
+					QFileInfo info(CalibrationObject::getInstance()->getFrameSpecificationsFilename());
+					xmlWriter.writeAttribute("csv", info.fileName());
+					info = QFileInfo(CalibrationObject::getInstance()->getReferencesFilename());
+					xmlWriter.writeAttribute("ref", info.fileName());
+				}
+				xmlWriter.writeEndElement(); //Object
+				xmlWriter.writeEndElement(); //Calibration
+				xmlWriter.writeEndElement(); //CalibrationTrial
 			}
-			
-
-			xmlWriter.writeStartElement("Object");
-			if (CalibrationObject::getInstance()->isCheckerboard())
-			{
-				xmlWriter.writeAttribute("type", "checkerboard");
-				xmlWriter.writeAttribute("width", QString::number(CalibrationObject::getInstance()->getNbHorizontalSquares()));
-				xmlWriter.writeAttribute("height", QString::number(CalibrationObject::getInstance()->getNbVerticalSquares()));
-				xmlWriter.writeAttribute("size", QString::number(CalibrationObject::getInstance()->getSquareSize()));
-			} 
-			else
-			{
-				xmlWriter.writeAttribute("type", "cube");
-				QFileInfo info(CalibrationObject::getInstance()->getFrameSpecificationsFilename());
-				xmlWriter.writeAttribute("csv", info.fileName());
-				info = QFileInfo(CalibrationObject::getInstance()->getReferencesFilename());
-				xmlWriter.writeAttribute("ref", info.fileName());
-			}
-			xmlWriter.writeEndElement(); //Object
-			xmlWriter.writeEndElement(); //Calibration
-			xmlWriter.writeEndElement(); //CalibrationTrial
 			for (auto t : trials)
 			{
 				if (!t->getIsDefault()){
@@ -1443,23 +1452,25 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 				xmlWriter.writeEndElement();
 			}
 
-			//CalibrationObject
-			xmlWriter.writeStartElement("CalibrationObject");
-			xmlWriter.writeAttribute("isPLanar", QString::number(CalibrationObject::getInstance()->isCheckerboard()));
-			if (CalibrationObject::getInstance()->isCheckerboard())
-			{
-				xmlWriter.writeAttribute("HorizontalSquares", QString::number(CalibrationObject::getInstance()->getNbHorizontalSquares()));
-				xmlWriter.writeAttribute("VerticalSquares", QString::number(CalibrationObject::getInstance()->getNbVerticalSquares()));
-				xmlWriter.writeAttribute("SquareSize", QString::number(CalibrationObject::getInstance()->getSquareSize()));
+			if (Project::getInstance()->hasCalibration()){
+				//CalibrationObject
+				xmlWriter.writeStartElement("CalibrationObject");
+				xmlWriter.writeAttribute("isPLanar", QString::number(CalibrationObject::getInstance()->isCheckerboard()));
+				if (CalibrationObject::getInstance()->isCheckerboard())
+				{
+					xmlWriter.writeAttribute("HorizontalSquares", QString::number(CalibrationObject::getInstance()->getNbHorizontalSquares()));
+					xmlWriter.writeAttribute("VerticalSquares", QString::number(CalibrationObject::getInstance()->getNbVerticalSquares()));
+					xmlWriter.writeAttribute("SquareSize", QString::number(CalibrationObject::getInstance()->getSquareSize()));
+				}
+				else
+				{
+					QFileInfo frameSpecificationsFilenameInfo(CalibrationObject::getInstance()->getFrameSpecificationsFilename());
+					QFileInfo referencesFilenameInfo(CalibrationObject::getInstance()->getReferencesFilename());
+					xmlWriter.writeAttribute("FrameSpecifications", QString("CalibrationObject") + OS_SEP + frameSpecificationsFilenameInfo.fileName());
+					xmlWriter.writeAttribute("References", QString("CalibrationObject") + OS_SEP + referencesFilenameInfo.fileName());
+				}
+				xmlWriter.writeEndElement();
 			}
-			else
-			{
-				QFileInfo frameSpecificationsFilenameInfo(CalibrationObject::getInstance()->getFrameSpecificationsFilename());
-				QFileInfo referencesFilenameInfo(CalibrationObject::getInstance()->getReferencesFilename());
-				xmlWriter.writeAttribute("FrameSpecifications", QString("CalibrationObject") + OS_SEP + frameSpecificationsFilenameInfo.fileName());
-				xmlWriter.writeAttribute("References", QString("CalibrationObject") + OS_SEP + referencesFilenameInfo.fileName());
-			}
-			xmlWriter.writeEndElement();
 			//Trials
 
 			for (std::vector<Trial*>::const_iterator trial_it = trials.begin(); trial_it != trials.end(); ++trial_it)
@@ -1768,10 +1779,12 @@ bool ProjectFileIO::readProjectFile(QString filename)
 								xml.readNext();
 							}
 
-							if (!cam->setResolutions())
-							{
-								ErrorDialog::getInstance()->showErrorDialog(cam->getName() + " : Resolutions do not match");
-								return false;
+							if (cam->getCalibrationImages().size() > 0){
+								if (!cam->setResolutions())
+								{
+									ErrorDialog::getInstance()->showErrorDialog(cam->getName() + " : Resolutions do not match");
+									return false;
+								}
 							}
 
 							Project::getInstance()->addCamera(cam);
@@ -1836,8 +1849,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							QString xml_file = attr.value("MetaData").toString();
 							if (!xml_file.isEmpty())
 							{
-								loadProjectMetaData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
-								trial->setXMLData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
+								trial->setXMLData(littleHelper::adjustPathToOS(basedir + OS_SEP + xml_file));
 								trial->parseXMLData();
 							}
 

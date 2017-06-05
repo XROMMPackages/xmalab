@@ -257,8 +257,13 @@ bool Camera::setResolutions()
 
 	if (undistortionObject && (width != undistortionObject->getWidth() || height != undistortionObject->getHeight())) return false;
 
-
 	return true;
+}
+
+void Camera::setResolution(int w, int h)
+{
+	width = w;
+	height = h;
 }
 
 const std::vector<CalibrationImage*>& Camera::getCalibrationImages()

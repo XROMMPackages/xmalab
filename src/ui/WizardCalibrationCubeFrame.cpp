@@ -90,21 +90,23 @@ WizardCalibrationCubeFrame::WizardCalibrationCubeFrame(QWidget* parent) :
 
 void WizardCalibrationCubeFrame::loadCalibrationSettings()
 {
-	if (!CalibrationObject::getInstance()->isCheckerboard())
-	{
-		for (int i = 0; i < 4; i++)
+	if (Project::getInstance()->hasCalibration()){
+		if (!CalibrationObject::getInstance()->isCheckerboard() && CalibrationObject::getInstance()->getReferenceIDs().size() >=4)
 		{
-			selectedReferencePointsIdx[i] = CalibrationObject::getInstance()->getReferenceIDs()[i];
+			for (int i = 0; i < 4; i++)
+			{
+				selectedReferencePointsIdx[i] = CalibrationObject::getInstance()->getReferenceIDs()[i];
+			}
+			frame->toolButtonReference1->setText(QString::number(selectedReferencePointsIdx[0] + 1) + "  " + CalibrationObject::getInstance()->getReferenceNames()[0]);
+			frame->toolButtonReference2->setText(QString::number(selectedReferencePointsIdx[1] + 1) + "  " + CalibrationObject::getInstance()->getReferenceNames()[1]);
+			frame->toolButtonReference3->setText(QString::number(selectedReferencePointsIdx[2] + 1) + "  " + CalibrationObject::getInstance()->getReferenceNames()[2]);
+			frame->toolButtonReference4->setText(QString::number(selectedReferencePointsIdx[3] + 1) + "  " + CalibrationObject::getInstance()->getReferenceNames()[3]);
+			setupManualPoints();
 		}
-		frame->toolButtonReference1->setText(QString::number(selectedReferencePointsIdx[0] + 1) + "  " + CalibrationObject::getInstance()->getReferenceNames()[0]);
-		frame->toolButtonReference2->setText(QString::number(selectedReferencePointsIdx[1] + 1) + "  " + CalibrationObject::getInstance()->getReferenceNames()[1]);
-		frame->toolButtonReference3->setText(QString::number(selectedReferencePointsIdx[2] + 1) + "  " + CalibrationObject::getInstance()->getReferenceNames()[2]);
-		frame->toolButtonReference4->setText(QString::number(selectedReferencePointsIdx[3] + 1) + "  " + CalibrationObject::getInstance()->getReferenceNames()[3]);
-		setupManualPoints();
-	}
-	else
-	{
-		setupManualPoints();
+		else
+		{
+			setupManualPoints();
+		}
 	}
 }
 
@@ -883,7 +885,8 @@ void WizardCalibrationCubeFrame::setupManualPoints()
 		frame->gridLayout_10->addWidget(manualReferencesCheckBox[i], i, 2, 1, 1);
 		connect(manualReferencesCheckBox[i], SIGNAL(clicked()), this, SLOT(checkBoxManualReference_clicked()));
 	}
-	manualReferencesRadioButton[0]->setChecked(true);
+	if (CalibrationObject::getInstance()->getFrameSpecifications().size() > 0)
+		manualReferencesRadioButton[0]->setChecked(true);
 }
 
 void WizardCalibrationCubeFrame::checkBoxManualReference_clicked()
