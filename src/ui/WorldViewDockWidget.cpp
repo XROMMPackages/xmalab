@@ -115,7 +115,7 @@ void WorldViewDockWidget::changeFrame(int frame)
 			}
 			else
 			{
-				dock->toolButtonNext->setEnabled(true);
+				if(dock->checkBoxEnable->isChecked()) dock->toolButtonNext->setEnabled(true);
 			}
 
 			if (dock->spinBoxFrame->value() == dock->spinBoxFrame->minimum())
@@ -124,7 +124,7 @@ void WorldViewDockWidget::changeFrame(int frame)
 			}
 			else
 			{
-				dock->toolButtonPrev->setEnabled(true);
+				if (dock->checkBoxEnable->isChecked()) dock->toolButtonPrev->setEnabled(true);
 			}
 		}
 	}
