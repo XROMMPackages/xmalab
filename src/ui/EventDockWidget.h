@@ -27,7 +27,7 @@
 #ifndef EVENTDOCKWIDGET_H_
 #define EVENTDOCKWIDGET_H_
 
-#include "ui/SState.h"
+#include "ui/State.h"
 #include <QDockWidget>
 #include <QColor>
 #include <QSignalMapper>
