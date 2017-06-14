@@ -67,6 +67,7 @@ namespace xma
 		void saveXMLData(QString filename);
 		void setXMLData(QString filename);
 		void parseXMLData(QString xmlData);
+		int getFileID(QString filename);
 
 		const QString getXMLData() const;
 

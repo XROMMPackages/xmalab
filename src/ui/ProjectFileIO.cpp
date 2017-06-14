@@ -1190,6 +1190,7 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 						xmlWriter.writeStartElement("Camera ");
 						xmlWriter.writeAttribute("camera-id", QString::number(c->getID()));
 						xmlWriter.writeAttribute("camera-portalid", QString::number(c->getPortalId()));
+						xmlWriter.writeAttribute("FileId", QString::number(Project::getInstance()->getFileID(c->getUndistortionObject()->getFilename())));
 						xmlWriter.writeCharacters(c->getUndistortionObject()->getFilename());
 						xmlWriter.writeEndElement();
 					}
@@ -1207,6 +1208,7 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 					for (auto f : c->getCalibrationImages())
 					{
 						xmlWriter.writeStartElement("File");
+						xmlWriter.writeAttribute("FileId", QString::number(Project::getInstance()->getFileID(f->getFilename())));
 						xmlWriter.writeAttribute("points", QString::number(f->getCalibrationNbInlier()));
 						xmlWriter.writeAttribute("error", QString::number(f->getCalibrationError()));
 						xmlWriter.writeCharacters(f->getFilename());
@@ -1229,8 +1231,11 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 					xmlWriter.writeAttribute("type", "cube");
 					QFileInfo info(CalibrationObject::getInstance()->getFrameSpecificationsFilename());
 					xmlWriter.writeAttribute("csv", info.fileName());
+					xmlWriter.writeAttribute("csv-FileId", QString::number(Project::getInstance()->getFileID(info.fileName())));
 					info = QFileInfo(CalibrationObject::getInstance()->getReferencesFilename());
 					xmlWriter.writeAttribute("ref", info.fileName());
+					xmlWriter.writeAttribute("ref-FileId", QString::number(Project::getInstance()->getFileID(info.fileName())));
+
 				}
 				xmlWriter.writeEndElement(); //Object
 				xmlWriter.writeEndElement(); //Calibration

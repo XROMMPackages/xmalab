@@ -396,6 +396,42 @@ void Project::parseXMLData(QString xmlData)
 	}
 }
 
+int Project::getFileID(QString filename)
+{
+	if (hasStudyData){
+		QXmlStreamReader xml(xml_data.join(""));
+
+		while (!xml.atEnd() && !xml.hasError())
+		{
+			QXmlStreamReader::TokenType token = xml.readNext();
+
+			if (token == QXmlStreamReader::StartDocument)
+			{
+				continue;
+			}
+
+			if (token == QXmlStreamReader::StartElement && xml.name() == "Filename")
+			{
+				QString filename_xml = xml.readElementText();
+
+				if (filename_xml == filename)
+				{
+					while (!xml.atEnd() && !xml.hasError())
+					{
+						QXmlStreamReader::TokenType token = xml.readNext();
+						if (token == QXmlStreamReader::StartElement && xml.name() == "FileID")
+						{
+							return xml.readElementText().toInt();
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return -1;
+}
+
 const QString Project::getXMLData() const
 {
 	return xml_data.join("");
