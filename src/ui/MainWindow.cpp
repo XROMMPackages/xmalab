@@ -94,7 +94,7 @@
 #endif
 
 
-//#define BETA 3
+#define BETA 1
 
 using namespace xma;
 
