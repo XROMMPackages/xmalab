@@ -59,6 +59,7 @@
 #include "ui/TrialSelectorDialog.h"
 #include "ui/HelpDialog.h"
 #include "ui/DetectionSettings.h"
+#include "ui/EventDockWidget.h"
 
 #include "core/Project.h"
 #include "core/Camera.h"
@@ -161,6 +162,9 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->actionPlot->setChecked(Settings::getInstance()->getBoolSetting("ShowPlot"));
 	ui->actionPlot->setEnabled(false);
 
+	ui->actionEvents->setChecked(Settings::getInstance()->getBoolSetting("ShowEvents"));
+	ui->actionEvents->setEnabled(false);
+
 	ui->action3D_world_view->setChecked(Settings::getInstance()->getBoolSetting("Show3DView"));
 	ui->action3D_world_view->setEnabled(false);
 
@@ -185,6 +189,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	DetailViewDockWidget::getInstance();
 	DisplayOptionsDockWidget::getInstance();
 	PlotWindow::getInstance();
+	EventDockWidget::getInstance();
 
 	if (!restoreState(Settings::getInstance()->getUIState("XMALab"), UI_VERSION))
 	{
@@ -195,6 +200,7 @@ MainWindow::MainWindow(QWidget* parent) :
 		DetailViewDockWidget::getInstance()->setFloating(false);
 		DisplayOptionsDockWidget::getInstance()->setFloating(false);
 		PlotWindow::getInstance()->setFloating(false);
+		EventDockWidget::getInstance()->setFloating(false);
 	}
 
 	WizardDockWidget::getInstance()->hide();
@@ -211,6 +217,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	DetailViewDockWidget::getInstance()->hide();
 	DisplayOptionsDockWidget::getInstance()->hide();
 	PlotWindow::getInstance()->hide();
+	EventDockWidget::getInstance()->hide();
 
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(State::getInstance(), SIGNAL(displayChanged(ui_state)), this, SLOT(displayChanged(ui_state)));
@@ -225,6 +232,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	setCorner(Qt::BottomRightCorner, Qt::BottomDockWidgetArea);
 
 	ui->actionExport2D_Points->setEnabled(false);
+	ui->actionExportEvents->setEnabled(false);
 	ui->actionExport3D_Points->setEnabled(false);
 	ui->actionRigidBodyTransformations->setEnabled(false);
 	ui->actionMarkertoMarkerDistances->setEnabled(false);
@@ -233,6 +241,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->actionDetailed_View->setEnabled(false);	
 	ui->actionDisplay_Options->setEnabled(false);
 	ui->actionPlot->setEnabled(false);
+	ui->actionEvents->setEnabled(false);
 	ui->action3D_world_view->setEnabled(false);
 	ui->actionImportTrial->setEnabled(false);
 	Shortcuts::getInstance()->bindApplicationShortcuts();
@@ -775,6 +784,7 @@ void MainWindow::closeProject()
 	DetailViewDockWidget::getInstance()->hide();
 	DisplayOptionsDockWidget::getInstance()->hide();
 	PlotWindow::getInstance()->hide();
+	EventDockWidget::getInstance()->hide();
 
 #ifndef BETA
 	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
@@ -785,6 +795,7 @@ void MainWindow::closeProject()
 	ConsoleDockWidget::getInstance()->clear();
 
 	ui->actionPlot->setEnabled(false);
+	ui->actionEvents->setEnabled(false);
 	ui->actionDetectionSettings->setEnabled(false);
 	ui->action3D_world_view->setEnabled(false);
 	ui->actionDetailed_View->setEnabled(false);
@@ -1115,6 +1126,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->imageMainFrame->setVisible(true);
 		ui->startTrialFrame->setVisible(false);
 		ui->actionExport2D_Points->setEnabled(false);
+		ui->actionExportEvents->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
 		ui->actionMarkertoMarkerDistances->setEnabled(false);
@@ -1123,6 +1135,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->actionDetailed_View->setEnabled(false);
 		ui->actionDisplay_Options->setEnabled(false);
 		ui->actionPlot->setEnabled(false);
+		ui->actionEvents->setEnabled(false);
 		ui->actionDetectionSettings->setEnabled(false);
 		ui->action3D_world_view->setEnabled(false);
 
@@ -1131,6 +1144,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		DetailViewDockWidget::getInstance()->hide();
 		DisplayOptionsDockWidget::getInstance()->hide();
 		PlotWindow::getInstance()->hide();
+		EventDockWidget::getInstance()->hide();
 		worldViewDockWidget->hide();
 	}
 	else if (workspace == CALIBRATION)
@@ -1146,20 +1160,21 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->imageMainFrame->setVisible(true);
 		ui->startTrialFrame->setVisible(false);
 		ui->actionExport2D_Points->setEnabled(false);
+		ui->actionExportEvents->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
 		ui->actionMarkertoMarkerDistances->setEnabled(false);
 		ui->actionImport2D_Points->setEnabled(false);
 		ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
 		ui->actionPlot->setChecked(false);
+		ui->actionEvents->setChecked(false);
 		ui->actionDetectionSettings->setChecked(false);
-		ui->actionPlot->setEnabled(false);
-		ui->actionDetectionSettings->setEnabled(false);
 
+		ui->actionPlot->setEnabled(false);
+		ui->actionEvents->setEnabled(false);
+		ui->actionDetectionSettings->setEnabled(false);
 		ui->actionDetailed_View->setEnabled(false);
 		ui->actionDisplay_Options->setEnabled(false);
-		ui->actionPlot->setEnabled(false);
-		ui->actionDetectionSettings->setEnabled(false);
 		ui->action3D_world_view->setEnabled(true);
 
 		PointsDockWidget::getInstance()->hide();
@@ -1167,6 +1182,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		DisplayOptionsDockWidget::getInstance()->hide();
 		DetectionSettings::getInstance()->hide();
 		PlotWindow::getInstance()->hide();
+		EventDockWidget::getInstance()->hide();
 		if (Settings::getInstance()->getBoolSetting("Show3DView"))
 		{
 			worldViewDockWidget->show();
@@ -1183,8 +1199,6 @@ void MainWindow::workspaceChanged(work_state workspace)
 			ui->imageMainFrame->setVisible(true);
 			ui->startTrialFrame->setVisible(false);
 			SequenceNavigationFrame::getInstance()->setVisible(true);
-			ui->actionPlot->setEnabled(true);
-			ui->actionDetectionSettings->setEnabled(true);
 			if (project->isCalibrated() || !project->hasCalibration())
 			{
 				ui->labelCalibrateFirst->setVisible(false);
@@ -1194,6 +1208,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 				ui->actionDetailed_View->setEnabled(true);
 				ui->actionDisplay_Options->setEnabled(true);
 				ui->actionPlot->setEnabled(true);
+				ui->actionEvents->setEnabled(true);
 				ui->actionDetectionSettings->setEnabled(true);
 				ui->action3D_world_view->setEnabled(true);
 
@@ -1234,6 +1249,14 @@ void MainWindow::workspaceChanged(work_state workspace)
 				{
 					DisplayOptionsDockWidget::getInstance()->hide();
 				}
+				if (Settings::getInstance()->getBoolSetting("ShowEvents"))
+				{
+					EventDockWidget::getInstance()->show();
+				}
+				else
+				{
+					EventDockWidget::getInstance()->hide();
+				}
 			}
 			else 
 			{
@@ -1244,6 +1267,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 				ui->actionDetailed_View->setEnabled(false);
 				ui->actionDisplay_Options->setEnabled(false);
 				ui->actionPlot->setEnabled(false);
+				ui->actionEvents->setEnabled(false);
 				ui->actionDetectionSettings->setEnabled(false);
 				ui->action3D_world_view->setEnabled(false);
 
@@ -1252,11 +1276,13 @@ void MainWindow::workspaceChanged(work_state workspace)
 				DetailViewDockWidget::getInstance()->hide();
 				DisplayOptionsDockWidget::getInstance()->hide();
 				PlotWindow::getInstance()->hide();
+				EventDockWidget::getInstance()->hide();
 				DetectionSettings::getInstance()->hide();
 				worldViewDockWidget->hide();
 			}
 
 			ui->actionExport2D_Points->setEnabled(true);
+			ui->actionExportEvents->setEnabled(true);
 			ui->actionExport3D_Points->setEnabled(true);
 			ui->actionRigidBodyTransformations->setEnabled(true);
 			ui->actionMarkertoMarkerDistances->setEnabled(true);
@@ -1269,6 +1295,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			ui->startTrialFrame->setVisible(true);
 			SequenceNavigationFrame::getInstance()->setVisible(false);
 			ui->actionPlot->setEnabled(false);
+			ui->actionEvents->setEnabled(false);
 			ui->actionDetectionSettings->setEnabled(false);
 			if (project->isCalibrated() || !project->hasCalibration())
 			{
@@ -1283,6 +1310,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 				ui->pushButtonDefaultTrial->setVisible(false);
 			}
 			ui->actionExport2D_Points->setEnabled(false);
+			ui->actionExportEvents->setEnabled(false);
 			ui->actionExport3D_Points->setEnabled(false);
 			ui->actionRigidBodyTransformations->setEnabled(false);
 			ui->actionMarkertoMarkerDistances->setEnabled(false);
@@ -1292,6 +1320,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			ui->actionDetailed_View->setEnabled(false);
 			ui->actionDisplay_Options->setEnabled(false);
 			ui->actionPlot->setEnabled(false);
+			ui->actionEvents->setEnabled(false);
 			ui->actionDetectionSettings->setEnabled(false);
 			ui->actionShow_3D_View->setEnabled(false);
 
@@ -1299,6 +1328,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			DetailViewDockWidget::getInstance()->hide();
 			DisplayOptionsDockWidget::getInstance()->hide();
 			PlotWindow::getInstance()->hide();
+			EventDockWidget::getInstance()->hide();
 			DetectionSettings::getInstance()->hide();
 			worldViewDockWidget->hide();
 		}
@@ -1577,6 +1607,21 @@ void MainWindow::on_actionExport2D_Points_triggered(bool checked)
 	}
 
 	delete diag;
+}
+
+void MainWindow::on_actionExportEvents_triggered(bool checked)
+{
+	if (State::getInstance()->getActiveTrial() < 0 && State::getInstance()->getActiveTrial() >= Project::getInstance()->getTrials().size())
+		return;
+	
+	QString outputPath = QFileDialog::getExistingDirectory(this, tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+	if (outputPath.isNull() == false)
+	{
+		for (auto e : Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEvents())
+			e->saveData(outputPath + OS_SEP + e->getName() + ".csv");
+
+		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+	}
 }
 
 void MainWindow::saveRigidBodies(std::vector<int> bodies)
@@ -1966,5 +2011,20 @@ void MainWindow::on_actionDetectionSettings_triggered(bool checked)
 	{
 		ui->actionDetectionSettings->setChecked(false);
 		DetectionSettings::getInstance()->hide();
+	}
+}
+
+void MainWindow::on_actionEvents_triggered(bool checked)
+{
+	if (checked)
+	{
+		EventDockWidget::getInstance()->show();
+		Settings::getInstance()->set("ShowEvents", true);
+	}
+	else
+	{
+		ui->actionEvents->setChecked(false);
+		EventDockWidget::getInstance()->hide();
+		Settings::getInstance()->set("ShowEvents", false);
 	}
 }

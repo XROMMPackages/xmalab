@@ -210,6 +210,10 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 				QDir().mkpath(path + OS_SEP + "data");
 				(*trial_it)->saveMarkers(path + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
 				(*trial_it)->saveRigidBodies(path + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
+				for (auto e : (*trial_it)->getEvents())
+				{
+					e->saveData(path + OS_SEP + "data" + OS_SEP + e->getName() + ".csv");
+				}
 				for (unsigned int k = 0; k < (*trial_it)->getMarkers().size(); k++)
 				{
 					(*trial_it)->getMarkers()[k]->save(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv",
@@ -447,6 +451,18 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 									{
 										if (xml.tokenType() == QXmlStreamReader::StartElement)
 										{
+											if (xml.name() == "Event")
+											{
+												attr = xml.attributes();
+												QString name_e = attr.value("Name").toString();
+												QString color_e = attr.value("Color").toString();
+												QString filename_e = attr.value("Filename").toString();
+												QString draw_e = attr.value("Draw").toString();
+
+												trial->addEvent(name_e, QColor(color_e));
+												trial->getEvents().back()->setDraw(draw_e.toInt());
+												trial->getEvents().back()->loadData(basedir + OS_SEP + littleHelper::adjustPathToOS(filename_e));
+											}
 											if (xml.name() == "Marker")
 											{
 												attr = xml.attributes();
@@ -1490,6 +1506,15 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 				if ((*trial_it)->getHasStudyData()){
 					xmlWriter.writeAttribute("MetaData", (*trial_it)->getName() + OS_SEP + QString("metadata.xml"));
 				}
+				for (auto e : (*trial_it)->getEvents())
+				{
+					xmlWriter.writeStartElement("Event");
+					xmlWriter.writeAttribute("Name", e->getName());
+					xmlWriter.writeAttribute("Color", e->getColor().name());
+					xmlWriter.writeAttribute("Draw", QString::number(e->getDraw()));
+					xmlWriter.writeAttribute("Filename", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + e->getName() + ".csv");
+					xmlWriter.writeEndElement();
+				}
 				for (unsigned int k = 0; k < (*trial_it)->getMarkers().size(); k++)
 				{
 					xmlWriter.writeStartElement("Marker");
@@ -1512,8 +1537,6 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 					xmlWriter.writeAttribute("FilenamePoints3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points3d.csv");
 					xmlWriter.writeAttribute("FilenameStatus3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status3d.csv");
 					xmlWriter.writeAttribute("FilenameInterpolation", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "interpolation.csv");
-
-
 					xmlWriter.writeEndElement();
 				}
 
@@ -1868,6 +1891,19 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							{
 								if (xml.tokenType() == QXmlStreamReader::StartElement)
 								{
+
+									if (xml.name() == "Event")
+									{
+										attr = xml.attributes();
+										QString name_e = attr.value("Name").toString();
+										QString color_e = attr.value("Color").toString();
+										QString filename_e = attr.value("Filename").toString();
+										QString draw_e = attr.value("Draw").toString();
+
+										trial->addEvent(name_e, QColor(color_e));
+										trial->getEvents().back()->setDraw(draw_e.toInt());
+										trial->getEvents().back()->loadData(basedir + OS_SEP + littleHelper::adjustPathToOS(filename_e));
+									}
 									if (xml.name() == "Marker")
 									{
 										attr = xml.attributes();

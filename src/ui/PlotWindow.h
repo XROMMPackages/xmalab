@@ -83,6 +83,7 @@ namespace xma
 		static PlotWindow* instance;
 		void deleteData();
 		void drawStatus(int idx);
+		void drawEvents(int idx);
 		Ui::PlotWindow* dock;
 
 		QCPItemLine* frameMarker;
@@ -92,7 +93,9 @@ namespace xma
 		std::vector<double> extraPos;
 
 		std::vector<std::vector<QCPItemRect *> > marker_status;
+		std::vector<std::vector<QCPItemRect *> > events;
 		std::vector<QCPItemRect *> interpolation_status;
+		
 		int startFrame;
 		int endFrame;
 		int tmpStartFrame;
@@ -133,6 +136,8 @@ namespace xma
 		void updateExtraPlot();
 		void setInterpolation();
 		void setUntrackable();
+		void setEventOn();
+		void setEventOff();
 	};
 }
 

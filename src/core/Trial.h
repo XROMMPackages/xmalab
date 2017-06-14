@@ -31,6 +31,7 @@
 #include <QString>
 #include <QStringList>
 #include "VideoStream.h"
+#include "EventData.h"
 
 namespace xma
 {
@@ -62,6 +63,7 @@ namespace xma
 
 		const std::vector<Marker *>& getMarkers();
 		const std::vector<RigidBody *>& getRigidBodies();
+		const std::vector<EventData*>& getEvents();
 
 		Marker* getActiveMarker();
 		int getActiveMarkerIdx();
@@ -77,6 +79,8 @@ namespace xma
 		void removeRigidBody(int idx);
 		void addMarker();
 		void removeMarker(int idx);
+		void addEvent(QString name, QColor color);
+		void removeEvent(int idx);
 
 
 		double getCutoffFrequency();
@@ -157,6 +161,7 @@ namespace xma
 
 		void setCameraSizes();
 
+		
 	private:
 		QString name;
 		void setNbImages();
@@ -176,8 +181,9 @@ namespace xma
 		int endFrame;
 
 		std::vector<VideoStream*> videos;
-		std::vector<RigidBody *> rigidBodies;
-		std::vector<Marker *> markers;
+		std::vector<RigidBody*> rigidBodies;
+		std::vector<Marker*> markers;
+		std::vector<EventData*> events;
 
 		bool requiresRecomputation;
 

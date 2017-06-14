@@ -118,6 +118,12 @@ void Shortcuts::bindApplicationShortcuts()
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_H), DisplayOptionsDockWidget::getInstance(), SLOT(toggleHideAll()));
 	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_O), PlotWindow::getInstance(), SLOT(setEventOn()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_O), PlotWindow::getInstance(), SLOT(setEventOff()));
+	shortcut->setContext(Qt::ApplicationShortcut);
 }
 
 void Shortcuts::installEventFilterToChildren(QObject* object)
@@ -225,6 +231,16 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 		if (_keyEvent->key() == Qt::Key_C)
 		{
 			MainWindow::getInstance()->centerViews();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_O && !_keyEvent->modifiers().testFlag(Qt::ControlModifier))
+		{
+			PlotWindow::getInstance()->setEventOn();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_O  && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
+		{
+			PlotWindow::getInstance()->setEventOff();
 			return true;
 		}
 		if (_keyEvent->key() == Qt::Key_A && _keyEvent->modifiers().testFlag(Qt::ControlModifier))

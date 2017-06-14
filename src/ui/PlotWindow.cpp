@@ -634,8 +634,72 @@ void PlotWindow::deleteData()
 	MainWindow::getInstance()->redrawGL();
 }
 
+void PlotWindow::drawEvents(int idx)
+{
+	if (State::getInstance()->getActiveTrial() < 0 || State::getInstance()->getWorkspace() != DIGITIZATION)
+		return;
+
+	unsigned int drawing = 0; 
+	for (auto e : Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEvents())
+	{
+		if (e->getDraw())
+			drawing++;
+	}
+
+	if (drawing == 0)
+		return;
+
+	Marker * marker = NULL;
+	if (idx >= 0 && idx < (int)Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
+	{
+		marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx];
+	}
+
+	double height = dock->plotWidget->yAxis->range().size();
+	double y_min = dock->plotWidget->yAxis->range().lower;
+	if (marker && dock->checkBoxStatus->isChecked()){
+		double offsetInterpolation = (marker && marker->getHasInterpolation()) ? 0.07 : 0;
+
+		height = dock->plotWidget->yAxis->range().size() / (1.0 + (0.05 * (Project::getInstance()->getCameras().size() + 1) + offsetInterpolation));
+		y_min = dock->plotWidget->yAxis->range().lower;
+	}
+
+	double start = y_min + height;
+	double step_size = height / drawing;
+	double posMultiplier = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+		? 1.0 / Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() : 1.0;
+
+	double posOffset = (dock->checkBoxTime->isChecked() && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() > 0)
+		? 1 : 0;
+
+	int count = 0;
+	for (auto e : Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEvents())
+	{
+		if (e->getDraw()){
+			QColor color = e->getColor();
+			color.setAlpha(25);
+			QBrush brush = QBrush(color);
+			color.setAlpha(0);
+			QPen pen = QPen(color);
+			int countf = 0;
+			for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
+			{
+				events[count][countf]->setVisible(e->getData()[f]);
+				events[count][countf]->setBrush(brush);
+				events[count][countf]->setPen(pen);
+				events[count][countf]->topLeft->setCoords((((double)f) - 0.5 - posOffset) * posMultiplier, start - (count)*step_size);
+				events[count][countf]->bottomRight->setCoords((((double)f) + 0.5 - posOffset) * posMultiplier, start - (count + 1)*step_size);
+				countf++;
+			}
+			
+			count++;
+		}
+	}
+}
+
 void PlotWindow::drawStatus(int idx)
 {
+	drawEvents(idx);
 	if (dock->checkBoxStatus->isChecked()){
 		QBrush brush_Untrackable = QBrush(QColor(Settings::getInstance()->getQStringSetting("ColorUntrackable")));
 		QPen pen_Untrackable = QPen(QColor(Settings::getInstance()->getQStringSetting("ColorUntrackable")));
@@ -1015,6 +1079,16 @@ void PlotWindow::resetRange(bool recreateStatus)
 			dock->plotWidget->removeItem(interpolation_status[f]);
 		}
 		interpolation_status.clear();
+
+		for (unsigned int c = 0; c < events.size(); c++)
+		{
+			for (unsigned int f = 0; f < events[c].size(); f++)
+			{
+				dock->plotWidget->removeItem(events[c][f]);
+			}
+			events[c].clear();
+		}
+		events.clear();	
 	}
 
 	if (State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
@@ -1045,6 +1119,19 @@ void PlotWindow::resetRange(bool recreateStatus)
 				{
 					interpolation_status.push_back(new QCPItemRect(dock->plotWidget));
 					dock->plotWidget->addItem(interpolation_status.back());
+				}
+			}
+
+			for (auto e : Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEvents())
+			{
+				if (e->getDraw()){
+					std::vector<QCPItemRect *> rects;
+					for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
+					{
+						rects.push_back(new QCPItemRect(dock->plotWidget));
+						dock->plotWidget->addItem(rects.back());
+					}
+					events.push_back(rects);
 				}
 			}
 		}
@@ -1416,6 +1503,7 @@ void PlotWindow::plot2D(int idx1)
 			range = (max_val_x - min_val_x) > range ? (max_val_x - min_val_x) : range;
 			double offsetInterpolation = (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getHasInterpolation()) ? range * 0.07 : 0;
 			double offset = (dock->checkBoxStatus->isChecked()) ? range * (0.05 * (Project::getInstance()->getCameras().size() + 1)) + offsetInterpolation : 0;
+			
 			dock->plotWidget->yAxis->setRange(center - range * 0.5, center + range * 0.5 + offset);
 			
 			selectionMarker->topLeft->setCoords(startFrame * posMultiplier + posOffset, center + range * 0.5);
@@ -2782,6 +2870,44 @@ void PlotWindow::setUntrackable()
 		on_pushButtonUpdate_clicked();
 	}
 	MainWindow::getInstance()->redrawGL();
+}
+
+void PlotWindow::setEventOn()
+{
+	int frameStart;
+	int frameEnd;
+	frameStart = (endFrame > startFrame) ? startFrame : endFrame;
+	frameEnd = (endFrame > startFrame) ? endFrame : startFrame;
+	frameStart = (frameStart < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1 : frameStart;
+	frameEnd = (frameEnd > Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1 : frameEnd;
+
+	for (auto e : Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEvents())
+	{
+		if (e->getDraw()){
+			for (int f = frameStart; f <= frameEnd; f++)
+				e->getData()[f] = 1;
+		}
+	}
+	draw();
+}
+
+void PlotWindow::setEventOff()
+{
+	int frameStart;
+	int frameEnd;
+	frameStart = (endFrame > startFrame) ? startFrame : endFrame;
+	frameEnd = (endFrame > startFrame) ? endFrame : startFrame;
+	frameStart = (frameStart < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1 : frameStart;
+	frameEnd = (frameEnd > Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1 : frameEnd;
+
+	for (auto e : Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEvents())
+	{
+		if (e->getDraw()){
+			for (int f = frameStart; f <= frameEnd; f++)
+				e->getData()[f] = 0;
+		}
+	}
+	draw();
 }
 
 void PlotWindow::ShiftPressed()

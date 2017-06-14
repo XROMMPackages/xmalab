@@ -208,6 +208,11 @@ Trial::~Trial()
 		delete *marker;
 	}
 	markers.clear();
+	for (std::vector<EventData*>::iterator e = events.begin(); e != events.end(); ++e)
+	{
+		delete *e;
+	}
+	events.clear();
 }
 
 void Trial::changeTrialData(QString trialname, std::vector<QStringList>& imageFilenames)
@@ -333,6 +338,11 @@ const std::vector<RigidBody*>& Trial::getRigidBodies()
 	return rigidBodies;
 }
 
+const std::vector<EventData*>& Trial::getEvents()
+{
+	return events;
+}
+
 Marker* Trial::getActiveMarker()
 {
 	if (activeMarkerIdx >= (int) markers.size() || activeMarkerIdx < 0) return NULL;
@@ -403,6 +413,18 @@ void Trial::removeMarker(int idx)
 		(*it)->removePointIdx(idx);
 		(*it)->updatePointIdx(idx);
 	}
+}
+
+void Trial::addEvent(QString name, QColor color)
+{
+	events.push_back(new EventData(name, color));
+	events.back()->init(nbImages);
+}
+
+void Trial::removeEvent(int idx)
+{
+	delete events[idx];
+	events.erase(std::remove(events.begin(), events.end(), events[idx]), events.end());
 }
 
 int Trial::getActiveMarkerIdx()

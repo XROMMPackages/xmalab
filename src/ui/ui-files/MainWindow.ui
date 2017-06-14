@@ -379,6 +379,7 @@
      <addaction name="actionExport3D_Points"/>
      <addaction name="actionExport2D_Points"/>
      <addaction name="actionRigidBodyTransformations"/>
+     <addaction name="actionExportEvents"/>
      <addaction name="actionMarkertoMarkerDistances"/>
      <addaction name="separator"/>
      <addaction name="actionExport_Undistorted_Trial_images_for_Maya"/>
@@ -426,6 +427,7 @@
     <addaction name="actionDetailed_View"/>
     <addaction name="actionPlot"/>
     <addaction name="action3D_world_view"/>
+    <addaction name="actionEvents"/>
     <addaction name="actionProject_Metadata"/>
     <addaction name="actionDetectionSettings"/>
     <addaction name="actionConsole"/>
@@ -968,6 +970,19 @@
   <action name="actionNew_trial_without_calibration">
    <property name="text">
     <string>New trial without calibration</string>
+   </property>
+  </action>
+  <action name="actionEvents">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Events</string>
+   </property>
+  </action>
+  <action name="actionExportEvents">
+   <property name="text">
+    <string>Events</string>
    </property>
   </action>
  </widget>

@@ -115,6 +115,7 @@ SET(XMALab_HEADERS
 	src/core/HelperFunctions.h
 	src/core/RigidBodyObj.h
 	src/core/CalibrationSequence.h
+	src/core/EventData.h
 )
 
 SET(XMALab_SOURCES
@@ -135,6 +136,7 @@ SET(XMALab_SOURCES
 	src/core/HelperFunctions.cpp
 	src/core/RigidBodyObj.cpp
 	src/core/CalibrationSequence.cpp
+	src/core/EventData.cpp
 )
 
 SOURCE_GROUP(_CORE FILES ${XMALab_HEADERS} ${XMALab_SOURCES})
@@ -259,6 +261,7 @@ SET(XMALab_FORMS_HEADERS
 	src/ui/DetectionSettings.h
 	src/ui/DisplayOptionsDockWidget.h
 	src/ui/CameraSelector.h
+	src/ui/EventDockWidget.h
 )
 
 SET(XMALab_FORMS_SOURCES
@@ -312,6 +315,7 @@ SET(XMALab_FORMS_SOURCES
 		src/ui/DetectionSettings.cpp
 		src/ui/DisplayOptionsDockWidget.cpp
 		src/ui/CameraSelector.cpp
+		src/ui/EventDockWidget.cpp
 )
 
 SOURCE_GROUP(_UI FILES ${XMALab_FORMS_HEADERS} ${XMALab_FORMS_SOURCES})
@@ -359,6 +363,7 @@ SET(XMALab_FORMS
 		src/ui/ui-files/DisplayOptionsDockWidget.ui
 		src/ui/ui-files/WorldViewDockWidget.ui
 		src/ui/ui-files/CameraSelector.ui
+		src/ui/ui-files/EventDockWidget.ui
 	)
 	
 
@@ -408,6 +413,7 @@ SET(XMALab_FORMS_MOC
 		${CMAKE_CURRENT_BINARY_DIR}/ui_DisplayOptionsDockWidget.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_WorldViewDockWidget.h
 		${CMAKE_CURRENT_BINARY_DIR}/ui_CameraSelector.h
+		${CMAKE_CURRENT_BINARY_DIR}/ui_EventDockWidget.h
 		)
 
 SOURCE_GROUP(UI_Generated FILES ${XMALab_FORMS_MOC})

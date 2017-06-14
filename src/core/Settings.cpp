@@ -52,6 +52,7 @@ Settings::Settings()
 	addBoolSetting("ShowDetailView", true);
 	addBoolSetting("ShowDisplayOptions", true);
 	addBoolSetting("ShowPlot", true);
+	addBoolSetting("ShowEvents", true);
 	addBoolSetting("Show3DView", true);
 	addBoolSetting("Console", false);
 
