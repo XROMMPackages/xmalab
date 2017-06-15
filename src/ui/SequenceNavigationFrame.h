@@ -56,6 +56,10 @@ namespace xma
 		QTimer* play_timer;
 
 		bool updating;
+
+		void moveNFrames(int n);
+		bool setNFrames();
+
 	protected:
 
 	public:
@@ -79,6 +83,13 @@ namespace xma
 		void on_toolButtonPlayBackward_clicked();
 		void on_toolButtonStop_clicked();
 		void play_update();
+
+		void moveNFramesForward();
+		void moveNFramesBackward();
+		void setAndMoveNFramesForward();
+		void setAndMoveNFramesBackward();
+		void moveFrameToMissingForward();
+		void moveFrameToMissingBackward();
 	};
 }
 

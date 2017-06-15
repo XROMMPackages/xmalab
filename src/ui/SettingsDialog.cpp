@@ -55,6 +55,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 
 	diag->lineEditWorkspace->setText(Settings::getInstance()->getQStringSetting("WorkspacePath"));
 	diag->checkBox_Workspace->setChecked(Settings::getInstance()->getBoolSetting("CustomWorkspacePath"));
+	diag->spinBoxFrameAdvance->setValue(Settings::getInstance()->getIntSetting("FrameAdvance"));
 
 	diag->checkBox_AutoConfirmPendingChanges->setChecked(Settings::getInstance()->getBoolSetting("AutoConfirmPendingChanges"));
 	diag->checkBox_ConfirmQuitXMALab->setChecked(Settings::getInstance()->getBoolSetting("ConfirmQuitXMALab"));
@@ -148,6 +149,11 @@ void SettingsDialog::on_checkBox_Workspace_stateChanged(int state)
 void SettingsDialog::on_lineEditWorkspace_textChanged(QString text)
 {
 	Settings::getInstance()->set("WorkspacePath", text);
+}
+
+void SettingsDialog::on_spinBoxFrameAdvance_valueChanged(int value)
+{
+	Settings::getInstance()->set("FrameAdvance", diag->spinBoxFrameAdvance->value());
 }
 
 void SettingsDialog::on_checkBox_AutoConfirmPendingChanges_stateChanged(int state)

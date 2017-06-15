@@ -86,6 +86,24 @@ void Shortcuts::bindApplicationShortcuts()
 	shortcut = new QShortcut(QKeySequence(Qt::Key_W), SequenceNavigationFrame::getInstance(), SLOT(on_toolButtonNext_clicked()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
+	shortcut = new QShortcut(QKeySequence(Qt::Key_5), SequenceNavigationFrame::getInstance(), SLOT(moveNFramesBackward()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_6), SequenceNavigationFrame::getInstance(), SLOT(moveNFramesForward()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_5), SequenceNavigationFrame::getInstance(), SLOT(setAndMoveNFramesBackward()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_6), SequenceNavigationFrame::getInstance(), SLOT(setAndMoveNFramesForward()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_7), SequenceNavigationFrame::getInstance(), SLOT(moveFrameToMissingForward()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_7), SequenceNavigationFrame::getInstance(), SLOT(moveFrameToMissingBackward()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
 	shortcut = new QShortcut(QKeySequence(Qt::Key_C), MainWindow::getInstance(), SLOT(centerViews()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
@@ -216,6 +234,36 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 		if (_keyEvent->key() == Qt::Key_3 && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
 		{
 			WizardDockWidget::getInstance()->goToFirstTrackedFrame();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_5  && !_keyEvent->modifiers().testFlag(Qt::ControlModifier))
+		{
+			SequenceNavigationFrame::getInstance()->moveNFramesBackward();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_6  && !_keyEvent->modifiers().testFlag(Qt::ControlModifier))
+		{
+			SequenceNavigationFrame::getInstance()->moveNFramesForward();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_5  && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
+		{
+			SequenceNavigationFrame::getInstance()->setAndMoveNFramesBackward();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_6  && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
+		{
+			SequenceNavigationFrame::getInstance()->setAndMoveNFramesForward();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_7  && !_keyEvent->modifiers().testFlag(Qt::ControlModifier))
+		{
+			SequenceNavigationFrame::getInstance()->moveFrameToMissingForward();
+			return true;
+		}
+		if (_keyEvent->key() == Qt::Key_7  && _keyEvent->modifiers().testFlag(Qt::ControlModifier))
+		{
+			SequenceNavigationFrame::getInstance()->moveFrameToMissingBackward();
 			return true;
 		}
 		if (_keyEvent->key() == Qt::Key_Q)

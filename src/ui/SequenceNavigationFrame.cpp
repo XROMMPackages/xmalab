@@ -38,8 +38,10 @@
 #include "ui/PlotWindow.h"
 #include "core/Project.h"
 #include "core/Trial.h"
+#include "core/Marker.h"
 
 #include <QInputDialog>
+#include <core/Settings.h>
 
 
 using namespace xma;
@@ -73,6 +75,41 @@ SequenceNavigationFrame::~SequenceNavigationFrame()
 
 	instance = NULL;
 }
+
+void SequenceNavigationFrame::moveNFrames(int n)
+{
+	int f;
+	if (State::getInstance()->getWorkspace() == CALIBRATION)
+	{
+		int f = State::getInstance()->getActiveFrameCalibration() + n;
+		f = (f < 0) ? 0 : f;
+		f = (f >= Project::getInstance()->getNbImagesCalibration()) ? Project::getInstance()->getNbImagesCalibration() - 1 : f;
+		changeFrame(f);
+	}
+	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		if (Project::getInstance()->getTrials().size() > 0)
+		{
+			int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame() + n;
+			f = (f < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1) ? Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 : f;
+			f = (f > Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1) ? Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1 : f;
+			changeFrame(f);
+		}
+	}
+}
+
+bool SequenceNavigationFrame::setNFrames()
+{
+	bool ok;
+	int n = QInputDialog::getInt(this, "Set number of frames to advance", "Frames", Settings::getInstance()->getIntSetting("FrameAdvance"), 1, 99, 1,& ok);
+	if (ok)
+	{
+		Settings::getInstance()->set("FrameAdvance", n);
+		return true;
+	}
+	return false;
+}
+
 
 SequenceNavigationFrame* SequenceNavigationFrame::getInstance()
 {
@@ -208,21 +245,21 @@ void SequenceNavigationFrame::activeTrialChanged(int activeTrial)
 	}
 }
 
-void SequenceNavigationFrame::changeFrame(int frame)
+void SequenceNavigationFrame::changeFrame(int f)
 {
 	if (State::getInstance()->getWorkspace() == CALIBRATION)
 	{
-		if (frame >= 0 && frame < Project::getInstance()->getNbImagesCalibration())
-			State::getInstance()->changeActiveFrameCalibration(frame);
+		if (f >= 0 && f < Project::getInstance()->getNbImagesCalibration())
+			State::getInstance()->changeActiveFrameCalibration(f);
 	}
 	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
-		if (Project::getInstance()->getTrials().size() > 0 && frame >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
-			frame <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1 &&
-			frame != Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame())
+		if (Project::getInstance()->getTrials().size() > 0 && f >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1 &&
+			f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1 &&
+			f != Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame())
 		{
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setActiveFrame(frame);
-			State::getInstance()->changeActiveFrameTrial(frame);
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setActiveFrame(f);
+			State::getInstance()->changeActiveFrameTrial(f);
 		}
 	}
 }
@@ -255,6 +292,94 @@ void SequenceNavigationFrame::play_update()
 		(play_tag > 0 && frame->toolButtonNext->isEnabled() == false))
 	{
 		on_toolButtonStop_clicked();
+	}
+}
+
+
+
+void SequenceNavigationFrame::moveNFramesForward()
+{
+	moveNFrames(Settings::getInstance()->getIntSetting("FrameAdvance"));
+}
+
+void SequenceNavigationFrame::moveNFramesBackward()
+{
+	moveNFrames(-Settings::getInstance()->getIntSetting("FrameAdvance"));
+}
+
+void SequenceNavigationFrame::setAndMoveNFramesForward()
+{
+	if(setNFrames())moveNFrames(Settings::getInstance()->getIntSetting("FrameAdvance"));
+}
+
+void SequenceNavigationFrame::setAndMoveNFramesBackward()
+{
+	if (setNFrames())moveNFrames(-Settings::getInstance()->getIntSetting("FrameAdvance"));
+}
+
+void SequenceNavigationFrame::moveFrameToMissingForward()
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		if (Project::getInstance()->getTrials().size() > 0 && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker())
+		{
+			int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame();
+			while (f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
+				bool allset = true;
+				bool allunset = true;
+				for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+				{
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker()->getStatus2D()[i][f] <= UNDEFINED)
+					{
+						allset = false;
+					} 
+					else
+					{
+						allunset = false;
+					}
+					if (!allset && !allunset)
+					{
+						changeFrame(f);
+						return;
+					}
+				}
+
+				f++;
+			}
+		}
+	}
+}
+
+void SequenceNavigationFrame::moveFrameToMissingBackward()
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION)
+	{
+		if (Project::getInstance()->getTrials().size() > 0 && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker())
+		{
+			int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame();
+			while (f >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1){
+				bool allset = true;
+				bool allunset = true;
+				for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+				{
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker()->getStatus2D()[i][f] <= UNDEFINED)
+					{
+						allset = false;
+					}
+					else
+					{
+						allunset = false;
+					}
+					if (!allset && !allunset)
+					{
+						changeFrame(f);
+						return;
+					}
+				}
+
+				f--;
+			}
+		}
 	}
 }
 

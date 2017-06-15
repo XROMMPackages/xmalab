@@ -61,6 +61,7 @@ Settings::Settings()
 	addBoolSetting("ConfirmQuitXMALab", true);
 	addBoolSetting("CustomWorkspacePath", false);
 	addQStringSetting("WorkspacePath", "");
+	addIntSetting("FrameAdvance", 10);
 
 	//Undistortion
 	addIntSetting("LocalUndistortionNeighbours", 12);
@@ -86,6 +87,7 @@ Settings::Settings()
 	addBoolSetting("OptimizeRigidBody", true);
 	addBoolSetting("DisableRBComputeAdvanced", false);
 	
+
 	//Colors
 	addQStringSetting("ColorUntrackable", QColor::fromRgb(0, 0, 0).name());
 	addQStringSetting("ColorInterpolated", QColor::fromRgb(255, 205, 50).name());
