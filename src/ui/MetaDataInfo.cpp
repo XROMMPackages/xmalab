@@ -34,9 +34,14 @@
 #include "core/Project.h"
 #include "core/Trial.h"
 #include "core/VideoStream.h"
+#include "ConfirmationDialog.h"
+#include <QtGui/QFileDialog>
+#include <core/Settings.h>
+#include <QtGui/QInputDialog>
 
 
 using namespace xma;
+
 
 MetaDataInfo::MetaDataInfo(QWidget* parent) :
 	QDialog(parent),
@@ -44,6 +49,17 @@ MetaDataInfo::MetaDataInfo(QWidget* parent) :
 {
 	diag->setupUi(this);
 
+	update();
+}
+
+MetaDataInfo::~MetaDataInfo()
+{
+	delete diag;
+}
+
+void MetaDataInfo::update()
+{
+	diag->treeWidget->clear();
 	if (Project::getInstance()->hasCalibration()){
 		QTreeWidgetItem * item = new QTreeWidgetItem(QStringList() << "Calibration" << "");
 		diag->treeWidget->addTopLevelItem(item);
@@ -61,7 +77,7 @@ MetaDataInfo::MetaDataInfo(QWidget* parent) :
 	}
 
 	for (unsigned int i = 0; i < Project::getInstance()->getInstance()->getTrials().size(); i++)
-		{
+	{
 		if (Project::getInstance()->getTrials()[i]->getIsDefault())
 			continue;
 
@@ -102,13 +118,70 @@ MetaDataInfo::MetaDataInfo(QWidget* parent) :
 			itemVideo->addChild(new QTreeWidgetItem(QStringList() << "Lab" << Project::getInstance()->getTrials()[i]->getVideoStreams()[j]->getLab()));
 		}
 	}
-	
+
 	diag->treeWidget->expandAll();
 	diag->treeWidget->resizeColumnToContents(0);
 	diag->treeWidget->collapseAll();
 }
 
-MetaDataInfo::~MetaDataInfo()
+
+void MetaDataInfo::on_pushButtonAdd_clicked()
 {
-	delete diag;
+	if (ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to manually add metadata from the portal? Please make sure that it uses the same number of cameras, that the cameras are in the right order and that the data used is the same as in the xml-file."))
+	{
+		QStringList list;
+		if (Project::getInstance()->hasCalibration()){
+			list << "Calibration";
+		}
+
+		for (auto t : Project::getInstance()->getTrials())
+		{
+			list << t->getName();
+		}
+		bool ok;
+		QString item = QInputDialog::getItem(this, "Select the trial you want to add xml data", "Trial ", list, 0, false, &ok);
+
+		if (ok){
+			QString fileName = QFileDialog::getOpenFileName(this,
+				tr("Select XML file"), Settings::getInstance()->getLastUsedDirectory(), tr("XML-files (*.xml)"));
+			if (fileName.isNull() == false)
+			{
+				if (item == "Calibration")
+				{
+
+					if (Project::getInstance()->getHasStudyData())
+					{
+						if (!ConfirmationDialog::getInstance()->showConfirmationDialog("There is already data associated with the trial " + item + ". Are you sure you want to override it?"))
+						{
+							return;
+						}
+					}
+					Project::getInstance()->setXMLData(fileName);
+					update();
+				}
+				else
+				{
+					Trial * trial;
+					for (auto t : Project::getInstance()->getTrials())
+					{
+						if(t->getName() == item)
+							trial = t;
+					}
+
+					if (trial)
+					{
+						if (trial->getHasStudyData())
+						{
+							if (!ConfirmationDialog::getInstance()->showConfirmationDialog("There is already data associated with the trial " + item + ". Are you sure you want to override it?"))
+							{
+								return;
+							}
+						}
+						trial->setXMLData(fileName);
+						update();
+					}
+				}
+			}
+		}
+	}
 }

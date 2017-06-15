@@ -165,7 +165,6 @@ bool NewTrialDialog::createTrial()
 		State::getInstance()->changeActiveFrameTrial(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame(), true);
 		State::getInstance()->changeWorkspace(DIGITIZATION, true);
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setXMLData(xml_metadata);
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->parseXMLData();
 		if (!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setFrameRateFromXML())
 		{
 			ErrorDialog::getInstance()->showErrorDialog("Framerate could not be set. Either the framerates of the files differ or Framerates have not been defined");

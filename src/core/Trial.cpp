@@ -1862,6 +1862,7 @@ void Trial::setXMLData(QString filename)
 			file.close();
 		}
 	}
+	parseXMLData();
 }
 
 bool Trial::setFrameRateFromXML()

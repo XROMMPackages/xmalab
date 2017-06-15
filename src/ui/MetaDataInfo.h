@@ -42,10 +42,14 @@ namespace xma
 
 	private:
 		Ui::MetaDataInfo* diag;
+		void update();
 
 	public:
 		explicit MetaDataInfo(QWidget* parent = 0);
 		virtual ~MetaDataInfo();
+
+	public slots:
+		void on_pushButtonAdd_clicked();
 
 	};
 }

@@ -433,7 +433,6 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 									{
 										loadProjectMetaData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
 										trial->setXMLData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
-										trial->parseXMLData();
 									}
 
 									QString isDefault = attr.value("Default").toString();
@@ -1878,7 +1877,6 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							if (!xml_file.isEmpty())
 							{
 								trial->setXMLData(littleHelper::adjustPathToOS(basedir + OS_SEP + xml_file));
-								trial->parseXMLData();
 							}
 
 							QString isDefault = attr.value("Default").toString();
