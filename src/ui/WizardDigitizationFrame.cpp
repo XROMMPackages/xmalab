@@ -623,6 +623,7 @@ void WizardDigitizationFrame::setDialog()
 				frame->pushButton->hide();
 				frame->groupBox_All->show();
 				frame->groupBox_Point->show();
+				frame->groupBox_RB->show();
 
 				if (trackDirection == 0)
 				{
