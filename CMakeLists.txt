@@ -32,8 +32,11 @@ FIND_PACKAGE( QuaZip REQUIRED )
 set(CMAKE_C_FLAGS_RELEASE "-O3")
 
 if(CMAKE_COMPILER_IS_GNUCXX OR APPLE)
-       add_definitions( -Wno-deprecated-register)
+    add_definitions( -Wno-deprecated-register)
 endif()
+IF (APPLE)
+	add_definitions(-D__APPLE__)
+ENDIF (APPLE)
 
 message(STATUS "Building ${PROJECT_NAME} in ${CMAKE_BUILD_TYPE} mode")
 cmake_minimum_required(VERSION 2.8.8)
