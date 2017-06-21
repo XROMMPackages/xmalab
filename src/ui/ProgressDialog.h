@@ -63,13 +63,14 @@ namespace xma
 
 	public slots:
 		void on_cancelButton_clicked(); 
+#ifdef __APPLE__
+		void update();
+#endif
 
 	signals:
 		void actionCanceled();
 
-#ifdef __APPLE__
-		void update(); 
-#endif
+
 	};
 }
 
