@@ -619,7 +619,12 @@ void WizardDigitizationFrame::setDialog()
 		{
 			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() > 0)
 			{
+#ifdef __APPLE__
+				frame->label->show();
+				frame->label->setText("");
+#else
 				frame->label->hide();
+#endif
 				frame->pushButton->hide();
 				frame->groupBox_All->show();
 				frame->groupBox_Point->show();
