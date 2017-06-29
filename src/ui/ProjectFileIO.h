@@ -59,6 +59,7 @@ namespace xma
 		void upgradeTo12(Trial *trial);
 		void upgradeTo13(Trial *trial);
 		void writePortalFile(QString path, std::vector <Trial*> trials);
+		void addMetaData(QString filename, Trial * trial = NULL);
 	private:
 
 		ProjectFileIO();

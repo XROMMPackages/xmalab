@@ -154,8 +154,8 @@ namespace xma
 
 		void clearMarkerAndRigidBodies();
 
-		int getFirstTrackedFrame();
-		int getLastTrackedFrame();
+		QString getFirstTrackedFrame();
+		QString getLastTrackedFrame();
 		double getReprojectionError();
 		double getMarkerToMarkerSD();
 

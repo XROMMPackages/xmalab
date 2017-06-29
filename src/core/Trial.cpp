@@ -2111,31 +2111,44 @@ void Trial::clearMarkerAndRigidBodies()
 	markers.clear();
 }
 
-int Trial::getFirstTrackedFrame()
+QString Trial::getFirstTrackedFrame()
 {
-	int firstFrame = -1;
-	for (auto m : getMarkers())
-	{
-		int f = m->getFirstTrackedFrame();
-		if (f >= 0)
+	QString out_string;
+	for (int i = 0; i != Project::getInstance()->getCameras().size(); i++){
+		int firstFrame = -1;
+		for (auto m : getMarkers())
 		{
-			if (f < firstFrame || firstFrame == -1)
-				firstFrame = f;
+			int f = m->getFirstTrackedFrame(i);
+			if (f >= 0)
+			{
+				if (f < firstFrame || firstFrame == -1)
+					firstFrame = f;
+			}
 		}
+		if (firstFrame != -1) out_string += QString::number(firstFrame);
+		if (i != Project::getInstance()->getCameras().size() - 1) out_string += " / ";
 	}
-	return firstFrame;
+	return out_string;
 }
 
-int Trial::getLastTrackedFrame()
+QString Trial::getLastTrackedFrame()
 {
-	int lastFrame = -1;
-	for (auto m : getMarkers())
-	{
-		int f = m->getLastTrackedFrame();
-		if (f > lastFrame)
-				lastFrame = f;
+	QString out_string;
+	for (int i = 0; i != Project::getInstance()->getCameras().size(); i++){
+		int lastFrame = -1;
+		for (auto m : getMarkers())
+		{
+			int f = m->getLastTrackedFrame(i);
+			if (f >= 0)
+			{
+				if (f > lastFrame)
+					lastFrame = f;
+			}
+		}
+		if (lastFrame != -1) out_string += QString::number(lastFrame);
+		if (i != Project::getInstance()->getCameras().size() - 1) out_string += " / ";
 	}
-	return lastFrame;
+	return out_string;
 }
 
 double Trial::getReprojectionError()
@@ -2145,7 +2158,7 @@ double Trial::getReprojectionError()
 	for (auto m : getMarkers())
 	{
 		int c = m->getFramesTracked();
-		error = c * m->getReprojectionError();
+		error += c * m->getReprojectionError();
 		count += c;
 	}
 

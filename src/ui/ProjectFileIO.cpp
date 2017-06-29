@@ -1144,7 +1144,7 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 			xmlWriter.writeStartElement("data");
 
 			xmlWriter.writeStartElement("xmalab-version");
-			xmlWriter.writeCharacters(UI_VERSION);
+			xmlWriter.writeCharacters(PROJECT_VERSION);
 			xmlWriter.writeEndElement();
 
 			xmlWriter.writeStartElement("repository");
@@ -1247,8 +1247,8 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 					xmlWriter.writeAttribute("id", QString::number(t->getTrialId()));
 					xmlWriter.writeAttribute("name", t->getTrialName());
 					xmlWriter.writeAttribute("xmalab-name", t->getName());
-					xmlWriter.writeAttribute("firstTracked", QString::number(t->getFirstTrackedFrame()));
-					xmlWriter.writeAttribute("lastTracked", QString::number(t->getLastTrackedFrame()));
+					xmlWriter.writeAttribute("firstTracked", t->getFirstTrackedFrame());
+					xmlWriter.writeAttribute("lastTracked", t->getLastTrackedFrame());
 					xmlWriter.writeAttribute("filterfrequency", QString::number(t->getCutoffFrequency()));
 					xmlWriter.writeAttribute("framerate", QString::number(t->getRecordingSpeed()));
 					xmlWriter.writeAttribute("reprojectionerror", QString::number(t->getReprojectionError()));
@@ -1297,9 +1297,32 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 							xmlWriter.writeStartElement("Marker");
 							xmlWriter.writeAttribute("name", t->getMarkers()[idx]->getDescription());
 							xmlWriter.writeAttribute("id", QString::number(idx + 1));
-							xmlWriter.writeAttribute("firstTracked", QString::number(t->getMarkers()[idx]->getFirstTrackedFrame()));
-							xmlWriter.writeAttribute("lastTracked", QString::number(t->getMarkers()[idx]->getLastTrackedFrame()));
-							xmlWriter.writeAttribute("numberTracked", QString::number(t->getMarkers()[idx]->getFramesTracked()));
+							QString firstTracked;
+							QString lastTracked;
+							QString numberTracked;
+							for (int i = 0; i != Project::getInstance()->getCameras().size(); i++)
+							{
+								int f = t->getMarkers()[idx]->getFirstTrackedFrame(i);
+								if (f > 0) firstTracked += QString::number(f);
+
+								f = t->getMarkers()[idx]->getLastTrackedFrame(i);
+								if (f > 0) lastTracked += QString::number(f);
+
+								f = t->getMarkers()[idx]->getFramesTracked(i);
+								if (f > 0) numberTracked += QString::number(f);
+
+
+								if (i != Project::getInstance()->getCameras().size() - 1)
+								{
+									firstTracked += " / ";
+									lastTracked += " / ";
+									numberTracked += " / ";
+								}
+							}
+
+							xmlWriter.writeAttribute("firstTracked", firstTracked);
+							xmlWriter.writeAttribute("lastTracked", lastTracked);
+							xmlWriter.writeAttribute("numberTracked", numberTracked);
 							xmlWriter.writeAttribute("reprojectionerror", QString::number(t->getMarkers()[idx]->getReprojectionError()));
 							xmlWriter.writeEndElement(); // Marker
 						}
@@ -1315,9 +1338,32 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 							xmlWriter.writeStartElement("Marker");
 							xmlWriter.writeAttribute("name", t->getMarkers()[idx]->getDescription());
 							xmlWriter.writeAttribute("id", QString::number(idx + 1));
-							xmlWriter.writeAttribute("firstTracked", QString::number(t->getMarkers()[idx]->getFirstTrackedFrame()));
-							xmlWriter.writeAttribute("lastTracked", QString::number(t->getMarkers()[idx]->getLastTrackedFrame()));
-							xmlWriter.writeAttribute("numberTracked", QString::number(t->getMarkers()[idx]->getFramesTracked()));
+							QString firstTracked;
+							QString lastTracked;
+							QString numberTracked;
+							for (int i = 0; i != Project::getInstance()->getCameras().size(); i++)
+							{
+								int f = t->getMarkers()[idx]->getFirstTrackedFrame(i);
+								if (f > 0) firstTracked += QString::number(f);
+
+								f = t->getMarkers()[idx]->getLastTrackedFrame(i);
+								if (f > 0) lastTracked += QString::number(f);
+
+								f = t->getMarkers()[idx]->getFramesTracked(i);
+								if (f > 0) numberTracked += QString::number(f);
+
+
+								if (i != Project::getInstance()->getCameras().size() - 1)
+								{
+									firstTracked += " / ";
+									lastTracked += " / ";
+									numberTracked += " / ";
+								}
+							}
+
+							xmlWriter.writeAttribute("firstTracked", firstTracked);
+							xmlWriter.writeAttribute("lastTracked", lastTracked);
+							xmlWriter.writeAttribute("numberTracked", numberTracked);
 							xmlWriter.writeAttribute("reprojectionerror", QString::number(t->getMarkers()[idx]->getReprojectionError()));
 							xmlWriter.writeEndElement(); // Marker
 						}
@@ -1334,6 +1380,33 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 		}		
 	}
 
+}
+
+void ProjectFileIO::addMetaData(QString filename, Trial* trial)
+{
+	bool success = true;
+	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+	removeDir(tmpDir_path);
+	unzipFromFileToFolder(filename, tmpDir_path);
+
+	QDir myDir(tmpDir_path);
+	QStringList filesList = myDir.entryList(QDir::NoDotAndDotDot | QDir::Dirs);
+
+	QString xml_filename = tmpDir_path + OS_SEP + filesList[0] + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml";
+
+	if (QFile::exists(xml_filename))
+	{
+		if (trial)
+		{
+			trial->setXMLData(xml_filename);
+		}
+		else
+		{
+			Project::getInstance()->setXMLData(xml_filename);
+		}
+	}
+	
+	removeDir(tmpDir_path);
 }
 
 void ProjectFileIO::removeTmpDir()

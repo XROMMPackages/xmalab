@@ -1576,43 +1576,65 @@ void Marker::reprojectPoint(int frame)
 	updateError(frame);
 }
 
-int Marker::getFirstTrackedFrame()
+int Marker::getFirstTrackedFrame(int cam)
 {
-	for (int i = 0; i < status2D[0].size(); i++)
-	{
-		for (int c = 0; c < status2D.size(); c++)
+	if (cam == -1){
+		for (int i = 0; i < status2D[0].size(); i++)
 		{
-			if (status2D[c][i] >= TRACKED) return i + 1;
+			for (int c = 0; c < status2D.size(); c++)
+			{
+				if (status2D[c][i] >= TRACKED) return i + 1;
+			}
+		}
+	}else
+	{
+		for (int i = 0; i < status2D[0].size(); i++)
+		{		
+			if (status2D[cam][i] >= TRACKED) return i + 1;
 		}
 	}
 	return -1;
 }
 
-int Marker::getLastTrackedFrame()
+int Marker::getLastTrackedFrame(int cam)
 {
-	for (int i = status2D[0].size() - 1; i >= 0 ; i--)
-	{
-		for (int c = 0; c < status2D.size(); c++)
+	if (cam == -1){
+		for (int i = status2D[0].size() - 1; i >= 0; i--)
 		{
-			if (status2D[c][i] >= TRACKED) return i + 1;
+			for (int c = 0; c < status2D.size(); c++)
+			{
+				if (status2D[c][i] >= TRACKED) return i + 1;
+			}
+		}
+	}
+	else
+	{
+		for (int i = status2D[0].size() - 1; i >= 0; i--)
+		{		
+			if (status2D[cam][i] >= TRACKED) return i + 1;
 		}
 	}
 	return -1;
 }
 
-int Marker::getFramesTracked()
+int Marker::getFramesTracked(int cam)
 {
 	int count = 0;
 	bool tracked;
-	for (int i = 0; i < status2D[0].size(); i++)
-	{
-		tracked = true;
-		for (int c = 0; c < status2D.size(); c++)
-		{
-			if (status2D[c][i] < TRACKED) tracked = false;
+	if (cam == -1){
+		for (int i = 0; i < status3D.size(); i++)
+		{		
+			if (status3D[i] >= TRACKED)count++;
 		}
-		if (tracked) count++;
 	}
+	else
+	{
+		for (int i = 0; i < status2D[0].size(); i++)
+		{
+			if (status2D[cam][i] >= TRACKED)  count++;
+		}
+	}
+
 	return count;
 }
 
@@ -1620,7 +1642,7 @@ double Marker::getReprojectionError()
 {
 	int count = 0;
 	double error = 0;
-	for (int i = 0; i < status2D[0].size(); i++)
+	for (int i = 0; i < status3D.size(); i++)
 	{
 		if (status3D[i] >= TRACKED) {
 			for (int c = 0; c < status2D.size(); c++)

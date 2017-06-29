@@ -31,6 +31,7 @@
 #include "ui/MetaDataInfo.h"
 #include "ui_MetaDataInfo.h"
 
+#include "ui/ProjectFileIO.h"
 #include "core/Project.h"
 #include "core/Trial.h"
 #include "core/VideoStream.h"
@@ -142,13 +143,13 @@ void MetaDataInfo::on_pushButtonAdd_clicked()
 		QString item = QInputDialog::getItem(this, "Select the trial you want to add xml data", "Trial ", list, 0, false, &ok);
 
 		if (ok){
-			QString fileName = QFileDialog::getOpenFileName(this,
-				tr("Select XML file"), Settings::getInstance()->getLastUsedDirectory(), tr("XML-files (*.xml)"));
-			if (fileName.isNull() == false)
+			
+			if (item == "Calibration")
 			{
-				if (item == "Calibration")
+				QString fileName = QFileDialog::getOpenFileName(this,
+					tr("Select XMA file"), Settings::getInstance()->getLastUsedDirectory(), tr("XMA-files (*.xma)"));
+				if (fileName.isNull() == false)
 				{
-
 					if (Project::getInstance()->getHasStudyData())
 					{
 						if (!ConfirmationDialog::getInstance()->showConfirmationDialog("There is already data associated with the trial " + item + ". Are you sure you want to override it?"))
@@ -156,19 +157,24 @@ void MetaDataInfo::on_pushButtonAdd_clicked()
 							return;
 						}
 					}
-					Project::getInstance()->setXMLData(fileName);
+					ProjectFileIO::getInstance()->addMetaData(fileName);
 					update();
 				}
-				else
+			}
+			else
+			{
+				Trial * trial;
+				for (auto t : Project::getInstance()->getTrials())
 				{
-					Trial * trial;
-					for (auto t : Project::getInstance()->getTrials())
-					{
-						if(t->getName() == item)
-							trial = t;
-					}
+					if(t->getName() == item)
+						trial = t;
+				}
 
-					if (trial)
+				if (trial)
+				{
+					QString fileName = QFileDialog::getOpenFileName(this,
+						tr("Select XMATRIAL file"), Settings::getInstance()->getLastUsedDirectory(), tr("XMATRIAL-files (*.xmatrial)"));
+					if (fileName.isNull() == false)
 					{
 						if (trial->getHasStudyData())
 						{
@@ -177,11 +183,11 @@ void MetaDataInfo::on_pushButtonAdd_clicked()
 								return;
 							}
 						}
-						trial->setXMLData(fileName);
+						ProjectFileIO::getInstance()->addMetaData(fileName,trial);
 						update();
 					}
 				}
-			}
+			}	
 		}
 	}
 }
