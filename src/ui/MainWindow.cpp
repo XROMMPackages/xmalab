@@ -93,10 +93,8 @@
 	#include <QMessageBox>
 #endif
 
-
-#define BETA 1
-
 using namespace xma;
+
 
 MainWindow* MainWindow::instance = NULL;
 
@@ -245,10 +243,10 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->action3D_world_view->setEnabled(false);
 	ui->actionImportTrial->setEnabled(false);
 	Shortcuts::getInstance()->bindApplicationShortcuts();
-#ifndef BETA
+#ifndef PROJECT_BETA_VERSION
 	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
 #else 
-	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA" + QString::number(BETA));
+	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA" PROJECT_BETA_VERSION);
 #endif
 }
 
@@ -584,10 +582,10 @@ void MainWindow::newProjectFromXMALab(QString filename)
 		project = NULL;
 	}
 
-#ifndef BETA
+#ifndef PROJECT_BETA_VERSION
 	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
 #else 
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA" + QString::number(BETA));
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA" PROJECT_BETA_VERSION);
 #endif
 }
 
@@ -674,10 +672,10 @@ void MainWindow::loadProjectFinished()
 			UndistortionAfterloadProjectFinished();
 		}
 
-#ifndef BETA
+#ifndef PROJECT_BETA_VERSION
 		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
 #else 
-		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION " - BETA" + QString::number(BETA));
+		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION " - BETA" + PROJECT_BETA_VERSION);
 #endif
 	}
 	else if (m_FutureWatcher->result() == 1)
@@ -786,10 +784,10 @@ void MainWindow::closeProject()
 	PlotWindow::getInstance()->hide();
 	EventDockWidget::getInstance()->hide();
 
-#ifndef BETA
+#ifndef PROJECT_BETA_VERSION
 	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
 #else 
-	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA" + QString::number(BETA));
+	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA" + PROJECT_BETA_VERSION);
 #endif
 
 	ConsoleDockWidget::getInstance()->clear();
@@ -1021,10 +1019,10 @@ void MainWindow::saveProjectFinished()
 	ProgressDialog::getInstance()->closeProgressbar();
 
 
-#ifndef BETA
+#ifndef PROJECT_BETA_VERSION
 	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
 #else 
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA" + QString::number(BETA));
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA" + PROJECT_BETA_VERSION);
 #endif
 }
 
