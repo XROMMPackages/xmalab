@@ -1,2 +1,4 @@
 build/*
 build*/*
+deployment/VS2013/xmalab_installer_generator/Release/*
+deployment/VS2013/xmalab_installer_generator/Debug/*
