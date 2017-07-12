@@ -59,4 +59,4 @@ namespace xma
 	};
 }
 
-#endif EVENTDATA_H_
+#endif //EVENTDATA_H_
