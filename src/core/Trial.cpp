@@ -2125,7 +2125,13 @@ QString Trial::getFirstTrackedFrame()
 					firstFrame = f;
 			}
 		}
-		if (firstFrame != -1) out_string += QString::number(firstFrame);
+		if (firstFrame != -1) {
+			out_string += QString::number(firstFrame);
+		}
+		else
+		{
+			out_string += "NA";
+		}
 		if (i != Project::getInstance()->getCameras().size() - 1) out_string += " / ";
 	}
 	return out_string;
@@ -2145,7 +2151,13 @@ QString Trial::getLastTrackedFrame()
 					lastFrame = f;
 			}
 		}
-		if (lastFrame != -1) out_string += QString::number(lastFrame);
+		if (lastFrame != -1){
+			out_string += QString::number(lastFrame);
+		}
+		else
+		{
+			out_string += "NA";
+		}
 		if (i != Project::getInstance()->getCameras().size() - 1) out_string += " / ";
 	}
 	return out_string;

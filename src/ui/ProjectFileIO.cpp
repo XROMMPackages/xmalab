@@ -1251,8 +1251,10 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 					xmlWriter.writeAttribute("lastTracked", t->getLastTrackedFrame());
 					xmlWriter.writeAttribute("filterfrequency", QString::number(t->getCutoffFrequency()));
 					xmlWriter.writeAttribute("framerate", QString::number(t->getRecordingSpeed()));
-					xmlWriter.writeAttribute("reprojectionerror", QString::number(t->getReprojectionError()));
-					xmlWriter.writeAttribute("averageSD", QString::number(t->getMarkerToMarkerSD()));
+					double val2 = t->getReprojectionError();
+					xmlWriter.writeAttribute("reprojectionerror", val2 <= 0 ? "NA" : QString::number(val2));
+					val2 = t->getMarkerToMarkerSD();
+					xmlWriter.writeAttribute("averageSD", val2 <= 0 ? "NA" : QString::number(val2));
 
 					xmlWriter.writeStartElement("Movies");
 					for (int m = 0; m < t->getVideoStreams().size(); m++)
@@ -1275,15 +1277,19 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 					{
 						xmlWriter.writeStartElement("RigidBody");
 						xmlWriter.writeAttribute("name", rb->getDescription());
-						xmlWriter.writeAttribute("firstTracked", QString::number(rb->getFirstTrackedFrame()));
-						xmlWriter.writeAttribute("lastTracked", QString::number(rb->getLastTrackedFrame()));
+						int val = rb->getFirstTrackedFrame();
+						xmlWriter.writeAttribute("firstTracked", val < 0 ? "NA" : QString::number(val));
+						val = rb->getLastTrackedFrame();
+						xmlWriter.writeAttribute("lastTracked", val < 0 ? "NA" : QString::number(val));
 						xmlWriter.writeAttribute("numberTracked", QString::number(rb->getFramesTracked()));
 						double averageSD;
 						int count;
 						rb->getMarkerToMarkerSD(averageSD, count);
-						xmlWriter.writeAttribute("averageSD", QString::number(averageSD));
-						xmlWriter.writeAttribute("error3DUnfiltered", QString::number(rb->getError3D(false)));
-						xmlWriter.writeAttribute("error3DFiltered", QString::number(rb->getError3D(true)));
+						xmlWriter.writeAttribute("averageSD", averageSD <= 0 ? "NA" : QString::number(averageSD));
+						double val2 = rb->getError3D(false);
+						xmlWriter.writeAttribute("error3DUnfiltered", val2 <= 0 ? "NA" : QString::number(val2));
+						val2 = rb->getError3D(true);
+						xmlWriter.writeAttribute("error3DFiltered", val2 <= 0 ? "NA" : QString::number(val2));
 						if (rb->getOverrideCutoffFrequency()){
 							xmlWriter.writeAttribute("filterfrequency", QString::number(rb->getCutoffFrequency()));
 						}
@@ -1303,14 +1309,15 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 							for (int i = 0; i != Project::getInstance()->getCameras().size(); i++)
 							{
 								int f = t->getMarkers()[idx]->getFirstTrackedFrame(i);
-								if (f > 0) firstTracked += QString::number(f);
+								if (f >= 0) {firstTracked += QString::number(f);}
+								else{firstTracked += "NA";}
 
 								f = t->getMarkers()[idx]->getLastTrackedFrame(i);
-								if (f > 0) lastTracked += QString::number(f);
+								if (f >= 0) { lastTracked += QString::number(f); }
+								else{ lastTracked += "NA"; }
 
 								f = t->getMarkers()[idx]->getFramesTracked(i);
-								if (f > 0) numberTracked += QString::number(f);
-
+								numberTracked += QString::number(f); 
 
 								if (i != Project::getInstance()->getCameras().size() - 1)
 								{
@@ -1323,7 +1330,8 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 							xmlWriter.writeAttribute("firstTracked", firstTracked);
 							xmlWriter.writeAttribute("lastTracked", lastTracked);
 							xmlWriter.writeAttribute("numberTracked", numberTracked);
-							xmlWriter.writeAttribute("reprojectionerror", QString::number(t->getMarkers()[idx]->getReprojectionError()));
+							double val2 = t->getMarkers()[idx]->getReprojectionError();
+							xmlWriter.writeAttribute("reprojectionerror", val2 <= 0 ? "NA" : QString::number(val2));
 							xmlWriter.writeEndElement(); // Marker
 						}
 
@@ -1344,14 +1352,15 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 							for (int i = 0; i != Project::getInstance()->getCameras().size(); i++)
 							{
 								int f = t->getMarkers()[idx]->getFirstTrackedFrame(i);
-								if (f > 0) firstTracked += QString::number(f);
+								if (f >= 0) { firstTracked += QString::number(f); }
+								else{ firstTracked += "NA"; }
 
 								f = t->getMarkers()[idx]->getLastTrackedFrame(i);
-								if (f > 0) lastTracked += QString::number(f);
+								if (f >= 0) { lastTracked += QString::number(f); }
+								else{ lastTracked += "NA"; }
 
 								f = t->getMarkers()[idx]->getFramesTracked(i);
-								if (f > 0) numberTracked += QString::number(f);
-
+								numberTracked += QString::number(f);
 
 								if (i != Project::getInstance()->getCameras().size() - 1)
 								{
@@ -1364,7 +1373,8 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 							xmlWriter.writeAttribute("firstTracked", firstTracked);
 							xmlWriter.writeAttribute("lastTracked", lastTracked);
 							xmlWriter.writeAttribute("numberTracked", numberTracked);
-							xmlWriter.writeAttribute("reprojectionerror", QString::number(t->getMarkers()[idx]->getReprojectionError()));
+							double val2 = t->getMarkers()[idx]->getReprojectionError();
+							xmlWriter.writeAttribute("reprojectionerror", val2 <= 0 ? "NA" : QString::number(val2));
 							xmlWriter.writeEndElement(); // Marker
 						}
 					}
