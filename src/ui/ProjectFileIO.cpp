@@ -2142,7 +2142,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 													}
 													QString dummyPointCoordinates = basedir + OS_SEP + attr.value("PointCoordinates").toString();
 
-													trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), littleHelper::adjustPathToOS(dummyPointReferences2), 1, littleHelper::adjustPathToOS(dummyPointCoordinates));
+													trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), littleHelper::adjustPathToOS(dummyPointReferences2), -1, littleHelper::adjustPathToOS(dummyPointCoordinates));
 												}
 											}
 											xml.readNext();

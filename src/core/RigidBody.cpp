@@ -540,6 +540,7 @@ void RigidBody::clearAllDummyPoints()
 {
 	dummyNames.clear();
 	dummypoints.clear();
+	dummypoints2.clear();
 	dummyRBIndex.clear();
 	dummypointsCoords.clear();
 	dummypointsCoordsSet.clear();
