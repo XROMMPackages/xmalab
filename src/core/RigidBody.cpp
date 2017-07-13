@@ -175,7 +175,7 @@ const std::vector<int>& RigidBody::getPoseFiltered()
 	return poseFiltered;
 }
 
-const std::vector<int>& RigidBody::getPoseComputed()
+std::vector<int>& RigidBody::getPoseComputed()
 {
 	return poseComputed;
 }
@@ -292,6 +292,11 @@ bool RigidBody::allReferenceMarkerReferencesSet()
 
 bool RigidBody::transformPoint(cv::Point3d in, cv::Point3d& out, int frame, bool filtered)
 {
+	if (!poseComputed[frame])
+	{
+		computePose(frame); 
+	}
+
 	if (poseComputed[frame] || (filtered && poseFiltered[frame]))
 	{
 		cv::Mat rotationMatrix;
@@ -462,6 +467,68 @@ double RigidBody::getError3D(bool filtered)
 	if (count != 0) error3D /= count;
 
 	return error3D;
+}
+
+int RigidBody::addDummyPointsForOptimization(std::vector<cv::Point2d>& Pts2D, std::vector<cv::Point3d>& Pts3D, std::vector<int>& cameraIdx, int Frame)
+{
+	int count = 0;
+	for (unsigned int i = 0; i < dummypoints.size(); i++)
+	{
+		cv::Point3d src;
+		cv::Point3d dst;
+		if (dummyRBIndex[i] >= 0)
+		{
+			cv::Point3d dummy_tmp;
+			if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints2[i], dummy_tmp, Frame))
+			{
+				src = cv::Point3f(dummy_tmp.x
+					, dummy_tmp.y
+					, dummy_tmp.z);
+				dst = cv::Point3f(dummypoints[i].x
+					, dummypoints[i].y
+					, dummypoints[i].z);
+			}
+		}
+		else if (dummypointsCoordsSet[i][Frame])
+		{
+			src  = cv::Point3f(dummypointsCoords[i][Frame].x
+				, dummypointsCoords[i][Frame].y
+				, dummypointsCoords[i][Frame].z);
+			dst = cv::Point3f(dummypoints[i].x
+				, dummypoints[i].y
+				, dummypoints[i].z);
+		}
+
+		for (int c = 0; c < Project::getInstance()->getCameras().size(); c++)
+		{
+			Camera* cam = Project::getInstance()->getCameras()[c];
+			if (cam->isCalibrated())
+			{
+				cv::Mat projMatrs = cam->getProjectionMatrix(trial->getReferenceCalibrationImage());
+				cv::Mat pt;
+				pt.create(4, 1, CV_64F);
+				pt.at<double>(0, 0) = src.x;
+				pt.at<double>(1, 0) = src.y;
+				pt.at<double>(2, 0) = src.z;
+				pt.at<double>(3, 0) = 1;
+				cv::Mat pt_out = projMatrs * pt;
+				double z = pt_out.at<double>(2, 0);
+				
+				if (z != 0.0)
+				{
+					cv::Point2d pt_trans;
+					pt_trans.x = pt_out.at<double>(0, 0) / z;
+					pt_trans.y = pt_out.at<double>(1, 0) / z;
+
+					Pts2D.push_back(pt_trans);
+					Pts3D.push_back(dst);
+					cameraIdx.push_back(c);
+					count++;
+				}			
+			}
+		}
+	}
+	return count;
 }
 
 void RigidBody::setReferenceMarkerReferences()
@@ -886,10 +953,10 @@ void RigidBody::computePose(int Frame)
 	while (Frame >= (int) poseComputed.size()) addFrame();
 
 	poseComputed[Frame] = 0;
-
+	bool success = false;
 	if (!Project::getInstance()->hasCalibration())
 		return;
-
+	
 	if (initialised)
 	{
 		std::vector<cv::Point3d> src;
@@ -1025,7 +1092,7 @@ void RigidBody::computePose(int Frame)
 			cv::Mat t = ygmat - rotMatTmp * xgmat;
 			translationvectors[Frame] = cv::Vec3d(t);
 
-			poseComputed[Frame] = 1;
+			success = 1;
 		}
 		else if (!Settings::getInstance()->getBoolSetting("DisableRBComputeAdvanced"))
 		{
@@ -1104,17 +1171,18 @@ void RigidBody::computePose(int Frame)
 				{
 					translationvectors[Frame][j] = out.at<double>(j, 3);
 				}
-				poseComputed[Frame] = 1;
+				success = 1;
 			}
 		}
 
-		if (Settings::getInstance()->getBoolSetting("OptimizeRigidBody") && poseComputed[Frame])
+		if (Settings::getInstance()->getBoolSetting("OptimizeRigidBody") && success)
 		{
 			RigidBodyPoseOptimization * opt = new RigidBodyPoseOptimization(this, Frame);
 			opt->optimizeRigidBodySetup();
 			delete opt;
 		}
 	}
+	poseComputed[Frame] = success;
 	updateError(Frame);
 }
 
@@ -1778,7 +1846,7 @@ void RigidBody::setTransformation(int frame, cv::Vec3d rotVec, cv::Vec3d transVe
 	translationvectors[frame][1] = transVec[1];
 	translationvectors[frame][2] = transVec[2];
 
-	updateError(frame);
+	//updateError(frame);
 }
 
 const std::vector<double>& RigidBody::getErrorMean2D()

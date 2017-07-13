@@ -61,6 +61,11 @@ void UpdateTrialFrame::process()
 
 	for (unsigned int i = 0; i < m_trial->getRigidBodies().size(); i++)
 	{
+		m_trial->getRigidBodies()[i]->getPoseComputed()[m_frame] = false; 
+	}
+
+	for (unsigned int i = 0; i < m_trial->getRigidBodies().size(); i++)
+	{
 		m_trial->getRigidBodies()[i]->computePose(m_frame);
 	}
 }

@@ -172,7 +172,10 @@ RigidBodyPoseOptimization::RigidBodyPoseOptimization(RigidBody * body, int frame
 				cameraIdx.push_back(c);
 				nbPoints++;
 			}
-		}		
+		}
+
+		nbPoints += body->addDummyPointsForOptimization(Pts2D, Pts3D, cameraIdx, m_frame);
+
 		cameraRotationVector.push_back(Project::getInstance()->getCameras()[c]->getCalibrationImages()[body->getTrial()->getReferenceCalibrationImage()]->getRotationVector());
 		cameraTranslationVector.push_back(Project::getInstance()->getCameras()[c]->getCalibrationImages()[body->getTrial()->getReferenceCalibrationImage()]->getTranslationVector());
 		cameraMatrix.push_back(Project::getInstance()->getCameras()[c]->getCameraMatrix());

@@ -54,7 +54,7 @@ namespace xma
 		QString getDescription();
 
 		const std::vector<int>& getPointsIdx();
-		const std::vector<int>& getPoseComputed();
+		std::vector<int>& getPoseComputed();
 		const std::vector<int>& getPoseFiltered();
 		const std::vector<QString>& getReferenceNames();
 		const std::vector<cv::Point3d>& getReferencePoints();
@@ -154,6 +154,8 @@ namespace xma
 		int getFramesTracked();
 		void getMarkerToMarkerSD(double & sd_all, int & count_all);
 		double getError3D(bool filtered);
+
+		int addDummyPointsForOptimization(std::vector<cv::Point2d> &Pts2D, std::vector<cv::Point3d> &Pts3D, std::vector<int> &cameraIdx, int Frame);
 
 	private:
 		void init(int size);
