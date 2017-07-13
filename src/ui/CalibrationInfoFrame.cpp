@@ -99,7 +99,10 @@ void CalibrationInfoFrame::getCameraInfo(Camera* camera, QString& CameraCenter, 
 		QString::number(camera->getDistortionCoefficiants().at<double>(1, 0), 'f', 5) + QString(" , ") +
 		QString::number(camera->getDistortionCoefficiants().at<double>(2, 0), 'f', 5) + QString(" , ") +
 		QString::number(camera->getDistortionCoefficiants().at<double>(3, 0), 'f', 5) + QString(" , ") +
-		QString::number(camera->getDistortionCoefficiants().at<double>(4, 0), 'f', 5);
+		QString::number(camera->getDistortionCoefficiants().at<double>(4, 0), 'f', 5) + QString(" , ") +
+		QString::number(camera->getDistortionCoefficiants().at<double>(5, 0), 'f', 5) + QString(" , ") +
+		QString::number(camera->getDistortionCoefficiants().at<double>(6, 0), 'f', 5) + QString(" , ") +
+		QString::number(camera->getDistortionCoefficiants().at<double>(7, 0), 'f', 5);;
 
 	int countFrames = 0;
 	int countInlier = 0;

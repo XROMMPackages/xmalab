@@ -250,7 +250,11 @@ void Calibration::process()
 
 		if (!Project::getInstance()->getCameras()[m_camera]->hasModelDistortion())
 		{
-			flags = flags + (CV_CALIB_FIX_K1 + CV_CALIB_FIX_K2 + CV_CALIB_FIX_K3 + CV_CALIB_ZERO_TANGENT_DIST);
+			flags = flags + (CV_CALIB_FIX_K1 + CV_CALIB_FIX_K2 + CV_CALIB_FIX_K3 + CV_CALIB_FIX_K4 + CV_CALIB_FIX_K5 + CV_CALIB_FIX_K6 + CV_CALIB_ZERO_TANGENT_DIST);
+		}
+		else
+		{
+			flags = flags + CV_CALIB_RATIONAL_MODEL;
 		}
 
 		cv::vector<cv::Mat> rvecs;

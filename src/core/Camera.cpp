@@ -457,7 +457,10 @@ void Camera::saveUndistortionParam(QString filename)
 	outfile.precision(12);
 	for (unsigned int i = 0; i < 8; ++i)
 	{
-		outfile << distortion_coeffs.at<double>(i, 0) << std::endl;
+		if (distortion_coeffs.rows > i)
+			outfile << distortion_coeffs.at<double>(i, 0) << std::endl;
+		else
+			outfile << 0 << std::endl;
 	}
 
 	outfile.close();
@@ -484,7 +487,10 @@ void Camera::loadUndistortionParam(QString filename)
 
 	for (unsigned int y = 0; y < 8; y++)
 	{
-		distortion_coeffs.at<double>(y, 0) = values[y][0];
+		if (values.size() > y)
+			distortion_coeffs.at<double>(y, 0) = values[y][0];
+		else
+			distortion_coeffs.at<double>(y, 0) = 0;
 	}
 
 	for (unsigned int y = 0; y < values.size(); y++)
@@ -681,7 +687,8 @@ cv::Point2d Camera::applyModelDistortion(cv::Point2d pt, bool undistort)
 		double r2 = x2 + y2;
 		double xy2 = 2 * pt_out.x * pt_out.y;
 
-		double kr = (1 + ((distortion_coeffs.at<double>(4, 0) * r2 + distortion_coeffs.at<double>(1, 0)) * r2 + distortion_coeffs.at<double>(0, 0)) * r2);
+		double kr = (1 + ((distortion_coeffs.at<double>(4, 0) * r2 + distortion_coeffs.at<double>(1, 0)) * r2 + distortion_coeffs.at<double>(0, 0)) * r2) /
+			(1 + ((distortion_coeffs.at<double>(7, 0) * r2 + distortion_coeffs.at<double>(6, 0)) * r2 + distortion_coeffs.at<double>(5, 0)) * r2) ;
 		pt_out.x = cameramatrix.at<double>(0, 0) * (pt_out.x * kr + distortion_coeffs.at<double>(2, 0) * xy2 + distortion_coeffs.at<double>(3, 0) * (r2 + 2 * x2)) + cameramatrix.at<double>(0, 2);
 		pt_out.y = cameramatrix.at<double>(1, 1) * (pt_out.y * kr + distortion_coeffs.at<double>(2, 0) * (r2 + 2 * y2) + distortion_coeffs.at<double>(3, 0) * xy2) + cameramatrix.at<double>(1, 2);
 	}
