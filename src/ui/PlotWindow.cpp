@@ -684,7 +684,7 @@ void PlotWindow::drawEvents(int idx)
 			int countf = 0;
 			for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
 			{
-				events[count][countf]->setVisible(e->getData()[f]);
+				events[count][countf]->setVisible(e->getData()[f-1]);
 				events[count][countf]->setBrush(brush);
 				events[count][countf]->setPen(pen);
 				events[count][countf]->topLeft->setCoords((((double)f) - 0.5 - posOffset) * posMultiplier, start - (count)*step_size);
