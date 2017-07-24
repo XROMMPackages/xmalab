@@ -46,14 +46,18 @@ namespace xma
 		Q_OBJECT
 
 	public:
-		WorldViewDockWidget(QWidget* parent);
+		virtual ~WorldViewDockWidget();
 		//WorldViewDockGLWidget* openGL;
 
 		void setSharedGLContext(const QGLContext* sharedContext);
 		void draw();
 		void setStartEndSequence(int start, int end);
-
+		static WorldViewDockWidget* getInstance();
 	private:
+
+		static WorldViewDockWidget* instance;
+		WorldViewDockWidget(QWidget* parent);
+
 		//QGridLayout* layout;
 		Ui::WorldViewDockWidget* dock;
 

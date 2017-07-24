@@ -103,9 +103,6 @@ MainWindow::MainWindow(QWidget* parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
 {
-	//To prevent endless looping when accesing MainWindow::getInstance in constructors
-	worldViewDockWidget = NULL;
-	
 	if (!instance) instance = this;
 
 	ui->setupUi(this);
@@ -176,9 +173,8 @@ MainWindow::MainWindow(QWidget* parent) :
 	connect(&resizeTimer, SIGNAL(timeout()), SLOT(resizeDone()));
 
 	GLSharedWidget::getInstance()->makeGLCurrent();
-	worldViewDockWidget = new WorldViewDockWidget(this);
-	addDockWidget(Qt::LeftDockWidgetArea, worldViewDockWidget);
-	worldViewDockWidget->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());
+	addDockWidget(Qt::LeftDockWidgetArea, WorldViewDockWidget::getInstance());
+	WorldViewDockWidget::getInstance()->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());
 
 	WizardDockWidget::getInstance();
 	ProgressDialog::getInstance();
@@ -193,7 +189,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	{
 		WizardDockWidget::getInstance()->setFloating(true);
 		ProgressDialog::getInstance()->setFloating(false);
-		worldViewDockWidget->setFloating(true);
+		WorldViewDockWidget::getInstance()->setFloating(true);
 		ConsoleDockWidget::getInstance()->setFloating(true);
 		DetailViewDockWidget::getInstance()->setFloating(false);
 		DisplayOptionsDockWidget::getInstance()->setFloating(false);
@@ -209,7 +205,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	{
 		ConsoleDockWidget::getInstance()->hide();
 	}
-	worldViewDockWidget->hide();
+	WorldViewDockWidget::getInstance()->hide();
 	ProgressDialog::getInstance()->hide();
 	PointsDockWidget::getInstance()->hide();
 	DetailViewDockWidget::getInstance()->hide();
@@ -256,7 +252,7 @@ MainWindow::~MainWindow()
 	closeProject();
 	delete GLSharedWidget::getInstance();
 	delete WizardDockWidget::getInstance();
-	delete worldViewDockWidget;
+	delete WorldViewDockWidget::getInstance();
 	delete mapper;
 	instance = NULL;
 }
@@ -1038,7 +1034,7 @@ void MainWindow::redrawGL()
 		DetailViewDockWidget::getInstance()->draw();
 		PlotWindow::getInstance()->draw();
 		PointsDockWidget::getInstance()->updateColor();
-		if (worldViewDockWidget)worldViewDockWidget->draw();
+		if (WorldViewDockWidget::getInstance())WorldViewDockWidget::getInstance()->draw();
 	}
 }
 
@@ -1143,7 +1139,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		DisplayOptionsDockWidget::getInstance()->hide();
 		PlotWindow::getInstance()->hide();
 		EventDockWidget::getInstance()->hide();
-		worldViewDockWidget->hide();
+		WorldViewDockWidget::getInstance()->hide();
 	}
 	else if (workspace == CALIBRATION)
 	{
@@ -1183,11 +1179,11 @@ void MainWindow::workspaceChanged(work_state workspace)
 		EventDockWidget::getInstance()->hide();
 		if (Settings::getInstance()->getBoolSetting("Show3DView"))
 		{
-			worldViewDockWidget->show();
+			WorldViewDockWidget::getInstance()->show();
 		}
 		else
 		{
-			worldViewDockWidget->hide();
+			WorldViewDockWidget::getInstance()->hide();
 		}
 	}
 	else if (workspace == DIGITIZATION)
@@ -1223,11 +1219,11 @@ void MainWindow::workspaceChanged(work_state workspace)
 
 				if (Settings::getInstance()->getBoolSetting("Show3DView"))
 				{
-					worldViewDockWidget->show();
+					WorldViewDockWidget::getInstance()->show();
 				}
 				else
 				{
-					worldViewDockWidget->hide();
+					WorldViewDockWidget::getInstance()->hide();
 				}
 
 				if (Settings::getInstance()->getBoolSetting("ShowDetailView"))
@@ -1276,7 +1272,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 				PlotWindow::getInstance()->hide();
 				EventDockWidget::getInstance()->hide();
 				DetectionSettings::getInstance()->hide();
-				worldViewDockWidget->hide();
+				WorldViewDockWidget::getInstance()->hide();
 			}
 
 			ui->actionExport2D_Points->setEnabled(true);
@@ -1328,7 +1324,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			PlotWindow::getInstance()->hide();
 			EventDockWidget::getInstance()->hide();
 			DetectionSettings::getInstance()->hide();
-			worldViewDockWidget->hide();
+			WorldViewDockWidget::getInstance()->hide();
 		}
 	}
 
@@ -1920,12 +1916,12 @@ void MainWindow::on_action3D_world_view_triggered(bool checked)
 {
 	if (checked)
 	{
-		worldViewDockWidget->show();
+		WorldViewDockWidget::getInstance()->show();
 		Settings::getInstance()->set("Show3DView", true);
 	}
 	else
 	{
-		worldViewDockWidget->hide();
+		WorldViewDockWidget::getInstance()->hide();
 		Settings::getInstance()->set("Show3DView", false);
 		ui->action3D_world_view->setChecked(false);
 	}

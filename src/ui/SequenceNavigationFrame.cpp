@@ -36,6 +36,7 @@
 #include "ui/WizardDockWidget.h"
 #include "ui/MainWindow.h"
 #include "ui/PlotWindow.h"
+#include "ui/WorldViewDockWidget.h"
 #include "core/Project.h"
 #include "core/Trial.h"
 #include "core/Marker.h"
@@ -442,6 +443,7 @@ void SequenceNavigationFrame::on_toolButtonFrameStart_clicked()
 	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setStartFrame(idx);
 		setStartEndSequence(idx, endFrame);
+		WorldViewDockWidget::getInstance()->setStartEndSequence(idx, endFrame);
 	}
 }
 
@@ -454,6 +456,7 @@ void SequenceNavigationFrame::on_toolButtonFrameEnd_clicked()
 	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setEndFrame(idx);
 		setStartEndSequence(startFrame, idx);
+		WorldViewDockWidget::getInstance()->setStartEndSequence(startFrame, idx);
 	}
 }
 

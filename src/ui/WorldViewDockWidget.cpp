@@ -40,6 +40,9 @@
 
 using namespace xma;
 
+WorldViewDockWidget* WorldViewDockWidget::instance = NULL;
+
+
 WorldViewDockWidget::WorldViewDockWidget(QWidget* parent) : QDockWidget(parent), dock(new Ui::WorldViewDockWidget)
 {
 	dock->setupUi(this);
@@ -60,6 +63,22 @@ WorldViewDockWidget::WorldViewDockWidget(QWidget* parent) : QDockWidget(parent),
 	connect(play_timer, SIGNAL(timeout()), this, SLOT(play_update()));
 
 	updating = false;
+}
+
+WorldViewDockWidget::~WorldViewDockWidget()
+{
+	delete dock;
+	instance = NULL;
+}
+
+WorldViewDockWidget* WorldViewDockWidget::getInstance()
+{
+	if (!instance)
+	{
+		instance = new WorldViewDockWidget(MainWindow::getInstance());
+		MainWindow::getInstance()->addDockWidget(Qt::LeftDockWidgetArea, instance);
+	}
+	return instance;
 }
 
 void WorldViewDockWidget::setTimeline(bool enabled)
@@ -263,10 +282,13 @@ void WorldViewDockWidget::play_update()
 
 	QApplication::processEvents();
 
-	if ((play_tag < 0 && dock->toolButtonPrev->isEnabled() == false) ||
-		(play_tag > 0 && dock->toolButtonNext->isEnabled() == false))
+	if (play_tag < 0 && dock->toolButtonPrev->isEnabled() == false)
 	{
-		on_toolButtonStop_clicked();
+		changeFrame(dock->horizontalSlider->maximum());
+	} 
+	if	(play_tag > 0 && dock->toolButtonNext->isEnabled() == false)
+	{
+		changeFrame(dock->horizontalSlider->minimum());
 	}
 }
 

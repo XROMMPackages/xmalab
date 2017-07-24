@@ -44,7 +44,6 @@ namespace xma
 	class Project;
 	class CameraViewWidget;
 	class NewProjectDialog;
-	class WorldViewDockWidget;
 
 	class MainWindow : public QMainWindow
 	{
@@ -95,7 +94,6 @@ namespace xma
 
 		QFutureWatcher<int>* m_FutureWatcher;
 		NewProjectDialog* newProjectdialog;
-		WorldViewDockWidget* worldViewDockWidget;
 
 		QSignalMapper * mapper;
 
