@@ -133,6 +133,12 @@ bool NewTrialDialog::createTrial()
 			list.push_back((*it)->getImageFileNames());
 		}
 		m_trial->changeTrialData(trialname, list);
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setXMLData(xml_metadata);
+		if (!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setFrameRateFromXML())
+		{
+			ErrorDialog::getInstance()->showErrorDialog("Framerate could not be set. Either the framerates of the files differ or Framerates have not been defined");
+		}
+
 		return true;
 	}
 	else
