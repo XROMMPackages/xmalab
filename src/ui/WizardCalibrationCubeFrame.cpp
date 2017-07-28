@@ -975,9 +975,12 @@ void WizardCalibrationCubeFrame::on_pushButtonDeleteFrame_clicked()
 		for (auto cam : Project::getInstance()->getCameras())
 		{
 			cam->deleteFrame(State::getInstance()->getActiveFrameCalibration());
+			
 		}
 		MainWindow::getInstance()->recountFrames();
-
+		int newFrame = State::getInstance()->getActiveFrameCalibration() - 1;
+		if (newFrame < 0) newFrame = 0;
+		State::getInstance()->changeActiveFrameCalibration(newFrame);
 
 		for (auto cam : Project::getInstance()->getCameras())
 		{

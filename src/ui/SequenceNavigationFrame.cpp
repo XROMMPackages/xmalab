@@ -204,6 +204,8 @@ void SequenceNavigationFrame::workspaceChanged(work_state workspace)
 	if (workspace == CALIBRATION && Project::getInstance()->getNbImagesCalibration() > 1)
 	{
 		setNbImages(Project::getInstance()->getNbImagesCalibration());
+		changeFrame(State::getInstance()->getActiveFrameCalibration());
+
 		frame->toolButtonFrameEnd->setDisabled(true);
 		frame->toolButtonFrameStart->setDisabled(true);
 		frame->toolButtonPlay->hide();
@@ -248,10 +250,12 @@ void SequenceNavigationFrame::activeTrialChanged(int activeTrial)
 
 void SequenceNavigationFrame::changeFrame(int f)
 {
+	
 	if (State::getInstance()->getWorkspace() == CALIBRATION)
 	{
-		if (f >= 0 && f < Project::getInstance()->getNbImagesCalibration())
-			State::getInstance()->changeActiveFrameCalibration(f);
+		if (f >= 0 && f < Project::getInstance()->getNbImagesCalibration()){
+			State::getInstance()->changeActiveFrameCalibration(f,true);
+		}
 	}
 	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
