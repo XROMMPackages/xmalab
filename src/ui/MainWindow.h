@@ -158,6 +158,7 @@ namespace xma
 		void on_actionDisplay_Options_triggered(bool checked);
 		void on_actionPlot_triggered(bool checked);
 		void on_actionProject_Metadata_triggered(bool checked);
+		void on_actionProject_Overview_triggered(bool checked);
 		void on_actionDetectionSettings_triggered(bool checked);
 		void on_actionEvents_triggered(bool checked);
 

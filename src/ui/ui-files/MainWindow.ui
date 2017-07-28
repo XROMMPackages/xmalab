@@ -429,6 +429,7 @@
     <addaction name="action3D_world_view"/>
     <addaction name="actionEvents"/>
     <addaction name="actionProject_Metadata"/>
+    <addaction name="actionProject_Overview"/>
     <addaction name="actionDetectionSettings"/>
     <addaction name="actionConsole"/>
    </widget>
@@ -983,6 +984,11 @@
   <action name="actionExportEvents">
    <property name="text">
     <string>Events</string>
+   </property>
+  </action>
+  <action name="actionProject_Overview">
+   <property name="text">
+    <string>Project Overview</string>
    </property>
   </action>
  </widget>

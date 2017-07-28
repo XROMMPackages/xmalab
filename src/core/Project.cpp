@@ -39,6 +39,7 @@
 #include <QFileInfo>
 #include <QTextStream>
 #include <QXmlStreamReader>
+#include <QDateTime>
 
 #ifdef WIN32
 #define OS_SEP "\\"
@@ -155,6 +156,16 @@ bool Project::hasCalibration()
 void Project::setNoCalibation()
 {
 	noCalibration = true;
+}
+
+void Project::set_date_created()
+{
+	QDateTime local = QDateTime::currentDateTime();
+	QDateTime utc = local.toUTC();
+	utc.setTimeSpec(Qt::LocalTime);
+	int utcOffset = utc.secsTo(local);
+	local.setUtcOffset(utcOffset);
+	date_created = local.toString(Qt::ISODate);
 }
 
 bool Project::hasDefaultTrial()

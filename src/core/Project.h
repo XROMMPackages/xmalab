@@ -95,6 +95,16 @@ namespace xma
 		bool hasCalibration();
 		void setNoCalibation();
 
+		void set_date_created();
+		void set_date_created(QString & date)
+		{
+			date_created = date;
+		}
+		const QString &get_date_created()
+		{
+			return date_created;
+		};
+
 	private:
 		Project();
 		static Project* instance;
@@ -129,6 +139,7 @@ namespace xma
 		QString	trialDate;
 
 		QStringList xml_data;
+		QString date_created;
 	};
 }
 

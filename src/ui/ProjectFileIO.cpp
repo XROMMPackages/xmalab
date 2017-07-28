@@ -1161,19 +1161,14 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 
 			//TOFIX
 			xmlWriter.writeStartElement("date-created");
+			xmlWriter.writeCharacters(Project::getInstance()->get_date_created());
+			xmlWriter.writeEndElement();
+
+			xmlWriter.writeStartElement("date-modified");
 			QDateTime local = QDateTime::currentDateTime();
 			QDateTime utc = local.toUTC();
 			utc.setTimeSpec(Qt::LocalTime);
 			int utcOffset = utc.secsTo(local);
-			local.setUtcOffset(utcOffset);
-			xmlWriter.writeCharacters(local.toString(Qt::ISODate));
-			xmlWriter.writeEndElement();
-
-			xmlWriter.writeStartElement("date-modified");
-			//QDateTime local = QDateTime::currentDateTime();
-			//QDateTime utc = local.toUTC();
-			//utc.setTimeSpec(Qt::LocalTime);
-			//int utcOffset = utc.secsTo(local);
 			local.setUtcOffset(utcOffset);
 			xmlWriter.writeCharacters(local.toString(Qt::ISODate));
 			xmlWriter.writeEndElement();
@@ -1438,6 +1433,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 			xmlWriter.setAutoFormatting(true);
 			xmlWriter.writeStartElement("Project");
 			xmlWriter.writeAttribute("Version", "0.3");
+			xmlWriter.writeAttribute("DateCreated", Project::getInstance()->get_date_created());
 			xmlWriter.writeAttribute("ActiveTrial", QString::number(State::getInstance()->getActiveTrial()));
 			if (Project::getInstance()->getHasStudyData()){
 				xmlWriter.writeAttribute("MetaData", QString("projectMetaData") + OS_SEP + QString("metadata.xml"));
@@ -1708,6 +1704,9 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							version = attr.value("Version").toString().toDouble();
 							QString activeTrialString = attr.value("ActiveTrial").toString();
 							if (!activeTrialString.isEmpty())activeTrial = activeTrialString.toInt();
+
+							QString date = attr.value("DateCreated").toString();
+							if (!date.isEmpty())Project::getInstance()->set_date_created(date);
 
 							QString xml_file = attr.value("MetaData").toString();
 							if (!xml_file.isEmpty())

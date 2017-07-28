@@ -86,6 +86,7 @@
 #define OS_SEP "/"
 #endif
 #include <QtGui/QInputDialog>
+#include "ProjectOverview.h"
 
 #ifdef __APPLE__
 	#include <sys/sysctl.h>
@@ -802,6 +803,11 @@ void MainWindow::saveProject()
 
 	if (WizardDockWidget::getInstance()->checkForPendingChanges())
 	{
+		if (Project::getInstance()->get_date_created().isEmpty())
+		{
+			Project::getInstance()->set_date_created();
+		}
+
 		m_FutureWatcher = new QFutureWatcher<int>();
 		connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( saveProjectFinished() ));
 
@@ -823,6 +829,7 @@ void MainWindow::saveProjectAs(bool subset)
 
 		if (fileName.isNull() == false)
 		{
+			Project::getInstance()->set_date_created();
 			Settings::getInstance()->setLastUsedDirectory(fileName);
 			Settings::getInstance()->addToRecentFiles(fileName);
 			updateRecentFiles();
@@ -1993,6 +2000,14 @@ void MainWindow::on_actionProject_Metadata_triggered(bool checked)
 {
 	MetaDataInfo* info = new MetaDataInfo(this);
 	info->show();
+	info->setAttribute(Qt::WA_DeleteOnClose);
+}
+
+void MainWindow::on_actionProject_Overview_triggered(bool checked)
+{
+	ProjectOverview* overview = new ProjectOverview(this);
+	overview->show();
+	overview->setAttribute(Qt::WA_DeleteOnClose);
 }
 
 void MainWindow::on_actionDetectionSettings_triggered(bool checked)
