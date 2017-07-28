@@ -387,6 +387,8 @@
      <addaction name="actionMayaCams"/>
      <addaction name="separator"/>
      <addaction name="actionExportAll"/>
+     <addaction name="separator"/>
+     <addaction name="actionXROMM_VR"/>
     </widget>
     <widget class="QMenu" name="menuImport">
      <property name="title">
@@ -989,6 +991,11 @@
   <action name="actionProject_Overview">
    <property name="text">
     <string>Project Overview</string>
+   </property>
+  </action>
+  <action name="actionXROMM_VR">
+   <property name="text">
+    <string>XROMM-VR</string>
    </property>
   </action>
  </widget>

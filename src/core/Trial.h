@@ -161,7 +161,8 @@ namespace xma
 
 		void setCameraSizes();
 
-		
+		void saveVR(QString folder);
+
 	private:
 		QString name;
 		void setNbImages();

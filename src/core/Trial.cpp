@@ -2186,6 +2186,39 @@ void Trial::setCameraSizes()
 	}
 }
 
+void Trial::saveVR(QString folder)
+{
+	for (auto rb : rigidBodies)
+	{
+		if (rb->hasMeshModel()){
+			bool filter = (cutoffFrequency != 0.0 || rb->getOverrideCutoffFrequency());
+			rb->saveTransformations(folder + rb->getDescription() + ".csv", false, filter);
+			QFileInfo info(rb->getMeshModelname());
+			QFile::copy(rb->getMeshModelname(), folder + info.fileName());
+		}
+	}
+	for (auto m : markers)
+	{
+		m->save3DPoints(folder + m->getDescription() + ".csv", folder + m->getDescription() + "_status.csv");
+	}
+	QString outfilename = folder + "VRData.csv";
+	std::ofstream outfile(outfilename.toAscii().data());
+	for (auto rb : rigidBodies)
+	{
+		if (rb->hasMeshModel()){
+			QFileInfo info(rb->getMeshModelname());
+			outfile << "Obj" << "," << info.fileName().toAscii().data() << "," << (rb->getDescription() + ".csv").toAscii().data() << "," << rb->getMeshScale() << std::endl;
+		}
+	}
+	for (auto m : markers)
+	{
+		outfile << "Marker" << "," << (m->getDescription() + ".csv").toAscii().data() << "," << (m->getDescription() + "_status.csv").toAscii().data() << "," << -1 << std::endl;
+	}
+
+	outfile.close();
+
+}
+
 double Trial::getMarkerToMarkerSD()
 {
 	int count = 0;

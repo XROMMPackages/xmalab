@@ -161,6 +161,7 @@ namespace xma
 		void on_actionProject_Overview_triggered(bool checked);
 		void on_actionDetectionSettings_triggered(bool checked);
 		void on_actionEvents_triggered(bool checked);
+		void on_actionXROMM_VR_triggered(bool checked);
 
 		//startMainFrameButtons
 		void on_pushButtonNew_Project_clicked();

@@ -234,6 +234,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->actionMarkertoMarkerDistances->setEnabled(false);
 	ui->actionImport2D_Points->setEnabled(false);
 	ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
+	ui->actionXROMM_VR->setEnabled(false);
 	ui->actionDetailed_View->setEnabled(false);	
 	ui->actionDisplay_Options->setEnabled(false);
 	ui->actionPlot->setEnabled(false);
@@ -1141,6 +1142,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->actionMarkertoMarkerDistances->setEnabled(false);
 		ui->actionImport2D_Points->setEnabled(false);
 		ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
+		ui->actionXROMM_VR->setEnabled(false);
 		ui->actionDetailed_View->setEnabled(false);
 		ui->actionDisplay_Options->setEnabled(false);
 		ui->actionPlot->setEnabled(false);
@@ -1175,6 +1177,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->actionMarkertoMarkerDistances->setEnabled(false);
 		ui->actionImport2D_Points->setEnabled(false);
 		ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
+		ui->actionXROMM_VR->setEnabled(false); 
 		ui->actionPlot->setChecked(false);
 		ui->actionEvents->setChecked(false);
 		ui->actionDetectionSettings->setChecked(false);
@@ -1297,6 +1300,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			ui->actionMarkertoMarkerDistances->setEnabled(true);
 			ui->actionImport2D_Points->setEnabled(true);
 			ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(true);
+			ui->actionXROMM_VR->setEnabled(true);
 		}
 		else
 		{
@@ -1325,6 +1329,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			ui->actionMarkertoMarkerDistances->setEnabled(false);
 			ui->actionImport2D_Points->setEnabled(false);
 			ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
+			ui->actionXROMM_VR->setEnabled(false);
 
 			ui->actionDetailed_View->setEnabled(false);
 			ui->actionDisplay_Options->setEnabled(false);
@@ -2043,5 +2048,16 @@ void MainWindow::on_actionEvents_triggered(bool checked)
 		ui->actionEvents->setChecked(false);
 		EventDockWidget::getInstance()->hide();
 		Settings::getInstance()->set("ShowEvents", false);
+	}
+}
+
+void MainWindow::on_actionXROMM_VR_triggered(bool checked)
+{
+	QString outputPath = QFileDialog::getExistingDirectory(this,
+		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+
+	if (outputPath.isNull() == false)
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveVR(outputPath + OS_SEP);
 	}
 }
