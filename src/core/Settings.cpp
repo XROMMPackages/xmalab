@@ -55,6 +55,7 @@ Settings::Settings()
 	addBoolSetting("ShowEvents", true);
 	addBoolSetting("Show3DView", true);
 	addBoolSetting("Console", false);
+	addBoolSetting("WelcomeDialog", true);
 
 	//General
 	addBoolSetting("AutoConfirmPendingChanges", false);

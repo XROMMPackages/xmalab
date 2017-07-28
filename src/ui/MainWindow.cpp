@@ -60,6 +60,7 @@
 #include "ui/HelpDialog.h"
 #include "ui/DetectionSettings.h"
 #include "ui/EventDockWidget.h"
+#include "ui/WelcomeDialog.h"
 
 #include "core/Project.h"
 #include "core/Camera.h"
@@ -245,6 +246,13 @@ MainWindow::MainWindow(QWidget* parent) :
 #else 
 	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA" PROJECT_BETA_VERSION);
 #endif
+
+	if (Settings::getInstance()->getBoolSetting("WelcomeDialog"))
+	{
+		WelcomeDialog* diag = new WelcomeDialog(this);
+		diag->show();
+		diag->setAttribute(Qt::WA_DeleteOnClose);
+	}
 }
 
 
