@@ -29,7 +29,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>About</string>
+   <string>Welcome to XMALab</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../calibrationtool_resources.qrc">
