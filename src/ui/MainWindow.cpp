@@ -248,7 +248,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA" PROJECT_BETA_VERSION);
 #endif
 
-	if (Settings::getInstance()->getBoolSetting("WelcomeDialog"))
+	if (Settings::getInstance()->getQStringSetting("WelcomeDialog") < PROJECT_VERSION)
 	{
 		WelcomeDialog* diag = new WelcomeDialog(this);
 		diag->show();

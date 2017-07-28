@@ -51,5 +51,6 @@ WelcomeDialog::~WelcomeDialog()
 
 void WelcomeDialog::on_checkBox_clicked()
 {
-	Settings::getInstance()->set("WelcomeDialog", !diag->checkBox->isChecked());
+	if (diag->checkBox->isChecked())
+		Settings::getInstance()->set("WelcomeDialog", QString(PROJECT_VERSION));
 }
