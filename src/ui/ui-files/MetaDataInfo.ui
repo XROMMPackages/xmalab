@@ -67,7 +67,7 @@
    <item row="1" column="0">
     <widget class="QPushButton" name="pushButtonAdd">
      <property name="text">
-      <string>Add metadata from xml-portal file</string>
+      <string>Add metadata from XMAPortal file</string>
      </property>
     </widget>
    </item>
