@@ -156,9 +156,9 @@ namespace xma
 		double getError3D(bool filtered);
 
 		int addDummyPointsForOptimization(std::vector<cv::Point2d> &Pts2D, std::vector<cv::Point3d> &Pts3D, std::vector<int> &cameraIdx, int Frame);
-
-	private:
 		void init(int size);
+	private:
+		
 		void clear();
 		void addFrame();
 
