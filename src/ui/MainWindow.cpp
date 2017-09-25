@@ -108,7 +108,15 @@ MainWindow::MainWindow(QWidget* parent) :
 	if (!instance) instance = this;
 
 	ui->setupUi(this);
-
+#ifdef __APPLE__
+	foreach(QMenu* menu, menuBar()->findChildren<QMenu*>())
+	{
+		if (menu->title() == "Edit")
+		{
+			menu->setTitle(menu->title().prepend(QString::fromUtf8("\u200C")));
+		}
+	}
+#endif
 
 	if (QDate::currentDate() >= QDate(2016,12,23)
 		&& QDate::currentDate() <= QDate(2017, 1, 2))

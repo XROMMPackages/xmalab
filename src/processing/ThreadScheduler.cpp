@@ -69,6 +69,15 @@ void ThreadScheduler::updateTrialData(Trial* trial)
 
 	if (trial->getRequiresRecomputation())
 	{
+		//ensure that the vector sizes of the rigid bodies is of the length of nbImages
+		for (auto rb : trial->getRigidBodies())
+		{
+			if (rb->getPoseComputed().size() != trial->getNbImages())
+			{
+				rb->init(trial->getNbImages());
+			}
+		}
+
 		for (int i = 0; i < trial->getNbImages(); i++)
 		{
 			UpdateTrialFrame* thread = new UpdateTrialFrame(trial, i);
