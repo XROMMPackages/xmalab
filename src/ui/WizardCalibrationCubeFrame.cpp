@@ -85,7 +85,7 @@ WizardCalibrationCubeFrame::WizardCalibrationCubeFrame(QWidget* parent) :
 #ifndef WIN32
 	frame->label_5->setText("Add a correspondance by using COMMAND+click.");
 #endif
-	checkerboardManual = false;
+	checkerboardManual = Settings::getInstance()->getBoolSetting("DisableCheckerboardDetection");
 }
 
 void WizardCalibrationCubeFrame::loadCalibrationSettings()
@@ -165,13 +165,13 @@ WizardCalibrationCubeFrame::~WizardCalibrationCubeFrame()
 
 void WizardCalibrationCubeFrame::activeCameraChanged(int activeCamera)
 {
-	checkerboardManual = false;
+	checkerboardManual = Settings::getInstance()->getBoolSetting("DisableCheckerboardDetection");
 	setDialog();
 }
 
 void WizardCalibrationCubeFrame::activeFrameCalibrationChanged(int activeFrame)
 {
-	checkerboardManual = false;
+	checkerboardManual = Settings::getInstance()->getBoolSetting("DisableCheckerboardDetection");
 	setDialog();
 }
 
@@ -179,7 +179,7 @@ void WizardCalibrationCubeFrame::workspaceChanged(work_state workspace)
 {
 	if (workspace == CALIBRATION)
 	{
-		checkerboardManual = false;
+		checkerboardManual = Settings::getInstance()->getBoolSetting("DisableCheckerboardDetection");
 		setDialog();
 	}
 }

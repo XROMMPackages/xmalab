@@ -121,8 +121,10 @@ void CheckerboardDetection::detectCorner_thread()
 			tmpPoints2.push_back(pt);
 		}
 
-		cv::cornerSubPix(image, tmpPoints2, cv::Size(11, 11), cv::Size(-1, -1),
-			cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
+		if(!Settings::getInstance()->getBoolSetting("DisableCheckerboardRefinement"))
+			cv::cornerSubPix(image, tmpPoints2, cv::Size(11, 11), cv::Size(-1, -1),
+				cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
+
 
 		for (unsigned int i = 0; i < tmpPoints2.size(); i++)
 		{

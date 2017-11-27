@@ -64,6 +64,8 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 	diag->checkBox_HideWarningsCalibration->setChecked(Settings::getInstance()->getBoolSetting("HideWarningsDuringCalibration"));
 	diag->spinBox_IdentificationThreshold->setValue(Settings::getInstance()->getIntSetting("IdentificationThresholdCalibration"));
 	diag->spinBox_OutlierThreshold->setValue(Settings::getInstance()->getIntSetting("OutlierThresholdForCalibration"));
+	diag->checkBox_DisableCheckerboardDetection->setChecked(Settings::getInstance()->getBoolSetting("DisableCheckerboardDetection"));
+	diag->checkBox_DisableCheckerboardRefinement->setChecked(Settings::getInstance()->getBoolSetting("DisableCheckerboardRefinement"));
 
 	diag->checkBox_UseCenteredDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("CenterDetailView"));
 	diag->checkBox_ShowAdvancedCrosshairDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView"));
@@ -154,6 +156,16 @@ void SettingsDialog::on_lineEditWorkspace_textChanged(QString text)
 void SettingsDialog::on_spinBoxFrameAdvance_valueChanged(int value)
 {
 	Settings::getInstance()->set("FrameAdvance", diag->spinBoxFrameAdvance->value());
+}
+
+void SettingsDialog::on_checkBox_DisableCheckerboardRefinement_stateChanged(int state)
+{
+	Settings::getInstance()->set("DisableCheckerboardRefinement", diag->checkBox_DisableCheckerboardRefinement->isChecked());
+}
+
+void SettingsDialog::on_checkBox_DisableCheckerboardDetection_stateChanged(int state)
+{
+	Settings::getInstance()->set("DisableCheckerboardDetection", diag->checkBox_DisableCheckerboardDetection->isChecked());
 }
 
 void SettingsDialog::on_checkBox_AutoConfirmPendingChanges_stateChanged(int state)

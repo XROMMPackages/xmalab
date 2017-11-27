@@ -342,6 +342,20 @@
             </property>
            </widget>
           </item>
+          <item row="7" column="0">
+           <widget class="QCheckBox" name="checkBox_DisableCheckerboardDetection">
+            <property name="text">
+             <string>Disable automatic Checkerboard detection</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QCheckBox" name="checkBox_DisableCheckerboardRefinement">
+            <property name="text">
+             <string>Disable corner refinement during manual checkerboard placement</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </widget>

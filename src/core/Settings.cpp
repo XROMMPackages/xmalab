@@ -75,6 +75,8 @@ Settings::Settings()
 	addBoolSetting("HideWarningsDuringCalibration", false);
 	addIntSetting("IdentificationThresholdCalibration", 15);
 	addIntSetting("OutlierThresholdForCalibration", 10);
+	addBoolSetting("DisableCheckerboardDetection", false);
+	addBoolSetting("DisableCheckerboardRefinement", false);
 
 	//Digitizing
 	addBoolSetting("CenterDetailView", false);
