@@ -524,17 +524,21 @@ void Project::exportDLT(QString foldername)
 	}
 }
 
-void Project::exportMayaCam(QString foldername)
+void Project::exportMayaCam(QString foldername, int frame)
 {
+	
 	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
 	{
-		for (unsigned int frame = 0; frame < (*it)->getCalibrationImages().size(); frame++)
+		int start = (frame == -1) ? 0 : frame;
+		int stop = (frame == -1) ? (*it)->getCalibrationImages().size() : frame + 1;
+
+		for (unsigned int f = start; f < stop; f++)
 		{
-			if ((*it)->getCalibrationImages()[frame]->isCalibrated() > 0)
+			if ((*it)->getCalibrationImages()[f]->isCalibrated() > 0)
 			{
 				double out[15];
-				(*it)->getMayaCam(&out[0], frame);
-				std::ofstream outfile((foldername + OS_SEP + (*it)->getCalibrationImages()[frame]->getFilenameBase() + "_MayaCam.csv").toAscii().data());
+				(*it)->getMayaCam(&out[0], f);
+				std::ofstream outfile((foldername + OS_SEP + (*it)->getCalibrationImages()[f]->getFilenameBase() + "_MayaCam.csv").toAscii().data());
 				outfile.precision(12);
 				for (unsigned int i = 0; i < 5; i++)
 				{
@@ -546,15 +550,18 @@ void Project::exportMayaCam(QString foldername)
 	}
 }
 
-void Project::exportMayaCamVersion2(QString foldername)
+void Project::exportMayaCamVersion2(QString foldername, int frame)
 {
 	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
 	{
-		for (unsigned int frame = 0; frame < (*it)->getCalibrationImages().size(); frame++)
+		int start = (frame == -1) ? 0 : frame;
+		int stop = (frame == -1) ? (*it)->getCalibrationImages().size() : frame + 1;
+
+		for (unsigned int f = start; f < stop; f++)
 		{
-			if ((*it)->getCalibrationImages()[frame]->isCalibrated() > 0)
+			if ((*it)->getCalibrationImages()[f]->isCalibrated() > 0)
 			{
-				(*it)->saveMayaCamVersion2(frame, foldername + OS_SEP + (*it)->getCalibrationImages()[frame]->getFilenameBase() + "_MayaCam.txt");
+				(*it)->saveMayaCamVersion2(f, foldername + OS_SEP + (*it)->getCalibrationImages()[f]->getFilenameBase() + "_MayaCam.txt");
 			}
 		}
 	}

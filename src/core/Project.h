@@ -57,8 +57,8 @@ namespace xma
 		void addTrial(Trial* trial);
 		void loadTextures();
 		void exportDLT(QString foldername);
-		void exportMayaCam(QString foldername);
-		void exportMayaCamVersion2(QString foldername);
+		void exportMayaCam(QString foldername, int frame = -1);
+		void exportMayaCamVersion2(QString foldername, int frame = -1);
 		void exportLUT(QString foldername);
 		void recountFrames();
 		void deleteTrial(Trial* trial);

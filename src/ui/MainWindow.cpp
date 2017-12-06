@@ -1760,12 +1760,15 @@ void MainWindow::on_actionMayaCams_triggered(bool checked)
 {
 	if (Project::getInstance()->isCalibrated())
 	{
+		int frame = ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to save the mayacams for all calibration images? Click no if you only need the mayacams for the currently selected reference calibration", true)
+			? -1 : Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getReferenceCalibrationImage();
+
 		QString outputPath = QFileDialog::getExistingDirectory(this,
 		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
-			Project::getInstance()->exportMayaCam(outputPath);
+			Project::getInstance()->exportMayaCam(outputPath, frame);
 			Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 		}
 	}
@@ -1779,12 +1782,15 @@ void MainWindow::on_actionMayaCams_2_0_triggered(bool checked)
 {
 	if (Project::getInstance()->isCalibrated())
 	{
+		int frame = ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to save the mayacams for all calibration images? Click no if you only need the mayacams for the currently selected reference calibration", true)
+			? -1 : Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getReferenceCalibrationImage();
+
 		QString outputPath = QFileDialog::getExistingDirectory(this,
 		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
-			Project::getInstance()->exportMayaCamVersion2(outputPath);
+			Project::getInstance()->exportMayaCamVersion2(outputPath, frame);
 			Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 		}
 	}
