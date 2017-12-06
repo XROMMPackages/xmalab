@@ -1448,6 +1448,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 			filename = filename + ".csv";
 
 			std::ofstream outfile(filename.toAscii().data());
+			outfile.precision(12);
 			if (headerRow)
 			{
 				if (saveColumn)
