@@ -225,7 +225,7 @@ void Image::loadTexture()
 		{
 			image_color.create(image.rows, image.cols, CV_8UC(3));
 			cvtColor(image, image_color, CV_GRAY2RGB);
-			colorImage_set = COLOR_CONVERTED;
+			//colorImage_set = COLOR_CONVERTED;
 		}
 
 		glEnable(GL_TEXTURE_2D);
@@ -245,7 +245,7 @@ void Image::loadTexture()
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.cols, image.rows,
 			0, GL_BGR, GL_UNSIGNED_BYTE, image_color.ptr());
-
+		image_color.release();
 		textureLoaded = true;
 		image_reset = false;
 	}
