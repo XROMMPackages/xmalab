@@ -71,8 +71,8 @@ Calibration::Calibration(int camera, bool planar) : ThreadedProcessing("Calibrat
 
 	for (int f = 0; f < Project::getInstance()->getNbImagesCalibration(); f ++)
 	{
-		if ((!m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->isCalibrated() > 0)
-			|| (m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->getDetectedPoints().size() > 0))
+		if ((!m_planar && (Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->isCalibrated() == 1))
+			|| (m_planar && (Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->getDetectedPoints().size() > 0)))
 		{
 			std::vector<cv::Point3f> pt3D_tmp;
 			std::vector<cv::Point2f> pt2D_tmp;
@@ -91,6 +91,10 @@ Calibration::Calibration(int camera, bool planar) : ThreadedProcessing("Calibrat
 
 			object_points.push_back(pt3D_tmp);
 			image_points.push_back(pt2D_tmp);
+		}
+		else
+		{
+			Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->setCalibrated(0);
 		}
 	}
 
@@ -281,7 +285,7 @@ void Calibration::process()
 		int count = 0;
 		for (int f = 0; f < Project::getInstance()->getNbImagesCalibration(); f ++)
 		{
-			if ((!m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->isCalibrated() > 0)
+			if ((!m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->isCalibrated() == 1)
 				|| (m_planar && Project::getInstance()->getCameras()[m_camera]->getCalibrationImages()[f]->getDetectedPoints().size() > 0))
 			{
 				for (int i = 0; i < 3; i++)

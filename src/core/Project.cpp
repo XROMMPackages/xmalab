@@ -482,7 +482,7 @@ void Project::exportDLT(QString foldername)
 
 		for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
 		{
-			if ((*it)->getCalibrationImages()[frame]->isCalibrated())
+			if ((*it)->getCalibrationImages()[frame]->isCalibrated() > 0)
 			{
 				double* out = new double[12];
 				(*it)->getDLT(&out[0], frame);
@@ -530,7 +530,7 @@ void Project::exportMayaCam(QString foldername)
 	{
 		for (unsigned int frame = 0; frame < (*it)->getCalibrationImages().size(); frame++)
 		{
-			if ((*it)->getCalibrationImages()[frame]->isCalibrated())
+			if ((*it)->getCalibrationImages()[frame]->isCalibrated() > 0)
 			{
 				double out[15];
 				(*it)->getMayaCam(&out[0], frame);
@@ -552,7 +552,7 @@ void Project::exportMayaCamVersion2(QString foldername)
 	{
 		for (unsigned int frame = 0; frame < (*it)->getCalibrationImages().size(); frame++)
 		{
-			if ((*it)->getCalibrationImages()[frame]->isCalibrated())
+			if ((*it)->getCalibrationImages()[frame]->isCalibrated() > 0)
 			{
 				(*it)->saveMayaCamVersion2(frame, foldername + OS_SEP + (*it)->getCalibrationImages()[frame]->getFilenameBase() + "_MayaCam.txt");
 			}

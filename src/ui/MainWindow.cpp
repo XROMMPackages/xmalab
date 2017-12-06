@@ -736,7 +736,7 @@ void MainWindow::UndistortionAfterloadProjectFinished()
 				bool calibrated = false;
 				for (std::vector<CalibrationImage*>::const_iterator it2 = (*it)->getCalibrationImages().begin(); it2 != (*it)->getCalibrationImages().end(); ++it2)
 				{
-					if ((*it2)->isCalibrated()) calibrated = true;
+					if ((*it2)->isCalibrated() > 0) calibrated = true;
 				}
 				if (calibrated)
 				{

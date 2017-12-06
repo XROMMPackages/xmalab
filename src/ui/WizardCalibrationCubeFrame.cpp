@@ -353,7 +353,7 @@ void WizardCalibrationCubeFrame::addCalibrationReference(double x, double y)
 		if (State::getInstance()->getUndistortion() == UNDISTORTED)
 		{
 			if (CalibrationObject::getInstance()->isCheckerboard()){
-				if (Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() <= 0)
+				if (Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() != 1)
 				{
 					frame->comboBoxText->setCurrentIndex(1);
 					frame->comboBoxPoints->setCurrentIndex(2);
@@ -452,7 +452,7 @@ void WizardCalibrationCubeFrame::setDialog()
 		frame->checkBoxDistortion->setChecked(Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->hasModelDistortion());
 
 		frame->checkBoxManual->show();
-		if (Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() <= 0)
+		if (Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() != 1)
 		{
 			resetReferences();
 
@@ -537,7 +537,7 @@ void WizardCalibrationCubeFrame::on_pushButton_clicked()
 	}
 	else
 	{
-		if (Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() <= 0)
+		if (Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() != 1)
 		{
 			if (!CalibrationObject::getInstance()->isCheckerboard())
 			{
@@ -723,7 +723,7 @@ void WizardCalibrationCubeFrame::runCalibrationFinished()
 	bool calibrateOtherFramesFailed = false;
 	for (unsigned int p = 0; p < temporaryCamIdx.size(); p++)
 	{
-		if (Project::getInstance()->getCameras()[temporaryCamIdx[p]]->getCalibrationImages()[temporaryFrameIdx[p]]->isCalibrated() <= 0)
+		if (Project::getInstance()->getCameras()[temporaryCamIdx[p]]->getCalibrationImages()[temporaryFrameIdx[p]]->isCalibrated() != 1)
 		{
 			if (!Settings::getInstance()->getBoolSetting("HideWarningsDuringCalibration"))ErrorDialog::getInstance()->showErrorDialog("Could not set Camera " + QString::number(temporaryCamIdx[p]) + " Frame " + QString::number(temporaryFrameIdx[p]) + " from other Frames. Please check your calibration.");
 			calibrateOtherFramesFailed = true;
@@ -767,7 +767,7 @@ bool WizardCalibrationCubeFrame::calibrateOtherFrames()
 				{
 					CalibrationImage* fk = Project::getInstance()->getCameras()[k]->getCalibrationImages()[m];
 					CalibrationImage* fj = Project::getInstance()->getCameras()[j]->getCalibrationImages()[m];
-					if (fk->isCalibrated() > 0 && fj->isCalibrated() > 0)
+					if ((fk->isCalibrated() == 1) && (fj->isCalibrated() == 1))
 					{
 						t = fk->getTransformationMatrix().inv() * fj->getTransformationMatrix();
 						set = true;
@@ -792,7 +792,7 @@ bool WizardCalibrationCubeFrame::calibrateOtherFrames()
 				{
 					CalibrationImage* fk = Project::getInstance()->getCameras()[k]->getCalibrationImages()[m];
 					CalibrationImage* fj = Project::getInstance()->getCameras()[j]->getCalibrationImages()[m];
-					if (fk->isCalibrated() <= 0 && fj->isCalibrated() > 0)
+					if ((fk->isCalibrated() == 1) && (fj->isCalibrated() == 1))
 					{
 						bool save = true;
 						for (unsigned int p = 0; p < temporaryCamIdx.size(); p++)
@@ -987,7 +987,7 @@ void WizardCalibrationCubeFrame::on_pushButtonDeleteFrame_clicked()
 			int countCalibrated = 0;
 			for (auto it : cam->getCalibrationImages())
 			{
-				if (it->isCalibrated())
+				if (it->isCalibrated() == 1)
 					countCalibrated++;
 			}
 			if (countCalibrated == 0)
@@ -1023,7 +1023,8 @@ void WizardCalibrationCubeFrame::on_pushButtonResetFrame_clicked()
 		int countCalibrated = 0;
 		for (auto im : Project::getInstance()->getCameras()[State::getInstance()->getActiveCamera()]->getCalibrationImages())
 		{
-			if (im->isCalibrated())countCalibrated++;
+			if (im->isCalibrated() == 1)
+				countCalibrated++;
 		}
 
 		if (countCalibrated == 1)

@@ -224,7 +224,7 @@ void WorldViewDockGLWidget::drawCameras()
 	for (unsigned int cam = 0; cam < Project::getInstance()->getCameras().size(); cam++)
 	{
 		if (Project::getInstance()->getCameras()[cam]->isCalibrated()
-			&& Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated())
+			&& (Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() > 0))
 		{
 			glPushMatrix();
 			double m[16];

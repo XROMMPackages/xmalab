@@ -1507,7 +1507,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 				{
 					if ((*it)->getCalibrationSequence()->hasCalibrationSequence())
 					{
-						if ((*it2)->isCalibrated())
+						if ((*it2)->isCalibrated() > 0)
 						{
 							xmlWriter.writeStartElement("CalibrationImage");
 							xmlWriter.writeAttribute("Frame", QString::number(count));
@@ -1521,7 +1521,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 						xmlWriter.writeAttribute("isCalibrated", QString::number((*it2)->isCalibrated()));
 					}
 
-					if ((*it2)->isCalibrated())
+					if ((*it2)->isCalibrated() > 0)
 					{
 						xmlWriter.writeStartElement("PointsDetectedAll");
 						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it2)->getFilenamePointsDetectedAll());
@@ -1543,7 +1543,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it2)->getFilenameTranslationVector());
 						xmlWriter.writeEndElement();
 					}
-					if (!(*it)->getCalibrationSequence()->hasCalibrationSequence() || (*it2)->isCalibrated())
+					if (!(*it)->getCalibrationSequence()->hasCalibrationSequence() || ((*it2)->isCalibrated() > 0))
 						xmlWriter.writeEndElement();
 
 					count++;

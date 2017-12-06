@@ -152,7 +152,7 @@ void CalibrationSequence::save(QString folder)
 		if (!sequence) 
 			(*it)->getImage()->save(folder + (*it)->getFilename());
 		
-		if ((*it)->isCalibrated())
+		if ((*it)->isCalibrated() > 0)
 		{
 			(*it)->savePointsInlier(folder + "data" + OS_SEP + (*it)->getFilenamePointsInlier());
 			(*it)->savePointsDetected(folder + "data" + OS_SEP + (*it)->getFilenamePointsDetected());
@@ -271,7 +271,7 @@ void CalibrationSequence::bindTexture(int id, int type)
 	else
 	{
 		sequence->setActiveFrame(id);
-		if (calibrationImages[id]->isCalibrated() <= 0)
+		if (calibrationImages[id]->isCalibrated() != 1)
 		{
 			sequence->getImage()->bindTexture();
 		}

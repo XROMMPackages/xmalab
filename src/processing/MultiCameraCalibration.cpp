@@ -292,20 +292,36 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 		std::cerr << "NoDistortion " << m_method << std::endl;
 		nbCamParams = 10;
 	}
+
 	nbCameras = Project::getInstance()->getCameras().size();
-	nbFrames = Project::getInstance()->getNbImagesCalibration();
+
+	for (int f = 0; f < Project::getInstance()->getNbImagesCalibration(); f++)
+	{
+		for (int c = 0; c < nbCameras; c++)
+		{
+			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() == 1)
+			{
+				frames.push_back(f);
+				break;
+			}
+		}
+	}
+	
+	nbFrames = frames.size();
 	nbPoints = 0;
+
 	for (int c = 0; c < nbCameras; c++)
 	{
-		for (int f = 0; f < nbFrames; f++)
+		for (int f_ = 0; f_ < nbFrames; f_++)
 		{
-			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0)
+			int f = frames[f_];
+			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() == 1)
 			{
 				for (unsigned int k = 0; k < CalibrationObject::getInstance()->getFrameSpecifications().size(); k++)
 				{
 					if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getInliers()[k] > 0)
 					{
-						frameIdx.push_back(f);
+						frameIdx.push_back(f_);
 						camIdx.push_back(c);
 						pts3DIdx.push_back(k);
 						cv::Point2d pt = cv::Point2d(Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getDetectedPoints()[k]);
@@ -332,12 +348,13 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 	nbParams = nbCamParams * nbCameras + 6 * nbFrames;
 	p = new double[nbParams];
 	refIdx = -1;
-	for (int f = 0; f < nbFrames; f++)
+	for (int f_ = 0; f_ < nbFrames; f_++)
 	{
+		int f = frames[f_];
 		int count = 0;
 		for (int c = 0; c < nbCameras; c++)
 		{
-			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0)
+			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() == 1)
 			{
 				count++;
 			}
@@ -355,7 +372,7 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 		{
 			//We have to rotateCameras to make sure rotationmatrices are not identity matrix
 			cv::Mat rot_mat;
-			cv::Mat r_tmp = (cv::Mat_<double>(3, 1) << 0.1 , 0.1 , 0.1);
+			cv::Mat r_tmp = (cv::Mat_<double>(3, 1) << 0.01, 0.01, 0.01);
 			cv::Rodrigues(r_tmp, rot_mat);
 			cv::Mat rot_mat2;
 			cv::Rodrigues(cv::Mat(Project::getInstance()->getCameras()[c]->getCalibrationImages()[refIdx]->getRotationVector()), rot_mat2);
@@ -372,9 +389,126 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 		}
 	}
 
-
-	for (int f = 0; f < nbFrames; f++)
+	if (refIdx < 0)
 	{
+		//no frame covers all cameras, so we have to set it using the relative transformations. 
+		//We use the frame in which the first camera is set first.
+		for (int f_ = 0; f_ < nbFrames; f_++)
+		{
+			int f = frames[f_];
+			if (Project::getInstance()->getCameras()[0]->getCalibrationImages()[f]->isCalibrated() == 1)
+			{
+				refIdx = f;
+			}
+		}
+		// we can initialise the vectors.
+		cameraRotationVector.resize(nbCameras);
+		cameraTranslationVector.resize(nbCameras);
+		cameraMatrix.resize(nbCameras);
+		if (withDistortion)
+		{
+			distortion.resize(nbCameras);
+		}
+
+		cv::vector<bool> cameraset(nbCameras, false);
+
+		// We can then set all the cameras which are present
+		for(int c = 0; c < nbCameras; c++)
+		{
+			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[refIdx]->isCalibrated() == 1)
+			{
+				//We have to rotateCameras to make sure rotationmatrices are not identity matrix
+				cv::Mat rot_mat;
+				cv::Mat r_tmp = (cv::Mat_<double>(3, 1) << 0.01, 0.01, 0.01);
+				cv::Rodrigues(r_tmp, rot_mat);
+				cv::Mat rot_mat2;
+				cv::Rodrigues(cv::Mat(Project::getInstance()->getCameras()[c]->getCalibrationImages()[refIdx]->getRotationVector()), rot_mat2);
+				cv::Mat Rot_vec;
+				Rodrigues(rot_mat2 * rot_mat, Rot_vec);
+
+				cameraRotationVector[c] = Rot_vec;
+				cameraTranslationVector[c] = cv::Mat(Project::getInstance()->getCameras()[c]->getCalibrationImages()[refIdx]->getTranslationVector());
+				cameraMatrix[c] = cv::Mat(Project::getInstance()->getCameras()[c]->getCameraMatrix());
+				if (withDistortion)
+				{
+					distortion[c] = cv::Mat(Project::getInstance()->getCameras()[c]->getDistortionCoefficiants());
+				}
+				cameraset[c] = true;
+			}
+		}
+		int missing = nbCameras;
+		for (auto b : cameraset)
+			if (b)missing--;
+		int missing_new = missing;
+
+		//Now we have to set the other ones;
+		//We repeat 
+		do 
+		{
+			missing = missing_new;
+			for (int c = 0; c < nbCameras; c++)
+			{
+				int c_to_set = -1;
+				int c_to_use = -1;
+				int f_to_use = -1;
+				//Find the camera we have to set
+				if (!cameraset[c])
+				{
+					for (int f_ = 0; f_ < nbFrames && f_to_use < 0; f_++)
+					{
+						int f = frames[f_];
+						//find another one which is set and defined in a frame 
+						for (int c2 = 0; c2 < nbCameras && f_to_use < 0; c2++)
+						{
+							if (cameraset[c2] && 
+								(Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() == 1)
+								&& (Project::getInstance()->getCameras()[c2]->getCalibrationImages()[f]->isCalibrated() == 1))
+							{
+								c_to_set = c;
+								c_to_use = c2;
+								f_to_use = f;									
+							}
+						}
+					}
+					if (f_to_use > 0)
+					{
+						//Now we can compute a new one based on the  relative
+						cv::Mat T_c2_a = getTransformationMatrix(Project::getInstance()->getCameras()[c_to_use]->getCalibrationImages()[f_to_use]->getRotationVector(), Project::getInstance()->getCameras()[c_to_use]->getCalibrationImages()[f_to_use]->getTranslationVector());
+						cv::Mat T_c1_a = getTransformationMatrix(Project::getInstance()->getCameras()[c_to_set]->getCalibrationImages()[f_to_use]->getRotationVector(), Project::getInstance()->getCameras()[c_to_set]->getCalibrationImages()[f_to_use]->getTranslationVector());
+						cv::Mat T_c2_ref = getTransformationMatrix(Project::getInstance()->getCameras()[c_to_use]->getCalibrationImages()[refIdx]->getRotationVector(), Project::getInstance()->getCameras()[c_to_use]->getCalibrationImages()[refIdx]->getTranslationVector());
+
+						cv::Mat T_c1_ref = T_c1_a * T_c2_a.inv() * T_c2_ref; 
+
+						cv::Mat rot_mat;
+						cv::Mat r_tmp = (cv::Mat_<double>(3, 1) << 0.01, 0.01, 0.01);
+						cv::Rodrigues(r_tmp, rot_mat);
+						cv::Mat rot_mat2;
+						cv::Rodrigues(getRotationVector(T_c1_ref), rot_mat2);
+						cv::Mat Rot_vec;
+						Rodrigues(rot_mat2 * rot_mat, Rot_vec);
+
+						cameraRotationVector[c] = Rot_vec;
+						cameraTranslationVector[c] = getTranslation(T_c1_ref);
+						cameraMatrix[c] = cv::Mat(Project::getInstance()->getCameras()[c]->getCameraMatrix());
+						if (withDistortion)
+						{
+							distortion[c] = cv::Mat(Project::getInstance()->getCameras()[c]->getDistortionCoefficiants());
+						}
+						cameraset[c] = true;
+					}
+				}
+			}
+
+			missing_new = nbCameras;
+			for (auto b : cameraset)
+				if (b)missing_new--;
+
+		} while (missing_new > 0 && missing != missing_new);
+	}
+
+	for (int f_ = 0; f_ < frames.size(); f_++)
+	{
+		int f = frames[f_];
 		cv::Mat r_vec;
 		r_vec = cv::Mat::zeros(3, 1, CV_64F);
 		cv::Mat t_vec;
@@ -382,10 +516,10 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 		int count = 0;
 		for (int c = 0; c < nbCameras; c++)
 		{
-			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0)
+			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() == 1)
 			{
 				cv::Mat t_cam = getTransformationMatrix(cameraRotationVector[c], cameraTranslationVector[c]);
-				cv::Mat t_chess = getTransformationMatrix(Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getRotationVector(), Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getTranslationVector());
+				cv::Mat t_chess = getTransformationMatrix(Project::getInstance()->getCameras()[c ]->getCalibrationImages()[f]->getRotationVector(), Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getTranslationVector());
 				r_vec += getRotationVector(t_cam.inv() * t_chess);
 				t_vec += getTranslation(t_cam.inv() * t_chess);
 				count++;
@@ -607,30 +741,35 @@ void MultiCameraCalibration::optimizeCameraSetup_threadFinished()
 		Project::getInstance()->getCameras()[c]->setOptimized(true);
 	}
 
-	for (int f = 0; f < nbFrames; f++)
+	for (int f_ = 0; f_ < nbFrames; f_++)
 	{
+		int f = frames[f_];
 		//Rotation
-		chessRotationVector[f].at<double>(0, 0) = p[6 * f + nbCamParams * nbCameras + 0];
-		chessRotationVector[f].at<double>(1, 0) = p[6 * f + nbCamParams * nbCameras + 1];
-		chessRotationVector[f].at<double>(2, 0) = p[6 * f + nbCamParams * nbCameras + 2];
+		chessRotationVector[f_].at<double>(0, 0) = p[6 * f_ + nbCamParams * nbCameras + 0];
+		chessRotationVector[f_].at<double>(1, 0) = p[6 * f_ + nbCamParams * nbCameras + 1];
+		chessRotationVector[f_].at<double>(2, 0) = p[6 * f_ + nbCamParams * nbCameras + 2];
 
 		//Translation
-		chessTranslationVector[f].at<double>(0, 0) = p[6 * f + nbCamParams * nbCameras + 3];
-		chessTranslationVector[f].at<double>(1, 0) = p[6 * f + nbCamParams * nbCameras + 4];
-		chessTranslationVector[f].at<double>(2, 0) = p[6 * f + nbCamParams * nbCameras + 5];
+		chessTranslationVector[f_].at<double>(0, 0) = p[6 * f_ + nbCamParams * nbCameras + 3];
+		chessTranslationVector[f_].at<double>(1, 0) = p[6 * f_ + nbCamParams * nbCameras + 4];
+		chessTranslationVector[f_].at<double>(2, 0) = p[6 * f_ + nbCamParams * nbCameras + 5];
 
-		cv::Mat t_chess = getTransformationMatrix(chessRotationVector[f], chessTranslationVector[f]);
+		cv::Mat t_chess = getTransformationMatrix(chessRotationVector[f_], chessTranslationVector[f_]);
 
 		for (int c = 0; c < nbCameras; c++)
 		{
-			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0)
+			cv::Mat t_cam = getTransformationMatrix(cameraRotationVector[c], cameraTranslationVector[c]);
+			cv::Mat r_tmp = getRotationVector(t_cam * t_chess);
+			cv::Mat t_tmp = getTranslation(t_cam * t_chess);
+			if (Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() != 1)
 			{
-				cv::Mat t_cam = getTransformationMatrix(cameraRotationVector[c], cameraTranslationVector[c]);
-				cv::Mat r_tmp = getRotationVector(t_cam * t_chess);
-				cv::Mat t_tmp = getTranslation(t_cam * t_chess);
-
+				Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->setMatrices(r_tmp, t_tmp);
+				Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->setCalibrated(2);
+			}else
+			{
 				Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->setMatrices(r_tmp, t_tmp);
 			}
+	
 		}
 	}
 	for (int c = 0; c < nbCameras; c++)

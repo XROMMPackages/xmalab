@@ -60,7 +60,7 @@ TrialDialog::TrialDialog(Trial* trial, QWidget* parent) :
 		bool calibrated = true;
 		for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
 		{
-			calibrated = calibrated && Project::getInstance()->getCameras()[j]->getCalibrationImages()[i]->isCalibrated();
+			calibrated = calibrated && (Project::getInstance()->getCameras()[j]->getCalibrationImages()[i]->isCalibrated() > 0) ;
 		}
 		if (calibrated) diag->comboBoxReferenceCalibration->addItem(QString::number(i + 1));
 	}

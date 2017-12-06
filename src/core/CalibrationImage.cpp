@@ -379,6 +379,7 @@ void CalibrationImage::bindTexture(int type)
 {
 	if (isCalibrated() <= 0)
 	{
+		if (image)
 		image->bindTexture();
 	}
 	else
@@ -387,9 +388,11 @@ void CalibrationImage::bindTexture(int type)
 		{
 		case 0:
 		default:
+			if (image)
 			image->bindTexture();
 			break;
 		case 1:
+			if (undistortedImage)
 			undistortedImage->bindTexture();
 			break;
 		}
@@ -804,7 +807,7 @@ void CalibrationImage::sortGridByReference(double x, double y)
 int CalibrationImage::getCalibrationNbInlier()
 {
 	int nbInlier = 0;
-	if (isCalibrated()){
+	if (isCalibrated() == 1){
 		for (auto pt : getInliers())
 		{
 			if (pt > 0)
@@ -821,7 +824,7 @@ double CalibrationImage::getCalibrationError()
 	int countInlier = 0;
 	double meanDist = 0;
 
-	if (isCalibrated())
+	if (isCalibrated() == 1)
 	{
 		for (unsigned int pt = 0; pt < getErrorDist().size(); pt++)
 		{

@@ -194,7 +194,7 @@ void GLCameraView::mouseDoubleClickEvent(QMouseEvent* e)
 	if (e->buttons() & Qt::LeftButton)
 	{
 		if (State::getInstance()->getWorkspace() == CALIBRATION
-			&& camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() > 0)
+			&& camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() == 1)
 		{
 			double x = zoomRatio * (e->posF().x()) - ((window_width) * zoomRatio * 0.5 + x_offset);
 			double y = zoomRatio * (e->posF().y()) - ((window_height) * zoomRatio * 0.5 + y_offset);
@@ -276,7 +276,7 @@ void GLCameraView::mousePressEvent(QMouseEvent* e)
 			}
 			else
 			{
-				if (camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() <= 0)
+				if (camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() != 1)
 				{
 					WizardDockWidget::getInstance()->addCalibrationReference(x, y);
 				}
@@ -458,7 +458,8 @@ void GLCameraView::renderPointText(bool calibration)
 	{
 		std::vector<bool> inlier;
 		camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getDrawTextData(
-			(!camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() && WizardDockWidget::getInstance()->manualCalibrationRunning()) ? IDCALIBTEXT : State::getInstance()->getCalibrationVisText(), State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE, x, y, text, inlier);
+			((!camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() == 1)
+				&& WizardDockWidget::getInstance()->manualCalibrationRunning()) ? IDCALIBTEXT : State::getInstance()->getCalibrationVisText(), State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE, x, y, text, inlier);
 		setFont(QFont(this->font().family(), 15.0));
 		QFontMetrics fm(this->font());
 		if (State::getInstance()->getCalibrationVisText() < 3)
@@ -838,7 +839,8 @@ void GLCameraView::paintGL()
 	{
 		camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->draw(State::getInstance()->getCalibrationVisPoints());
 		if (State::getInstance()->getCalibrationVisText() > 0 ||
-			(!camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() && WizardDockWidget::getInstance()->manualCalibrationRunning()))
+			((!camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() == 1)
+				&& WizardDockWidget::getInstance()->manualCalibrationRunning()))
 		{
 			renderPointText(true);
 		}

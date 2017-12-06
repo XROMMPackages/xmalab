@@ -80,6 +80,7 @@ namespace xma
 		bool withDistortion;
 		bool seperateDimensions;
 
+		std::vector<int> frames;
 		std::vector<int> frameIdx;
 		std::vector<int> camIdx;
 		std::vector<int> pts3DIdx;

@@ -111,7 +111,7 @@ void CalibrationInfoFrame::getCameraInfo(Camera* camera, QString& CameraCenter, 
 
 	for (unsigned int f = 0; f < camera->getCalibrationImages().size(); f++)
 	{
-		if (camera->getCalibrationImages()[f]->isCalibrated())
+		if (camera->getCalibrationImages()[f]->isCalibrated() == 1)
 		{
 			countFrames++;
 			for (unsigned int pt = 0; pt < camera->getCalibrationImages()[f]->getErrorDist().size(); pt++)
@@ -136,7 +136,7 @@ void CalibrationInfoFrame::getCameraInfo(Camera* camera, QString& CameraCenter, 
 	double sdUndist = 0;
 	for (unsigned int f = 0; f < camera->getCalibrationImages().size(); f++)
 	{
-		if (camera->getCalibrationImages()[f]->isCalibrated())
+		if (camera->getCalibrationImages()[f]->isCalibrated() == 1)
 		{
 			for (unsigned int pt = 0; pt < camera->getCalibrationImages()[f]->getErrorDist().size(); pt++)
 			{
@@ -164,7 +164,7 @@ void CalibrationInfoFrame::getCameraInfo(Camera* camera, QString& CameraCenter, 
 
 void CalibrationInfoFrame::updateFrame(Camera* camera)
 {
-	if (camera->isCalibrated() && camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated())
+	if (camera->isCalibrated() && (camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() == 1))
 	{
 		QString ErrorCurrentDist;
 		QString ErrorCurrentUndist;
@@ -205,7 +205,7 @@ void CalibrationInfoFrame::getInfoFrame(Camera* camera, int frame, QString& Erro
 	double meanDist = 0;
 	double meanUndist = 0;
 
-	if (camera->getCalibrationImages()[frame]->isCalibrated())
+	if (camera->getCalibrationImages()[frame]->isCalibrated() == 1)
 	{
 		for (unsigned int pt = 0; pt < camera->getCalibrationImages()[frame]->getErrorDist().size(); pt++)
 		{
@@ -226,7 +226,7 @@ void CalibrationInfoFrame::getInfoFrame(Camera* camera, int frame, QString& Erro
 	countInlier = 0;
 	double sdDist = 0;
 	double sdUndist = 0;
-	if (camera->getCalibrationImages()[frame]->isCalibrated())
+	if (camera->getCalibrationImages()[frame]->isCalibrated() == 1)
 	{
 		for (unsigned int pt = 0; pt < camera->getCalibrationImages()[frame]->getErrorDist().size(); pt++)
 		{
@@ -255,7 +255,7 @@ QString CalibrationInfoFrame::getInfoInlier(Camera* camera, int frame)
 	int countInlier = 0;
 	for (unsigned int f = 0; f < camera->getCalibrationImages().size(); f++)
 	{
-		if (camera->getCalibrationImages()[f]->isCalibrated())
+		if (camera->getCalibrationImages()[f]->isCalibrated() == 1)
 		{
 			for (unsigned int pt = 0; pt < camera->getCalibrationImages()[f]->getInliers().size(); pt++)
 			{
