@@ -704,7 +704,7 @@ void WizardCalibrationCubeFrame::checkForCalibrationError()
 			if (Project::getInstance()->getCameras()[j]->getCalibrationImages()[k]->isCalibrated() < 0)
 			{
 				hasError = true;
-				errorMessage += "Camera " + QString::number(j) + " Frame " + QString::number(k) + "\n";
+				errorMessage += "Camera " + QString::number(j + 1) + " Frame " + QString::number(k + 1) + "\n";
 				Project::getInstance()->getCameras()[j]->getCalibrationImages()[k]->setCalibrated(0);
 			}
 		}
