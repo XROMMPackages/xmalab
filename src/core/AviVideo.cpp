@@ -59,7 +59,6 @@ void AviVideo::setActiveFrame(int _activeFrame)
 		cap.read(frame);
 		if (frame.channels() > 1)
 		{
-			std::cerr << "Color " << std::endl;
 			if (Project::getInstance()->getFlipImages())
 				cv::flip(frame, frame, 1);
 			image->setImage(frame, true);

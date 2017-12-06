@@ -435,26 +435,27 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 			return;
 		}
 
-		if (ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to animate the virtual point by using a Rigid Body? Click No if you want to import a csv of tracked data instead.", true))
+		if (ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to animate the virtual point by using a Rigid Body? Click no if you want to import a csv of animated data instead", true))
 		{
-			QStringList trialnames;
+			QStringList rbnames;
 			for (unsigned int i = 0; i < m_body->getTrial()->getRigidBodies().size(); i++)
 			{
-				trialnames << QString::number(i + 1);
+				
+				rbnames << "RB" + QString::number(i + 1) + " : " + m_body->getTrial()->getRigidBodies()[i]->getDescription();
 			}
 
 			QString item = QInputDialog::getItem(this, tr("Choose Rigid Body"),
-			                                     tr("RB:"), trialnames, 0, false, &ok);
+				tr("RB:"), rbnames, 0, false, &ok);
 
 			if (ok && !item.isEmpty())
 			{
-				markerID = item.toInt() - 1;
+				markerID = rbnames.indexOf(item);
 				name = name + " RB" + QString::number(markerID + 1);
 			}
 
 			if (markerID != -1)
 			{
-				if (ConfirmationDialog::getInstance()->showConfirmationDialog("Do need to use different CT coordinates for the animated point (Point in the reference of RB" + QString::number(markerID + 1) + ") ?"" Click No if both rigid bodies use the same point.", true))
+				if (ConfirmationDialog::getInstance()->showConfirmationDialog("Do you have different CT coordinates for the driver point, i.e. the point attached to the fully animated rigid body (such as from a scan of disarticulated bones or two scans)?", true))
 				{
 					filenameRef2 = QFileDialog::getOpenFileName(this, "Open CT coordinate file. (Point in the reference of RB" + QString::number(markerID + 1) + ")", Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
 					if (!filenameRef2.isEmpty())
