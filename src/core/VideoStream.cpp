@@ -158,7 +158,7 @@ void VideoStream::parseXMLData(int id, QString xml_data)
 			}
 		}
 
-		portal_id = *std::next(s.begin(), id);
+		if(!s.empty())portal_id = *std::next(s.begin(), id);
 	}
 
 

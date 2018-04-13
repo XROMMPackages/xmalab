@@ -761,7 +761,7 @@ bool WizardCalibrationCubeFrame::calibrateOtherFrames()
 		{
 			cv::Mat t = cv::Mat::zeros(4, 4,CV_64F);
 			bool set = false;
-			if (Project::getInstance()->getCameras()[k]->isCalibrated() && Project::getInstance()->getCameras()[j]->isCalibrated())
+			if (j != k && Project::getInstance()->getCameras()[k]->isCalibrated() && Project::getInstance()->getCameras()[j]->isCalibrated())
 			{
 				for (int m = 0; m < Project::getInstance()->getNbImagesCalibration(); m++)
 				{
@@ -792,7 +792,7 @@ bool WizardCalibrationCubeFrame::calibrateOtherFrames()
 				{
 					CalibrationImage* fk = Project::getInstance()->getCameras()[k]->getCalibrationImages()[m];
 					CalibrationImage* fj = Project::getInstance()->getCameras()[j]->getCalibrationImages()[m];
-					if ((fk->isCalibrated() == 1) && (fj->isCalibrated() == 1))
+					if (j != k && (fk->isCalibrated() != 1) && (fj->isCalibrated() == 1))
 					{
 						bool save = true;
 						for (unsigned int p = 0; p < temporaryCamIdx.size(); p++)

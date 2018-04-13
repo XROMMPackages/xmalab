@@ -78,6 +78,7 @@ bool UndistortionObject::undistort(Image* distorted, Image* undistorted)
 	{
 		cv::Mat imageMat;
 		distorted->getImage(imageMat, true);
+		
 		cv::remap(imageMat, imageMat, undistortionMapX, undistortionMapY, cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
 		if (imageMat.channels() > 1)
 		{
@@ -576,7 +577,7 @@ void UndistortionObject::getDisplacementLength(cv::Mat& imageOut)
 		{
 			x_disp = *undistortionMapX_ptr++;
 			y_disp = *undistortionMapY_ptr++;
-			if ((y_disp != 0.0) && (x_disp != 0.0))
+			if ((y_disp != -1) && (x_disp != -1))
 			{
 				*disp_length_ptr++ = sqrt((y_disp - y) * (y_disp - y) + (x_disp - x) * (x_disp - x));
 			}
@@ -616,7 +617,7 @@ void UndistortionObject::getDisplacementAngle(cv::Mat& imageOut)
 		{
 			x_disp = *undistortionMapX_ptr++;
 			y_disp = *undistortionMapY_ptr++;
-			if ((y_disp != 0.0) && (x_disp != 0.0))
+			if ((y_disp != -1) && (x_disp != -1))
 			{
 				*disp_angle_ptr++ = atan2(y_disp - y, x_disp - x);
 			}
@@ -660,7 +661,7 @@ void UndistortionObject::getDisplacementScaledAngle(cv::Mat& imageOut)
 		{
 			x_disp = *undistortionMapX_ptr++;
 			y_disp = *undistortionMapY_ptr++;
-			if ((y_disp != 0.0) && (x_disp != 0.0))
+			if ((y_disp != -1) && (x_disp != -1))
 			{
 				*disp_angle_ptr++ = atan2(y_disp - y, x_disp - x);
 				*disp_length_ptr++ = sqrt((y_disp - y) * (y_disp - y) + (x_disp - x) * (x_disp - x));
@@ -706,7 +707,7 @@ void UndistortionObject::getDisplacementX(cv::Mat& imageOut)
 		for (int x = 0; x < undistortionMapX.cols; x++)
 		{
 			x_disp = *undistortionMapX_ptr++;
-			if (x_disp != 0.0)
+			if (x_disp != -1)
 			{
 				*diff_x_ptr++ = x_disp - x;
 			}
@@ -742,7 +743,7 @@ void UndistortionObject::getDisplacementY(cv::Mat& imageOut)
 		for (int x = 0; x < undistortionMapY.cols; x++)
 		{
 			y_disp = *undistortionMapY_ptr++;
-			if (y_disp != 0.0)
+			if (y_disp != -1)
 			{
 				*diff_y_ptr++ = y_disp - y;
 			}

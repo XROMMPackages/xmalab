@@ -46,7 +46,7 @@ using namespace xma;
 Image::Image(QString _imageFileName)
 {
 	cv::Mat imageTMP;
-
+	
 	imageTMP = cv::imread(_imageFileName.toAscii().data(), CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH);
 
 	if (imageTMP.channels()> 1){
@@ -225,6 +225,7 @@ void Image::loadTexture()
 		{
 			image_color.create(image.rows, image.cols, CV_8UC(3));
 			cvtColor(image, image_color, CV_GRAY2RGB);
+			
 			//colorImage_set = COLOR_CONVERTED;
 		}
 
@@ -245,7 +246,8 @@ void Image::loadTexture()
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.cols, image.rows,
 			0, GL_BGR, GL_UNSIGNED_BYTE, image_color.ptr());
-		image_color.release();
+		if (colorImage_set == GRAY)
+			image_color.release();
 		textureLoaded = true;
 		image_reset = false;
 	}
