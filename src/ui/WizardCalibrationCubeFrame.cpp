@@ -725,7 +725,7 @@ void WizardCalibrationCubeFrame::runCalibrationFinished()
 	{
 		if (Project::getInstance()->getCameras()[temporaryCamIdx[p]]->getCalibrationImages()[temporaryFrameIdx[p]]->isCalibrated() != 1)
 		{
-			if (!Settings::getInstance()->getBoolSetting("HideWarningsDuringCalibration"))ErrorDialog::getInstance()->showErrorDialog("Could not set Camera " + QString::number(temporaryCamIdx[p]) + " Frame " + QString::number(temporaryFrameIdx[p]) + " from other Frames. Please check your calibration.");
+			if (!Settings::getInstance()->getBoolSetting("HideWarningsDuringCalibration"))ErrorDialog::getInstance()->showErrorDialog("Could not set Camera " + QString::number(temporaryCamIdx[p] + 1) + " Frame " + QString::number(temporaryFrameIdx[p] + 1) + " from other Frames. Please check your calibration.");
 			calibrateOtherFramesFailed = true;
 		}
 	}
