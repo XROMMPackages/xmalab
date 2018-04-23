@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>840</width>
-    <height>978</height>
+    <width>1988</width>
+    <height>1451</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -234,8 +234,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>826</width>
-            <height>69</height>
+            <width>1974</width>
+            <height>154</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -364,8 +364,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>840</width>
-     <height>21</height>
+     <width>1988</width>
+     <height>43</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -389,6 +389,8 @@
      <addaction name="actionExportAll"/>
      <addaction name="separator"/>
      <addaction name="actionXROMM_VR"/>
+     <addaction name="separator"/>
+     <addaction name="actionAll_Trials_for_External"/>
     </widget>
     <widget class="QMenu" name="menuImport">
      <property name="title">
@@ -831,8 +833,14 @@
    </property>
   </action>
   <action name="actionUndistort_sequence">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Undistort sequence</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionAbout">
@@ -996,6 +1004,11 @@
   <action name="actionXROMM_VR">
    <property name="text">
     <string>XROMM-VR</string>
+   </property>
+  </action>
+  <action name="actionAll_Trials_for_External">
+   <property name="text">
+    <string>All Trials for External</string>
    </property>
   </action>
  </widget>

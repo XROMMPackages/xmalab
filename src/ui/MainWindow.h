@@ -145,6 +145,7 @@ namespace xma
 		void on_actionMayaCams_triggered(bool checked);
 		void on_actionMayaCams_2_0_triggered(bool checked);
 		void on_actionUndistort_sequence_triggered(bool checked);
+		void on_actionAll_Trials_for_External_triggered(bool checked);
 
 		void on_actionImport2D_Points_triggered(bool checked);
 		void on_actionImportTrial_triggered(bool checked);

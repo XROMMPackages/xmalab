@@ -550,18 +550,21 @@ void Project::exportMayaCam(QString foldername, int frame)
 	}
 }
 
-void Project::exportMayaCamVersion2(QString foldername, int frame)
+void Project::exportMayaCamVersion2(QString foldername, int frame, int id)
 {
 	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
 	{
-		int start = (frame == -1) ? 0 : frame;
-		int stop = (frame == -1) ? (*it)->getCalibrationImages().size() : frame + 1;
+		if (id == -1 || (*it)->getID() == id){
 
-		for (unsigned int f = start; f < stop; f++)
-		{
-			if ((*it)->getCalibrationImages()[f]->isCalibrated() > 0)
+			int start = (frame == -1) ? 0 : frame;
+			int stop = (frame == -1) ? (*it)->getCalibrationImages().size() : frame + 1;
+
+			for (unsigned int f = start; f < stop; f++)
 			{
-				(*it)->saveMayaCamVersion2(f, foldername + OS_SEP + (*it)->getCalibrationImages()[f]->getFilenameBase() + "_MayaCam.txt");
+				if ((*it)->getCalibrationImages()[f]->isCalibrated() > 0)
+				{
+					(*it)->saveMayaCamVersion2(f, foldername + OS_SEP + (*it)->getCalibrationImages()[f]->getFilenameBase() + "_MayaCam.txt");
+				}
 			}
 		}
 	}

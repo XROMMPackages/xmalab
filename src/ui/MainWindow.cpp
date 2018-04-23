@@ -1807,6 +1807,38 @@ void MainWindow::on_actionUndistort_sequence_triggered(bool checked)
 	delete diag;
 }
 
+void MainWindow::on_actionAll_Trials_for_External_triggered(bool checked)
+{
+	if (project == NULL)
+		return;
+
+	QString outputPath = QFileDialog::getExistingDirectory(this,
+		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+
+	if (outputPath.isNull() == false)
+	{
+		ProgressDialog::getInstance()->showProgressbar(0, 0, "Exporting all for external processing");
+		for (auto &tr : Project::getInstance()->getTrials())
+		{
+			QString trial_path = outputPath + OS_SEP + tr->getName() + OS_SEP;
+			QDir().mkpath(trial_path);
+			
+			for (int i = 0; i < project->getCameras().size(); i++){
+				QString cam_path = trial_path + OS_SEP + "Camera " + QString::number(i) + OS_SEP;
+				QDir().mkpath(cam_path);
+
+				QDir().mkpath(cam_path + OS_SEP + "calib" + OS_SEP);
+				Project::getInstance()->exportMayaCamVersion2(cam_path + OS_SEP + "calib" + OS_SEP, -1, i);
+				QDir().mkpath(cam_path + OS_SEP + "images" + OS_SEP);
+				tr->saveTrialImages(cam_path + OS_SEP + "images" + OS_SEP, 1, tr->getVideoStreams()[i]->getNbImages(), "tif", i);
+				QDir().mkpath(cam_path + OS_SEP + "markers" + OS_SEP);
+				tr->save2dPoints(cam_path + OS_SEP + "markers" + OS_SEP, false, false, false, false, false, false, i);
+			}
+		}
+		ProgressDialog::getInstance()->closeProgressbar();
+	}
+}
+
 void MainWindow::on_actionImport2D_Points_triggered(bool checked)
 {
 	PointImportExportDialog* diag = new PointImportExportDialog(IMPORT2D, this);

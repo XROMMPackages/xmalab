@@ -1047,15 +1047,17 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 }
 
 
-void Trial::saveTrialImages(QString outputfolder, int from, int to, QString format)
+void Trial::saveTrialImages(QString outputfolder, int from, int to, QString format, int id)
 {
 	if (isDefault)
 		return;
 	
-	for (unsigned int i = 0; i < videos.size(); i++)
+	int start = (id == -1) ?  0 : id;
+	int end = (id == -1) ? videos.size() : id + 1;
+	for (unsigned int i = start; i < end; i++)
 	{
 		QFileInfo info(videos[i]->getFileBasename());
-		QString foldername = outputfolder + info.completeBaseName() + "UND";
+		QString foldername = (id == -1) ? outputfolder + info.completeBaseName() + "UND" : outputfolder;
 		if (!QDir().mkpath(foldername))
 		{
 			return;
@@ -1511,8 +1513,11 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 	return true;
 }
 
-void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols)
+void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols, int id)
 {
+	bool start = (id == -1) ? 0 : id;
+	bool end = (id == -1) ? Project::getInstance()->getCameras().size() : id + 1;
+
 	if (onefile)
 	{
 		std::ofstream outfile(outputfolder.toAscii().data());
@@ -1521,7 +1526,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 		{
 			if (offsetCols)
 			{
-				for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				for (unsigned int j = start; j < end; j++)
 				{
 					outfile << "cam" << j << "_offset";
 				}
@@ -1539,11 +1544,11 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 					name = getMarkers()[i]->getDescription();
 				}
 
-				for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				for (unsigned int j = start; j < end; j++)
 				{
 					outfile << name.toAscii().data() << "_cam" << j + 1 << "_X" << " , " << name.toAscii().data() << "_cam" << j + 1 << "_Y";
 
-					if (i != getMarkers().size() - 1 || j != Project::getInstance()->getCameras().size() - 1)
+					if (i != getMarkers().size() - 1 || j != end- 1)
 					{
 						outfile << " , ";
 					}
@@ -1559,14 +1564,14 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 		{
 			if (offsetCols)
 			{
-				for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				for (unsigned int j = start; j < end; j++)
 				{
 					outfile << 0.0 << " , ";
 				}
 			}
 			for (unsigned int i = 0; i < getMarkers().size(); i++)
 			{
-				for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				for (unsigned int j = start; j < end; j++)
 				{
 					if (getMarkers()[i]->getStatus2D()[j][f] > 0)
 					{
@@ -1601,7 +1606,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 						outfile << "NaN" << " , " << "NaN";
 					}
 
-					if (i != getMarkers().size() - 1 || j != Project::getInstance()->getCameras().size() - 1)
+					if (i != getMarkers().size() - 1 || j != end - 1)
 					{
 						outfile << " , ";
 					}
@@ -1625,7 +1630,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 			{
 				if (offsetCols)
 				{
-					for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+					for (unsigned int j = start; j < end; j++)
 					{
 						outfile << "cam" << j << "_offset";
 					}
@@ -1641,11 +1646,11 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 					name = getMarkers()[i]->getDescription();
 				}
 
-				for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				for (unsigned int j = start; j < end; j++)
 				{
 					outfile << name.toAscii().data() << "_cam" << j + 1 << "_X" << " , " << name.toAscii().data() << "_cam" << j + 1 << "_Y";
 
-					if (j != Project::getInstance()->getCameras().size() - 1)
+					if (j != end - 1)
 					{
 						outfile << " , ";
 					}
@@ -1660,13 +1665,13 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 			{
 				if (offsetCols)
 				{
-					for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+					for (unsigned int j = start; j < end; j++)
 					{
 						outfile << 0.0 << " , ";
 					}
 				}
 
-				for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j++)
+				for (unsigned int j = start; j < end; j++)
 				{
 					if (getMarkers()[i]->getStatus2D()[j][f] > 0)
 					{
@@ -1701,7 +1706,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 						outfile << "NaN" << " , " << "NaN";
 					}
 
-					if (j != Project::getInstance()->getCameras().size() - 1)
+					if (j != end - 1)
 					{
 						outfile << " , ";
 					}
