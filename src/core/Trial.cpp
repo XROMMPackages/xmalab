@@ -1515,8 +1515,8 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 
 void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols, int id)
 {
-	bool start = (id == -1) ? 0 : id;
-	bool end = (id == -1) ? Project::getInstance()->getCameras().size() : id + 1;
+	int start = (id == -1) ? 0 : id;
+	int end = (id == -1) ? Project::getInstance()->getCameras().size() : id + 1;
 
 	if (onefile)
 	{
