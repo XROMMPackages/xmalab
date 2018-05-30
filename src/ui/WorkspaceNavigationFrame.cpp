@@ -111,6 +111,13 @@ void WorkspaceNavigationFrame::addTrial(QString name)
 	frame->comboBoxTrial->addItem(name);
 }
 
+void WorkspaceNavigationFrame::removeTrial(QString name)
+{
+	int idx = frame->comboBoxTrial->findText(name);
+	frame->comboBoxTrial->removeItem(idx);
+
+}
+
 void WorkspaceNavigationFrame::closeProject()
 {
 	updating = true;
@@ -200,6 +207,10 @@ void WorkspaceNavigationFrame::activeTrialChanged(int activeTrial)
 
 		if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 && Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial())
 			frame->toolButtonTrialSettings->setEnabled(!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault());
+	} 
+	else
+	{
+		currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
 	}
 }
 

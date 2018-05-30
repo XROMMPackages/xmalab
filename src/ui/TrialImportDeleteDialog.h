@@ -20,64 +20,42 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file WorkspaceNavigationFrame.h
+///\file TrialImportDeleteDialog.h
 ///\author Benjamin Knorlein
-///\date 11/20/2015
+///\date 05/30/2018
 
-#ifndef WORKSPACENAVIGATIONFRAME_H_
-#define WORKSPACENAVIGATIONFRAME_H_
+#ifndef TRIALIMPORTDELETEDIALOG_H_
+#define TRIALIMPORTDELETEDIALOG_H_
 
-#include <QFrame>
-#include "ui/State.h"
+#include <QDialog>
 
 namespace Ui
 {
-	class WorkspaceNavigationFrame;
+	class TrialImportDeleteDialog;
 }
 
 namespace xma
 {
-	class WorkspaceNavigationFrame : public QFrame
+	class TrialImportDeleteDialog : public QDialog
 	{
 		Q_OBJECT
 
 	private:
-		Ui::WorkspaceNavigationFrame* frame;
-		WorkspaceNavigationFrame(QWidget* parent = 0);
-		static WorkspaceNavigationFrame* instance;
-		int currentComboBoxWorkspaceIndex;
-		
-
-		bool updating;
-	protected:
+		Ui::TrialImportDeleteDialog* diag;
+		QStringList list;
 
 	public:
-		virtual ~WorkspaceNavigationFrame();
-
-		static WorkspaceNavigationFrame* getInstance();
-
-		void setUndistortionCalibration(bool hasUndistortion,bool hasCalibration);
-		void addTrial(QString name);
-		void removeTrial(QString name);
-		void closeProject();
-		void setTrialVisible(bool visible);
-		void setWorkState(work_state workspace);
-
+		TrialImportDeleteDialog(QStringList items, bool deleteDialog, QWidget* parent = 0);
+		virtual ~TrialImportDeleteDialog();
+		QStringList getSelected()
+		{
+			return list;
+		}
 	public slots:
-
-		void workspaceChanged(work_state workspace);
-		void displayChanged(ui_state display);
-		void activeTrialChanged(int activeTrial);
-
-		void on_comboBoxWorkspace_currentIndexChanged(QString value);
-		void on_comboBoxTrial_currentIndexChanged(int idx);
-		void on_comboBoxViewspace_currentIndexChanged(QString value);
-		void on_toolButtonAddTrial_clicked();
-		void on_toolButtonTrialSettings_clicked();
-		void on_toolButtonCameraSettings_clicked();
+		void on_pushButton_clicked();
 	};
 }
 
 
-#endif /* WORKSPACENAVIGATIONFRAME_H_ */
+#endif /* TRIALIMPORTDELETEDIALOG_H_ */
 

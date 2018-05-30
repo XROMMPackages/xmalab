@@ -150,6 +150,8 @@ namespace xma
 		void on_actionImport2D_Points_triggered(bool checked);
 		void on_actionImportTrial_triggered(bool checked);
 
+		void on_actionDelete_multiple_trials_triggered(bool checked);
+
 		void on_actionSettings_triggered(bool checked);
 		void on_actionAbout_triggered(bool checked);
 		void on_actionHelp_triggered(bool checked);

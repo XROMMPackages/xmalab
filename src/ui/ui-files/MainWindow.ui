@@ -235,7 +235,7 @@
             <x>0</x>
             <y>0</y>
             <width>1974</width>
-            <height>154</height>
+            <height>69</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -365,7 +365,7 @@
      <x>0</x>
      <y>0</y>
      <width>1988</width>
-     <height>43</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -418,6 +418,7 @@
     <addaction name="menuImport"/>
     <addaction name="separator"/>
     <addaction name="actionUndistort_sequence"/>
+    <addaction name="actionDelete_multiple_trials"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -1009,6 +1010,11 @@
   <action name="actionAll_Trials_for_External">
    <property name="text">
     <string>All Trials for External</string>
+   </property>
+  </action>
+  <action name="actionDelete_multiple_trials">
+   <property name="text">
+    <string>Delete multiple trials</string>
    </property>
   </action>
  </widget>

@@ -61,6 +61,7 @@
 #include "ui/DetectionSettings.h"
 #include "ui/EventDockWidget.h"
 #include "ui/WelcomeDialog.h"
+#include "ui/TrialImportDeleteDialog.h"
 
 #include "core/Project.h"
 #include "core/Camera.h"
@@ -1897,44 +1898,91 @@ void MainWindow::on_actionImportTrial_triggered(bool checked)
 	{
 		Settings::getInstance()->setLastUsedDirectory(fileName);
 		QStringList trialnames = ProjectFileIO::getInstance()->readTrials(fileName);
+		
+		TrialImportDeleteDialog* diag = new TrialImportDeleteDialog(trialnames, false, this);
+		diag->exec();
+		QStringList selected = diag->getSelected();
 
-		bool ok;
-		QString item = QInputDialog::getItem(this, tr("Choose trial to import"),
-		                                     tr("Trial:"), trialnames, 0, false, &ok);
-
-		if (ok && !item.isEmpty())
+		if (diag->result() == QDialog::Accepted && !selected.empty())
 		{
-			Trial* trial = ProjectFileIO::getInstance()->loadTrials(fileName, item);
-			if (trial->getIsDefault() && project->hasDefaultTrial())
-			{
-				if (ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to replace your current Default trial. Are you sure you want to update it?")){
-					Project::getInstance()->replaceTrial(Project::getInstance()->getDefaultTrail(), trial);
-				} else
+			for (auto &item : selected){
+				Trial* trial = ProjectFileIO::getInstance()->loadTrials(fileName, item);
+				if (trial->getIsDefault() && project->hasDefaultTrial())
 				{
-					delete trial;
-					return;
+					if (ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to replace your current Default trial. Are you sure you want to update it?")){
+						Project::getInstance()->replaceTrial(Project::getInstance()->getDefaultTrail(), trial);
+					}
+					else
+					{
+						delete trial;
+						return;
+					}
 				}
-			} 
-			else
-			{
-				Project::getInstance()->addTrial(trial);
-				WorkspaceNavigationFrame::getInstance()->addTrial(item);
-			}
-
+				else
+				{
+					Project::getInstance()->addTrial(trial);
+					WorkspaceNavigationFrame::getInstance()->addTrial(item);
+				}
 			
-			checkTrialImagePaths();
-			trial->bindTextures();
+			
+				checkTrialImagePaths();
+				trial->bindTextures();
 
-			if (trial->getIsDefault())
-			{
-				PointsDockWidget::getInstance()->on_pushButtonApply_clicked();
-				PointsDockWidget::getInstance()->reloadListFromObject();
+				if (trial->getIsDefault())
+				{
+					PointsDockWidget::getInstance()->on_pushButtonApply_clicked();
+					PointsDockWidget::getInstance()->reloadListFromObject();
+				}
+
+				if (State::getInstance()->getWorkspace() == DIGITIZATION)
+				{
+					State::getInstance()->changeWorkspace(DIGITIZATION, true);
+				}
+			}
+		}
+		delete diag;
+	}
+}
+
+void MainWindow::on_actionDelete_multiple_trials_triggered(bool checked)
+{
+	QStringList trialnames;
+
+	for (auto &tr : project->getTrials())
+		trialnames << tr->getName();
+	TrialImportDeleteDialog* diag = new TrialImportDeleteDialog(trialnames, true, this);
+	diag->exec();
+	QStringList selected = diag->getSelected();
+	if (diag->result() == QDialog::Accepted && !selected.empty())
+	{
+		QString text_message = "Are you sure you want to delete the following trials?\n";
+		for (auto &str : selected)
+			text_message += (str + QString("\n"));
+		if (ConfirmationDialog::getInstance()->showConfirmationDialog(text_message))
+		{
+			for (auto &item : selected){
+				Trial* trial = Project::getInstance()->getTrialByName(item);
+				Project::getInstance()->deleteTrial(trial);
+				WorkspaceNavigationFrame::getInstance()->removeTrial(trial->getName());
 			}
 
-			if (State::getInstance()->getWorkspace() == DIGITIZATION)
+			if (State::getInstance()->getActiveTrial() >= (int)Project::getInstance()->getTrials().size())
+				State::getInstance()->changeActiveTrial(Project::getInstance()->getTrials().size() - 1, true);
+
+			if (State::getInstance()->getActiveTrial() == -1)
 			{
 				State::getInstance()->changeWorkspace(DIGITIZATION, true);
+				
+				if (Project::getInstance()->isCalibrated() || !Project::getInstance()->hasCalibration())
+				{
+					WorkspaceNavigationFrame::getInstance()->setTrialVisible(true);
+				}
+				else
+				{
+					WorkspaceNavigationFrame::getInstance()->setTrialVisible(false);
+				}
 			}
+
 		}
 	}
 }
