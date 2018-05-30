@@ -1517,58 +1517,66 @@ void MainWindow::save3DPoints(std::vector<int> markers)
 	{
 		bool saved;
 		bool filterData = ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to filter 3D Points?", true);
-		double filter_frequency = -1;
-		if (filterData)
+
+		if (filterData && Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRecordingSpeed() <= 0)
 		{
-			filter_frequency = QInputDialog::getDouble(this, "Enter cutoff frequency (Hz)", "", project->getTrials()[State::getInstance()->getActiveTrial()]->getCutoffFrequency(), 0.0, project->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed()*0.5);
+			ErrorDialog::getInstance()->showErrorDialog("Recording speed is not set for the trial. First set the recording speed and repeat the export");
 		}
-		int start = 0;
-		int stop = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages() - 1;
-		if (Settings::getInstance()->getBoolSetting("Export3DOffsetCols")){
-			FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
-				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
-				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
-				, false, this);
-
-			bool ok2 = fromTo->exec();
-			if (ok2)
+		else{
+			double filter_frequency = -1;
+			if (filterData)
 			{
-				start = fromTo->getFrom() - 1;
-				stop = fromTo->getTo() - 1;
+				filter_frequency = QInputDialog::getDouble(this, "Enter cutoff frequency (Hz)", "", project->getTrials()[State::getInstance()->getActiveTrial()]->getCutoffFrequency(), 0.0, project->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed()*0.5);
 			}
-		}
+			int start = 0;
+			int stop = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages() - 1;
+			if (Settings::getInstance()->getBoolSetting("Export3DOffsetCols")){
+				FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
+					, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
+					, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
+					, false, this);
 
-		if (Settings::getInstance()->getBoolSetting("Export3DSingle"))
-		{
-			QString outputPath = QFileDialog::getExistingDirectory(this,
-				tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+				bool ok2 = fromTo->exec();
+				if (ok2)
+				{
+					start = fromTo->getFrom() - 1;
+					stop = fromTo->getTo() - 1;
+				}
+			}
+		
 
-			if (outputPath.isNull() == false)
+			if (Settings::getInstance()->getBoolSetting("Export3DSingle"))
 			{
-				saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(markers, outputPath + OS_SEP
-					, Settings::getInstance()->getBoolSetting("Export3DMulti")
-					, Settings::getInstance()->getBoolSetting("Export3DHeader")
-					, filter_frequency
-					, Settings::getInstance()->getBoolSetting("Export3DOffsetCols"), start, stop);
-				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
-			}
-		}
-		else if (Settings::getInstance()->getBoolSetting("Export3DMulti"))
-		{
-			QString fileName = QFileDialog::getSaveFileName(this,
-				tr("Save 3D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+				QString outputPath = QFileDialog::getExistingDirectory(this,
+					tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
-			if (fileName.isNull() == false)
-			{
-				saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(markers, fileName
-					, Settings::getInstance()->getBoolSetting("Export3DMulti")
-					, Settings::getInstance()->getBoolSetting("Export3DHeader"),
-					filter_frequency
-					, Settings::getInstance()->getBoolSetting("Export3DOffsetCols"), start, stop);
-				Settings::getInstance()->setLastUsedDirectory(fileName);
+				if (outputPath.isNull() == false)
+				{
+					saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(markers, outputPath + OS_SEP
+						, Settings::getInstance()->getBoolSetting("Export3DMulti")
+						, Settings::getInstance()->getBoolSetting("Export3DHeader")
+						, filter_frequency
+						, Settings::getInstance()->getBoolSetting("Export3DOffsetCols"), start, stop);
+					Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+				}
 			}
+			else if (Settings::getInstance()->getBoolSetting("Export3DMulti"))
+			{
+				QString fileName = QFileDialog::getSaveFileName(this,
+					tr("Save 3D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+
+				if (fileName.isNull() == false)
+				{
+					saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(markers, fileName
+						, Settings::getInstance()->getBoolSetting("Export3DMulti")
+						, Settings::getInstance()->getBoolSetting("Export3DHeader"),
+						filter_frequency
+						, Settings::getInstance()->getBoolSetting("Export3DOffsetCols"), start, stop);
+					Settings::getInstance()->setLastUsedDirectory(fileName);
+				}
+			}
+			if (!saved) ErrorDialog::getInstance()->showErrorDialog("There has been a problem saving. Please ensure that the cutoff and framerate are valid in case you exported filtered data.");
 		}
-		if (!saved) ErrorDialog::getInstance()->showErrorDialog("There has been a problem saving. Please ensure that the cutoff and framerate are valid in case you exported filtered data.");
 	}
 
 	delete diag;
@@ -1653,50 +1661,56 @@ void MainWindow::saveRigidBodies(std::vector<int> bodies)
 	diag->exec();
 	if (diag->result())
 	{
-		int start = 0;
-		int stop = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages() - 1;
-		if (Settings::getInstance()->getBoolSetting("ExportTransOffsetCols")){
-			FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
-				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
-				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
-				, false, this);
-
-			bool ok2 = fromTo->exec();
-			if (ok2)
-			{
-				start = fromTo->getFrom() - 1;
-				stop = fromTo->getTo() - 1;
-			}
-		}
-
-		if (Settings::getInstance()->getBoolSetting("ExportTransSingle"))
+		if (Settings::getInstance()->getBoolSetting("ExportTransFiltered") && (Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRecordingSpeed() <= 0 || Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getCutoffFrequency() <= 0))
 		{
-			QString outputPath = QFileDialog::getExistingDirectory(this, tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
-
-			if (outputPath.isNull() == false)
-			{
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(bodies, outputPath + OS_SEP
-					, Settings::getInstance()->getBoolSetting("ExportTransMulti")
-					, Settings::getInstance()->getBoolSetting("ExportTransHeader")
-					, Settings::getInstance()->getBoolSetting("ExportTransFiltered")
-					, Settings::getInstance()->getBoolSetting("ExportTransOffsetCols"), start, stop);
-				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
-			}
+			ErrorDialog::getInstance()->showErrorDialog("Recording speed or Cutoff frequency are not set for the trial. First set the recording speed and Cutoff frequency and repeat the export");
 		}
-		else if (Settings::getInstance()->getBoolSetting("ExportTransMulti"))
-		{
-			QString fileName = QFileDialog::getSaveFileName(this,
-				tr("Save Rigid Bodies as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+		else{
+			int start = 0;
+			int stop = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages() - 1;
+			if (Settings::getInstance()->getBoolSetting("ExportTransOffsetCols")){
+				FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
+					, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
+					, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
+					, false, this);
 
+				bool ok2 = fromTo->exec();
+				if (ok2)
+				{
+					start = fromTo->getFrom() - 1;
+					stop = fromTo->getTo() - 1;
+				}
+			}
 
-			if (fileName.isNull() == false)
+			if (Settings::getInstance()->getBoolSetting("ExportTransSingle"))
 			{
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(bodies, fileName
-					, Settings::getInstance()->getBoolSetting("ExportTransMulti")
-					, Settings::getInstance()->getBoolSetting("ExportTransHeader")
-					, Settings::getInstance()->getBoolSetting("ExportTransFiltered")
-					, Settings::getInstance()->getBoolSetting("ExportTransOffsetCols"), start, stop);
-				Settings::getInstance()->setLastUsedDirectory(fileName);
+				QString outputPath = QFileDialog::getExistingDirectory(this, tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+
+				if (outputPath.isNull() == false)
+				{
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(bodies, outputPath + OS_SEP
+						, Settings::getInstance()->getBoolSetting("ExportTransMulti")
+						, Settings::getInstance()->getBoolSetting("ExportTransHeader")
+						, Settings::getInstance()->getBoolSetting("ExportTransFiltered")
+						, Settings::getInstance()->getBoolSetting("ExportTransOffsetCols"), start, stop);
+					Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+				}
+			}
+			else if (Settings::getInstance()->getBoolSetting("ExportTransMulti"))
+			{
+				QString fileName = QFileDialog::getSaveFileName(this,
+					tr("Save Rigid Bodies as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+
+
+				if (fileName.isNull() == false)
+				{
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(bodies, fileName
+						, Settings::getInstance()->getBoolSetting("ExportTransMulti")
+						, Settings::getInstance()->getBoolSetting("ExportTransHeader")
+						, Settings::getInstance()->getBoolSetting("ExportTransFiltered")
+						, Settings::getInstance()->getBoolSetting("ExportTransOffsetCols"), start, stop);
+					Settings::getInstance()->setLastUsedDirectory(fileName);
+				}
 			}
 		}
 	}
