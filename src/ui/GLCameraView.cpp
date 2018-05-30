@@ -733,6 +733,14 @@ void GLCameraView::paintGL()
 
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
+		if (Settings::getInstance()->getBoolSetting("TrialDrawFiltered") && (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getCutoffFrequency() <= 0 || Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() <= 0)){
+			setFont(QFont(this->font().family(), 12));
+			qglColor(QColor(255, 0, 0));
+			QFontMetrics fm(this->font());
+			QString string("Rendering of filtered data is enabled, but framrate and cutoff are not set correctly");
+			renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, -zoomRatio * (fm.height() - window_height)* 0.5 - y_offset, 0.0, string);
+		}
+
 		if (renderMeshes){
 			if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
 			{
