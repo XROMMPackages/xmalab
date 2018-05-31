@@ -172,6 +172,7 @@ void TrialDialog::on_pushButton_ChangeTrialData_clicked()
 
 void TrialDialog::on_pushButton_Update_clicked()
 {
+	isComplete();
 	returnValue = TRIALDIALOGUPDATE;
 	this->reject();
 }
