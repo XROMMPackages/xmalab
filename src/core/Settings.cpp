@@ -77,6 +77,7 @@ Settings::Settings()
 	addIntSetting("OutlierThresholdForCalibration", 10);
 	addBoolSetting("DisableCheckerboardDetection", false);
 	addBoolSetting("DisableCheckerboardRefinement", false);
+	addIntSetting("CheckerboadInvertedAxis", 0);
 
 	//Digitizing
 	addBoolSetting("CenterDetailView", false);

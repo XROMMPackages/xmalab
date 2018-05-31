@@ -30,6 +30,7 @@
 
 #include "core/CalibrationObject.h"
 #include "core/HelperFunctions.h"
+#include "core/Settings.h"
 
 #include <QFileInfo>
 #include <QStringList>
@@ -216,13 +217,15 @@ void CalibrationObject::setCheckerboard(int _nbHorizontalSquares, int _nbVertica
 	referenceIDs.clear();
 	referenceNames.clear();
 	frameSpecifications.clear();
+	int inv_x = (Settings::getInstance()->getIntSetting("CheckerboadInvertedAxis") == 1) ? -1 : 1;
+	int inv_y = (Settings::getInstance()->getIntSetting("CheckerboadInvertedAxis") == 2) ? -1 : 1;
 
 	//for (int y = nbVerticalSquares - 1; y >=0 ; y--)
 	for (int y = 0; y < nbVerticalSquares; y++)
 	{
 		for (int x = 0; x < _nbHorizontalSquares; x++)
 		{
-			frameSpecifications.push_back(cv::Point3d(x * squareSize, y * squareSize, 0));
+			frameSpecifications.push_back(cv::Point3d(inv_x * x * squareSize, inv_y * y * squareSize, 0));
 		}
 	}
 
