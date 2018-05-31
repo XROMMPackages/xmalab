@@ -47,7 +47,7 @@ Marker::Marker(int nbCameras, int size, Trial* _trial)
 	init(nbCameras, size);
 	trial = _trial;
 	meanSize = -1;
-	thresholdOffset = 8;
+	thresholdOffset = Settings::getInstance()->getIntSetting("DefaultMarkerThreshold");
 	sizeOverride = -1;
 	maxPenalty = 125;
 	point3D_ref_set = false;

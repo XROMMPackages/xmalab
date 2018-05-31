@@ -189,6 +189,7 @@ Settings::Settings()
 	addBoolSetting("ShowMarkerStates", false);
 
 	addIntSetting("EpipolarLinePrecision", 5);
+	addIntSetting("DefaultMarkerThreshold", 8);
 }
 
 Settings::~Settings()
