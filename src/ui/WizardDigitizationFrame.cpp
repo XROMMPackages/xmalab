@@ -207,6 +207,7 @@ void WizardDigitizationFrame::activePointChanged(int idx){
 	{
 		canUndo = false;
 		MainWindow::getInstance()->setUndo(canUndo);
+		if (trackType == 1) stopTracking();
 	}
 }
 
