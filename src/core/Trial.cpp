@@ -215,17 +215,13 @@ Trial::~Trial()
 	events.clear();
 }
 
-void Trial::changeTrialData(QString trialname, std::vector<QStringList>& imageFilenames)
+bool Trial::changeTrialData(QString trialname, std::vector<QStringList>& imageFilenames)
 {
 	if (isDefault)
-		return;
+		return false;
 
 	name = trialname;
-
-	for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
-	{
-		delete *video;
-	}
+	std::vector<VideoStream*> video_tmp = videos;
 	videos.clear();
 
 	for (std::vector<QStringList>::iterator filenameList = imageFilenames.begin(); filenameList != imageFilenames.end(); ++filenameList)
@@ -255,9 +251,31 @@ void Trial::changeTrialData(QString trialname, std::vector<QStringList>& imageFi
 		videos.push_back(newSequence);
 	}
 
+	if (!checkTrialImageSizeValid())
+	{
+		//image size wrong we restore the old data
+		for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
+		{
+			delete *video;
+		}
+		videos.clear();
+		videos = video_tmp;
+		return false;
+	} 
+	else
+	{
+		//image size correct we delete the old data
+		for (std::vector<VideoStream*>::iterator video = video_tmp.begin(); video != video_tmp.end(); ++video)
+		{
+			delete *video;
+		}
+		video_tmp.clear();	
+	}
+
 	setNbImages();
 	startFrame = 1;
 	endFrame = nbImages;
+	return true;
 }
 
 void Trial::setNbImages()
@@ -2190,6 +2208,17 @@ void Trial::setCameraSizes()
 	{
 		Project::getInstance()->getCameras()[i]->setResolution(videos[i]->getImage()->getWidth(), videos[i]->getImage()->getHeight());
 	}
+}
+
+bool Trial::checkTrialImageSizeValid()
+{
+	for (int i = 0; i < videos.size(); i++)
+	{
+		if (Project::getInstance()->getCameras()[i]->getWidth() != videos[i]->getImage()->getWidth() ||
+			Project::getInstance()->getCameras()[i]->getHeight() != videos[i]->getImage()->getHeight())
+			return false;
+	}
+	return true;
 }
 
 void Trial::saveVR(QString folder)

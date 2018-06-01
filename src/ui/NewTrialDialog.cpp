@@ -132,7 +132,12 @@ bool NewTrialDialog::createTrial()
 		{
 			list.push_back((*it)->getImageFileNames());
 		}
-		m_trial->changeTrialData(trialname, list);
+		if(!m_trial->changeTrialData(trialname, list))
+		{
+			ErrorDialog::getInstance()->showErrorDialog("Width and Height of the videos does is not equal to the calibration images. Cannot change data for Trial.");
+			return false;
+		}
+
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setXMLData(xml_metadata);
 		if (!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->setFrameRateFromXML())
 		{
@@ -158,13 +163,19 @@ bool NewTrialDialog::createTrial()
 			list.push_back((*it)->getImageFileNames());
 		}
 		Trial * t = new Trial(trialname, list);
-		Project::getInstance()->addTrial(t);
 		
 		if (noCalibration)
 		{
 			t->setCameraSizes();
 		}
+		else if (!t->checkTrialImageSizeValid())
+		{
+			delete t;
+			ErrorDialog::getInstance()->showErrorDialog("Width and Height of the videos does is not equal to the calibration images. Cannot create Trial.");
+			return false;
+		}
 
+		Project::getInstance()->addTrial(t);
 		WorkspaceNavigationFrame::getInstance()->addTrial(trialname);
 		State::getInstance()->changeActiveTrial(Project::getInstance()->getTrials().size() - 1, true);
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->bindTextures();

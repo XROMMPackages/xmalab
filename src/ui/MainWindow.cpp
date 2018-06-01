@@ -920,7 +920,10 @@ void MainWindow::newTrial()
 
 	if (newTriaLdialog->result())
 	{
-		newTriaLdialog->createTrial();
+		if (!newTriaLdialog->createTrial()){
+			delete newTriaLdialog;
+			return;
+		}
 		State::getInstance()->changeActiveTrial(project->getTrials().size() - 1);
 		State::getInstance()->changeActiveFrameTrial(project->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
 	}

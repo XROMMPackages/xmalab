@@ -162,8 +162,11 @@ void TrialDialog::on_pushButton_ChangeTrialData_clicked()
 	newTriaLdialog->exec();
 
 	if (newTriaLdialog->result())
-	{
-		newTriaLdialog->createTrial();
+	{ 
+		if (!newTriaLdialog->createTrial()){
+			delete newTriaLdialog;
+			return;
+		}
 	}
 	delete newTriaLdialog;
 	returnValue = TRIALDIALOGCHANGE;

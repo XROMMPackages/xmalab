@@ -49,7 +49,7 @@ namespace xma
 		Trial();
 		virtual ~Trial();
 
-		void changeTrialData(QString trialname, std::vector<QStringList>& imageFilenames);
+		bool changeTrialData(QString trialname, std::vector<QStringList>& imageFilenames);
 
 		int getActiveFrame();
 		void setActiveFrame(int _activeFrame);
@@ -160,6 +160,7 @@ namespace xma
 		double getMarkerToMarkerSD();
 
 		void setCameraSizes();
+		bool checkTrialImageSizeValid();
 
 		void saveVR(QString folder);
 
