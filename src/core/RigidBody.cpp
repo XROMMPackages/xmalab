@@ -235,7 +235,7 @@ void RigidBody::removePointIdx(int idx)
 		points3D_original.erase(std::remove(points3D_original.begin(), points3D_original.end(), points3D_original[pos]), points3D_original.end());
 		referenceNames.erase(std::remove(referenceNames.begin(), referenceNames.end(), referenceNames[pos]), referenceNames.end());
 		pointsIdx.erase(std::remove(pointsIdx.begin(), pointsIdx.end(), idx), pointsIdx.end());
-		resetReferences();
+		//resetReferences();
 		recomputeTransformations();
 		filterTransformations();
 	}
@@ -275,6 +275,7 @@ void RigidBody::resetReferences()
 	hasOptimizedCoordinates = false;
 	setReferenceMarkerReferences();
 	recomputeTransformations();
+	filterTransformations();
 }
 
 bool RigidBody::allReferenceMarkerReferencesSet()
@@ -2320,7 +2321,7 @@ int RigidBody::setReferenceFromFile(QString filename)
 	setReferencesSet(2);
 
 	recomputeTransformations();
-
+	filterTransformations();
 	return 1;
 }
 
@@ -2348,7 +2349,7 @@ bool RigidBody::setReferenceFromFrame(int frame)
 	initialised = true;
 	setReferencesSet(2);
 	recomputeTransformations();
-
+	filterTransformations();
 	return true;
 }
 
