@@ -630,7 +630,7 @@ void WizardDigitizationFrame::setDialog()
 				frame->groupBox_All->show();
 				frame->groupBox_Point->show();
 				frame->groupBox_RB->show();
-
+				frame->groupBox_Interpolation->show();
 				if (trackDirection == 0)
 				{
 					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() >= 0)
@@ -679,6 +679,7 @@ void WizardDigitizationFrame::setDialog()
 				frame->groupBox_All->hide();
 				frame->groupBox_Point->hide();
 				frame->groupBox_RB->hide();
+				frame->groupBox_Interpolation->hide();
 			}
 		}
 		else
@@ -690,6 +691,7 @@ void WizardDigitizationFrame::setDialog()
 			frame->groupBox_All->hide();
 			frame->groupBox_Point->hide();
 			frame->groupBox_RB->hide();
+			frame->groupBox_Interpolation->hide();
 		}
 	}
 	else
@@ -700,6 +702,7 @@ void WizardDigitizationFrame::setDialog()
 		frame->groupBox_All->hide();
 		frame->groupBox_Point->hide();
 		frame->groupBox_RB->hide();
+		frame->groupBox_Interpolation->hide();
 	}
 }
 
