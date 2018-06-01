@@ -274,7 +274,7 @@ void RigidBody::resetReferences()
 	initialised = false;
 	hasOptimizedCoordinates = false;
 	setReferenceMarkerReferences();
-	//recomputeTransformations();
+	recomputeTransformations();
 }
 
 bool RigidBody::allReferenceMarkerReferencesSet()
@@ -2345,7 +2345,7 @@ bool RigidBody::setReferenceFromFrame(int frame)
 		points3D_original.push_back(trial->getMarkers()[pointsIdx[i]]->getPoints3D()[frame]);
 		referenceNames.push_back(trial->getMarkers()[pointsIdx[i]]->getDescription() + "_Frame" + QString::number(frame + 1));
 	}
-
+	initialised = true;
 	setReferencesSet(2);
 	recomputeTransformations();
 
