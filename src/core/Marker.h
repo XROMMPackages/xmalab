@@ -161,7 +161,7 @@ namespace xma
 		int getFirstTrackedFrame(int cam = -1);
 		int getLastTrackedFrame(int cam = -1);
 		int getFramesTracked(int cam = -1);
-		double getReprojectionError();
+		double getReprojectionError(double * sd = nullptr);
 
 	private:
 		void init(int nbCameras, int size);

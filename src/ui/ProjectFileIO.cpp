@@ -1183,7 +1183,7 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 					if (c->hasUndistortion()){
 						xmlWriter.writeStartElement("Camera ");
 						xmlWriter.writeAttribute("camera-id", QString::number(c->getID()));
-						xmlWriter.writeAttribute("camera-portalid", QString::number(c->getPortalId()));
+			 			xmlWriter.writeAttribute("camera-portalid", QString::number(c->getPortalId()));
 						xmlWriter.writeAttribute("FileId", QString::number(Project::getInstance()->getFileID(c->getUndistortionObject()->getFilename())));
 						xmlWriter.writeCharacters(c->getUndistortionObject()->getFilename());
 						xmlWriter.writeEndElement();

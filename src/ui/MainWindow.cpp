@@ -1751,6 +1751,18 @@ void MainWindow::on_actionMarkertoMarkerDistances_triggered(bool checked)
 	delete fromTo;
 }
 
+void MainWindow::on_actionPrecisionInfo_triggered(bool checked)
+{
+	QString fileName = QFileDialog::getSaveFileName(this,
+		tr("Save precision info as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+
+
+	if (fileName.isNull() == false)
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->savePrecisionInfo(fileName);
+	}
+}
+
 void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(bool checked)
 {
 	FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame()

@@ -1337,6 +1337,29 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 	}
 }
 
+void Trial::savePrecisionInfo(QString filename)
+{
+	std::ofstream outfile(filename.toAscii().data());
+	outfile.precision(12);
+	outfile << "RigidBodies , nb tracked frames , marker to marker sd , error 3d Unfiltered , error 3D filtered" << std::endl;
+	for (auto rb : rigidBodies)
+	{
+		double averageSD;
+		int count;
+		rb->getMarkerToMarkerSD(averageSD, count);
+		double val1 = rb->getError3D(false);
+		double val2 = rb->getError3D(true);
+		outfile << rb->getDescription().toStdString() << " , " << rb->getFramesTracked() << " , " << averageSD << " , " << val1 << " , " << val2 << std::endl;
+	}
+	outfile << std::endl << std::endl << "Markers , nb tracked frames , reprojectionerror , sd" << std::endl;
+	for (auto marker : markers)
+	{
+		double sd;
+		double val = marker->getReprojectionError(&sd);
+		outfile << marker->getDescription().toStdString() << " , " << marker->getFramesTracked() << " , " << val << " , " << sd << std::endl;
+	}
+}
+
 void Trial::resetRigidBodyByMarker(Marker* marker, int frame)
 {
 	for (unsigned int i = 0; i < getRigidBodies().size(); i++)
