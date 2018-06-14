@@ -186,20 +186,9 @@ void WizardDockWidget::workspaceChanged(work_state workspace)
 	}
 }
 
-void WizardDockWidget::trackSelectedPointForward()
+void WizardDockWidget::trackPointsShortcut(bool direction, bool selected, bool continous)
 {
-	if (State::getInstance()->getWorkspace() == DIGITIZATION)
-	{
-		digitizationFrame->trackSelectedPointToNextFrame();
-	}
-}
-
-void WizardDockWidget::trackSelectedPointBackward()
-{
-	if (State::getInstance()->getWorkspace() == DIGITIZATION)
-	{
-		digitizationFrame->trackSelectedPointToPrevFrame();
-	}
+	digitizationFrame->trackPointsShortcut(direction, selected, continous);
 }
 
 void WizardDockWidget::goToLastTrackedFrame()

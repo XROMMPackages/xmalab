@@ -68,10 +68,28 @@ void Shortcuts::bindApplicationShortcuts()
 	shortcut = new QShortcut(QKeySequence(Qt::Key_Escape), SequenceNavigationFrame::getInstance(), SLOT(on_toolButtonStop_clicked()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::Key_1), WizardDockWidget::getInstance(), SLOT(trackSelectedPointBackward()));
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_2), this, SLOT(trackSelectedForw()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::Key_2), WizardDockWidget::getInstance(), SLOT(trackSelectedPointForward()));
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_2), this, SLOT(trackSelectedNext()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_2), this, SLOT(trackPointForw()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_2), this, SLOT(trackPointNext()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_1), this, SLOT(trackSelectedBack()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_1), this, SLOT(trackSelectedPrev()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_1), this, SLOT(trackPointBack()));
+	shortcut->setContext(Qt::ApplicationShortcut);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_1), this, SLOT(trackPointPrev()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_3), WizardDockWidget::getInstance(), SLOT(goToLastTrackedFrame()));
@@ -218,12 +236,12 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 		}
 		if (_keyEvent->key() == Qt::Key_1)
 		{
-			WizardDockWidget::getInstance()->trackSelectedPointBackward();
-			return true;
+			WizardDockWidget::getInstance()->trackPointsShortcut(false, _keyEvent->modifiers().testFlag(Qt::ControlModifier), _keyEvent->modifiers().testFlag(Qt::AltModifier));
+			return true; 
 		}
 		if (_keyEvent->key() == Qt::Key_2)
 		{
-			WizardDockWidget::getInstance()->trackSelectedPointForward();
+			WizardDockWidget::getInstance()->trackPointsShortcut(true, _keyEvent->modifiers().testFlag(Qt::ControlModifier), _keyEvent->modifiers().testFlag(Qt::AltModifier));
 			return true;
 		}
 		if (_keyEvent->key() == Qt::Key_3 && !_keyEvent->modifiers().testFlag(Qt::ControlModifier))
@@ -354,3 +372,42 @@ Shortcuts* Shortcuts::getInstance()
 	return instance;
 }
 
+void Shortcuts::trackPointNext()
+{
+	WizardDockWidget::getInstance()->trackPointsShortcut(true,false,false);
+}
+
+void Shortcuts::trackPointPrev()
+{
+	WizardDockWidget::getInstance()->trackPointsShortcut(false, false, false);
+}
+
+void Shortcuts::trackPointForw()
+{
+	WizardDockWidget::getInstance()->trackPointsShortcut(true, false, true);
+}
+
+void Shortcuts::trackPointBack()
+{
+	WizardDockWidget::getInstance()->trackPointsShortcut(false, false, true);
+}
+
+void Shortcuts::trackSelectedNext()
+{
+	WizardDockWidget::getInstance()->trackPointsShortcut(true, true, false);
+}
+
+void Shortcuts::trackSelectedPrev()
+{
+	WizardDockWidget::getInstance()->trackPointsShortcut(false, true, false);
+}
+
+void Shortcuts::trackSelectedForw()
+{
+	WizardDockWidget::getInstance()->trackPointsShortcut(true, true, true);
+}
+
+void Shortcuts::trackSelectedBack()
+{
+	WizardDockWidget::getInstance()->trackPointsShortcut(false, true, true);
+}

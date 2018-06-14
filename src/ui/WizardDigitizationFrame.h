@@ -55,8 +55,7 @@ namespace xma
 		void setDialog();
 		void stopTracking();
 
-		void trackSelectedPointToNextFrame();
-		void trackSelectedPointToPrevFrame();
+		void trackPointsShortcut(bool direction, bool selected, bool continous);
 		void goToLastTrackedFrame();
 		void goToFirstTrackedFrame();
 	private:

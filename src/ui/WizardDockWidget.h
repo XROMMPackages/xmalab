@@ -62,6 +62,7 @@ namespace xma
 		void updateDialog();
 		void stop();
 		void undoLastPoint();
+		void trackPointsShortcut(bool direction, bool selected, bool continous);
 
 	private:
 		Ui::WizardDockWidget* dock;
@@ -73,13 +74,13 @@ namespace xma
 		WizardDigitizationFrame* digitizationFrame;
 
 	public slots:
-		void workspaceChanged(work_state workspace);
-		void trackSelectedPointForward();
-		void trackSelectedPointBackward();
+		void workspaceChanged(work_state workspace);	
 		void goToLastTrackedFrame();
 		void goToFirstTrackedFrame();
 		void interpolateActive();
 		void interpolateAll();
+
+		
 	};
 }
 

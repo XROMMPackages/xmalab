@@ -711,14 +711,6 @@ void WizardDigitizationFrame::stopTracking()
 	uncheckTrackButtons();
 }
 
-void WizardDigitizationFrame::trackSelectedPointToNextFrame()
-{
-	if (frame->toolButton_PointNext->isEnabled())
-	{
-		on_toolButton_PointNext_clicked();
-	}
-}
-
 void WizardDigitizationFrame::goToLastTrackedFrame()
 {
 	if ((int) Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
@@ -741,6 +733,7 @@ void WizardDigitizationFrame::goToLastTrackedFrame()
 					}
 				}
 			}
+			State::getInstance()->changeActiveFrameTrial(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame());
 		}
 	}
 }
@@ -767,15 +760,94 @@ void WizardDigitizationFrame::goToFirstTrackedFrame()
 					}
 				}
 			}
+			State::getInstance()->changeActiveFrameTrial(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame()-1);
 		}
 	}
 }
 
-void WizardDigitizationFrame::trackSelectedPointToPrevFrame()
+void WizardDigitizationFrame::trackPointsShortcut(bool direction, bool selected, bool continous)
 {
-	if (frame->toolButton_PointPrev->isEnabled())
+	if (direction)
 	{
-		on_toolButton_PointPrev_clicked();
+		if (selected)
+		{
+			if (continous)
+			{
+				std::cerr << "Clicked" << std::endl;
+				if (frame->toolButton_RBForw->isEnabled())
+				{
+					std::cerr << "Clicked2" << std::endl;
+					frame->toolButton_RBForw->click();
+				}
+			}
+			else
+			{
+				if (frame->toolButton_RBNext->isEnabled())
+				{
+					frame->toolButton_RBNext->click();
+				}
+			}
+		}
+		else
+		{
+			if (continous)
+			{
+				std::cerr << "Clicked" << std::endl;
+				if (frame->toolButton_PointForw->isEnabled())
+				{
+					std::cerr << "Clicked2" << std::endl;
+					frame->toolButton_PointForw->click();
+				}
+			}
+			else
+			{
+				if (frame->toolButton_PointNext->isEnabled())
+				{
+					frame->toolButton_PointNext->click();
+				}
+			}
+		}
+	} 
+	else
+	{
+		if (selected)
+		{
+			if (continous)
+			{
+				std::cerr << "Clicked" << std::endl;
+				if (frame->toolButton_RBBack->isEnabled())
+				{
+					std::cerr << "Clicked2" << std::endl;
+					frame->toolButton_RBBack->click();
+				}
+			}
+			else
+			{
+				if (frame->toolButton_RBPrev->isEnabled())
+				{
+					frame->toolButton_RBPrev->click();
+				}
+			}
+		}
+		else
+		{
+			if (continous)
+			{
+				std::cerr << "Clicked" << std::endl;
+				if (frame->toolButton_PointBack->isEnabled())
+				{
+					std::cerr << "Clicked2" << std::endl;
+					frame->toolButton_PointBack->click();
+				}
+			}
+			else
+			{
+				if (frame->toolButton_PointPrev->isEnabled())
+				{
+					frame->toolButton_PointPrev->click();
+				}
+			}
+		}
 	}
 }
 

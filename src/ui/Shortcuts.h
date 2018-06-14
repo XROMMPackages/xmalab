@@ -27,11 +27,11 @@
 #ifndef SHORTCUTS_H
 #define SHORTCUTS_H
 
-#include <QObject>
+#include <QWidget>
 
 namespace xma
 {
-	class Shortcuts : public QObject
+	class Shortcuts : public QWidget
 	{
 		Q_OBJECT
 
@@ -51,6 +51,16 @@ namespace xma
 	private:
 		Shortcuts();
 		static Shortcuts* instance;
+
+	public slots:
+		void trackPointNext();
+		void trackPointPrev();
+		void trackPointForw();
+		void trackPointBack();
+		void trackSelectedNext();
+		void trackSelectedPrev();
+		void trackSelectedForw();
+		void trackSelectedBack();
 	};
 }
 
