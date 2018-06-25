@@ -109,6 +109,11 @@ MainWindow::MainWindow(QWidget* parent) :
 	if (!instance) instance = this;
 
 	ui->setupUi(this);
+
+	ui->actionConsole->setVisible(false);
+	ui->actionXROMM_VR->setVisible(false);
+	ui->actionAll_Trials_for_External->setVisible(false);
+
 #ifdef __APPLE__
 	foreach(QMenu* menu, menuBar()->findChildren<QMenu*>())
 	{
@@ -250,6 +255,8 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->actionEvents->setEnabled(false);
 	ui->action3D_world_view->setEnabled(false);
 	ui->actionImportTrial->setEnabled(false);
+	ui->actionPrecisionInfo->setEnabled(false);
+
 	Shortcuts::getInstance()->bindApplicationShortcuts();
 #ifndef PROJECT_BETA_VERSION
 	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
@@ -1148,6 +1155,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->imageMainFrame->setVisible(true);
 		ui->startTrialFrame->setVisible(false);
 		ui->actionExport2D_Points->setEnabled(false);
+		ui->actionPrecisionInfo->setEnabled(false);
 		ui->actionExportEvents->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
@@ -1183,6 +1191,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->imageMainFrame->setVisible(true);
 		ui->startTrialFrame->setVisible(false);
 		ui->actionExport2D_Points->setEnabled(false);
+		ui->actionPrecisionInfo->setEnabled(false);
 		ui->actionExportEvents->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
@@ -1304,7 +1313,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 				DetectionSettings::getInstance()->hide();
 				WorldViewDockWidget::getInstance()->hide();
 			}
-
+			ui->actionPrecisionInfo->setEnabled(true);
 			ui->actionExport2D_Points->setEnabled(true);
 			ui->actionExportEvents->setEnabled(true);
 			ui->actionExport3D_Points->setEnabled(true);
@@ -1334,6 +1343,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 				ui->pushButtonNewTrial->setVisible(false);
 				ui->pushButtonDefaultTrial->setVisible(false);
 			}
+			ui->actionPrecisionInfo->setEnabled(false);
 			ui->actionExport2D_Points->setEnabled(false);
 			ui->actionExportEvents->setEnabled(false);
 			ui->actionExport3D_Points->setEnabled(false);
@@ -1759,7 +1769,8 @@ void MainWindow::on_actionPrecisionInfo_triggered(bool checked)
 
 	if (fileName.isNull() == false)
 	{
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->savePrecisionInfo(fileName);
+		if (State::getInstance()->getActiveTrial() >=0)
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->savePrecisionInfo(fileName);
 	}
 }
 

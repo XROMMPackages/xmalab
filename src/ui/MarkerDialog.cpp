@@ -41,7 +41,8 @@ MarkerDialog::MarkerDialog(Marker* marker, QWidget* parent) :
 	diag(new Ui::MarkerDialog), m_marker(marker)
 {
 	diag->setupUi(this);
-
+	diag->spinBox_MarkerRadius->setVisible(false);
+	diag->label->setVisible(false);
 	diag->spinBox_MarkerRadius->setValue(m_marker->getSizeOverride());
 	diag->spinBox_ThresholdOffset->setValue(m_marker->getThresholdOffset());
 	diag->spinBox_Penalty->setValue(m_marker->getMaxPenalty());
