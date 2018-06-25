@@ -175,7 +175,7 @@
    <item row="2" column="0" colspan="9">
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
-      <string>Fillter</string>
+      <string>Filter</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
       <item row="0" column="0">
