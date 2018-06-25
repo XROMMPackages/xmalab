@@ -1839,6 +1839,13 @@ int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinver
 								y = Project::getInstance()->getCameras()[j]->getHeight() - y - 1;
 							}
 
+							if (!distorted)
+							{
+								cv::Point2d pt = Project::getInstance()->getCameras()[j]->undistortPoint(cv::Point2d(x,y), false);
+								x = pt.x;
+								y = pt.y;
+							}
+
 							newMarkers[i]->setPoint(j, frame, x, y, SET);
 						}
 					}
