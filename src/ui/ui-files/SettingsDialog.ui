@@ -91,8 +91,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>1274</width>
-           <height>281</height>
+           <width>1222</width>
+           <height>599</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
@@ -105,7 +105,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Confirmation required to quit XMALAb</string>
+             <string>Confirmation required to quit XMALab</string>
             </property>
            </widget>
           </item>
@@ -222,8 +222,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>1094</width>
-           <height>630</height>
+           <width>1222</width>
+           <height>600</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
@@ -331,7 +331,7 @@
           <item row="4" column="0">
            <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Reprojection error threshlod for a considering point as outlier</string>
+             <string>Reprojection error threshold for a considering point as outlier</string>
             </property>
            </widget>
           </item>
@@ -419,8 +419,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>1534</width>
-           <height>766</height>
+           <width>1222</width>
+           <height>599</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
@@ -635,7 +635,7 @@
             </property>
            </widget>
           </item>
-          <item row="13" column="2">
+          <item row="14" column="2">
            <widget class="QSpinBox" name="spinBox_DefaultMarkerThreshold"/>
           </item>
          </layout>
