@@ -95,6 +95,7 @@ TrialDialog::TrialDialog(Trial* trial, QWidget* parent) :
 		diag->checkBoxInterpolate->setEnabled(false);
 		diag->doubleSpinBoxCutoffFrq->setEnabled(false);
 	}
+	diag->pushButton_OK->setFocus(Qt::NoFocusReason);
 }
 
 
