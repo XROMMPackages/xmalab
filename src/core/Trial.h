@@ -164,11 +164,12 @@ namespace xma
 		bool checkTrialImageSizeValid();
 
 		void saveVR(QString folder);
+		void setNbImagesByMarkers();
 
 	private:
 		QString name;
 		void setNbImages();
-
+		
 		int activeFrame;
 		int activeMarkerIdx;
 		int activeBodyIdx;

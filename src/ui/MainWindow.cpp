@@ -974,6 +974,10 @@ void MainWindow::checkTrialImagePaths()
 			QFileInfo fileinfo(filename);
 			if (!QFile::exists(filename))
 			{
+				//if the file does not exist we first set the nbImages by using the data in the markers if possible.
+				Project::getInstance()->getTrials()[t]->setNbImagesByMarkers();
+
+
 				//try to find it recursively from projectfile directory
 				QFileInfo projectinfo(Project::getInstance()->getProjectFilename());
 				QDir projectDir = projectinfo.absoluteDir();
@@ -1010,7 +1014,7 @@ void MainWindow::checkTrialImagePaths()
 							QString oldfolder = filename.replace(fileinfo.fileName(), "");
 							Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder + OS_SEP, oldfolder);
 							Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
-						}
+						} 
 					}
 					else
 					{

@@ -300,6 +300,25 @@ void Trial::setNbImages()
 	}
 }
 
+void Trial::setNbImagesByMarkers()
+{
+	int nbImages_tmp = -1;
+
+	if (markers.size() > 0)
+	{
+		nbImages_tmp = markers[0]->getPoints3D().size() + 1;
+	}
+	for (auto m : markers)
+	{
+		assert(m->getPoints3D().size() + 1 == nbImages_tmp);
+	}
+
+	if (nbImages_tmp != -1){
+		nbImages = nbImages_tmp;
+	}
+
+}
+
 void Trial::bindTextures()
 {
 	if (isDefault)
