@@ -202,11 +202,13 @@ void CalibrationImage::setPointsProjectedUndistorted(cv::vector<cv::Point2d>& _p
 
 void CalibrationImage::computeError()
 {
+	if (detectedPoints.size() != projectedPoints.size())
+		return;
 	error.clear();
 	errorUndistorted.clear();
 
 	cv::Point2d diff;
-	for (unsigned int i = 0; i < projectedPoints.size(); i++)
+	for (unsigned int i = 0; i < detectedPoints.size(); i++)
 	{
 		diff = detectedPoints[i] - projectedPoints[i];
 		error.push_back(cv::sqrt(diff.x * diff.x + diff.y * diff.y));
