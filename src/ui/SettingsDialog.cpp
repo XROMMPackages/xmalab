@@ -97,8 +97,8 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 		break;
 
 	}
-		
-
+	diag->pushButton_General->click();
+	diag->pushButton_General->setFocus();
 	initPhase = false;
 }
 
@@ -121,6 +121,8 @@ void SettingsDialog::on_pushButton_General_clicked()
 	diag->scrollArea_General->show();
 	diag->scrollArea_Calibration->hide();
 	diag->scrollArea_Digitizing->hide();
+	diag->pushButton_Calibration->setChecked(false);
+	diag->pushButton_Digitizing->setChecked(false);
 }
 
 void SettingsDialog::on_pushButton_Calibration_clicked()
@@ -128,6 +130,8 @@ void SettingsDialog::on_pushButton_Calibration_clicked()
 	diag->scrollArea_General->hide();
 	diag->scrollArea_Calibration->show();
 	diag->scrollArea_Digitizing->hide();
+	diag->pushButton_General->setChecked(false);
+	diag->pushButton_Digitizing->setChecked(false);
 }
 
 void SettingsDialog::on_pushButton_Digitizing_clicked()
@@ -135,6 +139,8 @@ void SettingsDialog::on_pushButton_Digitizing_clicked()
 	diag->scrollArea_General->hide();
 	diag->scrollArea_Calibration->hide();
 	diag->scrollArea_Digitizing->show();
+	diag->pushButton_Calibration->setChecked(false);
+	diag->pushButton_General->setChecked(false);
 }
 
 void SettingsDialog::on_toolButton_Workspace_clicked()

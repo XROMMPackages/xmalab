@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1343</width>
-    <height>1883</height>
+    <width>867</width>
+    <height>884</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -91,8 +91,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>1222</width>
-           <height>599</height>
+           <width>746</width>
+           <height>179</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
@@ -222,8 +222,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>1222</width>
-           <height>600</height>
+           <width>746</width>
+           <height>310</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
@@ -419,8 +419,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>1222</width>
-           <height>599</height>
+           <width>729</width>
+           <height>381</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
@@ -660,7 +660,7 @@
       <bool>true</bool>
      </property>
      <property name="checked">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
      <property name="autoExclusive">
       <bool>true</bool>
