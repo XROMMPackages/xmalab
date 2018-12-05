@@ -112,12 +112,16 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	ui->actionConsole->setVisible(false);
 	ui->actionXROMM_VR->setVisible(false);
-	ui->actionAll_Trials_for_External->setVisible(false);
+	ui->actionAll_Trials_for_External->setVisible(Settings::getInstance()->getBoolSetting("ExportAllEnabled"));
 
 #ifdef __APPLE__
 	foreach(QMenu* menu, menuBar()->findChildren<QMenu*>())
 	{
 		if (menu->title() == "Edit")
+		{
+			menu->setTitle(menu->title().prepend(QString::fromUtf8("\u200C")));
+		}
+		else if (menu->title() == "View")
 		{
 			menu->setTitle(menu->title().prepend(QString::fromUtf8("\u200C")));
 		}

@@ -122,17 +122,7 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="1" colspan="3">
-           <widget class="QLineEdit" name="lineEditWorkspace">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="1" colspan="4">
+          <item row="7" column="1" colspan="4">
            <spacer name="verticalSpacer_2">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -144,6 +134,23 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="4" column="1" colspan="3">
+           <widget class="QLineEdit" name="lineEditWorkspace">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0" colspan="2">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Number of frames to advance when '5' or '6' is clicked</string>
+            </property>
+           </widget>
           </item>
           <item row="4" column="0">
            <widget class="QLabel" name="label_5">
@@ -166,13 +173,6 @@
             </property>
             <property name="text">
              <string>...</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0" colspan="2">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Number of frames to advance when '5' or '6' is clicked</string>
             </property>
            </widget>
           </item>
@@ -207,6 +207,13 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="6" column="0" colspan="5">
+           <widget class="QCheckBox" name="checkBox_exportAll">
+            <property name="text">
+             <string>Enable Option ' Export all for external (requires restart of XMALab)</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

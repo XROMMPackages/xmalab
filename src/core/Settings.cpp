@@ -63,6 +63,7 @@ Settings::Settings()
 	addBoolSetting("CustomWorkspacePath", false);
 	addQStringSetting("WorkspacePath", "");
 	addIntSetting("FrameAdvance", 10);
+	addBoolSetting("ExportAllEnabled", false);
 
 	//Undistortion
 	addIntSetting("LocalUndistortionNeighbours", 12);

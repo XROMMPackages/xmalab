@@ -61,6 +61,7 @@ namespace xma
 		void on_checkBox_Workspace_stateChanged(int state);
 		void on_lineEditWorkspace_textChanged(QString text);
 		void on_spinBoxFrameAdvance_valueChanged(int value);
+		void on_checkBox_exportAll_clicked(bool checked);
 
 		void on_checkBox_DisableCheckerboardRefinement_stateChanged(int state);
 		void on_checkBox_DisableCheckerboardDetection_stateChanged(int state);
