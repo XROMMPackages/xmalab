@@ -1638,11 +1638,14 @@ int Marker::getFramesTracked(int cam)
 	return count;
 }
 
-double Marker::getReprojectionError(double * sd)
+double Marker::getReprojectionError(double * sd, int start, int end)
 {
+	if (start == -1) start = 0;
+	if (end == -1) end = status3D.size();
+
 	int count = 0;
 	double error = 0;
-	for (int i = 0; i < status3D.size(); i++)
+	for (int i = start; i < end; i++)
 	{
 		if (status3D[i] >= TRACKED) {
 			for (int c = 0; c < status2D.size(); c++)
@@ -1658,7 +1661,7 @@ double Marker::getReprojectionError(double * sd)
 	{
 		double sd_tmp = 0;
 		count = 0;
-		for (int i = 0; i < status3D.size(); i++)
+		for (int i = start; i < end; i++)
 		{
 			if (status3D[i] >= TRACKED) {
 				for (int c = 0; c < status2D.size(); c++)

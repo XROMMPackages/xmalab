@@ -1771,15 +1771,24 @@ void MainWindow::on_actionMarkertoMarkerDistances_triggered(bool checked)
 
 void MainWindow::on_actionPrecisionInfo_triggered(bool checked)
 {
-	QString fileName = QFileDialog::getSaveFileName(this,
-		tr("Save precision info as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
-
-
-	if (fileName.isNull() == false)
+	FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame()
+		, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame()
+		, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages()
+		, false, this);
+	bool ok = fromTo->exec();
+	if (ok)
 	{
-		if (State::getInstance()->getActiveTrial() >=0)
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->savePrecisionInfo(fileName);
+		QString fileName = QFileDialog::getSaveFileName(this,
+			tr("Save precision info as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+
+
+		if (fileName.isNull() == false)
+		{
+			if (State::getInstance()->getActiveTrial() >=0)
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->savePrecisionInfo(fileName, fromTo->getFrom() - 1, fromTo->getTo());
+		}
 	}
+	delete fromTo;
 }
 
 void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(bool checked)

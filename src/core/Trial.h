@@ -121,7 +121,7 @@ namespace xma
 		void saveRigidBodyTransformations(std::vector<int> _bodies, QString outputfolder, bool onefile, bool headerRow, bool filtered, bool saveColumn, int start, int stop);
 		void saveTrialImages(QString outputfolder, int from, int to, QString format, int id = -1);
 		void saveMarkerToMarkerDistances(QString filename, int from, int to);
-		void savePrecisionInfo(QString filename);
+		void savePrecisionInfo(QString filename, int from, int to);
 		void recomputeAndFilterRigidBodyTransformations();
 		void resetRigidBodyByMarker(Marker* marker, int frame);
 

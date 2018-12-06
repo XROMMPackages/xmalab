@@ -403,17 +403,21 @@ int RigidBody::getFramesTracked()
 	return count;
 }
 
-void RigidBody::getMarkerToMarkerSD(double & sd_all,  int & count_all)
+void RigidBody::getMarkerToMarkerSD(double & sd_all, int & count_all, int start, int end)
 {
+	if (start == -1) start = 0;
+	
 	sd_all = 0;
 	count_all = 0;
 	for (unsigned i = 0; i < pointsIdx.size(); i++)
 	{
+		if (end == -1) end = trial->getMarkers()[pointsIdx[i]]->getStatus3D().size();
+
 		for (unsigned j = i + 1; j < pointsIdx.size(); j++)
 		{
 			double mean = 0;
 			int count = 0;
-			for (int f = 0; f < trial->getMarkers()[pointsIdx[i]]->getStatus3D().size(); f++)
+			for (int f = start; f < end; f++)
 			{
 				if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[f] > UNDEFINED && trial->getMarkers()[pointsIdx[j]]->getStatus3D()[f] > UNDEFINED)
 				{
@@ -424,7 +428,7 @@ void RigidBody::getMarkerToMarkerSD(double & sd_all,  int & count_all)
 			}
 			if (count > 0) mean = mean / count;
 
-			for (int f = 0; f < trial->getMarkers()[pointsIdx[i]]->getStatus3D().size(); f++)
+			for (int f = start; f < end; f++)
 			{
 				if (trial->getMarkers()[pointsIdx[i]]->getStatus3D()[f] > UNDEFINED && trial->getMarkers()[pointsIdx[j]]->getStatus3D()[f] > UNDEFINED)
 				{
@@ -441,12 +445,15 @@ void RigidBody::getMarkerToMarkerSD(double & sd_all,  int & count_all)
 		sd_all = sqrt(sd_all / (count_all -1));
 }
 
-double RigidBody::getError3D(bool filtered)
+double RigidBody::getError3D(bool filtered, int start, int end)
 {
+	if (start == -1) start = 0;
+	if (end == -1) end = poseComputed.size();
+
 	double error3D = 0.0;
 	int count = 0;
 
-	for (int i = 0; i < poseComputed.size(); i++)
+	for (int i = start; i < end; i++)
 	{
 		if (filtered)
 		{

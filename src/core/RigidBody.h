@@ -152,8 +152,8 @@ namespace xma
 		int getFirstTrackedFrame();
 		int getLastTrackedFrame();
 		int getFramesTracked();
-		void getMarkerToMarkerSD(double & sd_all, int & count_all);
-		double getError3D(bool filtered);
+		void getMarkerToMarkerSD(double & sd_all, int & count_all, int start = -1, int end = -1);
+		double getError3D(bool filtered, int start = -1, int end = -1);
 
 		int addDummyPointsForOptimization(std::vector<cv::Point2d> &Pts2D, std::vector<cv::Point3d> &Pts3D, std::vector<int> &cameraIdx, int Frame);
 		void init(int size);

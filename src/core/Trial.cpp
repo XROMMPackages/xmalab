@@ -1356,7 +1356,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 	}
 }
 
-void Trial::savePrecisionInfo(QString filename)
+void Trial::savePrecisionInfo(QString filename, int from, int to)
 {
 	std::ofstream outfile(filename.toAscii().data());
 	outfile.precision(12);
@@ -1365,16 +1365,16 @@ void Trial::savePrecisionInfo(QString filename)
 	{
 		double averageSD;
 		int count;
-		rb->getMarkerToMarkerSD(averageSD, count);
-		double val1 = rb->getError3D(false);
-		double val2 = rb->getError3D(true);
+		rb->getMarkerToMarkerSD(averageSD, count, from, to);
+		double val1 = rb->getError3D(false,from, to);
+		double val2 = rb->getError3D(true, from, to);
 		outfile << rb->getDescription().toStdString() << " , " << rb->getFramesTracked() << " , " << averageSD << " , " << val1 << " , " << val2 << std::endl;
 	}
 	outfile << std::endl << std::endl << "Markers , nb tracked frames , reprojectionerror , sd" << std::endl;
 	for (auto marker : markers)
 	{
 		double sd;
-		double val = marker->getReprojectionError(&sd);
+		double val = marker->getReprojectionError(&sd, from, to);
 		outfile << marker->getDescription().toStdString() << " , " << marker->getFramesTracked() << " , " << val << " , " << sd << std::endl;
 	}
 }
