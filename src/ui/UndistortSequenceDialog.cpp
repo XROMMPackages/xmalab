@@ -265,7 +265,6 @@ void UndistortSequenceDialog::on_pushButtonUndist_clicked()
 		{
 			stream->setActiveFrame(i);
 			QString outname = item.output + OS_SEP + info.completeBaseName() + "_UND." + QString("%1").arg(i + 1, 4, 10, QChar('0')) + ".tif";
-			std::cerr << outname.toAscii().data() << std::endl;
 			stream->setActiveFrame(i);
 			Project::getInstance()->getCameras()[item.camera]->getUndistortionObject()->undistort(stream->getImage(), outname);
 		}
