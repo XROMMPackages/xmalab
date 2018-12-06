@@ -45,6 +45,8 @@ namespace Ui
 namespace xma
 {
 	class Marker;
+	class RigidBody;
+
 	class PlotWindow : public QDockWidget
 	{
 		Q_OBJECT
@@ -71,8 +73,8 @@ namespace xma
 		void installEventFilterToChildren(QObject* widget);
 		void saveData();
 
-		bool isFrameAboveBackProjectionError(Marker * marker, int frame);
-		
+		bool isFrameAboveError(Marker * marker, int frame);
+		bool isFrameAboveError(RigidBody* body, int frame);
 
 	protected:
 		bool eventFilter(QObject* target, QEvent* event) override;
@@ -122,6 +124,7 @@ namespace xma
 		void on_toolButtonExtraPlot_clicked();
 
 		void doubleSpinBoxError_valueChanged(double value);
+		void doubleSpinBoxErrorRB_valueChanged(double value);
 
 		void activeTrialChanged(int activeTrial);
 		void workspaceChanged(work_state workspace);
@@ -129,9 +132,9 @@ namespace xma
 		void activeRigidBodyChanged(int idx);
 		void activeFrameTrialChanged(int frame);
 
-		void goToNextPointAboveBackprojectionError();
-		void goToPrevPointAboveBackprojectionError();
-		void deleteAllAboveBackprojectionError();
+		void goToNextAboveError();
+		void goToPrevAboveError();
+		void deleteAllAboveError();
 
 		void updateExtraPlot();
 		void setInterpolation();

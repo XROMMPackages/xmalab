@@ -88,9 +88,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-515</y>
-        <width>1113</width>
-        <height>2153</height>
+        <y>-861</y>
+        <width>822</width>
+        <height>1889</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
@@ -576,7 +576,7 @@ background: white;
              </font>
             </property>
             <property name="text">
-             <string>Reprojection Error plot with selected threshold</string>
+             <string>Reprojection or Rigid Body Error plot with selected threshold</string>
             </property>
             <property name="textFormat">
              <enum>Qt::AutoText</enum>
