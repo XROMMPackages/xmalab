@@ -72,6 +72,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 	diag->checkBox_ShowAdvancedCrosshairDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView"));
 	diag->checkBox_Show3DPointDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("Show3dPointDetailView"));
 	diag->checkBox_ShowEpiLineDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("ShowEpiLineDetailView"));
+	diag->checkBox_ShowIDsInDetail->setChecked(Settings::getInstance()->getBoolSetting("ShowIDsInDetail"));
 
 	diag->spinBoxEpiPrecision->setValue(Settings::getInstance()->getIntSetting("EpipolarLinePrecision"));
 	diag->comboBox_TriangulationMethod->setCurrentIndex(Settings::getInstance()->getIntSetting("TriangulationMethod"));
@@ -337,6 +338,11 @@ void SettingsDialog::on_checkBox_DisableRBComputeAdvanced_clicked()
 void SettingsDialog::on_spinBox_DefaultMarkerThreshold_valueChanged(int value)
 {
 	Settings::getInstance()->set("DefaultMarkerThreshold", diag->spinBox_DefaultMarkerThreshold->value());
+}
+
+void SettingsDialog::on_checkBox_ShowIDsInDetail_clicked()
+{
+	Settings::getInstance()->set("ShowIDsInDetail", diag->checkBox_ShowIDsInDetail->isChecked());
 }
 
 void SettingsDialog::on_spinBox_OutlierThreshold_valueChanged(int value)

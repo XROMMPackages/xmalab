@@ -94,6 +94,7 @@ namespace xma
 		void on_checkBox_optimize2D_clicked();
 		void on_checkBox_DisableRBComputeAdvanced_clicked();
 		void on_spinBox_DefaultMarkerThreshold_valueChanged(int value);
+		void on_checkBox_ShowIDsInDetail_clicked();
 	};
 }
 #endif // SETTINGSDIALOG_H

@@ -865,7 +865,9 @@ void GLCameraView::paintGL()
 				{
 					if (Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyConstellation"))
 						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodies(this->camera);
-
+				}
+				if (!detailedView || Settings::getInstance()->getBoolSetting("ShowIDsInDetail"))
+				{
 					if (Settings::getInstance()->getBoolSetting("TrialDrawMarkerIds"))
 					{
 						renderPointText(false);

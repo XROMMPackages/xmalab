@@ -91,7 +91,7 @@ Settings::Settings()
 	addBoolSetting("TrackInterpolatedPoints", true);
 	addBoolSetting("OptimizeRigidBody", true);
 	addBoolSetting("DisableRBComputeAdvanced", false);
-	
+	addBoolSetting("ShowIDsInDetail", false);
 
 	//Colors
 	addQStringSetting("ColorUntrackable", QColor::fromRgb(0, 0, 0).name());
