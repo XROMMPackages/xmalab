@@ -235,7 +235,7 @@
             <x>0</x>
             <y>0</y>
             <width>1974</width>
-            <height>121</height>
+            <height>69</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -365,7 +365,7 @@
      <x>0</x>
      <y>0</y>
      <width>1988</width>
-     <height>36</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -836,13 +836,13 @@
   </action>
   <action name="actionUndistort_sequence">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>Undistort sequence</string>
    </property>
    <property name="visible">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionAbout">
@@ -1021,6 +1021,11 @@
   <action name="actionPrecisionInfo">
    <property name="text">
     <string>Precision Info</string>
+   </property>
+  </action>
+  <action name="actionUndistortionDialog">
+   <property name="text">
+    <string>UndistortionDialog</string>
    </property>
   </action>
  </widget>

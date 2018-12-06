@@ -29,7 +29,7 @@
 
 #include <QDialog>
 #include <QDir>
-
+#include <queue>
 namespace Ui
 {
 	class UndistortSequenceDialog;
@@ -37,6 +37,14 @@ namespace Ui
 
 namespace xma
 {
+	struct undist_item
+	{
+		int camera;
+		QString input;
+		QString output;
+		bool isVideo;
+	};
+
 	class UndistortSequenceDialog : public QDialog
 	{
 		Q_OBJECT
@@ -48,25 +56,14 @@ namespace xma
 	protected:
 
 	private:
-		QStringList fileNames;
-		QString outputfolder;
-		QString commonPrefixString;
-		QString commonPostfixString;
-
-		QString commonPrefix(QStringList fileNames);
-		QString commonPostfix(QStringList fileNames);
-		int getNumber(QStringList fileNames);
-		QString getFilename(QFileInfo fileinfo, int number);
-		bool overwriteFile(QString filename, bool& overwrite);
-		void updatePreview();
+		std::queue<undist_item> items;
+		QString lastInputDir;
+		QString lastOutputDir;
 
 	public slots:
-		void on_toolButton_Input_clicked();
-		void on_toolButton_OutputFolder_clicked();
-		void on_pushButton_clicked();
-		void on_lineEdit_pattern_textChanged(QString text);
-		void on_spinBox_NumberStart_valueChanged(int i);
-		void on_spinBox_NumberLength_valueChanged(int i);
+		void on_pushButtonAddFolder_clicked();
+		void on_pushButtonAddVideo_clicked();
+		void on_pushButtonUndist_clicked();
 	};
 }
 

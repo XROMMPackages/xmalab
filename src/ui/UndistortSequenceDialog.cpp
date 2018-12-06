@@ -41,6 +41,7 @@
 #include "core/UndistortionObject.h"
 
 #include <QFileDialog>
+#include "core/ImageSequence.h"
 
 
 #ifdef WIN32
@@ -57,17 +58,21 @@ UndistortSequenceDialog::UndistortSequenceDialog(QWidget* parent) :
 	diag(new Ui::UndistortSequenceDialog)
 {
 	diag->setupUi(this);
-	for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
+	for (int i = 0; i <  Project::getInstance()->getCameras().size(); i++)
 	{
-		if ((*it)->hasUndistortion() && (*it)->getUndistortionObject()->isComputed())
+		Camera * cam = Project::getInstance()->getCameras()[i];
+		if (cam->hasUndistortion() && cam->getUndistortionObject()->isComputed())
 		{
-			diag->comboBox_Camera->addItem((*it)->getUndistortionObject()->getFilenameBase());
+			diag->comboBox->addItem(QString::number(i + 1));
 		}
 	}
-	diag->progressBar->setValue(0);
-	diag->progressBar->hide();
 
-	diag->lineEdit_pattern->setText(Settings::getInstance()->getQStringSetting("UndistortNamingPattern"));
+	diag->pushButtonAddFolder->setEnabled(diag->comboBox->count() > 0);
+	diag->pushButtonAddVideo->setEnabled(diag->comboBox->count() > 0);
+	diag->pushButtonUndist->setEnabled(diag->comboBox->count() > 0);
+
+	lastInputDir = Settings::getInstance()->getLastUsedDirectory();
+	lastOutputDir = Settings::getInstance()->getLastUsedDirectory();
 }
 
 UndistortSequenceDialog::~UndistortSequenceDialog()
@@ -75,234 +80,198 @@ UndistortSequenceDialog::~UndistortSequenceDialog()
 	delete diag;
 }
 
-QString UndistortSequenceDialog::commonPostfix(QStringList fileNames)
+bool compareNames2(const QString& s1, const QString& s2)
 {
-	bool isValid = true;
-	int count = 0;
-	//int max = (fileNames.size() > 20) ? 20 : fileNames.size();
-
-	while (isValid && count < fileNames.at(0).length())
+	// ignore common prefix..
+	int i = 0;
+	while ((i < s1.length()) && (i < s2.length()) && (s1.at(i).toLower() == s2.at(i).toLower()))
+		++i;
+	++i;
+	// something left to compare?
+	if ((i < s1.length()) && (i < s2.length()))
 	{
-		QString postfix = fileNames.at(0).right(count + 1);
-		for (int i = 0; i < fileNames.size(); i++)
+		// get number prefix from position i - doesnt matter from which string
+		int k = i - 1;
+		//If not number return native comparator
+		if (!s1.at(k).isNumber() || !s2.at(k).isNumber())
 		{
-			if (!fileNames.at(i).contains(postfix))
-			{
-				isValid = false;
-				break;
-			}
+			//Two next lines
+			//E.g. 1_... < 12_...
+			if (s1.at(k).isNumber())
+				return false;
+			if (s2.at(k).isNumber())
+				return true;
+			return QString::compare(s1, s2, Qt::CaseSensitive) < 0;
+		}
+		QString n = "";
+		k--;
+		while ((k >= 0) && (s1.at(k).isNumber()))
+		{
+			n = s1.at(k) + n;
+			--k;
+		}
+		// get relevant/signficant number string for s1
+		k = i - 1;
+		QString n1 = "";
+		while ((k < s1.length()) && (s1.at(k).isNumber()))
+		{
+			n1 += s1.at(k);
+			++k;
 		}
 
-		if (isValid)count++;
-	}
-	return fileNames.at(0).right(count);
-}
-
-QString UndistortSequenceDialog::commonPrefix(QStringList fileNames)
-{
-	bool isValid = true;
-	int count = 0;
-	//int max = (fileNames.size() > 20) ? 20 : fileNames.size();
-
-	while (isValid && count < fileNames.at(0).length())
-	{
-		QString prefix = fileNames.at(0).left(count + 1);
-		for (int i = 0; i < fileNames.size(); i++)
+		// get relevant/signficant number string for s2
+		//Decrease by
+		k = i - 1;
+		QString n2 = "";
+		while ((k < s2.length()) && (s2.at(k).isNumber()))
 		{
-			if (!fileNames.at(i).contains(prefix))
-			{
-				isValid = false;
-				break;
-			}
+			n2 += s2.at(k);
+			++k;
 		}
 
-		if (isValid)count++;
-	}
-	return fileNames.at(0).left(count);
-}
-
-int UndistortSequenceDialog::getNumber(QStringList fileNames)
-{
-	if (fileNames.size() > 1)
-	{
-		QString number = fileNames.at(0);
-		number.replace(commonPrefixString, QString(""));
-		number.replace(commonPostfixString, QString(""));
-		return number.toInt();
-	}
-	return 0;
-}
-
-void UndistortSequenceDialog::on_toolButton_Input_clicked()
-{
-	fileNames = QFileDialog::getOpenFileNames(this,
-	                                          tr("Open Files"), Settings::getInstance()->getLastUsedDirectory(), tr("Video and Image Files (*.cine *.avi *.png *.jpg *.jpeg *.bmp *.tif)"));
-
-	fileNames.sort();
-	if (fileNames.size() > 0 && fileNames[0].isNull() == false)
-	{
-		Settings::getInstance()->setLastUsedDirectory(fileNames[0]);
-		commonPrefixString = commonPrefix(fileNames);
-		commonPostfixString = commonPostfix(fileNames);
-		diag->lineEdit_Input->setText(commonPrefixString);
-		diag->spinBox_NumberStart->setValue(getNumber(fileNames));
-	}
-	updatePreview();
-}
-
-void UndistortSequenceDialog::on_toolButton_OutputFolder_clicked()
-{
-	outputfolder = QFileDialog::getExistingDirectory(this,
-	                                                 tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
-
-	if (outputfolder.isNull() == false)
-	{
-		diag->lineEdit_Outputfolder->setText(outputfolder);
-		Settings::getInstance()->setLastUsedDirectory(outputfolder, true);
-	}
-}
-
-void UndistortSequenceDialog::on_lineEdit_pattern_textChanged(QString text)
-{
-	Settings::getInstance()->set("UndistortNamingPattern", text);
-	updatePreview();
-}
-
-void UndistortSequenceDialog::on_spinBox_NumberStart_valueChanged(int i)
-{
-	updatePreview();
-}
-
-void UndistortSequenceDialog::on_spinBox_NumberLength_valueChanged(int i)
-{
-	updatePreview();
-}
-
-void UndistortSequenceDialog::updatePreview()
-{
-	if (fileNames.size() > 0)
-	{
-		QFileInfo info(fileNames.at(0));
-		QString name = getFilename(info, diag->spinBox_NumberStart->value());
-		name.replace(OS_SEP, "");
-		diag->label_Preview->setText(name);
-	}
-}
-
-QString UndistortSequenceDialog::getFilename(QFileInfo fileinfo, int numberFrame)
-{
-	QFileInfo infoNameBase(commonPrefixString);
-	QString filenameBase = infoNameBase.completeBaseName();
-	QString filename = fileinfo.completeBaseName();
-
-	QString number = QString("%1").arg(numberFrame, diag->spinBox_NumberLength->value(), 10, QChar('0'));
-	QString outfilename = outputfolder + OS_SEP + diag->lineEdit_pattern->text() + ".tif";
-	outfilename.replace(QString("%NAME%"), filename);
-	outfilename.replace(QString("%NAMEBASE%"), filenameBase);
-	outfilename.replace(QString("%NUMBER%"), number);
-	return outfilename;
-}
-
-bool UndistortSequenceDialog::overwriteFile(QString outfilename, bool& overwrite)
-{
-	QFile outfile(outfilename);
-	if (!overwrite && outfile.exists())
-	{
-		if (!ConfirmationDialog::getInstance()->showConfirmationDialog("The file " + outfilename + " already exists. Are you sure you want to overwrite it?"))
-		{
-			return false;
-		}
+		// got two numbers to compare?
+		if (!n1.isEmpty() && !n2.isEmpty())
+			return (n + n1).toInt() < (n + n2).toInt();
 		else
 		{
-			overwrite = true;
-			return true;
+			// not a number has to win over a number.. number could have ended earlier... same prefix..
+			if (!n1.isEmpty())
+				return false;
+			if (!n2.isEmpty())
+				return true;
+			return s1.at(i) < s2.at(i);
 		}
 	}
-	return true;
+	else
+	{
+		// shortest string wins
+		return s1.length() < s2.length();
+	}
 }
 
-void UndistortSequenceDialog::on_pushButton_clicked()
-{
-	int frameStart = diag->spinBox_NumberStart->value();
-	bool overwrite = false;
 
-	int camera_id = -1;
-	int count = 0;
-	for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
+void UndistortSequenceDialog::on_pushButtonAddFolder_clicked()
+{
+	QString folder = QFileDialog::getExistingDirectory(this, tr("Image Directory "), lastInputDir);
+
+	if (!folder.isEmpty())
 	{
-		if ((*it)->hasUndistortion() && (*it)->getUndistortionObject()->isComputed())
+		lastInputDir = folder;
+		QString outfolder = QFileDialog::getExistingDirectory(this, tr("Out Directory "), lastOutputDir);
+		if (!outfolder.isEmpty())
 		{
-			if (diag->comboBox_Camera->currentText() == (*it)->getUndistortionObject()->getFilenameBase())
-				camera_id = count;
+			lastOutputDir = outfolder;
+			undist_item item;
+			item.input = folder;
+			item.output = outfolder;
+			item.camera = diag->comboBox->currentText().toInt() - 1;
+			item.isVideo = false;
+			diag->listWidget->addItem("Camera " + diag->comboBox->currentText() + " from " + item.input + " to " + item.output);
+			items.push(item);
 		}
-		count++;
+		//imageFileNames.clear();
+		//QDir pdir(folder);
+		//QStringList imageFileNames_rel = pdir.entryList(QStringList() << "*.png" << "*.tif" << "*.bmp" << "*.jpeg" << "*.jpg", QDir::Files | QDir::NoSymLinks);
+		//for (int i = 0; i < imageFileNames_rel.size(); ++i)
+		//{
+		//	imageFileNames << QString("%1/%2").arg(pdir.absolutePath()).arg(imageFileNames_rel.at(i));
+		//}
+
+		
+		//widget->lineEdit->setText(folder);
+		//widget->label->setText("(" + QString::number(imageFileNames.size()) + ")");
+		//Settings::getInstance()->setLastUsedDirectory(folder);
 	}
-	if (camera_id >= 0)
+}
+
+void UndistortSequenceDialog::on_pushButtonAddVideo_clicked()
+{
+	QString videofile = QFileDialog::getOpenFileName(this,
+		tr("Open video stream movie file"), lastInputDir, tr("Video Files (*.cine *.avi)"));
+
+	if (!videofile.isEmpty())
 	{
-		diag->progressBar->setMaximum(fileNames.size());
-		diag->progressBar->setValue(0);
-		diag->progressBar->show();
-		for (int i = 0; i < fileNames.size(); i++)
+		QFileInfo fileinfo(videofile);
+		lastInputDir =  fileinfo.absolutePath();
+		QString outfolder = QFileDialog::getExistingDirectory(this, tr("Out Directory "), lastOutputDir);
+		if (!outfolder.isEmpty())
 		{
-			QFileInfo infoName(fileNames.at(i));
-			if (infoName.suffix() == "cine")
+			lastOutputDir = outfolder;
+			undist_item item;
+			item.input = videofile;
+			item.output = outfolder;
+			item.camera = diag->comboBox->currentText().toInt() - 1;
+			item.isVideo = true;
+			diag->listWidget->addItem("Camera " + diag->comboBox->currentText() + " from " + item.input + " to " + item.output);
+			items.push(item);
+		}
+
+		//imageFileNames.clear();
+		//QDir pdir(folder);
+		//QStringList imageFileNames_rel = pdir.entryList(QStringList() << "*.png" << "*.tif" << "*.bmp" << "*.jpeg" << "*.jpg", QDir::Files | QDir::NoSymLinks);
+		//for (int i = 0; i < imageFileNames_rel.size(); ++i)
+		//{
+		//	imageFileNames << QString("%1/%2").arg(pdir.absolutePath()).arg(imageFileNames_rel.at(i));
+		//}
+
+		//qSort(imageFileNames.begin(), imageFileNames.end(), compareNames);
+		//widget->lineEdit->setText(folder);
+		//widget->label->setText("(" + QString::number(imageFileNames.size()) + ")");
+		//Settings::getInstance()->setLastUsedDirectory(folder);
+	}
+}
+
+void UndistortSequenceDialog::on_pushButtonUndist_clicked()
+{
+	while (!items.empty())
+	{
+		undist_item item = items.front();
+		items.pop();
+		VideoStream* stream;
+		if (item.isVideo)
+		{
+			QFileInfo info(item.input);
+			QStringList names;
+			names << item.input;
+			if (info.suffix() == "cine")
 			{
-				QStringList list;
-				list << fileNames.at(i);
-				CineVideo video(list);
-				diag->progressBar->setMaximum(video.getNbImages());
-				for (int f = 0; i < video.getNbImages(); i++)
-				{
-					QString outfilename = getFilename(infoName, frameStart + f);
-					if (!overwriteFile(outfilename, overwrite)) return;
-					video.setActiveFrame(f);
-					if (!Project::getInstance()->getCameras()[camera_id]->getUndistortionObject()->undistort(video.getImage(), outfilename))
-					{
-						ErrorDialog::getInstance()->showErrorDialog("There was a PRoblem during Undistortion. Check your data, e.g. the resolutions.");
-						break;
-					}
-					frameStart++;
-					diag->progressBar->setValue(f);
-					QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
-				}
+				stream = new CineVideo(names);
 			}
-			else if (infoName.suffix() == "avi")
+			else if (info.suffix() == "avi")
 			{
-				QStringList list;
-				list << fileNames.at(i);
-				AviVideo video(list);
-				diag->progressBar->setMaximum(video.getNbImages());
-				for (int f = 0; i < video.getNbImages(); i++)
-				{
-					QString outfilename = getFilename(infoName, frameStart + f);
-					if (!overwriteFile(outfilename, overwrite)) return;
-					video.setActiveFrame(f);
-					if (!Project::getInstance()->getCameras()[camera_id]->getUndistortionObject()->undistort(video.getImage(), outfilename))
-					{
-						ErrorDialog::getInstance()->showErrorDialog("There was a PRoblem during Undistortion. Check your data, e.g. the resolutions.");
-						break;
-					}
-					frameStart++;
-					diag->progressBar->setValue(f);
-					QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
-				}
+				stream = new AviVideo(names);
 			}
 			else
 			{
-				QString outfilename = getFilename(infoName, frameStart);
-				if (!overwriteFile(outfilename, overwrite)) return;
-
-				if (!Project::getInstance()->getCameras()[camera_id]->getUndistortionObject()->undistort(fileNames.at(i), outfilename))
-				{
-					ErrorDialog::getInstance()->showErrorDialog("There was a PRoblem during Undistortion. Check your data, e.g. the resolutions.");
-					break;
-				}
-				frameStart++;
-				diag->progressBar->setValue(i);
-				QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+				continue;
 			}
+		} 
+		else
+		{
+			QStringList imageFileNames;
+			QDir pdir(item.input);
+			QStringList imageFileNames_rel = pdir.entryList(QStringList() << "*.png" << "*.tif" << "*.bmp" << "*.jpeg" << "*.jpg", QDir::Files | QDir::NoSymLinks);
+			for (int i = 0; i < imageFileNames_rel.size(); ++i)
+			{
+				imageFileNames << QString("%1/%2").arg(pdir.absolutePath()).arg(imageFileNames_rel.at(i));
+			}
+			qSort(imageFileNames.begin(), imageFileNames.end(), compareNames2);
+			stream = new ImageSequence(imageFileNames);
 		}
-	}
-	diag->progressBar->hide();
-}
 
+		QFileInfo info(stream->getFileBasename());
+
+		for (int i = 0; i < stream->getNbImages(); i++)
+		{
+			stream->setActiveFrame(i);
+			QString outname = item.output + OS_SEP + info.completeBaseName() + "_UND." + QString("%1").arg(i + 1, 4, 10, QChar('0')) + ".tif";
+			std::cerr << outname.toAscii().data() << std::endl;
+			stream->setActiveFrame(i);
+			Project::getInstance()->getCameras()[item.camera]->getUndistortionObject()->undistort(stream->getImage(), outname);
+		}
+		delete stream;
+		QListWidgetItem* list_item = diag->listWidget->takeItem(0);
+		delete list_item;
+		QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+	}
+}
