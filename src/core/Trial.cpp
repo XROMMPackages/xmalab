@@ -1116,8 +1116,16 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 						videos[i]->setActiveFrame(j);
 						Image * tmp = new Image(videos[i]->getImage());
 						Project::getInstance()->getCameras()[i]->getUndistortionObject()->undistort(videos[i]->getImage(), tmp);
+
 						cv::Mat tmpMat;
 						tmp->getImage(tmpMat);
+
+						if (Project::getInstance()->getCameras()[i]->hasModelDistortion())
+						{
+							Camera*  cam = Project::getInstance()->getCameras()[i];					
+							cv::remap(tmpMat, tmpMat, *cam->getUndistortionMapX(), *cam->getUndistortionMapY(), cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+						}
+
 						if (tmpMat.channels() > 1)
 						{
 							outputVideo << tmpMat;
@@ -1131,6 +1139,30 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 						}
 						
 						delete tmp;
+						tmpMat.release();
+					}
+				} 
+				else if (Project::getInstance()->getCameras()[i]->hasModelDistortion())
+				{
+					for (int j = from - 1; j < to; j++)
+					{
+						Camera*  cam = Project::getInstance()->getCameras()[i];
+						videos[i]->setActiveFrame(j);
+						cv::Mat tmpMat;
+						videos[i]->getImage()->getImage(tmpMat, true);
+						cv::remap(tmpMat, tmpMat, *cam->getUndistortionMapX(), *cam->getUndistortionMapY(), cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+
+						if (tmpMat.channels() > 1)
+						{
+							outputVideo << tmpMat;
+						}
+						else
+						{
+							cv::Mat tmpMat2;
+							cvtColor(tmpMat, tmpMat2, CV_GRAY2RGB);
+							outputVideo << tmpMat2;
+							tmpMat2.release();
+						}
 						tmpMat.release();
 					}
 				}
@@ -1165,6 +1197,20 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 					QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
 					videos[i]->setActiveFrame(j);
 					Project::getInstance()->getCameras()[i]->getUndistortionObject()->undistort(videos[i]->getImage(), outname);
+				}
+			}
+			else if (Project::getInstance()->getCameras()[i]->hasModelDistortion())
+			{
+				Camera*  cam = Project::getInstance()->getCameras()[i];
+				for (int j = from - 1; j < to; j++)
+				{
+					QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
+					videos[i]->setActiveFrame(j);
+					cv::Mat imageMat;
+					videos[i]->getImage()->getImage(imageMat, true);
+					cv::remap(imageMat, imageMat, *cam->getUndistortionMapX(), *cam->getUndistortionMapY(), cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+					cv::imwrite(outname.toAscii().data(), imageMat);
+					imageMat.release();
 				}
 			}
 			else

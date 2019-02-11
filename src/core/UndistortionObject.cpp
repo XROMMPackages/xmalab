@@ -103,6 +103,9 @@ bool UndistortionObject::undistort(Image* distorted, QString filenameOut)
 			imageMat.size().height == undistortionMapX.size().height)
 		{
 			cv::remap(imageMat, imageMat, undistortionMapX, undistortionMapY, cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+			if (this->camera->hasModelDistortion())
+				cv::remap(imageMat, imageMat, *this->camera->getUndistortionMapX(), *this->camera->getUndistortionMapY(), cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+
 			cv::imwrite(filenameOut.toAscii().data(), imageMat);
 			success = true;
 		}
