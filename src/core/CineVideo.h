@@ -62,6 +62,8 @@ namespace xma
 		//IMAGE POSITIONS
 		std::vector<unsigned long long> image_addresses;
 
+		void unpackImageData(char* packed, unsigned char* unpacked);
+
 		void loadCineInfo();
 
 		int lastFrame;
