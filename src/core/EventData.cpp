@@ -66,7 +66,10 @@ void EventData::loadData(QString name)
 		}
 		if (tmp.size() > 0)
 		{
-			data_[linecount] = bool(tmp[0]);
+			if ((int)data_.size() <= linecount) 
+				data_.push_back(bool(tmp[0]));
+			else
+				data_[linecount] = bool(tmp[0]);
 		}
 		line.clear();
 		linecount++;
