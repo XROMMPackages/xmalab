@@ -214,6 +214,7 @@ namespace xma
 		UINT ImWidthAcq;
 		UINT ImHeightAcq;
 		STRING Description[4096];
+		UINT RecBPP;
 	};
 }
 

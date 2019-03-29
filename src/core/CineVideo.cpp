@@ -170,11 +170,17 @@ void CineVideo::unpackImageData(char* packed, unsigned char* unpacked)
 	{
 		for (int k = 0; k < 4; k++){
 			tmp = (((unsigned short)(upacked[k] & masks[k][0])) << 8) | (upacked[k + 1] & masks[k][1]);
-			if (RealBPP > 10)
+			//shift for correct 10bit
+			tmp = tmp >> (2 * (3 - k));
+			if (RecBPP == 12)
 			{
-				tmp = LinLUT[tmp] >> 2;
+				//lookup 12 bit and convert to 8 bit
+				*unpacked++ = LinLUT[tmp] >> 4;
 			}
-			*unpacked++ = tmp >> (2 + 2 * (3 - k));
+			else{
+				//convert 10 to 8 bit
+				*unpacked++ = tmp >> 2;
+			}
 		}
 	}
 }
@@ -591,6 +597,16 @@ void CineVideo::loadCineInfo()
 		readAndAdvance(&Description[0], counter, 4096);
 		if (printHeader) SHOWSTRING(Description);
 		delete[] camerasetup;
+
+		if (SoftwareVersion > 720){
+			is.seekg(OffSetup + 10112);
+			char* recBPP_tmp = new char[sizeof(UINT)];
+			UINT *  recBPP_u = reinterpret_cast<UINT*>(recBPP_tmp);
+			is.read(recBPP_tmp, sizeof(UINT));
+			RecBPP = *recBPP_u;
+			if (printHeader) SHOW(RecBPP);
+			delete[] recBPP_tmp;
+		}
 
 		//IMAGE POSITIONS
 		is.seekg(OffImageOffsets);
