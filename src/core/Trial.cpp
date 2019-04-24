@@ -936,7 +936,7 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 					<< name.toAscii().data() << "_03" << filterRate.toAscii().data() << " , "
 					<< name.toAscii().data() << "_TX" << filterRate.toAscii().data() << " , "
 					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_TZ" << filterRate.toAscii().data() << " , "
 					<< name.toAscii().data() << "_1" << filterRate.toAscii().data();
 
 				if (it != _bodies.end() - 1)
@@ -1043,7 +1043,7 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 					<< name.toAscii().data() << "_03" << filterRate.toAscii().data() << " , "
 					<< name.toAscii().data() << "_TX" << filterRate.toAscii().data() << " , "
 					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
+					<< name.toAscii().data() << "_TZ" << filterRate.toAscii().data() << " , "
 					<< name.toAscii().data() << "_1" << filterRate.toAscii().data();
 
 				outfile << std::endl;
