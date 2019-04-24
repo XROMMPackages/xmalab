@@ -81,7 +81,8 @@ WizardCalibrationCubeFrame::WizardCalibrationCubeFrame(QWidget* parent) :
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
 	connect(State::getInstance(), SIGNAL(activeFrameCalibrationChanged(int)), this, SLOT(activeFrameCalibrationChanged(int)));
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
-
+	connect(frame->frametreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(frametreeWidgetitemClicked(QTreeWidgetItem*, int)));
+	frame->framelist->setVisible(false);
 #ifndef WIN32
 	frame->label_5->setText("Add a correspondance by using COMMAND+click.");
 #endif
@@ -181,6 +182,49 @@ void WizardCalibrationCubeFrame::workspaceChanged(work_state workspace)
 	{
 		checkerboardManual = Settings::getInstance()->getBoolSetting("DisableCheckerboardDetection");
 		setDialog();
+	}
+}
+
+void WizardCalibrationCubeFrame::updateFrameList()
+{
+	frame->frametreeWidget->clear();
+	frame->frametreeWidget->setColumnCount(Project::getInstance()->getCameras().size() + 1);
+	frame->frametreeWidget->header()->setResizeMode(0, QHeaderView::Stretch);
+	frame->frametreeWidget->headerItem()->setText(0, "");
+
+	for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+	{
+		frame->frametreeWidget->headerItem()->setText(1 + i, "");
+		frame->frametreeWidget->header()->setResizeMode(1 + i, QHeaderView::ResizeToContents);
+	}
+	frame->frametreeWidget->setHeaderHidden(true);
+
+	for (int i = 0; i < Project::getInstance()->getNbImagesCalibration(); i++){
+		bool has_calibrated_Frame = false;
+		for (auto cam : Project::getInstance()->getCameras())
+		{
+			has_calibrated_Frame = has_calibrated_Frame | cam->getCalibrationImages()[i]->isCalibrated();
+		}
+		if (has_calibrated_Frame){
+			QTreeWidgetItem* qtreewidgetitem = new QTreeWidgetItem();
+			qtreewidgetitem->setText(0, QString::number(i+1));
+			QPixmap pix(8, 16);
+			pix.fill(QColor::fromRgb(0, 200, 100));
+			for (auto cam : Project::getInstance()->getCameras())
+			{
+				if(cam->getCalibrationImages()[i]->isCalibrated())
+					qtreewidgetitem->setIcon(cam->getID() + 1, pix);
+			}
+			frame->frametreeWidget->addTopLevelItem(qtreewidgetitem);
+		}
+	}
+	auto items = frame->frametreeWidget->findItems(QString::number(State::getInstance()->getActiveFrameCalibration() + 1), Qt::MatchExactly, 0);
+	if (!items.empty()){
+		frame->frametreeWidget->setItemSelected(items[0], true);
+	}
+	else
+	{
+		frame->frametreeWidget->clearSelection();
 	}
 }
 
@@ -419,11 +463,18 @@ void WizardCalibrationCubeFrame::setDialog()
 		frame->pushButton->hide();
 		frame->checkBoxManual->hide();
 		frame->frameManual->hide();
-
+		frame->framelist->hide();
 
 		return;
 	}
-
+	if (frame->checkBoxFrameList->isChecked())
+	{
+		frame->framelist->show();
+		updateFrameList();
+	} else
+	{
+		frame->framelist->hide();
+	}
 
 	if (State::getInstance()->getActiveCamera() >= 0 && State::getInstance()->getActiveFrameCalibration() >= 0)
 	{
@@ -955,6 +1006,19 @@ void WizardCalibrationCubeFrame::on_checkBoxManual_clicked()
 {
 	reloadManualPoints();
 	setDialog();
+}
+
+void WizardCalibrationCubeFrame::on_checkBoxFrameList_clicked()
+{
+	frame->framelist->setVisible(frame->checkBoxFrameList->isChecked());
+	if (frame->checkBoxFrameList->isChecked()) 
+		updateFrameList();
+}
+
+void WizardCalibrationCubeFrame::frametreeWidgetitemClicked(QTreeWidgetItem* item, int column)
+{
+	int frame = item->text(0).toInt() - 1;
+	State::getInstance()->changeActiveFrameCalibration(frame);
 }
 
 void WizardCalibrationCubeFrame::setTransformationMatrix()

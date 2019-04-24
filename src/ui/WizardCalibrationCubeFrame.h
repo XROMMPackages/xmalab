@@ -33,6 +33,8 @@
 
 #include <opencv/cv.h>
 
+class QTreeWidgetItem;
+
 namespace Ui
 {
 	class WizardCalibrationCubeFrame;
@@ -87,6 +89,7 @@ namespace xma
 		void activeCameraChanged(int activeCamera);
 		void activeFrameCalibrationChanged(int activeFrame);
 		void workspaceChanged(work_state workspace);
+		void updateFrameList();
 
 		void on_pushButton_clicked();
 		void on_comboBoxImage_currentIndexChanged(int idx);
@@ -110,6 +113,8 @@ namespace xma
 		void setTransformationMatrix();
 
 		void on_checkBoxManual_clicked();
+		void on_checkBoxFrameList_clicked();
+		void frametreeWidgetitemClicked(QTreeWidgetItem *item, int column);
 		void checkBoxManualReference_clicked();
 		void on_pushButtonOptimize_clicked();
 		void optimizationDone();
