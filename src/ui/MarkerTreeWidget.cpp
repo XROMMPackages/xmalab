@@ -114,6 +114,7 @@ MarkerTreeWidget::MarkerTreeWidget(QWidget* parent): QTreeWidget(parent)
 
 	headerItem()->setText(1, "");
 	header()->setResizeMode(1, QHeaderView::Stretch);
+	setHeaderHidden(true);
 	statusSlots = Project::getInstance()->getCameras().size();
 }
 
