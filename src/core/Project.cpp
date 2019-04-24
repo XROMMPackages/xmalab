@@ -563,7 +563,7 @@ void Project::exportMayaCamVersion2(QString foldername, int frame, int id)
 			{
 				if ((*it)->getCalibrationImages()[f]->isCalibrated() > 0)
 				{
-					(*it)->saveMayaCamVersion2(f, foldername + OS_SEP + (*it)->getCalibrationImages()[f]->getFilenameBase() + "_MayaCam.txt");
+					(*it)->saveMayaCamVersion2(f, foldername + OS_SEP + (*it)->getCalibrationImages()[f]->getFilenameBase() + "_MayaCam" + QString::number((*it)->getID() + 1) + ".txt");
 				}
 			}
 		}
