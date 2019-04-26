@@ -120,12 +120,15 @@ void  DisplayOptionsDockWidget::toggleEnabled(bool enabled)
 	dock->checkBoxRigidBodyConstellation->setEnabled(enabled);
 	dock->checkBoxRigidBodyMeshmodels->setEnabled(enabled);
 	dock->checkBox_DrawFiltered->setEnabled(enabled);
+	dock->checkBox_VisualFilter->setEnabled(enabled);
+	dock->toolButton_VisualFilter->setEnabled(enabled);
 }
 
 void DisplayOptionsDockWidget::on_checkBoxHide_clicked()
 {
 	Settings::getInstance()->set("TrialDrawHideAll", dock->checkBoxHide->isChecked());
 	toggleEnabled(!dock->checkBoxHide->isChecked());
+	Project::getInstance()->reloadTextures();
 	MainWindow::getInstance()->redrawGL();
 }
 
@@ -182,5 +185,6 @@ void DisplayOptionsDockWidget::toggleHideAll()
 	dock->checkBoxHide->setChecked(!Settings::getInstance()->getBoolSetting("TrialDrawHideAll"));
 	Settings::getInstance()->set("TrialDrawHideAll", dock->checkBoxHide->isChecked());
 	toggleEnabled(!dock->checkBoxHide->isChecked());
+	Project::getInstance()->reloadTextures();
 	MainWindow::getInstance()->redrawGL();
 }
