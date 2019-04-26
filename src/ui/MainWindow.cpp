@@ -1380,6 +1380,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 
 
 	setCameraViewWidgetTitles();
+	project->reloadTextures();
 	redrawGL();
 }
 

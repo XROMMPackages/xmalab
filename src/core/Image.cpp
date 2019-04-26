@@ -36,6 +36,8 @@
 
 #include <QFileInfo>
 #include "Project.h"
+#include "Settings.h"
+#include "ui/State.h"
 
 #ifndef GL_BGR
 #define GL_BGR 0x80E0
@@ -215,18 +217,81 @@ void Image::setImage(QString imageFileName)
 	image_reset = true;
 }
 
+void Image::resetImage()
+{
+	image_reset = true;
+}
+
+void Image::gammaCorrection(cv::Mat& src, cv::Mat& dst, float fGamma)
+{
+	unsigned char lut[256];
+	for (int i = 0; i < 256; i++)
+	{
+		lut[i] = cv::saturate_cast<uchar>(pow((float)(i / 255.0), fGamma) * 255.0f);
+	}
+
+	dst = src.clone();
+	const int channels = dst.channels();
+	switch (channels)
+	{
+		case 1:
+		{
+			cv::MatIterator_<uchar> it, end;
+			for (it = dst.begin<uchar>(), end = dst.end<uchar>(); it != end; it++)
+				*it = lut[(*it)];
+			break;
+		}
+		case 3:
+		{
+			cv::MatIterator_<cv::Vec3b> it, end;
+			for (it = dst.begin<cv::Vec3b>(), end = dst.end< cv::Vec3b>(); it != end; it++)
+			{
+				(*it)[0] = lut[((*it)[0])];
+				(*it)[1] = lut[((*it)[1])];
+				(*it)[2] = lut[((*it)[2])];
+			}
+			break;
+		}
+	}
+}
+
 void Image::loadTexture()
 {
+	cv::Mat  * tex_image = &image_color;
 	if (!textureLoaded || image_reset)
 	{
-		if (!textureLoaded)((QGLContext*) (GLSharedWidget::getInstance()->getQGLContext()))->makeCurrent();
+		if (!textureLoaded)((QGLContext*)(GLSharedWidget::getInstance()->getQGLContext()))->makeCurrent();
 
-		if (colorImage_set == GRAY)
+		if (colorImage_set != COLOR_ORIGINAL || Settings::getInstance()->getBoolSetting("VisualFilterEnabled"))
 		{
-			image_color.create(image.rows, image.cols, CV_8UC(3));
-			cvtColor(image, image_color, CV_GRAY2RGB);
+			image_color_disp.create(image.rows, image.cols, CV_8UC(3));
+			tex_image = &image_color_disp;
+		}
 			
-			//colorImage_set = COLOR_CONVERTED;
+		if (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && State::getInstance()->getWorkspace() == DIGITIZATION)
+		{
+			int krad = Settings::getInstance()->getIntSetting("VisualFilter_krad");
+			krad = 2 * krad + 1;
+			float gsigma = Settings::getInstance()->getFloatSetting("VisualFilter_gsigma");
+			float img_wt = Settings::getInstance()->getFloatSetting("VisualFilter_img_wt");
+			float blur_wt = Settings::getInstance()->getFloatSetting("VisualFilter_blur_wt");
+			float gamma = Settings::getInstance()->getFloatSetting("VisualFilter_gamma");
+			// Make blur mask
+			cv::Mat img_gblur;
+			GaussianBlur(image, img_gblur, cv::Size(krad, krad), gsigma);
+
+			// Subtract blur from original to produce sharp
+			cv::Mat img_addwt;
+			addWeighted(image, img_wt, img_gblur, blur_wt, 0, img_addwt);
+
+			// Gamma correction to enhance contrast
+			cv::Mat img_gamma;
+			gammaCorrection(img_addwt, img_gamma, gamma);
+			cvtColor(img_gamma, image_color_disp, CV_GRAY2RGB);
+		}
+		else if (colorImage_set == GRAY)
+		{
+			cvtColor(image, image_color_disp, CV_GRAY2RGB);
 		}
 
 		glEnable(GL_TEXTURE_2D);
@@ -245,7 +310,7 @@ void Image::loadTexture()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.cols, image.rows,
-			0, GL_BGR, GL_UNSIGNED_BYTE, image_color.ptr());
+			0, GL_BGR, GL_UNSIGNED_BYTE, tex_image->ptr());
 		if (colorImage_set == GRAY)
 			image_color.release();
 		textureLoaded = true;

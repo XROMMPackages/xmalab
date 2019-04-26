@@ -148,6 +148,7 @@ namespace xma
 		}
 
 		void loadTextures();
+		void reloadTextures();
 
 		void drawData(int type);
 		void bindTexture(int type);

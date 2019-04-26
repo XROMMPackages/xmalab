@@ -20,72 +20,48 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file CalibrationSequence.h
+///\file VisualFilterDialog.h
 ///\author Benjamin Knorlein
-///\date 11/15/2016
+///\date 4/26/2019
 
-#ifndef CALIBRATIONSEQUENCE_H_
-#define CALIBRATIONSEQUENCE_H_
+#ifndef VISUALFILTERDIALOG_H_
+#define VISUALFILTERDIALOG_H_
 
+#include <QDialog>
 #include <QString>
-#include <QStringList>
 
-#include <opencv/cv.h>
-#include <fstream>
+namespace Ui
+{
+	class VisualFilterDialog;
+}
 
 namespace xma
 {
-	class CalibrationImage;
-	class Camera;
-	class Image;
-	class VideoStream;
-
-	class CalibrationSequence
+	class VisualFilterDialog : public QDialog
 	{
-	public:
-		CalibrationSequence(Camera * camera);
-		virtual ~CalibrationSequence();
-
-		const std::vector<CalibrationImage*>& getCalibrationImages()
-		{
-			return calibrationImages;
-		}
-
-		void reset();
-		void deleteFrame(int id);
-		void getResolution(int &width, int &height);
-		bool checkResolution(int width, int height);
-
-		void loadImages(QStringList fileNames);
-		CalibrationImage* addImage(QString fileName);
-
-		void save(QString folder);
-		void loadTextures();
-		void reloadTextures();
-
-		void undistort();
-		Image* getImage(int id, bool dist);
-		void bindTexture(int id, int type);
-
-		bool hasCalibrationSequence();
-		QString getFilename();
-		int getNbImages();
-		void setCalibrationSequence(QString filename, int nbImages, int width, int height);
+		Q_OBJECT
 
 	private:
-		std::vector<CalibrationImage*> calibrationImages;
-		VideoStream * sequence;
-		int sequence_width;
-		int sequence_height;
-		Camera* m_camera;
+		Ui::VisualFilterDialog* diag;
+		static VisualFilterDialog* instance;
 
-		void undstortSequenceImage(int id);
-		Image* undistortedImage;
-		int lastUndistorted; 
-		QString sequence_filename;
+	protected:
+		VisualFilterDialog(QWidget* parent = 0);
+
+	public:
+		virtual ~VisualFilterDialog();
+		static VisualFilterDialog* getInstance();
+
+
+	public slots:
+
+	void on_spinBox_krad_valueChanged(int value);
+	void on_doubleSpinBox_gsigma_valueChanged(double value);
+	void on_doubleSpinBox_img_wt_valueChanged(double value);
+	void on_doubleSpinBox_blur_wt_valueChanged(double value);
+	void on_doubleSpinBox_gamma_valueChanged(double value);
 	};
 }
 
-
-#endif /* CALIBRATIONSEQUENCE_H_ */
+#endif /* VISUALFILTERDIALOG_H_ */
 

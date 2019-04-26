@@ -111,6 +111,14 @@ Settings::Settings()
 
 	addBoolSetting("ShowColoredMarkerIDs", false);
 	addBoolSetting("ShowColoredMarkerCross", false);
+	//DetailViewFilter
+
+	addBoolSetting("VisualFilterEnabled", true);
+	addIntSetting("VisualFilter_krad", 17);
+	addFloatSetting("VisualFilter_gsigma", 10.0);
+	addFloatSetting("VisualFilter_img_wt", 3.6);
+	addFloatSetting("VisualFilter_blur_wt", -2.9);
+	addFloatSetting("VisualFilter_gamma", 0.4);
 
 	//BlobDetector
 	addFloatSetting("BlobDetectorThresholdStep", 10.0);
@@ -118,7 +126,6 @@ Settings::Settings()
 	addFloatSetting("BlobDetectorMaxThreshold", 220.0);
 	addIntSetting("BlobDetectorMinRepeatability", 2);
 	addFloatSetting("BlobDetectorMinDistBetweenBlobs", 5.0);
-
 	addBoolSetting("BlobDetectorFilterByColor", true);
 	addIntSetting("BlobDetectorBlobColor", 255);
 

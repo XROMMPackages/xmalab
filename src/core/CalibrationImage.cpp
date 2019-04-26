@@ -107,6 +107,12 @@ void CalibrationImage::loadTextures()
 	undistortedImage->loadTexture();
 }
 
+void CalibrationImage::reloadTextures()
+{
+	image->resetImage();
+	undistortedImage->resetImage();
+}
+
 void CalibrationImage::init(int nbPoints)
 {
 	detectedPoints_ALL.clear();

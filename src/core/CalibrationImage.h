@@ -78,6 +78,7 @@ namespace xma
 		}
 
 		void loadTextures();
+		void reloadTextures();
 		void init(int nbPoints);
 
 		void setDetectedPoints(cv::vector<cv::Point2d>& points);

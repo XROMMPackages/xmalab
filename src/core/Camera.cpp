@@ -321,6 +321,16 @@ void Camera::loadTextures()
 	calibrationSequence->loadTextures();
 }
 
+void Camera::reloadTextures()
+{
+	if (undistortionObject)
+		undistortionObject->reloadTextures();
+
+	QApplication::processEvents();
+
+	calibrationSequence->reloadTextures();
+}
+
 void Camera::undistort()
 {
 	if (undistortionObject && undistortionObject->isComputed())

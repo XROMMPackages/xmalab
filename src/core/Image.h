@@ -77,12 +77,16 @@ namespace xma
 		void getSubImage(cv::Mat& _image, int size, double x, double y);
 		void setImage(cv::Mat& image, bool _color = false);
 		void setImage(QString imageFileName);
-		
+		void resetImage();
+
 	private:
+		void gammaCorrection(cv::Mat& src, cv::Mat& dst, float fGamma);
+
 		cv::Mat image;
 		int height, width;	
 		ColorMode colorImage_set;
 		cv::Mat image_color;
+		cv::Mat image_color_disp;
 
 
 		bool textureLoaded;

@@ -110,6 +110,7 @@ namespace xma
 
 		void save(QString folder);
 		void loadTextures();
+		void reloadTextures();
 
 		void undistort();
 		cv::Point2d undistortPoint(cv::Point2d pt, bool undistort, bool withModel = true, bool withRefine = true);

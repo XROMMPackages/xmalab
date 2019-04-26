@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>197</width>
-    <height>228</height>
+    <width>410</width>
+    <height>521</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -26,7 +26,42 @@
       <property name="title">
        <string>Drawing</string>
       </property>
-      <layout class="QGridLayout" name="gridLayout_7">
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QCheckBox" name="checkBoxHide">
+         <property name="text">
+          <string>Hide all</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QCheckBox" name="checkBoxMarkers">
+         <property name="text">
+          <string>Marker cross</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QCheckBox" name="checkBoxMarkerIds">
+         <property name="text">
+          <string>Marker Ids</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QCheckBox" name="checkBoxEpipolar">
+         <property name="text">
+          <string>Epipolar line</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QCheckBox" name="checkBoxRigidBodyConstellation">
+         <property name="text">
+          <string>Rigid body constellations</string>
+         </property>
+        </widget>
+       </item>
        <item row="5" column="0">
         <widget class="QCheckBox" name="checkBoxRigidBodyMeshmodels">
          <property name="maximumSize">
@@ -40,45 +75,34 @@
          </property>
         </widget>
        </item>
-       <item row="6" column="0" colspan="4">
+       <item row="6" column="0" colspan="2">
         <widget class="QCheckBox" name="checkBox_DrawFiltered">
          <property name="text">
           <string>Use filtered transformations</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
-        <widget class="QCheckBox" name="checkBoxRigidBodyConstellation">
+       <item row="7" column="0">
+        <widget class="QCheckBox" name="checkBox_VisualFilter">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
-          <string>Rigid body constellations</string>
+          <string>filter images</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QCheckBox" name="checkBoxMarkerIds">
+       <item row="7" column="1">
+        <widget class="QToolButton" name="toolButton_VisualFilter">
          <property name="text">
-          <string>Marker Ids</string>
+          <string>...</string>
          </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QCheckBox" name="checkBoxMarkers">
-         <property name="text">
-          <string>Marker cross</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QCheckBox" name="checkBoxEpipolar">
-         <property name="text">
-          <string>Epipolar line</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QCheckBox" name="checkBoxHide">
-         <property name="text">
-          <string>Hide all</string>
+         <property name="icon">
+          <iconset resource="../calibrationtool_resources.qrc">
+           <normaloff>:/images/resource-files/icons/settings.png</normaloff>:/images/resource-files/icons/settings.png</iconset>
          </property>
         </widget>
        </item>
@@ -88,6 +112,8 @@
    </layout>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="../calibrationtool_resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

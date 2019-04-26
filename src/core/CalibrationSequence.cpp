@@ -189,6 +189,7 @@ void CalibrationSequence::loadTextures()
 			sequence = new AviVideo(list);
 			undistortedImage = new Image(sequence->getImage());
 		}
+		undistortedImage->resetImage();
 	}
 	else if (!sequence){
 		for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
@@ -197,6 +198,18 @@ void CalibrationSequence::loadTextures()
 			QApplication::processEvents();
 		}
 	}
+}
+
+void CalibrationSequence::reloadTextures()
+{
+	if (undistortedImage) 
+		undistortedImage->resetImage();
+
+	for (auto ci : calibrationImages)
+		{
+			ci->reloadTextures();
+			QApplication::processEvents();
+		}
 }
 
 void CalibrationSequence::undistort()

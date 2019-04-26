@@ -72,6 +72,13 @@ void UndistortionObject::loadTextures()
 	tmpImage->loadTexture();
 }
 
+void UndistortionObject::reloadTextures()
+{
+	image->resetImage();
+	undistortedImage->resetImage();
+	tmpImage->resetImage();
+}
+
 bool UndistortionObject::undistort(Image* distorted, Image* undistorted)
 {
 	if (computed)

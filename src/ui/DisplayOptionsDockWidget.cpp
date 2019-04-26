@@ -35,9 +35,14 @@
 #include "ui_DisplayOptionsDockWidget.h"
 
 #include "core/Settings.h"
+#include "core/Project.h"
+#include "core/Trial.h"
+#include "core/VideoStream.h"
+#include "core/Image.h"
 
 #include <QCloseEvent>
-
+#include <iostream>
+#include "VisualFilterDialog.h"
 
 
 using namespace xma;
@@ -56,6 +61,7 @@ DisplayOptionsDockWidget::DisplayOptionsDockWidget(QWidget* parent) :
 	dock->checkBoxRigidBodyConstellation->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyConstellation"));
 	dock->checkBoxRigidBodyMeshmodels->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyMeshmodels"));
 	dock->checkBox_DrawFiltered->setChecked(Settings::getInstance()->getBoolSetting("TrialDrawFiltered"));
+	dock->checkBox_VisualFilter->setChecked(Settings::getInstance()->getBoolSetting("VisualFilterEnabled"));
 	toggleEnabled(!dock->checkBoxHide->isChecked());
 
 #ifdef __APPLE__
@@ -66,6 +72,7 @@ DisplayOptionsDockWidget::DisplayOptionsDockWidget(QWidget* parent) :
 	dock->checkBoxRigidBodyConstellation->setMinimumHeight(26);
 	dock->checkBoxRigidBodyMeshmodels->setMinimumHeight(26);
 	dock->checkBox_DrawFiltered->setMinimumHeight(26);
+	dock->checkBox_VisualFilter->setMinimumHeight(26);
 
 	dock->checkBoxHide->setFocusPolicy(Qt::StrongFocus);
 	dock->checkBoxMarkers->setFocusPolicy(Qt::StrongFocus);
@@ -74,6 +81,7 @@ DisplayOptionsDockWidget::DisplayOptionsDockWidget(QWidget* parent) :
 	dock->checkBoxRigidBodyConstellation->setFocusPolicy(Qt::StrongFocus);
 	dock->checkBoxRigidBodyMeshmodels->setFocusPolicy(Qt::StrongFocus);
 	dock->checkBox_DrawFiltered->setFocusPolicy(Qt::StrongFocus);
+	dock->checkBox_VisualFilter->setFocusPolicy(Qt::StrongFocus);
 #endif
 
 	Shortcuts::getInstance()->installEventFilterToChildren(this);
@@ -155,6 +163,18 @@ void DisplayOptionsDockWidget::on_checkBox_DrawFiltered_clicked()
 {
 	Settings::getInstance()->set("TrialDrawFiltered", dock->checkBox_DrawFiltered->isChecked());
 	MainWindow::getInstance()->redrawGL();
+}
+
+void DisplayOptionsDockWidget::on_checkBox_VisualFilter_clicked()
+{
+	Settings::getInstance()->set("VisualFilterEnabled", dock->checkBox_VisualFilter->isChecked());
+	Project::getInstance()->reloadTextures();
+	MainWindow::getInstance()->redrawGL();
+}
+
+void DisplayOptionsDockWidget::on_toolButton_VisualFilter_clicked()
+{
+	VisualFilterDialog::getInstance()->exec();
 }
 
 void DisplayOptionsDockWidget::toggleHideAll()

@@ -63,7 +63,8 @@ namespace xma
 		void on_checkBoxRigidBodyConstellation_clicked();
 		void on_checkBoxRigidBodyMeshmodels_clicked();
 		void on_checkBox_DrawFiltered_clicked();
-
+		void on_checkBox_VisualFilter_clicked();
+		void on_toolButton_VisualFilter_clicked();
 		void toggleHideAll();
 	};
 }

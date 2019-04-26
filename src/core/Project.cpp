@@ -473,6 +473,22 @@ void Project::loadTextures()
 
 }
 
+void Project::reloadTextures()
+{
+	for (auto tr : getTrials())
+	{
+		for (auto vid : tr->getVideoStreams())
+		{
+			vid->getImage()->resetImage();
+		}
+	}
+	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+	{
+		(*it)->reloadTextures();
+		QApplication::processEvents();
+	}
+}
+
 void Project::exportDLT(QString foldername)
 {
 	for (int frame = 0; frame < nbImagesCalibration; frame++)
