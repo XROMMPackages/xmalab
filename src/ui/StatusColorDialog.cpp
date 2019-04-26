@@ -40,6 +40,7 @@ StatusColorDialog::StatusColorDialog(QWidget* parent) :
 	diag(new Ui::StatusColorDialog)
 {
 	diag->setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	updateColors();
 }
 

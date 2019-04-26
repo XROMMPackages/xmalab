@@ -38,6 +38,7 @@ HelpDialog::HelpDialog(QWidget* parent) :
 	diag(new Ui::HelpDialog)
 {
 	diag->setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
 #ifdef __APPLE__
 	QList<QLabel *> list = diag->groupBox_2->findChildren<QLabel*>();

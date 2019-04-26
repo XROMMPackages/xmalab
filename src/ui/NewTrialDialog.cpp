@@ -79,6 +79,7 @@ QDialog(MainWindow::getInstance()), m_trial(trial),
 		diag->pushButton_Default->setEnabled(false);
 	}
 	noCalibration = false;
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 NewTrialDialog::~NewTrialDialog()

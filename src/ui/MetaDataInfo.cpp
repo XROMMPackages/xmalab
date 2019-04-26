@@ -49,7 +49,7 @@ MetaDataInfo::MetaDataInfo(QWidget* parent) :
 	diag(new Ui::MetaDataInfo)
 {
 	diag->setupUi(this);
-
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	update();
 }
 

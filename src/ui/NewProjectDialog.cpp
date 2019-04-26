@@ -50,7 +50,7 @@ NewProjectDialog::NewProjectDialog(QWidget* parent) :
 	diag(new Ui::NewProjectDialog)
 {
 	diag->setupUi(this);
-
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	diag->frameCheckerboard->hide();
 	diag->frameCube->show();
 

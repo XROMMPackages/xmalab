@@ -39,6 +39,7 @@ TrialSelectorDialog::TrialSelectorDialog(std::vector<Trial*> trials, QWidget* pa
 	diag(new Ui::TrialSelectorDialog)
 {
 	diag->setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	//diag->listWidget->addItem()
 	for (std::vector<Trial*>::const_iterator trial_it = trials.begin(); trial_it != trials.end(); ++trial_it)
 	{

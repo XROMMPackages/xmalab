@@ -45,6 +45,7 @@ CameraSelector::CameraSelector(QWidget* parent) :
 	diag(new Ui::CameraSelector)
 {
 	diag->setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	int cam_count = 0;
 	for (auto cam : Project::getInstance()->getCameras()){
 		QCheckBox * box = new QCheckBox(cam->getName(), this);

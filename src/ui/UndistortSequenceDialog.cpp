@@ -58,6 +58,7 @@ UndistortSequenceDialog::UndistortSequenceDialog(QWidget* parent) :
 	diag(new Ui::UndistortSequenceDialog)
 {
 	diag->setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	for (int i = 0; i <  Project::getInstance()->getCameras().size(); i++)
 	{
 		Camera * cam = Project::getInstance()->getCameras()[i];

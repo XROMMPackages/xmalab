@@ -47,6 +47,8 @@ FromToDialog::FromToDialog(int from, int to, int max, bool withFormat, QWidget* 
 	diag->spinBoxTo->setMinimum(1);
 	diag->spinBoxTo->setMaximum(max);
 	diag->spinBoxTo->setValue(to);
+
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 FromToDialog::~FromToDialog()

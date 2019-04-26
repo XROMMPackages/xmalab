@@ -49,7 +49,7 @@ ProjectOverview::ProjectOverview(QWidget* parent) :
 	diag(new Ui::ProjectOverview)
 {
 	diag->setupUi(this);
-
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	update();
 }
 

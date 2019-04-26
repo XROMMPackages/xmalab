@@ -53,6 +53,7 @@ DetectionSettings::DetectionSettings(QWidget* parent) :
 		setMarker(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker());
 
 	setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 void DetectionSettings::on_comboBox_currentIndexChanged(int index)

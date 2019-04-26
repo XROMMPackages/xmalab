@@ -41,6 +41,7 @@ AboutDialog::AboutDialog(QWidget* parent) :
 	diag(new Ui::AboutDialog)
 {
 	diag->setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	diag->version_label->setText(PROJECT_VERSION);
 	diag->date_label->setText(PROJECT_BUILD_TIME);
 }

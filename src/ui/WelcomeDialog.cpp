@@ -42,6 +42,7 @@ WelcomeDialog::WelcomeDialog(QWidget* parent) :
 	diag(new Ui::WelcomeDialog)
 {
 	diag->setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 WelcomeDialog::~WelcomeDialog()

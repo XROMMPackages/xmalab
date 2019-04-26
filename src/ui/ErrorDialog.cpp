@@ -40,6 +40,7 @@ ErrorDialog::ErrorDialog(QWidget* parent) :
 	diag(new Ui::ErrorDialog)
 {
 	diag->setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 ErrorDialog::~ErrorDialog()

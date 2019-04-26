@@ -40,6 +40,7 @@ ConfirmationDialog::ConfirmationDialog(QWidget* parent) :
 	diag(new Ui::ConfirmationDialog)
 {
 	diag->setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 ConfirmationDialog::~ConfirmationDialog()

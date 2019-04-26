@@ -38,6 +38,7 @@ OptimizationDialog::OptimizationDialog(QWidget* parent) :
 	diag(new Ui::OptimizationDialog)
 {
 	diag->setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 int OptimizationDialog::getIterations()

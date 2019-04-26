@@ -53,7 +53,7 @@ RigidBodyDialog::RigidBodyDialog(RigidBody* body, QWidget* parent) :
 	diag(new Ui::RigidBodyDialog), m_body(body)
 {
 	diag->setupUi(this);
-
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	updateIcon();
 
 	this->setWindowTitle("RB : " + m_body->getDescription());

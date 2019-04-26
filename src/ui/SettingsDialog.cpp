@@ -48,6 +48,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 	diag(new Ui::SettingsDialog)
 {
 	diag->setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	initPhase = true;
 
 	diag->scrollArea_Calibration->hide();

@@ -41,6 +41,7 @@ MarkerDialog::MarkerDialog(Marker* marker, QWidget* parent) :
 	diag(new Ui::MarkerDialog), m_marker(marker)
 {
 	diag->setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	diag->spinBox_MarkerRadius->setVisible(false);
 	diag->label->setVisible(false);
 	diag->spinBox_MarkerRadius->setValue(m_marker->getSizeOverride());

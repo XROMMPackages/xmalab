@@ -49,6 +49,7 @@ TrialDialog::TrialDialog(Trial* trial, QWidget* parent) :
 	diag(new Ui::TrialDialog), m_trial(trial), returnValue(TRIALDAILOGDEFAULT)
 {
 	diag->setupUi(this);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	returnValue = TRIALDAILOGDEFAULT;
 
 	this->setWindowTitle("Trial : " + m_trial->getName());

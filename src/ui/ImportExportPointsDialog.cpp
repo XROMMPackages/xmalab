@@ -52,7 +52,7 @@ ImportExportPointsDialog::ImportExportPointsDialog(QWidget* parent) :
 	diag(new Ui::ImportExportPointsDialog)
 {
 	diag->setupUi(this);
-
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	switchGroups();
 
 	if (Project::getInstance()->getTrials().size() > 1)

@@ -40,7 +40,7 @@ PointImportExportDialog::PointImportExportDialog(ImportExportType type, QWidget*
 	m_type(type)
 {
 	diag->setupUi(this);
-
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	switch (m_type)
 	{
 	case IMPORT2D:

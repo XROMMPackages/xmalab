@@ -39,7 +39,7 @@ TrialImportDeleteDialog::TrialImportDeleteDialog(QStringList items, bool deleteD
 	diag(new Ui::TrialImportDeleteDialog)
 {
 	diag->setupUi(this);
-
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	diag->listWidget->addItems(items);
 
 	if (deleteDialog)
