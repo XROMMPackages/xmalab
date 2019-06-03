@@ -65,7 +65,7 @@ void ProjectOverview::update()
 	diag->treeWidget->addTopLevelItem(new QTreeWidgetItem(QStringList() << "Created" << Project::getInstance()->get_date_created()));
 
 
-	if (Project::getInstance()->hasCalibration()){
+	if (Project::getInstance()->getCalibration() != NO_CALIBRATION){
 		QTreeWidgetItem * item;
 		if (Project::getInstance()->getHasStudyData()){
 			item = new QTreeWidgetItem(QStringList() << "Calibration Trial" << "name: " + Project::getInstance()->getStudyName());

@@ -254,7 +254,7 @@ void WorkspaceNavigationFrame::on_comboBoxWorkspace_currentIndexChanged(QString 
 			{
 				State::getInstance()->changeWorkspace(DIGITIZATION);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
-				if (Project::getInstance()->isCalibrated() || !Project::getInstance()->hasCalibration())
+				if (Project::getInstance()->isCalibrated() || (Project::getInstance()->getCalibration() == NO_CALIBRATION))
 				{
 					setTrialVisible(true);
 				}
@@ -273,7 +273,7 @@ void WorkspaceNavigationFrame::on_comboBoxWorkspace_currentIndexChanged(QString 
 	{
 		if (value == "Marker tracking")
 		{
-			if (Project::getInstance()->isCalibrated() || !Project::getInstance()->hasCalibration())
+			if (Project::getInstance()->isCalibrated() || (Project::getInstance()->getCalibration() == NO_CALIBRATION))
 			{
 				setTrialVisible(true);
 			}
@@ -357,7 +357,7 @@ void WorkspaceNavigationFrame::on_toolButtonTrialSettings_clicked()
 			{
 				State::getInstance()->changeWorkspace(DIGITIZATION, true);
 				currentComboBoxWorkspaceIndex = frame->comboBoxWorkspace->currentIndex();
-				if (Project::getInstance()->isCalibrated() || !Project::getInstance()->hasCalibration())
+				if (Project::getInstance()->isCalibrated() || (Project::getInstance()->getCalibration() == NO_CALIBRATION))
 				{
 					setTrialVisible(true);
 				}

@@ -72,6 +72,11 @@ DetailViewDockWidget* DetailViewDockWidget::getInstance()
 	return instance;
 }
 
+void DetailViewDockWidget::updateCamera(int id)
+{
+	if(cameraViews.size() > id)
+		cameraViews[id]->updateCamera();
+}
 
 void DetailViewDockWidget::draw()
 {

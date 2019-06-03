@@ -56,7 +56,7 @@ Project::Project()
 	projectFilename = "";
 	calibrated = false;
 	nbImagesCalibration = 0;
-
+	calibrationType = INTERNAL;
 	//StudyData
 	hasStudyData = false;
 	studyName = "";
@@ -73,7 +73,7 @@ Project::Project()
 	ts = "";;
 	trialDate = "";;
 	flipImages = false;
-	noCalibration = false;
+	calibrationType = INTERNAL;
 	xml_data = QStringList();;
 }
 
@@ -148,15 +148,16 @@ bool Project::getFlipImages()
 	return flipImages;
 }
 
-bool Project::hasCalibration()
+e_calibrationType Project::getCalibration()
 {
-	return !noCalibration;
+	return calibrationType;
 }
 
-void Project::setNoCalibation()
+void Project::setCalibation(e_calibrationType type)
 {
-	noCalibration = true;
+	calibrationType = type;
 }
+
 
 void Project::set_date_created()
 {
@@ -192,6 +193,7 @@ bool Project::camerasOptimized()
 	}
 	return true;
 }
+
 
 Project::~Project()
 {

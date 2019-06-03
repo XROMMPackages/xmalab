@@ -35,6 +35,7 @@
 #include "ui/DigitizationInfoFrame.h"
 
 #include "core/Camera.h"
+#include "core/Project.h"
 
 using namespace xma;
 
@@ -46,6 +47,7 @@ m_visible(true)
 	camera = _camera;
 
 	widget->setupUi(this);
+	widget->frame_calibration->setCamera(camera);
 	cameraName = camera->getName();
 	widget->glCameraView->setCamera(camera);
 	widget->frameInfo->hide();
@@ -82,6 +84,11 @@ m_visible(true)
 
 CameraViewWidget::~CameraViewWidget()
 {
+}
+
+void CameraViewWidget::updateCamera()
+{
+	widget->glCameraView->setCamera(camera);
 }
 
 void CameraViewWidget::setImageName(QString name)
@@ -207,6 +214,8 @@ void CameraViewWidget::workspaceChanged(work_state workspace)
 		calibrationFrame->hide();
 		digitizationFrame->hide();
 		digitizationFrame->reset();
+		widget->frame_calibration->hide();
+		widget->glCameraView->show();
 	}
 	else if (workspace == CALIBRATION)
 	{
@@ -214,6 +223,16 @@ void CameraViewWidget::workspaceChanged(work_state workspace)
 		calibrationFrame->show();
 		digitizationFrame->hide();
 		digitizationFrame->reset();
+		if (Project::getInstance()->getCalibration() == EXTERNAL){
+			widget->frame_calibration->show();
+			widget->frame_calibration->update();
+			widget->glCameraView->hide();
+		} 
+		else
+		{
+			widget->frame_calibration->hide();
+			widget->glCameraView->show();
+		}
 	}
 	else if (workspace == DIGITIZATION)
 	{
@@ -221,6 +240,8 @@ void CameraViewWidget::workspaceChanged(work_state workspace)
 		calibrationFrame->hide();
 		digitizationFrame->show();
 		digitizationFrame->reset();
+		widget->glCameraView->show();
+		widget->frame_calibration->hide();
 	}
 }
 

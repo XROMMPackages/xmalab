@@ -540,7 +540,7 @@ void GLCameraView::drawTexture()
 			renderTextCentered("No undistortion grid loaded");
 		}
 	}
-	else if (State::getInstance()->getWorkspace() == CALIBRATION)
+	else if ((State::getInstance()->getWorkspace() == CALIBRATION) && (Project::getInstance()->getCalibration() == INTERNAL))
 	{
 		camera->getCalibrationSequence()->bindTexture(State::getInstance()->getActiveFrameCalibration(),State::getInstance()->getCalibrationVisImage());
 	}
@@ -631,7 +631,7 @@ void GLCameraView::paintGL()
 			}
 		}
 
-		renderMeshes = renderMeshes & Project::getInstance()->hasCalibration();
+		renderMeshes = renderMeshes && (Project::getInstance()->getCalibration() != NO_CALIBRATION);
 
 		if (renderMeshes){
 			if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
@@ -843,7 +843,7 @@ void GLCameraView::paintGL()
 			camera->getUndistortionObject()->drawData(State::getInstance()->getUndistortionVisPoints());
 		}
 	}
-	else if (State::getInstance()->getWorkspace() == CALIBRATION)
+	else if ((State::getInstance()->getWorkspace() == CALIBRATION && Project::getInstance()->getCalibration() == INTERNAL))
 	{
 		camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->draw(State::getInstance()->getCalibrationVisPoints());
 		if (State::getInstance()->getCalibrationVisText() > 0 ||

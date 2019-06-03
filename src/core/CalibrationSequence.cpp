@@ -44,6 +44,7 @@
 #include "Settings.h"
 #include <QFileDialog>
 #include <QFileInfo>
+#include "Project.h"
 
 using namespace xma;
 
@@ -113,7 +114,11 @@ bool CalibrationSequence::checkResolution(int width, int height)
 
 void CalibrationSequence::loadImages(QStringList fileNames)
 {
-	if (fileNames.at(0).endsWith(".cine"))
+	if (fileNames.at(0).isEmpty())
+	{
+		calibrationImages.push_back(new CalibrationImage(m_camera, "", false));
+	}
+	else if (fileNames.at(0).endsWith(".cine"))
 	{	
 		sequence_filename = fileNames.at(0);
 		sequence = new CineVideo(fileNames);
@@ -140,7 +145,7 @@ void CalibrationSequence::loadImages(QStringList fileNames)
 
 CalibrationImage* CalibrationSequence::addImage(QString fileName)
 {
-	CalibrationImage* image = new CalibrationImage(m_camera, fileName);
+	CalibrationImage* image = new CalibrationImage(m_camera, fileName, !fileName.isEmpty());
 	calibrationImages.push_back(image);
 	return image;
 }
@@ -149,7 +154,7 @@ void CalibrationSequence::save(QString folder)
 {
 	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
 	{
-		if (!sequence) 
+		if (!sequence && (Project::getInstance()->getCalibration() == INTERNAL)) 
 			(*it)->getImage()->save(folder + (*it)->getFilename());
 		
 		if ((*it)->isCalibrated() > 0)
@@ -214,6 +219,9 @@ void CalibrationSequence::reloadTextures()
 
 void CalibrationSequence::undistort()
 {
+	if (Project::getInstance()->getCalibration() != INTERNAL)
+		return;
+
 	if (!sequence){
 		if (m_camera->getUndistortionObject() && m_camera->getUndistortionObject()->isComputed())
 		{
@@ -233,7 +241,7 @@ void CalibrationSequence::undistort()
 		else if (m_camera->hasModelDistortion())
 		{
 			for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
-			{
+			{			
 				cv::Mat imageMat;
 				(*it)->getImage()->getImage(imageMat);
 				cv::remap(imageMat, imageMat, *m_camera->getUndistortionMapX(), *m_camera->getUndistortionMapY(), cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));

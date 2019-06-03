@@ -311,6 +311,9 @@ void Image::loadTexture()
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.cols, image.rows,
 			0, GL_BGR, GL_UNSIGNED_BYTE, tex_image->ptr());
+
+		cv::imwrite("test.png",*tex_image);
+
 		if (colorImage_set == GRAY)
 			image_color.release();
 		textureLoaded = true;

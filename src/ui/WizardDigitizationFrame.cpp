@@ -600,7 +600,7 @@ void WizardDigitizationFrame::track()
 
 void WizardDigitizationFrame::on_pushButton_clicked()
 {
-	if (Project::getInstance()->isCalibrated() || !Project::getInstance()->hasCalibration())
+	if (Project::getInstance()->isCalibrated() || (Project::getInstance()->getCalibration() == NO_CALIBRATION))
 	{
 		if (Project::getInstance()->getTrials().size() == 0)
 		{
@@ -614,7 +614,7 @@ void WizardDigitizationFrame::on_pushButton_clicked()
 
 void WizardDigitizationFrame::setDialog()
 {
-	if (Project::getInstance()->isCalibrated() || !Project::getInstance()->hasCalibration())
+	if (Project::getInstance()->isCalibrated() || (Project::getInstance()->getCalibration() == NO_CALIBRATION))
 	{
 		if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
 		{

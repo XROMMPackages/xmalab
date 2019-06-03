@@ -822,6 +822,9 @@ void MultiCameraCalibration::optimizeCameraSetup_thread()
 
 void MultiCameraCalibration::reproject(int c)
 {
+	if (CalibrationObject::getInstance()->getFrameSpecifications().size() <= 0)
+		return;
+
 	bool m_planar = CalibrationObject::getInstance()->isPlanar();
 
 	CvMat* object_points2 = cvCreateMat(CalibrationObject::getInstance()->getFrameSpecifications().size(), 3, CV_64FC1);

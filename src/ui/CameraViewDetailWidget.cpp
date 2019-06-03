@@ -56,6 +56,11 @@ CameraViewDetailWidget::~CameraViewDetailWidget()
 {
 }
 
+void CameraViewDetailWidget::updateCamera()
+{
+	widget->glCameraView->setCamera(camera);
+}
+
 void CameraViewDetailWidget::setSharedGLContext(const QGLContext* sharedContext)
 {
 	QGLContext* context = new QGLContext(sharedContext->format(), widget->glCameraView);

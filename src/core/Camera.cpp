@@ -246,14 +246,15 @@ void Camera::loadUndistortionImage(QString undistortionImage)
 
 bool Camera::setResolutions()
 {
-	calibrationSequence->getResolution(width, height);
+	if(Project::getInstance()->getCalibration() != EXTERNAL)
+		calibrationSequence->getResolution(width, height);
 	
 	if (hasModelDistortion())
 	{
 		cv::initUndistortRectifyMap(cameramatrix, distortion_coeffs, cv::Mat(), cameramatrix, cv::Size(width, height), CV_32FC1, undistortionMapX, undistortionMapY);
 	}
 
-	if (!calibrationSequence->checkResolution(width, height)) return false;
+	if ((Project::getInstance()->getCalibration() != EXTERNAL) && (!calibrationSequence->checkResolution(width, height))) return false;
 
 	if (undistortionObject && (width != undistortionObject->getWidth() || height != undistortionObject->getHeight())) return false;
 
@@ -545,6 +546,17 @@ void Camera::saveMayaCamVersion2(int ImageId, QString filename)
 		outfile << translationVector.at<double>(i, 0) << std::endl;
 	}
 	translationVector.release();
+
+	if (hasModelDistortion())
+	{
+		outfile << std::endl;
+		outfile << "undistortion" << std::endl;
+		for (unsigned int i = 0; i < 8; ++i)
+		{
+			outfile << distortion_coeffs.at<double>(i, 0) << std::endl;
+		}
+	}
+
 	outfile.close();
 }
 

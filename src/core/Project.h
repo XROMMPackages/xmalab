@@ -36,6 +36,13 @@ namespace xma
 	class Camera;
 	class Trial;
 
+	enum e_calibrationType
+	{
+		NO_CALIBRATION = 0,
+		INTERNAL = 1,
+		EXTERNAL = 2
+	};
+
 	class Project
 	{
 		friend class ProjectFileIO;
@@ -93,8 +100,8 @@ namespace xma
 
 		bool camerasOptimized();
 
-		bool hasCalibration();
-		void setNoCalibation();
+		e_calibrationType getCalibration();
+		void setCalibation(e_calibrationType type);
 
 		void set_date_created();
 		void set_date_created(QString & date)
@@ -111,7 +118,7 @@ namespace xma
 		static Project* instance;
 
 		QString projectFilename;
-		bool noCalibration;
+		e_calibrationType calibrationType;
 		int nbImagesCalibration;
 		bool calibrated;
 		bool flipImages;

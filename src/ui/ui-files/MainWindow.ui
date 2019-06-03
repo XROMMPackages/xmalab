@@ -60,6 +60,45 @@
          <layout class="QGridLayout" name="gridLayout_4"/>
         </widget>
        </item>
+       <item row="0" column="0">
+        <widget class="QScrollArea" name="imageScrollArea">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAsNeeded</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="imageScrollAreaContents">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>1974</width>
+            <height>138</height>
+           </rect>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout"/>
+         </widget>
+        </widget>
+       </item>
        <item row="3" column="0">
         <widget class="QFrame" name="startMainFrame">
          <property name="frameShape">
@@ -75,12 +114,30 @@
           <property name="spacing">
            <number>0</number>
           </property>
-          <item row="3" column="1">
-           <widget class="QGroupBox" name="groupBoxRecentFiles">
-            <property name="title">
-             <string>Recent Files</string>
+          <item row="10" column="1">
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
             </property>
-            <layout class="QGridLayout" name="gridLayout"/>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="8" column="1">
+           <widget class="QPushButton" name="pushButtonLoad_Project">
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Open .xma file</string>
+            </property>
            </widget>
           </item>
           <item row="5" column="0">
@@ -92,19 +149,6 @@
              <size>
               <width>40</width>
               <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="9" column="1">
-           <spacer name="verticalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
              </size>
             </property>
            </spacer>
@@ -122,21 +166,21 @@
             </property>
            </spacer>
           </item>
-          <item row="7" column="1">
-           <widget class="QPushButton" name="pushButtonLoad_Project">
-            <property name="minimumSize">
+          <item row="4" column="1">
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
              <size>
-              <width>150</width>
+              <width>20</width>
               <height>40</height>
              </size>
             </property>
-            <property name="text">
-             <string>Open .xma file</string>
-            </property>
-           </widget>
+           </spacer>
           </item>
-          <item row="5" column="1">
-           <widget class="QPushButton" name="pushButtonNew_Project">
+          <item row="7" column="1">
+           <widget class="QPushButton" name="pushButtonTrailWOCalibration">
             <property name="minimumSize">
              <size>
               <width>150</width>
@@ -144,7 +188,7 @@
              </size>
             </property>
             <property name="text">
-             <string>New dataset</string>
+             <string>New trial without calibration</string>
             </property>
            </widget>
           </item>
@@ -180,21 +224,8 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
-           <spacer name="verticalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="6" column="1">
-           <widget class="QPushButton" name="pushButtonTrailWOCalibration">
+          <item row="5" column="1">
+           <widget class="QPushButton" name="pushButtonNew_Project">
             <property name="minimumSize">
              <size>
               <width>150</width>
@@ -202,50 +233,26 @@
              </size>
             </property>
             <property name="text">
-             <string>New trial without calibration</string>
+             <string>New dataset</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QGroupBox" name="groupBoxRecentFiles">
+            <property name="title">
+             <string>Recent Files</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout"/>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QPushButton" name="pushButtonExternalCalibration">
+            <property name="text">
+             <string>New dataset with external calibration</string>
             </property>
            </widget>
           </item>
          </layout>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QScrollArea" name="imageScrollArea">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
-         </property>
-         <property name="horizontalScrollBarPolicy">
-          <enum>Qt::ScrollBarAsNeeded</enum>
-         </property>
-         <property name="widgetResizable">
-          <bool>true</bool>
-         </property>
-         <widget class="QWidget" name="imageScrollAreaContents">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>1974</width>
-            <height>69</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout"/>
-         </widget>
         </widget>
        </item>
       </layout>
@@ -279,29 +286,6 @@
          </property>
         </spacer>
        </item>
-       <item row="0" column="1">
-        <spacer name="verticalSpacer_12">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="0" colspan="3">
-        <widget class="QLabel" name="labelCalibrateFirst">
-         <property name="text">
-          <string>You first have to calibrate your cameras!</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
        <item row="2" column="1">
         <widget class="QPushButton" name="pushButtonNewTrial">
          <property name="minimumSize">
@@ -328,8 +312,31 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="0" rowspan="2">
-        <spacer name="horizontalSpacer_12">
+       <item row="1" column="0" colspan="3">
+        <widget class="QLabel" name="labelCalibrateFirst">
+         <property name="text">
+          <string>You first have to calibrate your cameras!</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <spacer name="verticalSpacer_12">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="2" column="2" rowspan="2">
+        <spacer name="horizontalSpacer_11">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -341,8 +348,8 @@
          </property>
         </spacer>
        </item>
-       <item row="2" column="2" rowspan="2">
-        <spacer name="horizontalSpacer_11">
+       <item row="2" column="0" rowspan="2">
+        <spacer name="horizontalSpacer_12">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -365,7 +372,7 @@
      <x>0</x>
      <y>0</y>
      <width>1988</width>
-     <height>21</height>
+     <height>38</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -406,6 +413,7 @@
      </property>
     </widget>
     <addaction name="actionNew_Project"/>
+    <addaction name="actionNew_dataset_external_calibration"/>
     <addaction name="actionNew_trial_without_calibration"/>
     <addaction name="actionLoad_Project"/>
     <addaction name="actionClose_Project"/>
@@ -1026,6 +1034,16 @@
   <action name="actionUndistortionDialog">
    <property name="text">
     <string>UndistortionDialog</string>
+   </property>
+  </action>
+  <action name="actionNew_dataset_with_external_calibration">
+   <property name="text">
+    <string>New dataset with external calibration</string>
+   </property>
+  </action>
+  <action name="actionNew_dataset_external_calibration">
+   <property name="text">
+    <string>New dataset (external calibration)</string>
    </property>
   </action>
  </widget>

@@ -36,6 +36,7 @@
 #include "ui/WizardDigitizationFrame.h"
 
 #include "ui/Shortcuts.h"
+#include "core/Project.h"
 
 
 using namespace xma;
@@ -175,7 +176,10 @@ void WizardDockWidget::workspaceChanged(work_state workspace)
 	else if (workspace == CALIBRATION)
 	{
 		undistortionFrame->hide();
-		calibrationFrame->show();
+		if (Project::getInstance()->getCalibration() == INTERNAL)
+			calibrationFrame->show();
+		else
+			calibrationFrame->hide();
 		digitizationFrame->hide();
 	}
 	else if (workspace == DIGITIZATION)

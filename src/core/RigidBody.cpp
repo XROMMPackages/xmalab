@@ -962,7 +962,7 @@ void RigidBody::computePose(int Frame)
 
 	poseComputed[Frame] = 0;
 	bool success = false;
-	if (!Project::getInstance()->hasCalibration())
+	if (Project::getInstance()->getCalibration() == NO_CALIBRATION)
 		return;
 	
 	if (initialised)

@@ -90,7 +90,7 @@ TrialDialog::TrialDialog(Trial* trial, QWidget* parent) :
 	diag->doubleSpinBoxCutoffFrq->setValue(m_trial->getCutoffFrequency());
 	diag->checkBoxInterpolate->setChecked(m_trial->getInterpolate3D());
 
-	if (!Project::getInstance()->hasCalibration())
+	if (Project::getInstance()->getCalibration() == NO_CALIBRATION)
 	{
 		diag->comboBoxReferenceCalibration->setEnabled(false);
 		diag->checkBoxInterpolate->setEnabled(false);

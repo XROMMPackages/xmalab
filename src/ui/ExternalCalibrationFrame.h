@@ -20,55 +20,46 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file DetailViewDockWidget.h
+///\file ExternalCalibrationFrame.h
 ///\author Benjamin Knorlein
-///\date 11/20/2015
+///\date 05/08/2019
 
-#ifndef DETAILVIEWDOCKWIDGET_H_
-#define DETAILVIEWDOCKWIDGET_H_
+#ifndef EXTERNALCALIBRATIONFRAME_H_
+#define EXTERNALCALIBRATIONFRAME_H_
 
-#include <QDockWidget>
-#include "ui/State.h"
+#include <QFrame>
 
 namespace Ui
 {
-	class DetailViewDockWidget;
+	class ExternalCalibrationFrame;
 }
 
 namespace xma
 {
-	class CameraViewDetailWidget;
+	class Camera;
 
-	class DetailViewDockWidget : public QDockWidget
+	class ExternalCalibrationFrame : public QFrame
 	{
 		Q_OBJECT
 
 	public:
-		virtual ~DetailViewDockWidget();
-		static DetailViewDockWidget* getInstance();
+		virtual ~ExternalCalibrationFrame();
+		ExternalCalibrationFrame(QWidget* parent = 0);
 
-		void updateCamera(int id);
-		void draw();
-		void setup();
-		void clear();
-		void centerViews();
-		void relayout();
-		void setCameraVisible(int idx, bool visible);
-	protected:
-		void closeEvent(QCloseEvent* event) override;
-
+		void setCamera(Camera * cam);
+		void update();
 	private:
-		static DetailViewDockWidget* instance;
-		DetailViewDockWidget(QWidget* parent = 0);
+		Ui::ExternalCalibrationFrame* frame;
 
-		std::vector<CameraViewDetailWidget *> cameraViews;
-
-		Ui::DetailViewDockWidget* dock;
-
+		Camera* m_cam;
 	public slots:
+		void on_pushButton_Apply_clicked();
+		void on_pushButton_EasyWand_clicked();
+		void on_pushButton_MayaCam_clicked();
+		void on_checkBox_hasDistortion_stateChanged(int);
 	};
 }
 
 
-#endif /* DETAILVIEWDOCKWIDGET_H_ */
+#endif /* EXTERNALCALIBRATIONFRAME_H_ */
 

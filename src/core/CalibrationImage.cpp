@@ -36,6 +36,7 @@
 
 #include <QFileInfo>
 #include <fstream>
+#include "Project.h"
 
 using namespace xma;
 
@@ -103,12 +104,18 @@ QString CalibrationImage::getFilenameBase()
 
 void CalibrationImage::loadTextures()
 {
+	if (Project::getInstance()->getCalibration() != INTERNAL)
+		return;
+
 	image->loadTexture();
 	undistortedImage->loadTexture();
 }
 
 void CalibrationImage::reloadTextures()
 {
+	if (Project::getInstance()->getCalibration() != INTERNAL)
+		return;
+
 	image->resetImage();
 	undistortedImage->resetImage();
 }

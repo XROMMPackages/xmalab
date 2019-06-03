@@ -75,7 +75,7 @@ QDialog(MainWindow::getInstance()), m_trial(trial),
 		diag->lineEditTrialName->setText(trialname);
 	}
 
-	if (Project::getInstance()->hasDefaultTrial() || !Project::getInstance()->hasCalibration()){
+	if (Project::getInstance()->hasDefaultTrial() || (Project::getInstance()->getCalibration() == NO_CALIBRATION)){
 		diag->pushButton_Default->setEnabled(false);
 	}
 	noCalibration = false;

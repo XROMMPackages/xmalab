@@ -1173,7 +1173,7 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 			xmlWriter.writeCharacters(local.toString(Qt::ISODate));
 			xmlWriter.writeEndElement();
 
-			if (Project::getInstance()->hasCalibration()){
+			if (Project::getInstance()->getCalibration() != NO_CALIBRATION){
 				xmlWriter.writeStartElement("CalibrationTrial");
 				xmlWriter.writeAttribute("id", QString::number(Project::getInstance()->getTrialId()));
 				xmlWriter.writeAttribute("name", Project::getInstance()->getTrialName());
@@ -1439,7 +1439,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 				xmlWriter.writeAttribute("MetaData", QString("projectMetaData") + OS_SEP + QString("metadata.xml"));
 			}
 			xmlWriter.writeAttribute("FlipImages", QString::number(Project::getInstance()->getFlipImages()));
-			
+			xmlWriter.writeAttribute("CalibrationType", QString::number(Project::getInstance()->getCalibration()));
 			//Cameras
 			for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
 			{
@@ -1513,11 +1513,19 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 							xmlWriter.writeAttribute("Frame", QString::number(count));
 							xmlWriter.writeAttribute("isCalibrated", QString::number((*it2)->isCalibrated()));
 						}
-					} 
+					}
 					else
 					{
 						xmlWriter.writeStartElement("CalibrationImage");
-						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + (*it2)->getFilename());
+						if (Project::getInstance()->getCalibration() == EXTERNAL)
+						{
+							xmlWriter.writeAttribute("Filename","external");
+							xmlWriter.writeAttribute("Width", QString::number((*it)->getWidth()));
+							xmlWriter.writeAttribute("Height", QString::number((*it)->getHeight()));
+						}
+						else{
+							xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + (*it2)->getFilename());
+						}
 						xmlWriter.writeAttribute("isCalibrated", QString::number((*it2)->isCalibrated()));
 					}
 
@@ -1547,11 +1555,11 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 						xmlWriter.writeEndElement();
 
 					count++;
-				}			
+				}
 				xmlWriter.writeEndElement();
 			}
 
-			if (Project::getInstance()->hasCalibration()){
+			if (Project::getInstance()->getCalibration() == INTERNAL){
 				//CalibrationObject
 				xmlWriter.writeStartElement("CalibrationObject");
 				xmlWriter.writeAttribute("isPLanar", QString::number(CalibrationObject::getInstance()->isCheckerboard()));
@@ -1585,7 +1593,6 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 				xmlWriter.writeAttribute("cutOffFrequency", QString::number((*trial_it)->getCutoffFrequency()));
 				xmlWriter.writeAttribute("interpolate3D", QString::number((*trial_it)->getInterpolate3D()));
 
-				
 				if ((*trial_it)->getHasStudyData()){
 					xmlWriter.writeAttribute("MetaData", (*trial_it)->getName() + OS_SEP + QString("metadata.xml"));
 				}
@@ -1719,6 +1726,11 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							{
 								Project::getInstance()->setFlipImages(flipImages.toInt());
 							}
+							QString calibType = attr.value("CalibrationType").toString();
+							if (!calibType.isEmpty())
+							{
+								Project::getInstance()->setCalibation((e_calibrationType) calibType.toInt());
+							}
 						}
 						if (xml.name() == "Camera")
 						{
@@ -1824,7 +1836,14 @@ bool ProjectFileIO::readProjectFile(QString filename)
 										CalibrationImage* image;
 										attr = xml.attributes();
 										text = attr.value("Filename").toString();
-										if (!text.isEmpty()){
+										if (text == "external")
+										{
+											image = cam->addImage(basedir + OS_SEP + text);
+											int width_ext = attr.value("Width").toString().toInt();
+											int height_ext = attr.value("Height").toString().toInt();
+											cam->setResolution(width_ext, height_ext);
+										}
+										else if (!text.isEmpty()){
 											text.replace("\\", OS_SEP);
 											text.replace("/", OS_SEP);
 											//TODO

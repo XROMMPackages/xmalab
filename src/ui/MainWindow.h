@@ -61,6 +61,7 @@ namespace xma
         
 		void setCameraVisible(int idx, bool visible);
 		void relayoutCameras();
+		void updateCamera(int id);
 
 	private:
 		Ui::MainWindow* ui;
@@ -75,9 +76,10 @@ namespace xma
 		//Functions to setup and tearDown the UI
 		void setupProjectUI();
 		void tearDownProjectUI();
-
+		
 		//Project functions
 		void newProject();
+		void newProjectExternalCalibration();
 		void newProjectFromXMALab(QString filename);
 		void loadProject();
 		void loadProject(QString filename);
@@ -123,6 +125,7 @@ namespace xma
 
 		//File Menu Slots
 		void on_actionNew_Project_triggered(bool checked);
+		void on_actionNew_dataset_external_calibration_triggered(bool checked);
 		void on_actionNew_trial_without_calibration_triggered(bool checked);
 		void on_actionLoad_Project_triggered(bool checked);
 		void on_actionClose_Project_triggered(bool checked);
@@ -173,7 +176,7 @@ namespace xma
 		void on_pushButtonNewTrial_clicked();
 		void on_pushButtonDefaultTrial_clicked();
 		void on_pushButtonTrailWOCalibration_clicked();
-
+		void on_pushButtonExternalCalibration_clicked();
 		//resizing
 		void resizeDone();
 

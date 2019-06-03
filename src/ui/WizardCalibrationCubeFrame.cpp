@@ -91,7 +91,7 @@ WizardCalibrationCubeFrame::WizardCalibrationCubeFrame(QWidget* parent) :
 
 void WizardCalibrationCubeFrame::loadCalibrationSettings()
 {
-	if (Project::getInstance()->hasCalibration()){
+	if (Project::getInstance()->getCalibration() != NO_CALIBRATION){
 		if (!CalibrationObject::getInstance()->isCheckerboard() && CalibrationObject::getInstance()->getReferenceIDs().size() >=4)
 		{
 			for (int i = 0; i < 4; i++)
@@ -452,6 +452,9 @@ void WizardCalibrationCubeFrame::addCalibrationReference(double x, double y)
 
 void WizardCalibrationCubeFrame::setDialog()
 {
+	if (Project::getInstance()->getCalibration() != INTERNAL)
+		return;
+
 	if (State::getInstance()->getUndistortion() == NOTUNDISTORTED)
 	{
 		frame->label->setText("You first have to perform an undistortion!");

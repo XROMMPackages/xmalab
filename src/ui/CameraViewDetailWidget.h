@@ -50,7 +50,7 @@ namespace xma
 		explicit CameraViewDetailWidget(Camera* camera, QWidget* parent = 0);
 		virtual ~CameraViewDetailWidget();
 
-
+		void updateCamera();
 		void setSharedGLContext(const QGLContext* sharedContext);
 		void setMinimumWidthGL(bool set);
 		void draw();

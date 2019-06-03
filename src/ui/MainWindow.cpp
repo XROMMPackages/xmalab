@@ -70,6 +70,7 @@
 #include "core/UndistortionObject.h"
 #include "core/Settings.h"
 #include "core/HelperFunctions.h"
+#include "core/CalibrationSequence.h"
 
 #include "processing/BlobDetection.h"
 #include "processing/LocalUndistortion.h"
@@ -367,9 +368,9 @@ void MainWindow::setupProjectUI()
 	SequenceNavigationFrame::getInstance()->setNbImages(project->getNbImagesCalibration());
 
 	WorkspaceNavigationFrame::getInstance()->setVisible(true);
-	WorkspaceNavigationFrame::getInstance()->setUndistortionCalibration(hasUndistorion, project->hasCalibration());
+	WorkspaceNavigationFrame::getInstance()->setUndistortionCalibration(hasUndistorion, project->getCalibration() != NO_CALIBRATION);
 
-	if (!project->hasCalibration())
+	if (project->getCalibration() == NO_CALIBRATION)
 	{
 		State::getInstance()->changeWorkspace(DIGITIZATION, true);
 	}
@@ -404,6 +405,12 @@ void MainWindow::tearDownProjectUI()
 	WorkspaceNavigationFrame::getInstance()->setVisible(false);
 	SequenceNavigationFrame::getInstance()->setVisible(false);
 	WorkspaceNavigationFrame::getInstance()->closeProject();
+}
+
+void MainWindow::updateCamera(int id)
+{
+	DetailViewDockWidget::getInstance()->updateCamera(id);
+	cameraViews[id]->updateCamera();
 }
 
 void MainWindow::clearSplitters()
@@ -553,6 +560,36 @@ void MainWindow::newProject()
 	}
 }
 
+void MainWindow::newProjectExternalCalibration()
+{
+	bool ok;
+	int nbCameras = QInputDialog::getInt(this, tr("Set number of Cameras"),
+		tr("Cameras:"), 2, 1, 20, 1, &ok);
+	if (ok)
+	{
+		if (project)
+			closeProject();
+
+		project = Project::getInstance();
+		project->setCalibation(EXTERNAL);
+
+		for (int i = 0; i < nbCameras; i++)
+		{
+			Camera* cam = new Camera("Camera " + QString::number(i + 1), Project::getInstance()->getCameras().size());
+			cam->setIsLightCamera(true);
+			Project::getInstance()->addCamera(cam);
+			cam->getCalibrationSequence()->loadImages(QStringList() << "");
+		}
+
+		project->loadTextures();
+		setupProjectUI();
+		ProgressDialog::getInstance()->closeProgressbar();
+
+		WizardDockWidget::getInstance()->updateDialog();
+		WizardDockWidget::getInstance()->show();
+	}
+}
+
 void MainWindow::newProjectFinished()
 {
 	if (m_FutureWatcher->result() >= 0)
@@ -650,7 +687,7 @@ void MainWindow::loadProject(QString fileName)
 void MainWindow::loadProjectFinished()
 {
 	checkTrialImagePaths();
-
+	int i = m_FutureWatcher->result();
 	if (m_FutureWatcher->result() == 0)
 	{
 		bool hasCalibration = false;
@@ -662,7 +699,7 @@ void MainWindow::loadProjectFinished()
 
 		if (!hasCalibration)
 		{
-			Project::getInstance()->setNoCalibation();
+			Project::getInstance()->setCalibation(NO_CALIBRATION);
 			Project::getInstance()->getTrials()[0]->setCameraSizes();
 		}
 		
@@ -726,7 +763,7 @@ void MainWindow::loadProjectFinished()
 
 void MainWindow::UndistortionAfterloadProjectFinished()
 {
-	if (Project::getInstance()->hasCalibration()){
+	if (Project::getInstance()->getCalibration() != NO_CALIBRATION){
 		if (!LocalUndistortion::isRunning()){
 			bool allCamerasUndistorted = true;
 
@@ -1107,7 +1144,7 @@ void MainWindow::setCameraVisible(int idx, bool visible)
 
 void MainWindow::setCameraViewWidgetTitles()
 {
-	if (State::getInstance()->getWorkspace() == CALIBRATION)
+	if ((State::getInstance()->getWorkspace() == CALIBRATION) && (Project::getInstance()->getCalibration() == INTERNAL))
 	{
 		for (unsigned int i = 0; i < cameraViews.size(); i++)
 		{
@@ -1148,7 +1185,7 @@ UI - SLOTS
 void MainWindow::workspaceChanged(work_state workspace)
 {
 	ui->actionUndo->setEnabled(false);
-	if (project->isCalibrated() || !project->hasCalibration())
+	if (project->isCalibrated() || (project->getCalibration() == NO_CALIBRATION))
 	{
 		ui->actionImportTrial->setEnabled(true);
 	}
@@ -1240,7 +1277,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			ui->imageMainFrame->setVisible(true);
 			ui->startTrialFrame->setVisible(false);
 			SequenceNavigationFrame::getInstance()->setVisible(true);
-			if (project->isCalibrated() || !project->hasCalibration())
+			if (project->isCalibrated() || (project->getCalibration() == NO_CALIBRATION))
 			{
 				ui->labelCalibrateFirst->setVisible(false);
 				ui->pushButtonNewTrial->setVisible(true);
@@ -1339,7 +1376,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			ui->actionPlot->setEnabled(false);
 			ui->actionEvents->setEnabled(false);
 			ui->actionDetectionSettings->setEnabled(false);
-			if (project->isCalibrated() || !project->hasCalibration())
+			if (project->isCalibrated() || (project->getCalibration() == NO_CALIBRATION))
 			{
 				ui->labelCalibrateFirst->setVisible(false);
 				ui->pushButtonNewTrial->setVisible(true);
@@ -1428,6 +1465,11 @@ void MainWindow::on_actionNew_Project_triggered(bool checked)
 	newProject();
 }
 
+void MainWindow::on_actionNew_dataset_external_calibration_triggered(bool checked)
+{
+	newProjectExternalCalibration();
+}
+
 void MainWindow::on_actionNew_trial_without_calibration_triggered(bool checked)
 {
 	if (project && !ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to close your dataset. Please make sure your data have been saved. \nAre you sure you want to close current dataset and create a new dataset?"))
@@ -1446,7 +1488,7 @@ void MainWindow::on_actionNew_trial_without_calibration_triggered(bool checked)
 	
 	if (newTriaLdialog->result())
 	{
-		project->setNoCalibation();
+		project->setCalibation(NO_CALIBRATION);
 		newTriaLdialog->createTrial();
 		State::getInstance()->changeActiveTrial(project->getTrials().size() - 1);
 		State::getInstance()->changeActiveFrameTrial(project->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame());
@@ -2017,7 +2059,7 @@ void MainWindow::on_actionDelete_multiple_trials_triggered(bool checked)
 			{
 				State::getInstance()->changeWorkspace(DIGITIZATION, true);
 				
-				if (Project::getInstance()->isCalibrated() || !Project::getInstance()->hasCalibration())
+				if (Project::getInstance()->isCalibrated() || (Project::getInstance()->getCalibration() == NO_CALIBRATION))
 				{
 					WorkspaceNavigationFrame::getInstance()->setTrialVisible(true);
 				}
@@ -2082,6 +2124,11 @@ void MainWindow::on_pushButtonDefaultTrial_clicked()
 void MainWindow::on_pushButtonTrailWOCalibration_clicked()
 {
 	on_actionNew_trial_without_calibration_triggered(false);
+}
+
+void MainWindow::on_pushButtonExternalCalibration_clicked()
+{
+	newProjectExternalCalibration();
 }
 
 void MainWindow::on_action3D_world_view_triggered(bool checked)

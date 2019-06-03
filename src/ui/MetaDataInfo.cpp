@@ -61,7 +61,7 @@ MetaDataInfo::~MetaDataInfo()
 void MetaDataInfo::update()
 {
 	diag->treeWidget->clear();
-	if (Project::getInstance()->hasCalibration()){
+	if (Project::getInstance()->getCalibration() != NO_CALIBRATION){
 		QTreeWidgetItem * item = new QTreeWidgetItem(QStringList() << "Calibration" << "");
 		diag->treeWidget->addTopLevelItem(item);
 		item->addChild(new QTreeWidgetItem(QStringList() << "Repository:" << Project::getInstance()->getRepository()));
@@ -131,7 +131,7 @@ void MetaDataInfo::on_pushButtonAdd_clicked()
 	if (ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to manually add metadata from the portal? Please make sure that it uses the same number of cameras, that the cameras are in the right order and that the data used is the same as in the xml-file."))
 	{
 		QStringList list;
-		if (Project::getInstance()->hasCalibration()){
+		if (Project::getInstance()->getCalibration() != NO_CALIBRATION){
 			list << "Calibration";
 		}
 
