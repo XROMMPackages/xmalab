@@ -270,24 +270,26 @@ void Image::loadTexture()
 			
 		if (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll") && State::getInstance()->getWorkspace() == DIGITIZATION)
 		{
-			int krad = Settings::getInstance()->getIntSetting("VisualFilter_krad");
-			krad = 2 * krad + 1;
-			float gsigma = Settings::getInstance()->getFloatSetting("VisualFilter_gsigma");
-			float img_wt = Settings::getInstance()->getFloatSetting("VisualFilter_img_wt");
-			float blur_wt = Settings::getInstance()->getFloatSetting("VisualFilter_blur_wt");
-			float gamma = Settings::getInstance()->getFloatSetting("VisualFilter_gamma");
-			// Make blur mask
-			cv::Mat img_gblur;
-			GaussianBlur(image, img_gblur, cv::Size(krad, krad), gsigma);
+			if (!image.empty()){
+				int krad = Settings::getInstance()->getIntSetting("VisualFilter_krad");
+				krad = 2 * krad + 1;
+				float gsigma = Settings::getInstance()->getFloatSetting("VisualFilter_gsigma");
+				float img_wt = Settings::getInstance()->getFloatSetting("VisualFilter_img_wt");
+				float blur_wt = Settings::getInstance()->getFloatSetting("VisualFilter_blur_wt");
+				float gamma = Settings::getInstance()->getFloatSetting("VisualFilter_gamma");
+				// Make blur mask
+				cv::Mat img_gblur;
+				GaussianBlur(image, img_gblur, cv::Size(krad, krad), gsigma);
 
-			// Subtract blur from original to produce sharp
-			cv::Mat img_addwt;
-			addWeighted(image, img_wt, img_gblur, blur_wt, 0, img_addwt);
+				// Subtract blur from original to produce sharp
+				cv::Mat img_addwt;
+				addWeighted(image, img_wt, img_gblur, blur_wt, 0, img_addwt);
 
-			// Gamma correction to enhance contrast
-			cv::Mat img_gamma;
-			gammaCorrection(img_addwt, img_gamma, gamma);
-			cvtColor(img_gamma, image_color_disp, CV_GRAY2RGB);
+				// Gamma correction to enhance contrast
+				cv::Mat img_gamma;
+				gammaCorrection(img_addwt, img_gamma, gamma);
+				cvtColor(img_gamma, image_color_disp, CV_GRAY2RGB);
+			}
 		}
 		else if (colorImage_set == GRAY)
 		{
