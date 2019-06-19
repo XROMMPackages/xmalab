@@ -79,6 +79,7 @@ Settings::Settings()
 	addBoolSetting("DisableCheckerboardDetection", false);
 	addBoolSetting("DisableCheckerboardRefinement", false);
 	addIntSetting("CheckerboadInvertedAxis", 0);
+	addBoolSetting("FixPrincipal",false);
 
 	//Digitizing
 	addBoolSetting("CenterDetailView", false);

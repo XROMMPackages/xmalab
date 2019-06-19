@@ -258,14 +258,7 @@
             </property>
            </widget>
           </item>
-          <item row="6" column="0" colspan="3">
-           <widget class="QCheckBox" name="checkBox_Advanced">
-            <property name="text">
-             <string>show advanced options</string>
-            </property>
-           </widget>
-          </item>
-          <item row="10" column="0" colspan="2">
+          <item row="11" column="0" colspan="2">
            <spacer name="verticalSpacer_3">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -278,6 +271,13 @@
             </property>
            </spacer>
           </item>
+          <item row="6" column="0" colspan="3">
+           <widget class="QCheckBox" name="checkBox_Advanced">
+            <property name="text">
+             <string>show advanced options</string>
+            </property>
+           </widget>
+          </item>
           <item row="4" column="2">
            <widget class="QSpinBox" name="spinBox_OutlierThreshold">
             <property name="sizePolicy">
@@ -288,23 +288,10 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_4">
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Distance threshold during automatic point identification </string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" colspan="2">
-           <widget class="QCheckBox" name="checkBox_AutoCalibAfterReference">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Automatically run calibration after selection of last reference point</string>
+             <string>Reprojection error threshold for a considering point as outlier</string>
             </property>
            </widget>
           </item>
@@ -342,10 +329,10 @@
             </item>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_3">
+          <item row="8" column="0">
+           <widget class="QCheckBox" name="checkBox_DisableCheckerboardRefinement">
             <property name="text">
-             <string>Reprojection error threshold for a considering point as outlier</string>
+             <string>Disable corner refinement during manual checkerboard placement</string>
             </property>
            </widget>
           </item>
@@ -363,17 +350,23 @@
             </property>
            </widget>
           </item>
-          <item row="8" column="0">
-           <widget class="QCheckBox" name="checkBox_DisableCheckerboardRefinement">
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="checkBox_AutoCalibAfterReference">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
-             <string>Disable corner refinement during manual checkerboard placement</string>
+             <string>Automatically run calibration after selection of last reference point</string>
             </property>
            </widget>
           </item>
-          <item row="9" column="0">
-           <widget class="QLabel" name="label_8">
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>Invert an axis during checkerboard calibration so that z is up</string>
+             <string>Distance threshold during automatic point identification </string>
             </property>
            </widget>
           </item>
@@ -417,6 +410,20 @@
               </widget>
              </item>
             </layout>
+           </widget>
+          </item>
+          <item row="9" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Invert an axis during checkerboard calibration so that z is up</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="0">
+           <widget class="QCheckBox" name="checkBox_FixPrincipal">
+            <property name="text">
+             <string>Fix principal at image center during calibration</string>
+            </property>
            </widget>
           </item>
          </layout>

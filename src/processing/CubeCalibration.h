@@ -75,7 +75,7 @@ namespace xma
 
 		void getRandomReferences(unsigned int nbPoints, cv::vector<cv::Point2d>& pt2d, cv::vector<cv::Point3d>& pt3d);
 		double euclideanDist(cv::Point2d& p, cv::Point2d& q);
-		bool calibrateOpenCV(bool singleFocal = false, bool useImageCenter = false);
+		bool calibrateOpenCV(bool singleFocal = false);
 		void reprojectAndComputeError();
 
 		void setupCorrespondancesRansac(unsigned int loop_max, double threshold);
@@ -85,7 +85,7 @@ namespace xma
 		void refineResults(bool withCameraRefinement);
 		int setCorrespondances(double threshold, bool setAsInliers);
 		void setPoseFromInlier();
-		void calibrateFromInliers(bool singleFocal = false, bool useImageCenter = false);
+		void calibrateFromInliers(bool singleFocal = false);
 		void computeProjectionMatrixFromInlier();
 		void computePose(cv::vector<cv::Point2d> pt2d, cv::vector<cv::Point3d> pt3d);
 		int selectCorrespondances(double threshold);

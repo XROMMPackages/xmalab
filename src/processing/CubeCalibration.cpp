@@ -321,7 +321,7 @@ double CubeCalibration::euclideanDist(cv::Point2d& p, cv::Point2d& q)
 	return cv::sqrt(diff.x * diff.x + diff.y * diff.y);
 }
 
-bool CubeCalibration::calibrateOpenCV(bool singleFocal, bool useImageCenter)
+bool CubeCalibration::calibrateOpenCV(bool singleFocal)
 {
 	cv::vector<cv::Point3d> corr3D;
 	cv::vector<cv::Point2d> corr2D;
@@ -385,11 +385,12 @@ bool CubeCalibration::calibrateOpenCV(bool singleFocal, bool useImageCenter)
 			CV_MAT_ELEM( *intrinsic_matrix, double, 0, 0) = focal;
 			CV_MAT_ELEM( *intrinsic_matrix, double, 1, 1) = focal;
 		}
-		if (useImageCenter)
+		if (Settings::getInstance()->getBoolSetting("FixPrincipal"))
 		{
+			std::cerr << "fix" << std::endl;
 			flags += CV_CALIB_FIX_PRINCIPAL_POINT;
-			CV_MAT_ELEM( *intrinsic_matrix, double, 0, 2) = 0.5 * Project::getInstance()->getCameras()[m_camera]->getWidth();
-			CV_MAT_ELEM( *intrinsic_matrix, double, 1, 2) = 0.5 * Project::getInstance()->getCameras()[m_camera]->getHeight();
+			CV_MAT_ELEM( *intrinsic_matrix, double, 0, 2) = 0.5 * (Project::getInstance()->getCameras()[m_camera]->getWidth() + 1);
+			CV_MAT_ELEM( *intrinsic_matrix, double, 1, 2) = 0.5 * (Project::getInstance()->getCameras()[m_camera]->getHeight() + 1);
 		}
 		try
 		{
@@ -636,7 +637,7 @@ void CubeCalibration::setPoseFromInlier()
 	pt3d.clear();
 }
 
-void CubeCalibration::calibrateFromInliers(bool singleFocal, bool useImageCenter)
+void CubeCalibration::calibrateFromInliers(bool singleFocal)
 {
 	computeProjectionMatrixFromInlier();
 
@@ -677,7 +678,7 @@ void CubeCalibration::calibrateFromInliers(bool singleFocal, bool useImageCenter
 	cameramatrix.at<double>(2, 1) = 0;
 	cameramatrix.at<double>(2, 2) = C.at<double>(2, 2) / C.at<double>(2, 2);
 
-	calibrateOpenCV(singleFocal, useImageCenter);
+	calibrateOpenCV(singleFocal);
 }
 
 void CubeCalibration::computeProjectionMatrixFromInlier()

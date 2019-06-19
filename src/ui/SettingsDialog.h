@@ -69,6 +69,7 @@ namespace xma
 		void on_radioButton_CheckerboardNoInvert_clicked(bool checked);
 		void on_radioButton_CheckerboardXInvert_clicked(bool checked);
 		void on_radioButton_CheckerboardYInvert_clicked(bool checked);
+		void on_checkBox_FixPrincipal_clicked(bool checked);
 
 		void on_checkBox_AutoConfirmPendingChanges_stateChanged(int state);
 		void on_checkBox_AutoCalibAfterReference_stateChanged(int state);

@@ -260,7 +260,13 @@ void Calibration::process()
 		{
 			flags = flags + CV_CALIB_RATIONAL_MODEL;
 		}
-
+		if (Settings::getInstance()->getBoolSetting("FixPrincipal"))
+		{
+			std::cerr << "fix" << std::endl;
+			flags += CV_CALIB_FIX_PRINCIPAL_POINT;
+			intrinsic_matrix.at<double>(0, 2) = 0.5 * (Project::getInstance()->getCameras()[m_camera]->getWidth() + 1);
+			intrinsic_matrix.at<double>(1, 2) = 0.5 * (Project::getInstance()->getCameras()[m_camera]->getHeight() + 1);
+		}
 		cv::vector<cv::Mat> rvecs;
 		cv::vector<cv::Mat> tvecs;
 

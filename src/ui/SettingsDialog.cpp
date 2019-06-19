@@ -69,6 +69,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 	diag->spinBox_OutlierThreshold->setValue(Settings::getInstance()->getIntSetting("OutlierThresholdForCalibration"));
 	diag->checkBox_DisableCheckerboardDetection->setChecked(Settings::getInstance()->getBoolSetting("DisableCheckerboardDetection"));
 	diag->checkBox_DisableCheckerboardRefinement->setChecked(Settings::getInstance()->getBoolSetting("DisableCheckerboardRefinement"));
+	diag->checkBox_FixPrincipal->setChecked(Settings::getInstance()->getBoolSetting("FixPrincipal"));
 
 	diag->checkBox_UseCenteredDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("CenterDetailView"));
 	diag->checkBox_ShowAdvancedCrosshairDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView"));
@@ -191,7 +192,7 @@ void SettingsDialog::on_checkBox_exportAll_clicked(bool checked)
 
 void SettingsDialog::on_checkBox_DisableImageSearch_clicked(bool checked)
 {
-	Settings::getInstance()->set("DisableImageSearch", diag->checkBox_DisableImageSearch->isChecked());
+	
 }
 
 void SettingsDialog::on_checkBox_DisableCheckerboardRefinement_stateChanged(int state)
@@ -220,6 +221,11 @@ void SettingsDialog::on_radioButton_CheckerboardYInvert_clicked(bool checked)
 {
 	if (checked)
 		Settings::getInstance()->set("CheckerboadInvertedAxis", 2);
+}
+
+void SettingsDialog::on_checkBox_FixPrincipal_clicked(bool checked)
+{
+	Settings::getInstance()->set("FixPrincipal", diag->checkBox_FixPrincipal->isChecked());
 }
 
 void SettingsDialog::on_checkBox_AutoConfirmPendingChanges_stateChanged(int state)
