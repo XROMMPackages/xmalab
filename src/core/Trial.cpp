@@ -306,11 +306,11 @@ void Trial::setNbImagesByMarkers()
 
 	if (markers.size() > 0)
 	{
-		nbImages_tmp = markers[0]->getPoints3D().size() + 1;
+		nbImages_tmp = markers[0]->getPoints3D().size();
 	}
 	for (auto m : markers)
 	{
-		assert(m->getPoints3D().size() + 1 == nbImages_tmp);
+		assert(m->getPoints3D().size() == nbImages_tmp);
 	}
 
 	if (nbImages_tmp != -1){
