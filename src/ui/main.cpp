@@ -108,6 +108,10 @@ int main(int argc, char** argv)
 {
 	MApplication app(argc, argv);
 
+#ifdef _DEBUG
+	cv::setBreakOnError(true);
+#endif
+
 	Settings::getInstance();
 	MainWindow* widget = MainWindow::getInstance();
 	if (argc > 1)
