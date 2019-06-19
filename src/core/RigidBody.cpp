@@ -1769,6 +1769,7 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString fi
 
 		dummypointsCoords.push_back(tmpCoords);
 		dummypointsCoordsSet.push_back(tmpDef);
+		dummypoints2.push_back(cv::Point3d(0, 0, coords_list.at(2).toDouble()));
 		fin.close();
 	}
 	else
@@ -1780,6 +1781,12 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString fi
 		tmp_coords = QString::fromStdString(line);
 		coords_list = tmp_coords.split(",");
 		dummypoints2.push_back(cv::Point3d(coords_list.at(0).toDouble(), coords_list.at(1).toDouble(), coords_list.at(2).toDouble()));
+		
+		//Have to initialise all the values
+		std::vector<cv::Point3d> tmpCoords(poseComputed.size(), cv::Point3d(0, 0, 0));
+		std::vector<bool> tmpDef(poseComputed.size(),false);
+		dummypointsCoords.push_back(tmpCoords);
+		dummypointsCoordsSet.push_back(tmpDef);
 	}
 }
 

@@ -64,7 +64,7 @@ Settings::Settings()
 	addQStringSetting("WorkspacePath", "");
 	addIntSetting("FrameAdvance", 10);
 	addBoolSetting("ExportAllEnabled", false);
-
+	addBoolSetting("DisableImageSearch", false);
 	//Undistortion
 	addIntSetting("LocalUndistortionNeighbours", 12);
 	addQStringSetting("UndistortNamingPattern", "%NAMEBASE%%NUMBER%");

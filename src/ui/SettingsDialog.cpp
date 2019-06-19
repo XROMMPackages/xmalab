@@ -58,6 +58,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 	diag->checkBox_Workspace->setChecked(Settings::getInstance()->getBoolSetting("CustomWorkspacePath"));
 	diag->spinBoxFrameAdvance->setValue(Settings::getInstance()->getIntSetting("FrameAdvance"));
 	diag->checkBox_exportAll->setChecked(Settings::getInstance()->getBoolSetting("ExportAllEnabled"));
+	diag->checkBox_DisableImageSearch->setChecked(Settings::getInstance()->getBoolSetting("DisableImageSearch"));
 
 	diag->checkBox_AutoConfirmPendingChanges->setChecked(Settings::getInstance()->getBoolSetting("AutoConfirmPendingChanges"));
 	diag->checkBox_ConfirmQuitXMALab->setChecked(Settings::getInstance()->getBoolSetting("ConfirmQuitXMALab"));
@@ -186,6 +187,11 @@ void SettingsDialog::on_spinBoxFrameAdvance_valueChanged(int value)
 void SettingsDialog::on_checkBox_exportAll_clicked(bool checked)
 {
 	Settings::getInstance()->set("ExportAllEnabled", diag->checkBox_exportAll->isChecked());
+}
+
+void SettingsDialog::on_checkBox_DisableImageSearch_clicked(bool checked)
+{
+	Settings::getInstance()->set("DisableImageSearch", diag->checkBox_DisableImageSearch->isChecked());
 }
 
 void SettingsDialog::on_checkBox_DisableCheckerboardRefinement_stateChanged(int state)

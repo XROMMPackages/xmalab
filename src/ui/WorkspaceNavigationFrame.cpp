@@ -202,7 +202,7 @@ void WorkspaceNavigationFrame::activeTrialChanged(int activeTrial)
 		frame->comboBoxTrial->setCurrentIndex(activeTrial);
 		if (!State::getInstance()->isLoading() && State::getInstance()->getActiveTrial() >= 0 && State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
 		{
-			ThreadScheduler::getInstance()->updateTrialData(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
+			ThreadScheduler::getInstance()->updateTrialData(Project::getInstance()->getTrials()[activeTrial]);
 		}
 
 		if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 && Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial())

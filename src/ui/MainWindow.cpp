@@ -1002,6 +1002,9 @@ QString listFiles(QDir directory, QString name)
 
 void MainWindow::checkTrialImagePaths()
 {
+	if (Settings::getInstance()->getBoolSetting("DisableImageSearch"))
+		return;
+
 	for (unsigned int t = 0; t < Project::getInstance()->getTrials().size(); t++)
 	{
 		bool requiresReload = false;
