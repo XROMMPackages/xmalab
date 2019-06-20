@@ -53,6 +53,7 @@
 #include "CalibrationObject.h"
 
 using namespace xma;
+using cv::Mat;
 
 Camera::Camera(QString cameraName, int _id) : visible(true), portal_id(-1)
 {
@@ -66,8 +67,8 @@ Camera::Camera(QString cameraName, int _id) : visible(true), portal_id(-1)
 	lightCamera = false;
 
 	calibrated = false;
-	cameramatrix.create(3, 3, CV_64F);
-	distortion_coeffs = cv::Mat::zeros(8, 1, CV_64F);
+	cameramatrix = Mat::eye(3, 3, CV_64F);
+	distortion_coeffs = Mat::zeros(8, 1, CV_64F);
 	model_distortion = false;
 	requiresRecalibration = 0;
 	updateInfoRequired = false;

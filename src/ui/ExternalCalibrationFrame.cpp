@@ -56,11 +56,17 @@ void ExternalCalibrationFrame::update()
 	frame->spinBox_width->setValue(m_cam->getWidth());
 	frame->spinBox_height->setValue(m_cam->getHeight());
 
-	frame->doubleSpinBox_fx->setValue(m_cam->getCameraMatrix().at<double>(0, 0));
-	frame->doubleSpinBox_fy->setValue(m_cam->getCameraMatrix().at<double>(1, 1));
+	frame->doubleSpinBox_K11->setValue(m_cam->getCameraMatrix().at<double>(0, 0));
+	frame->doubleSpinBox_K12->setValue(m_cam->getCameraMatrix().at<double>(0, 1));
+	frame->doubleSpinBox_K13->setValue(m_cam->getCameraMatrix().at<double>(0, 2));
 
-	frame->doubleSpinBox_cx->setValue(m_cam->getCameraMatrix().at<double>(0, 2));
-	frame->doubleSpinBox_cy->setValue(m_cam->getCameraMatrix().at<double>(1, 2));
+	frame->doubleSpinBox_K21->setValue(m_cam->getCameraMatrix().at<double>(1, 0));
+	frame->doubleSpinBox_K22->setValue(m_cam->getCameraMatrix().at<double>(1, 1));
+	frame->doubleSpinBox_K23->setValue(m_cam->getCameraMatrix().at<double>(1, 2));
+
+	frame->doubleSpinBox_K31->setValue(m_cam->getCameraMatrix().at<double>(2, 0));
+	frame->doubleSpinBox_K32->setValue(m_cam->getCameraMatrix().at<double>(2, 1));
+	frame->doubleSpinBox_K33->setValue(m_cam->getCameraMatrix().at<double>(2, 2));
 
 	cv::Mat rotationmatrix;
 	rotationmatrix.create(3, 3, CV_64F);
@@ -115,17 +121,17 @@ void ExternalCalibrationFrame::on_pushButton_Apply_clicked()
 	cv::Mat translationvector;
 	translationvector.create(3, 1, CV_64F);
 
-	cameramatrix.at<double>(0, 0) = frame->doubleSpinBox_fx->value();
-	cameramatrix.at<double>(0, 1) = 0.0f;
-	cameramatrix.at<double>(0, 2) = frame->doubleSpinBox_cx->value();
+	cameramatrix.at<double>(0, 0) = frame->doubleSpinBox_K11->value();
+	cameramatrix.at<double>(0, 1) = frame->doubleSpinBox_K12->value();
+	cameramatrix.at<double>(0, 2) = frame->doubleSpinBox_K13->value();
 
-	cameramatrix.at<double>(1, 0) = 0.0f;
-	cameramatrix.at<double>(1, 1) = frame->doubleSpinBox_fy->value();
-	cameramatrix.at<double>(1, 2) = frame->doubleSpinBox_cy->value();
+	cameramatrix.at<double>(1, 0) = frame->doubleSpinBox_K21->value();
+	cameramatrix.at<double>(1, 1) = frame->doubleSpinBox_K22->value();
+	cameramatrix.at<double>(1, 2) = frame->doubleSpinBox_K23->value();
 
-	cameramatrix.at<double>(2, 0) = 0.0f;
-	cameramatrix.at<double>(2, 1) = 0.0f;
-	cameramatrix.at<double>(2, 2) = 1;
+	cameramatrix.at<double>(2, 0) = frame->doubleSpinBox_K31->value();
+	cameramatrix.at<double>(2, 1) = frame->doubleSpinBox_K32->value();
+	cameramatrix.at<double>(2, 2) = frame->doubleSpinBox_K33->value();
 
 	rotationmatrix.at<double>(0, 0) = frame->doubleSpinBox_R11->value();
 	rotationmatrix.at<double>(0, 1) = frame->doubleSpinBox_R12->value();
@@ -172,11 +178,6 @@ void ExternalCalibrationFrame::on_pushButton_Apply_clicked()
 	MainWindow::getInstance()->updateCamera(m_cam->getID());
 }
 
-void ExternalCalibrationFrame::on_pushButton_EasyWand_clicked()
-{
-
-}
-
 void ExternalCalibrationFrame::on_pushButton_MayaCam_clicked()
 {
 	QString filename = QFileDialog::getOpenFileName(this,
@@ -191,10 +192,10 @@ void ExternalCalibrationFrame::on_pushButton_MayaCam_clicked()
 		fscanf(pfile, "%d,%d\n",&w,&h);
 		std::cerr << w << " " << h << std::endl;
 		fscanf(pfile, "\ncamera matrix\n");
-		float fx, fy, cx, cy, dummy;
-		fscanf(pfile, "%f,%f,%f\n", &fx,&dummy,&cx);
-		fscanf(pfile, "%f,%f,%f\n", &dummy, &fy, &cy);
-		fscanf(pfile, "%f,%f,%f\n", &dummy, &dummy, &dummy);
+		float C11,C12,C13,C21,C22,C23,C31,C32,C33;
+		fscanf(pfile, "%f,%f,%f\n", &C11, &C12, &C13);
+		fscanf(pfile, "%f,%f,%f\n", &C21, &C22, &C23);
+		fscanf(pfile, "%f,%f,%f\n", &C31, &C32, &C33);
 
 		fscanf(pfile, "\nrotation\n");
 		float R11,R12,R13,R21,R22,R23,R31,R32,R33;
@@ -211,11 +212,17 @@ void ExternalCalibrationFrame::on_pushButton_MayaCam_clicked()
 		frame->spinBox_width->setValue(w);
 		frame->spinBox_height->setValue(h);
 
-		frame->doubleSpinBox_fx->setValue(fx);
-		frame->doubleSpinBox_fy->setValue(fy);
+		frame->doubleSpinBox_K11->setValue(C11);
+		frame->doubleSpinBox_K12->setValue(C12);
+		frame->doubleSpinBox_K13->setValue(C13);
 
-		frame->doubleSpinBox_cx->setValue(cx);
-		frame->doubleSpinBox_cy->setValue(cy);
+		frame->doubleSpinBox_K21->setValue(C21);
+		frame->doubleSpinBox_K22->setValue(C22);
+		frame->doubleSpinBox_K23->setValue(C23);
+
+		frame->doubleSpinBox_K31->setValue(C31);
+		frame->doubleSpinBox_K32->setValue(C32);
+		frame->doubleSpinBox_K33->setValue(C33);
 
 		frame->doubleSpinBox_R11->setValue(R11);
 		frame->doubleSpinBox_R12->setValue(R12);

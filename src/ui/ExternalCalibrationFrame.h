@@ -28,6 +28,7 @@
 #define EXTERNALCALIBRATIONFRAME_H_
 
 #include <QFrame>
+#include <opencv2/core/core.hpp>
 
 namespace Ui
 {
@@ -50,11 +51,10 @@ namespace xma
 		void update();
 	private:
 		Ui::ExternalCalibrationFrame* frame;
-
 		Camera* m_cam;
+
 	public slots:
 		void on_pushButton_Apply_clicked();
-		void on_pushButton_EasyWand_clicked();
 		void on_pushButton_MayaCam_clicked();
 		void on_checkBox_hasDistortion_stateChanged(int);
 	};
