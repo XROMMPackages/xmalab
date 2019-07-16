@@ -49,7 +49,7 @@ Marker::Marker(int nbCameras, int size, Trial* _trial)
 	meanSize = -1;
 	thresholdOffset = Settings::getInstance()->getIntSetting("DefaultMarkerThreshold");
 	sizeOverride = -1;
-	maxPenalty = 125;
+	maxPenalty = 50;
 	point3D_ref_set = false;
 	method = 0;
 	//interpolation = 0;
@@ -1074,6 +1074,11 @@ int Marker::getMaxPenalty()
 void Marker::setMaxPenalty(int value)
 {
 	maxPenalty = value;
+	if (maxPenalty == 125) {// adjustement of erronous default values
+		maxPenalty = 50; 
+		return;
+	}
+	if (maxPenalty > 100) maxPenalty = 100;
 }
 
 int Marker::getMethod()

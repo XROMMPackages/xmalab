@@ -38,7 +38,7 @@
 #include <QtCore>
 #include <opencv/highgui.h>
 
-//#define WRITEIMAGES 1
+#define WRITEIMAGES 1
 
 using namespace xma;
 
