@@ -34,6 +34,7 @@
 
 #include "core/Camera.h"
 #include "core/CalibrationImage.h"
+#include "ui/CameraViewWidget.h"
 
 using namespace xma;
 
@@ -42,6 +43,7 @@ CalibrationInfoFrame::CalibrationInfoFrame(QWidget* parent) :
 	frame(new Ui::CalibrationInfoFrame)
 {
 	frame->setupUi(this);
+	cameraWidget = ((CameraViewWidget *)parent);
 }
 
 CalibrationInfoFrame::~CalibrationInfoFrame()
@@ -270,3 +272,48 @@ QString CalibrationInfoFrame::getInfoInlier(Camera* camera, int frame)
 	return QString::number(countInlier) + " / " + QString::number(countInlierAll);
 }
 
+void CalibrationInfoFrame::reset()
+{
+	frame->horizontalSliderBias->setValue(0.0);
+	frame->horizontalSliderScale->setValue(100.0);
+	frame->doubleSpinBoxBias->setValue(0.0);
+	frame->doubleSpinBoxScale->setValue(1.0);
+	cameraWidget->setScale(1.0);
+	cameraWidget->setBias(0.0);
+}
+
+void CalibrationInfoFrame::on_doubleSpinBoxBias_valueChanged(double value)
+{
+	if (frame->horizontalSliderBias->value() != value * 100)
+	{
+		frame->horizontalSliderBias->setValue(value * 100);
+		cameraWidget->setBias(value);
+	}
+}
+
+void CalibrationInfoFrame::on_horizontalSliderBias_valueChanged(int value)
+{
+	if (frame->doubleSpinBoxBias->value() * 100 != value)
+	{
+		frame->doubleSpinBoxBias->setValue(0.01 * value);
+		cameraWidget->setBias(0.01 * value);
+	}
+}
+
+void CalibrationInfoFrame::on_doubleSpinBoxScale_valueChanged(double value)
+{
+	if (frame->horizontalSliderScale->value() != value * 100)
+	{
+		frame->horizontalSliderScale->setValue(value * 100);
+		cameraWidget->setScale(value);
+	}
+}
+
+void CalibrationInfoFrame::on_horizontalSliderScale_valueChanged(int value)
+{
+	if (frame->doubleSpinBoxScale->value() * 100 != value)
+	{
+		frame->doubleSpinBoxScale->setValue(0.01 * value);
+		cameraWidget->setScale(0.01 * value);
+	}
+}

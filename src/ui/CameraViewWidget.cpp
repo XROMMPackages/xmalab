@@ -212,6 +212,7 @@ void CameraViewWidget::workspaceChanged(work_state workspace)
 	{
 		undistortionFrame->show();
 		calibrationFrame->hide();
+		calibrationFrame->reset();
 		digitizationFrame->hide();
 		digitizationFrame->reset();
 		widget->frame_calibration->hide();
@@ -221,6 +222,7 @@ void CameraViewWidget::workspaceChanged(work_state workspace)
 	{
 		undistortionFrame->hide();
 		calibrationFrame->show();
+		calibrationFrame->reset();
 		digitizationFrame->hide();
 		digitizationFrame->reset();
 		if (Project::getInstance()->getCalibration() == EXTERNAL){
@@ -238,6 +240,7 @@ void CameraViewWidget::workspaceChanged(work_state workspace)
 	{
 		undistortionFrame->hide();
 		calibrationFrame->hide();
+		calibrationFrame->reset();
 		digitizationFrame->show();
 		digitizationFrame->reset();
 		widget->glCameraView->show();

@@ -37,7 +37,8 @@ namespace Ui
 namespace xma
 {
 	class Camera;
-
+	class CameraViewWidget;
+	
 	class CalibrationInfoFrame : public QFrame
 	{
 		Q_OBJECT
@@ -48,12 +49,21 @@ namespace xma
 
 		void update(Camera* camera);
 		void updateFrame(Camera* camera);
-
+		void reset();
+		
+	public slots:
+		void on_doubleSpinBoxBias_valueChanged(double value);
+		void on_horizontalSliderBias_valueChanged(int value);
+		void on_doubleSpinBoxScale_valueChanged(double value);
+		void on_horizontalSliderScale_valueChanged(int value);
+		
 	private:
 		Ui::CalibrationInfoFrame* frame;
 		void getCameraInfo(Camera* camera, QString& CameraCenter, QString& FocalLength, QString& Distortion, QString& FramesCalibrated, QString& ErrorAllDist, QString& ErrorAllUndist);
 		void getInfoFrame(Camera* camera, int frame, QString& ErrorCurrentDist, QString& ErrorCurrentUndist, QString& RotationVector, QString& TranslationVector);
 		QString getInfoInlier(Camera* camera, int frame);
+
+		CameraViewWidget * cameraWidget;
 	};
 }
 
