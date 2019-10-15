@@ -88,7 +88,7 @@ void ImportExportPointsDialog::switchGroups()
 	{
 		diag->groupBoxImportXMA->hide();
 	}
-	if (diag->radioButtonImportCSV->isChecked())
+	if (diag->radioButtonImportCSV->isChecked() || diag->radioButtonRename->isChecked())
 	{
 		diag->groupBoxImportCSV->show();
 	}
@@ -122,10 +122,15 @@ void ImportExportPointsDialog::on_radioButtonTrial_clicked(bool checked)
 	switchGroups();
 }
 
+void ImportExportPointsDialog::on_radioButtonRename_clicked(bool checked)
+{
+	switchGroups();
+}
+
 void ImportExportPointsDialog::on_toolButtonMarkersCSV_clicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this,
-	                                                tr("Open marker csv file"), Settings::getInstance()->getLastUsedDirectory(), ("CSV files (*.csv)"));
+	                                                tr("Open csv file"), Settings::getInstance()->getLastUsedDirectory(), ("CSV files (*.csv)"));
 	if (fileName.isNull() == false)
 	{
 		Settings::getInstance()->setLastUsedDirectory(fileName);
@@ -164,7 +169,20 @@ void ImportExportPointsDialog::on_pushButtonOK_clicked()
 	{
 		copyFromTrial();
 	}
+	if (diag->radioButtonRename->isChecked())
+	{
+		rename();
+	}
 	this->close();
+}
+
+void ImportExportPointsDialog::rename()
+{
+	if (!diag->lineEditMarkersCSV->text().isEmpty())
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->renameMarkersFromCSV(diag->lineEditMarkersCSV->text());
+		PlotWindow::getInstance()->updateMarkers(false);
+	}
 }
 
 bool ImportExportPointsDialog::importCSV()

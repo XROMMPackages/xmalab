@@ -104,6 +104,7 @@ namespace xma
 		bool getRequiresRecomputation();
 		void setRequiresRecomputation(bool value);
 
+		void renameMarkersFromCSV(QString filename);
 		void loadMarkersFromCSV(QString filename, bool updateOnly = false);
 		void loadMarkers(QString filename);
 		void loadRigidBodies(QString filename);

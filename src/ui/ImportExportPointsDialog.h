@@ -52,12 +52,14 @@ namespace xma
 		bool importCSV();
 		bool importXMA();
 		bool copyFromTrial();
-
+		void rename();
+		
 	public slots:
 		void on_radioButtonImportCSV_clicked(bool checked);
 		void on_radioButtonImportXMA_clicked(bool checked);
 		void on_radioButtonTrial_clicked(bool checked);
-
+		void on_radioButtonRename_clicked(bool checked);
+		
 		void on_toolButtonMarkersXMA_clicked();
 		void on_toolButtonMarkersCSV_clicked();
 

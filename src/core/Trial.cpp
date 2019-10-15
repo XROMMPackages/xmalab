@@ -724,6 +724,25 @@ void Trial::setRequiresRecomputation(bool value)
 	}
 }
 
+void Trial::renameMarkersFromCSV(QString filename)
+{
+	std::ifstream fin;
+	fin.open(filename.toAscii().data());
+	std::string line;
+	while (!littleHelper::safeGetline(fin, line).eof())
+	{
+		QStringList string_list = QString::fromStdString(line).split(",");
+
+		int id = string_list[0].toInt() -1;
+		
+		if (id < this->getMarkers().size() && id >= 0)
+			this->getMarkers()[id]->setDescription(string_list.last());
+		
+		line.clear();
+	}
+	fin.close();
+}
+
 void Trial::loadMarkersFromCSV(QString filename, bool updateOnly)
 {
 	QString tmp_names;
