@@ -46,7 +46,7 @@ UndistortionObject::UndistortionObject(Camera* _camera, QString _imageFileName)
 {
 	imageFileName = _imageFileName;
 	camera = _camera;
-	image = new Image(imageFileName);
+	image = new Image(imageFileName, camera->isFlipped());
 	undistortedImage = new Image(image);
 	tmpImage = new Image(image);
 	width = image->getWidth();

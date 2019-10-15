@@ -164,6 +164,18 @@ namespace xma
 			optimized = value;
 		}
 
+		bool isFlipped()
+		{
+			return flipped;
+		}
+
+		void setFlipped(bool value)
+		{
+			flipped = value;
+			std::cerr << "flip " << std::endl;
+		}
+		
+
 		QString getFilenameCameraMatrix();
 		void saveCameraMatrix(QString filename);
 		void loadCameraMatrix(QString filename);
@@ -206,7 +218,8 @@ namespace xma
 		int requiresRecalibration;
 		bool updateInfoRequired;
 		bool optimized;
-
+		bool flipped;
+		
 		cv::Mat cameramatrix;
 		cv::Mat distortion_coeffs;
 		bool model_distortion;

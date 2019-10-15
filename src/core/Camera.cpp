@@ -73,6 +73,7 @@ Camera::Camera(QString cameraName, int _id) : visible(true), portal_id(-1)
 	requiresRecalibration = 0;
 	updateInfoRequired = false;
 	optimized = false;
+	flipped = false;
 }
 
 Camera::~Camera()
@@ -300,7 +301,7 @@ void Camera::save(QString folder)
 
 	if (undistortionObject)
 	{
-		undistortionObject->getImage()->save(folder + undistortionObject->getFilename());
+		undistortionObject->getImage()->save(folder + undistortionObject->getFilename(), isFlipped());
 		if (undistortionObject->isComputed())
 		{
 			undistortionObject->savePointsDetected(folder + "data" + OS_SEP + undistortionObject->getFilenamePointsDetected());

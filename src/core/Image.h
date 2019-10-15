@@ -53,7 +53,7 @@ namespace xma
 	class Image
 	{
 	public:
-		Image(QString imageFileName);
+		Image(QString imageFileName, bool flip);
 		Image(Image* _image);
 		virtual ~Image();
 
@@ -71,12 +71,12 @@ namespace xma
 			return height;
 		}
 
-		void save(QString filename);
+		void save(QString filename, bool flip);
 		void getImage(cv::Mat& image, bool color = false);
 		void getSubImage(cv::Mat& _image, int size, int off_x, int off_y);
 		void getSubImage(cv::Mat& _image, int size, double x, double y);
 		void setImage(cv::Mat& image, bool _color = false);
-		void setImage(QString imageFileName);
+		void setImage(QString imageFileName, bool flip);
 		void resetImage();
 
 	private:

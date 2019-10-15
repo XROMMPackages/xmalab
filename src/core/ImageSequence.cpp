@@ -37,7 +37,7 @@ ImageSequence::ImageSequence(QStringList _filenames): VideoStream(_filenames)
 {
 	nbImages = filenames.size();
 
-	image = new Image(filenames.at(0));
+	image = new Image(filenames.at(0), isFlipped);
 }
 
 ImageSequence::~ImageSequence()
@@ -46,7 +46,7 @@ ImageSequence::~ImageSequence()
 
 void ImageSequence::setActiveFrame(int _activeFrame)
 {
-	image->setImage(filenames.at(_activeFrame));
+	image->setImage(filenames.at(_activeFrame),isFlipped);
 }
 
 

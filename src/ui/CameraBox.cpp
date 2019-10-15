@@ -80,6 +80,11 @@ void CameraBox::setIsLightCamera()
 	widget->radioButtonLightCamera->click();
 }
 
+bool CameraBox::isflipped()
+{
+	return widget->checkBoxFlip->isChecked();
+}
+
 QString commonPrefix(QStringList fileNames)
 {
 	bool isValid = true;

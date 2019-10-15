@@ -104,6 +104,9 @@ Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
 
 	setNbImages();
 
+	for (int i = 0; i < videos.size(); i++)
+		videos[i]->setFlipped(Project::getInstance()->getCameras()[i]->isFlipped());
+	
 	recordingSpeed = videos[0]->getFPS();
 	hasStudyData = false;
 	startFrame = 1;
@@ -111,6 +114,7 @@ Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
 	trialID = -1;
 	trialNumber = -1;
 	studyID = -1;
+	
 }
 
 Trial::Trial(QString trialname, QString folder)
@@ -166,8 +170,10 @@ Trial::Trial(QString trialname, QString folder)
 		videos.push_back(newSequence);
 	}
 
-
 	setNbImages();
+	
+	for (int i = 0; i < videos.size(); i++)
+		videos[i]->setFlipped(Project::getInstance()->getCameras()[i]->isFlipped());
 
 	recordingSpeed = videos[0]->getFPS();
 	hasStudyData = false;
@@ -1238,7 +1244,7 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 				{
 					QString outname = foldername + OS_SEP + info.completeBaseName() + "." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
 					videos[i]->setActiveFrame(j);
-					videos[i]->getImage()->save(outname);
+					videos[i]->getImage()->save(outname, Project::getInstance()->getCameras()[i]->isFlipped());
 				}
 			}
 		}

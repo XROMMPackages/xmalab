@@ -122,6 +122,7 @@ void CalibrationSequence::loadImages(QStringList fileNames)
 	{	
 		sequence_filename = fileNames.at(0);
 		sequence = new CineVideo(fileNames);
+		sequence->setFlipped(m_camera->isFlipped());
 		sequence_height = sequence->getImage()->getHeight();
 		sequence_width = sequence->getImage()->getWidth();
 		undistortedImage = new Image(sequence->getImage());
@@ -131,6 +132,7 @@ void CalibrationSequence::loadImages(QStringList fileNames)
 	else if (fileNames.at(0).endsWith(".avi"))	{
 		sequence_filename = fileNames.at(0);
 		sequence = new AviVideo(fileNames);
+		sequence->setFlipped(m_camera->isFlipped());
 		sequence_height = sequence->getImage()->getHeight();
 		sequence_width = sequence->getImage()->getWidth();	
 		undistortedImage = new Image(sequence->getImage());
@@ -155,7 +157,7 @@ void CalibrationSequence::save(QString folder)
 	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
 	{
 		if (!sequence && (Project::getInstance()->getCalibration() == INTERNAL)) 
-			(*it)->getImage()->save(folder + (*it)->getFilename());
+			(*it)->getImage()->save(folder + (*it)->getFilename(),m_camera->isFlipped());
 		
 		if ((*it)->isCalibrated() > 0)
 		{
@@ -188,10 +190,12 @@ void CalibrationSequence::loadTextures()
 		if (sequence_filename.endsWith(".cine"))
 		{
 			sequence = new CineVideo(list);
+			sequence->setFlipped(m_camera->isFlipped());
 			undistortedImage = new Image(sequence->getImage());
 		}
 		else if (sequence_filename.endsWith(".avi"))	{
 			sequence = new AviVideo(list);
+			sequence->setFlipped(m_camera->isFlipped());
 			undistortedImage = new Image(sequence->getImage());
 		}
 		undistortedImage->resetImage();

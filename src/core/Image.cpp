@@ -45,7 +45,7 @@
 
 using namespace xma;
 
-Image::Image(QString _imageFileName)
+Image::Image(QString _imageFileName, bool flip)
 {
 	cv::Mat imageTMP;
 	
@@ -77,9 +77,11 @@ Image::Image(QString _imageFileName)
 		}
 	}
 
-
-	if (Project::getInstance()->getFlipImages())
+	std::cerr << "Load Image " << flip << std::endl;
+	
+	if (flip)
 	{
+		
 		cv::flip(image, image, 1);
 		if (colorImage_set)cv::flip(image_color, image_color, 1);
 	}
@@ -178,7 +180,7 @@ void Image::setImage(cv::Mat& _image, bool _color)
 	image_reset = true;
 }
 
-void Image::setImage(QString imageFileName)
+void Image::setImage(QString imageFileName, bool flip)
 {	
 	image.release();
 	cv::Mat imageTMP;
@@ -210,7 +212,7 @@ void Image::setImage(QString imageFileName)
 		}
 	}
 
-	if (Project::getInstance()->getFlipImages()){
+	if (flip){
 		cv::flip(image, image, 1);
 		if (colorImage_set)cv::flip(image_color, image_color, 1);
 	}
@@ -339,11 +341,11 @@ void Image::deleteTexture()
 	textureLoaded = false;
 }
 
-void Image::save(QString filename)
+void Image::save(QString filename, bool flip)
 {
 	if (colorImage_set > COLOR_CONVERTED)
 	{
-		if (Project::getInstance()->getFlipImages())
+		if (flip)
 		{
 			cv::Mat image_tmp;
 			cv::flip(image_color, image_tmp, 1);
@@ -354,7 +356,7 @@ void Image::save(QString filename)
 		}
 	}
 	else{
-		if (Project::getInstance()->getFlipImages())
+		if (flip)
 		{
 			cv::Mat image_tmp;
 			cv::flip(image, image_tmp, 1);

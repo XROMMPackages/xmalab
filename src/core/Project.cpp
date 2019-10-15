@@ -72,7 +72,6 @@ Project::Project()
 	attribcomment = "";;
 	ts = "";;
 	trialDate = "";;
-	flipImages = false;
 	calibrationType = INTERNAL;
 	xml_data = QStringList();;
 }
@@ -138,15 +137,6 @@ const QString& Project::getTrialDate() const
 	return trialDate;
 }
 
-void Project::setFlipImages(bool value)
-{
-	flipImages = value;
-}
-
-bool Project::getFlipImages()
-{
-	return flipImages;
-}
 
 e_calibrationType Project::getCalibration()
 {

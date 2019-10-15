@@ -63,7 +63,7 @@ namespace xma
 		void setCameraName(QString name);
 		bool isLightCamera();
 		void setIsLightCamera();
-
+		bool isflipped();
 		void addCalibrationImage(QString filename);
 		void addUndistortionImage(QString filename);
 

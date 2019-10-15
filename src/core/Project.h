@@ -92,8 +92,6 @@ namespace xma
 		const QString& getTs() const;
 		const QString& getTrialDate() const;
 
-		void setFlipImages(bool value);
-		bool getFlipImages();
 
 		bool hasDefaultTrial();
 		Trial * getDefaultTrail();

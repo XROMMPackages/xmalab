@@ -41,7 +41,7 @@ using namespace xma;
 VideoStream::VideoStream(QStringList _filenames)
 {
 	filenames = _filenames;
-	image = new Image("");
+	image = new Image("",false);
 	nbImages = -1;
 	fps = 0;
 
@@ -385,6 +385,11 @@ const QString& VideoStream::getLab() const
 const int& VideoStream::getPortalID() const
 {
 	return portalID;
+}
+
+void VideoStream::setFlipped(bool flipped)
+{
+	isFlipped = flipped;
 }
 
 QString VideoStream::getFileBasename()

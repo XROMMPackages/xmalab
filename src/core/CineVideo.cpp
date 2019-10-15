@@ -670,7 +670,7 @@ void CineVideo::loadCineInfo()
 
 			delete[]imageData;
 			cv::flip(imageWithData, imageWithData, 0);
-			if (Project::getInstance()->getFlipImages())
+			if (isFlipped)
 				cv::flip(imageWithData, imageWithData, 1);
 
 			image->setImage(imageWithData);
@@ -728,7 +728,7 @@ void CineVideo::setActiveFrame(int _activeFrame)
 		delete[]imageData;
 
 		cv::flip(imageWithData, imageWithData, 0);
-		if (Project::getInstance()->getFlipImages())
+		if (isFlipped)
 			cv::flip(imageWithData, imageWithData, 1);
 		image->setImage(imageWithData, false);
 		imageWithData.release();

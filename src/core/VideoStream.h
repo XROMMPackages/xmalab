@@ -72,13 +72,15 @@ namespace xma
 		const QString& getFileDescription() const;
 		const QString& getLab() const;
 		const int& getPortalID() const;
-
+		void setFlipped(bool flipped);
+		
 	protected:
 		Image* image;
 		int nbImages;
 		QStringList filenames;
 		double fps;
-
+		bool isFlipped;
+		
 	protected:
 		QString Filename;
 		int FileID;

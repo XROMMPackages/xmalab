@@ -1438,7 +1438,6 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 			if (Project::getInstance()->getHasStudyData()){
 				xmlWriter.writeAttribute("MetaData", QString("projectMetaData") + OS_SEP + QString("metadata.xml"));
 			}
-			xmlWriter.writeAttribute("FlipImages", QString::number(Project::getInstance()->getFlipImages()));
 			xmlWriter.writeAttribute("CalibrationType", QString::number(Project::getInstance()->getCalibration()));
 			//Cameras
 			for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
@@ -1448,6 +1447,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 				xmlWriter.writeAttribute("isLightCamera", QString::number((*it)->isLightCamera()));
 				xmlWriter.writeAttribute("isCalibrated", QString::number((*it)->isCalibrated()));
 				xmlWriter.writeAttribute("isOptimized", QString::number((*it)->isOptimized()));
+				xmlWriter.writeAttribute("isFlipped", QString::number((*it)->isFlipped()));
 				if ((*it)->isCalibrated())
 				{
 					xmlWriter.writeAttribute("CameraMatrix", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it)->getFilenameCameraMatrix());
@@ -1680,6 +1680,10 @@ bool ProjectFileIO::readProjectFile(QString filename)
 {
 	int activeTrial = -1;
 	double version;
+
+	//we need to store if the old images were flipped. This is required as first the project is read and after that the cameras are being constructed
+	bool old_flip_images = false; 
+	
 	if (filename.isNull() == false)
 	{
 		QFileInfo info(filename);
@@ -1724,7 +1728,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							QString flipImages = attr.value("FlipImages").toString();
 							if (!flipImages.isEmpty())
 							{
-								Project::getInstance()->setFlipImages(flipImages.toInt());
+								old_flip_images = true;
 							}
 							QString calibType = attr.value("CalibrationType").toString();
 							if (!calibType.isEmpty())
@@ -1739,10 +1743,15 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							Camera* cam = new Camera(text, Project::getInstance()->getCameras().size());
 							cam->setIsLightCamera(attr.value("isLightCamera").toString().toInt());
 							cam->setCalibrated(attr.value("isCalibrated").toString().toInt());
-
 							QString optimized = attr.value("isOptimized").toString();
-							if (!optimized.isEmpty())cam->setOptimized(optimized.toInt());
+							if (!optimized.isEmpty())
+								cam->setOptimized(optimized.toInt());
 
+							QString isFlipped = attr.value("isFlipped").toString();
+							if (!isFlipped.isEmpty())
+								cam->setFlipped(isFlipped.toInt());
+							if (old_flip_images) 
+								cam->setFlipped(old_flip_images);
 
 							if (cam->isCalibrated())
 							{

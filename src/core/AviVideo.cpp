@@ -59,13 +59,13 @@ void AviVideo::setActiveFrame(int _activeFrame)
 		cap.read(frame);
 		if (frame.channels() > 1)
 		{
-			if (Project::getInstance()->getFlipImages())
+			if (isFlipped)
 				cv::flip(frame, frame, 1);
 			image->setImage(frame, true);
 		}
 		else
 		{
-			if (Project::getInstance()->getFlipImages())
+			if (isFlipped)
 				cv::flip(frame, frame, 1);
 			image->setImage(frame);
 		}
@@ -95,13 +95,13 @@ void AviVideo::reloadFile()
 		cap.read(frame);
 		if (frame.channels() > 1)
 		{
-			if (Project::getInstance()->getFlipImages())
+			if (isFlipped)
 				cv::flip(frame, frame, 1);
 			image->setImage(frame, true);
 		}
 		else
 		{
-			if (Project::getInstance()->getFlipImages())
+			if (isFlipped)
 				cv::flip(frame, frame, 1);
 			image->setImage(frame);
 		}

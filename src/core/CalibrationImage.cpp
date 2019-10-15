@@ -43,7 +43,7 @@ using namespace xma;
 CalibrationImage::CalibrationImage(Camera* _camera, QString _imageFileName, bool createImage) : camera(_camera), imageFileName(_imageFileName), calibrated(0), nbInlier(0)
 {
 	if (createImage){
-		image = new Image(imageFileName);
+		image = new Image(imageFileName, _camera->isFlipped());
 
 		width = image->getWidth();
 		height = image->getHeight();
