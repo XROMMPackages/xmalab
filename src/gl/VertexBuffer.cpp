@@ -28,6 +28,7 @@
 
 #include "gl/VertexBuffer.h"
 #include <iostream>
+#include <cstring>
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
