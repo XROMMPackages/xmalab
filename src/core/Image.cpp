@@ -264,13 +264,13 @@ void Image::loadTexture()
 	{
 		if (!textureLoaded)((QGLContext*)(GLSharedWidget::getInstance()->getQGLContext()))->makeCurrent();
 
-		if (colorImage_set != COLOR_ORIGINAL || (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll")))
+		if (colorImage_set != COLOR_ORIGINAL || (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && State::getInstance()->getWorkspace() == DIGITIZATION && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll")))
 		{
 			image_color_disp.create(image.rows, image.cols, CV_8UC(3));
 			tex_image = &image_color_disp;
 		}
 			
-		if (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll") && State::getInstance()->getWorkspace() == DIGITIZATION)
+		if (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && State::getInstance()->getWorkspace() == DIGITIZATION && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll") && State::getInstance()->getWorkspace() == DIGITIZATION)
 		{
 			if (!image.empty()){
 				int krad = Settings::getInstance()->getIntSetting("VisualFilter_krad");
