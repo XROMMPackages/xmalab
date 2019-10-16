@@ -1,5 +1,5 @@
-//  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+Ôªø//  ----------------------------------
+//  XMALab -- Copyright ¬© 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED ìAS ISî, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ‚ÄúAS IS‚Äù, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -20,44 +20,22 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file FromToDialog.h
+///\file FilterImage.h
 ///\author Benjamin Knorlein
-///\date 11/20/2015
+///\date 10/15/2019
 
-#ifndef FROMTODIALOG_H_
-#define FROMTODIALOG_H_
+#pragma once
 
-#include <QDialog>
-#include <QString>
-
-namespace Ui
-{
-	class FromToDialog;
-}
+#ifndef FILTERIAMGE_H
+#define FILTERIAMGE_H
+#include <opencv2/core/core.hpp>
 
 namespace xma
 {
-	class FromToDialog : public QDialog
+	class FilterImage
 	{
-		Q_OBJECT
-
-	private:
-		Ui::FromToDialog* diag;
-
 	public:
-		FromToDialog(int from, int to, int max, bool withFormat, bool withFilter, QWidget* parent = 0);
-		virtual ~FromToDialog();
-		int getFrom();
-		int getTo();
-		QString getFormat();
-		bool getFiltered();
-		
-	public slots:
-		void on_pushButton_OK_clicked();
-		void on_pushButton_Cancel_clicked();
+		cv::Mat run(cv::Mat & ImageIn);
 	};
 }
-
-
-#endif /* CONFIRMATIONDIALOG_H_ */
-
+#endif // FILTERIAMGE_H

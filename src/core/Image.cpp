@@ -38,6 +38,7 @@
 #include "Project.h"
 #include "Settings.h"
 #include "ui/State.h"
+#include "processing/FilterImage.h"
 
 #ifndef GL_BGR
 #define GL_BGR 0x80E0
@@ -224,39 +225,6 @@ void Image::resetImage()
 	image_reset = true;
 }
 
-void Image::gammaCorrection(cv::Mat& src, cv::Mat& dst, float fGamma)
-{
-	unsigned char lut[256];
-	for (int i = 0; i < 256; i++)
-	{
-		lut[i] = cv::saturate_cast<uchar>(pow((float)(i / 255.0), fGamma) * 255.0f);
-	}
-
-	dst = src.clone();
-	const int channels = dst.channels();
-	switch (channels)
-	{
-		case 1:
-		{
-			cv::MatIterator_<uchar> it, end;
-			for (it = dst.begin<uchar>(), end = dst.end<uchar>(); it != end; it++)
-				*it = lut[(*it)];
-			break;
-		}
-		case 3:
-		{
-			cv::MatIterator_<cv::Vec3b> it, end;
-			for (it = dst.begin<cv::Vec3b>(), end = dst.end< cv::Vec3b>(); it != end; it++)
-			{
-				(*it)[0] = lut[((*it)[0])];
-				(*it)[1] = lut[((*it)[1])];
-				(*it)[2] = lut[((*it)[2])];
-			}
-			break;
-		}
-	}
-}
-
 void Image::loadTexture()
 {
 	cv::Mat  * tex_image = &image_color;
@@ -273,23 +241,7 @@ void Image::loadTexture()
 		if (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && State::getInstance()->getWorkspace() == DIGITIZATION && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll") && State::getInstance()->getWorkspace() == DIGITIZATION)
 		{
 			if (!image.empty()){
-				int krad = Settings::getInstance()->getIntSetting("VisualFilter_krad");
-				krad = 2 * krad + 1;
-				float gsigma = Settings::getInstance()->getFloatSetting("VisualFilter_gsigma");
-				float img_wt = Settings::getInstance()->getFloatSetting("VisualFilter_img_wt");
-				float blur_wt = Settings::getInstance()->getFloatSetting("VisualFilter_blur_wt");
-				float gamma = Settings::getInstance()->getFloatSetting("VisualFilter_gamma");
-				// Make blur mask
-				cv::Mat img_gblur;
-				GaussianBlur(image, img_gblur, cv::Size(krad, krad), gsigma);
-
-				// Subtract blur from original to produce sharp
-				cv::Mat img_addwt;
-				addWeighted(image, img_wt, img_gblur, blur_wt, 0, img_addwt);
-
-				// Gamma correction to enhance contrast
-				cv::Mat img_gamma;
-				gammaCorrection(img_addwt, img_gamma, gamma);
+				cv::Mat img_gamma = FilterImage().run(image);
 				cvtColor(img_gamma, image_color_disp, CV_GRAY2RGB);
 			}
 		}
@@ -341,7 +293,7 @@ void Image::deleteTexture()
 	textureLoaded = false;
 }
 
-void Image::save(QString filename, bool flip)
+void Image::save(QString filename, bool flip, bool filter)
 {
 	if (colorImage_set > COLOR_CONVERTED)
 	{
@@ -349,10 +301,20 @@ void Image::save(QString filename, bool flip)
 		{
 			cv::Mat image_tmp;
 			cv::flip(image_color, image_tmp, 1);
+			if (filter)
+			{
+				image_tmp = FilterImage().run(image_tmp);
+			}
 			cv::imwrite(filename.toAscii().data(), image_tmp);
 		}
 		else{
-			cv::imwrite(filename.toAscii().data(), image_color);
+			if (filter)
+			{
+				cv::Mat image_tmp = FilterImage().run(image_color);
+				cv::imwrite(filename.toAscii().data(), image_tmp);
+			}
+			else
+				cv::imwrite(filename.toAscii().data(), image_color);
 		}
 	}
 	else{
@@ -360,9 +322,18 @@ void Image::save(QString filename, bool flip)
 		{
 			cv::Mat image_tmp;
 			cv::flip(image, image_tmp, 1);
+			if (filter)
+			{
+				image_tmp = FilterImage().run(image_tmp);
+			}
 			cv::imwrite(filename.toAscii().data(), image_tmp);
 		}
 		else{
+			if (filter)
+			{
+				cv::Mat image_tmp = FilterImage().run(image);
+				cv::imwrite(filename.toAscii().data(), image_tmp);
+			}else
 			cv::imwrite(filename.toAscii().data(), image);
 		}
 	}

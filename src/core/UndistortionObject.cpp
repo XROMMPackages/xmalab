@@ -39,6 +39,7 @@
 #include <opencv2/contrib/contrib.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv/highgui.h>
+#include "processing/FilterImage.h"
 
 using namespace xma;
 
@@ -99,7 +100,7 @@ bool UndistortionObject::undistort(Image* distorted, Image* undistorted)
 	return false;
 }
 
-bool UndistortionObject::undistort(Image* distorted, QString filenameOut)
+bool UndistortionObject::undistort(Image* distorted, QString filenameOut, bool filter)
 {
 	bool success = false;
 	if (computed)
@@ -112,7 +113,10 @@ bool UndistortionObject::undistort(Image* distorted, QString filenameOut)
 			cv::remap(imageMat, imageMat, undistortionMapX, undistortionMapY, cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
 			if (this->camera->hasModelDistortion())
 				cv::remap(imageMat, imageMat, *this->camera->getUndistortionMapX(), *this->camera->getUndistortionMapY(), cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
-
+			if (filter)
+			{
+				imageMat = FilterImage().run(imageMat);
+			}
 			cv::imwrite(filenameOut.toAscii().data(), imageMat);
 			success = true;
 		}

@@ -1602,7 +1602,7 @@ void MainWindow::save3DPoints(std::vector<int> markers)
 				FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
 					, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
 					, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
-					, false, this);
+					, false,false, this);
 
 				bool ok2 = fromTo->exec();
 				if (ok2)
@@ -1740,7 +1740,7 @@ void MainWindow::saveRigidBodies(std::vector<int> bodies)
 				FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
 					, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
 					, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
-					, false, this);
+					, false,false, this);
 
 				bool ok2 = fromTo->exec();
 				if (ok2)
@@ -1820,7 +1820,7 @@ void MainWindow::on_actionPrecisionInfo_triggered(bool checked)
 	FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame()
 		, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame()
 		, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages()
-		, false, this);
+		, false,false, this);
 	bool ok = fromTo->exec();
 	if (ok)
 	{
@@ -1842,7 +1842,7 @@ void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(boo
 	FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame()
 	                                        , Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame()
 	                                        , Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages()
-	                                        , true, this);
+	                                        , true, true, this);
 
 	bool ok = fromTo->exec();
 	if (ok)
@@ -1852,7 +1852,7 @@ void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(boo
 
 		if (outputPath.isNull() == false)
 		{
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveTrialImages(outputPath + OS_SEP, fromTo->getFrom(), fromTo->getTo(), fromTo->getFormat());
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveTrialImages(outputPath + OS_SEP, fromTo->getFrom(), fromTo->getTo(), fromTo->getFormat(), fromTo->getFiltered());
 			Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 		}
 	}

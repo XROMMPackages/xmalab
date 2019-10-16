@@ -273,7 +273,7 @@ void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 		FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
 		                                        , Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
 		                                        , Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
-		                                        , false, this);
+		                                        , false,false, this);
 
 		bool ok2 = fromTo->exec();
 		if (ok2)
@@ -394,7 +394,7 @@ void MarkerTreeWidget::action_ChangePoint_triggered()
 			FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
 				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
 				, Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
-				, false, this);
+				, false,false, this);
 
 			bool ok3 = fromTo->exec();
 			if (ok3)
@@ -487,7 +487,7 @@ void MarkerTreeWidget::action_ResetPoints_triggered()
 	FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
 	                                        , Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
 	                                        , Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
-	                                        , false, this);
+	                                        , false,false, this);
 
 	bool ok = fromTo->exec();
 	if (ok)

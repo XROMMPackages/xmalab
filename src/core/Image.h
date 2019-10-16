@@ -71,7 +71,7 @@ namespace xma
 			return height;
 		}
 
-		void save(QString filename, bool flip);
+		void save(QString filename, bool flip, bool filter = false);
 		void getImage(cv::Mat& image, bool color = false);
 		void getSubImage(cv::Mat& _image, int size, int off_x, int off_y);
 		void getSubImage(cv::Mat& _image, int size, double x, double y);
@@ -80,8 +80,6 @@ namespace xma
 		void resetImage();
 
 	private:
-		void gammaCorrection(cv::Mat& src, cv::Mat& dst, float fGamma);
-
 		cv::Mat image;
 		int height, width;	
 		ColorMode colorImage_set;

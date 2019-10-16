@@ -55,6 +55,7 @@
 #endif
 #include <QtGui/QApplication>
 #include <opencv2/highgui/highgui.hpp>
+#include "processing/FilterImage.h"
 
 
 using namespace xma;
@@ -1109,7 +1110,7 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 }
 
 
-void Trial::saveTrialImages(QString outputfolder, int from, int to, QString format, int id)
+void Trial::saveTrialImages(QString outputfolder, int from, int to, QString format, bool filter,  int id)
 {
 	if (isDefault)
 		return;
@@ -1151,8 +1152,14 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 							cv::remap(tmpMat, tmpMat, *cam->getUndistortionMapX(), *cam->getUndistortionMapY(), cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
 						}
 
+						if (filter)
+						{
+							tmpMat = FilterImage().run(tmpMat);
+						}
+						
 						if (tmpMat.channels() > 1)
 						{
+							
 							outputVideo << tmpMat;
 						} 
 						else
@@ -1177,6 +1184,11 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 						videos[i]->getImage()->getImage(tmpMat, true);
 						cv::remap(tmpMat, tmpMat, *cam->getUndistortionMapX(), *cam->getUndistortionMapY(), cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
 
+						if (filter)
+						{
+							tmpMat = FilterImage().run(tmpMat);
+						}
+						
 						if (tmpMat.channels() > 1)
 						{
 							outputVideo << tmpMat;
@@ -1198,6 +1210,12 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 						videos[i]->setActiveFrame(j);
 						cv::Mat tmpMat;
 						videos[i]->getImage()->getImage(tmpMat, true);
+
+						if (filter)
+						{
+							tmpMat = FilterImage().run(tmpMat);
+						}
+						
 						if (tmpMat.channels() > 1)
 						{
 							outputVideo << tmpMat;
@@ -1221,7 +1239,7 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 				{
 					QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
 					videos[i]->setActiveFrame(j);
-					Project::getInstance()->getCameras()[i]->getUndistortionObject()->undistort(videos[i]->getImage(), outname);
+					Project::getInstance()->getCameras()[i]->getUndistortionObject()->undistort(videos[i]->getImage(), outname, filter);
 				}
 			}
 			else if (Project::getInstance()->getCameras()[i]->hasModelDistortion())
@@ -1234,6 +1252,10 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 					cv::Mat imageMat;
 					videos[i]->getImage()->getImage(imageMat, true);
 					cv::remap(imageMat, imageMat, *cam->getUndistortionMapX(), *cam->getUndistortionMapY(), cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+					if (filter)
+					{
+						imageMat = FilterImage().run(imageMat);
+					}
 					cv::imwrite(outname.toAscii().data(), imageMat);
 					imageMat.release();
 				}
@@ -1244,7 +1266,7 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 				{
 					QString outname = foldername + OS_SEP + info.completeBaseName() + "." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
 					videos[i]->setActiveFrame(j);
-					videos[i]->getImage()->save(outname, Project::getInstance()->getCameras()[i]->isFlipped());
+					videos[i]->getImage()->save(outname, Project::getInstance()->getCameras()[i]->isFlipped(), filter);
 				}
 			}
 		}

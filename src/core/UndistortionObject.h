@@ -68,7 +68,7 @@ namespace xma
 		}
 
 		bool undistort(Image* distorted, Image* undistorted);
-		bool undistort(Image* distorted, QString filenameOut);
+		bool undistort(Image* distorted, QString filenameOut, bool filter = false);
 		bool undistort(QString filenameIn, QString filenameOut);
 		void setDetectedPoints(cv::vector<cv::Point2d>& points);
 		void getDetectedPoints(cv::vector<cv::Point2d>& points);

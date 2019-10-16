@@ -33,13 +33,15 @@
 
 using namespace xma;
 
-FromToDialog::FromToDialog(int from, int to, int max, bool withFormat, QWidget* parent) :
+FromToDialog::FromToDialog(int from, int to, int max, bool withFormat, bool withFilter, QWidget* parent) :
 	QDialog(parent),
 	diag(new Ui::FromToDialog)
 {
 	diag->setupUi(this);
 
 	if (!withFormat)diag->frameFormat->hide();
+	if (!withFilter)diag->frameFilter->hide();
+
 	diag->spinBoxFrom->setMinimum(1);
 	diag->spinBoxFrom->setMaximum(max);
 	diag->spinBoxFrom->setValue(from);
@@ -80,6 +82,11 @@ QString FromToDialog::getFormat()
 	{
 		return "avi";
 	}
+}
+
+bool FromToDialog::getFiltered()
+{
+	return diag->radioFiltered->isChecked();
 }
 
 void FromToDialog::on_pushButton_OK_clicked()
