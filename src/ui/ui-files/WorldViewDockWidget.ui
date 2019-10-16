@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>762</width>
-    <height>488</height>
+    <height>604</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -39,15 +39,28 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0">
-        <widget class="QCheckBox" name="checkBoxEnable">
-         <property name="text">
-          <string>enable</string>
+       <item row="0" column="6">
+        <widget class="QSpinBox" name="spinBoxFrame">
+         <property name="enabled">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QToolButton" name="toolButtonPrev">
+       <item row="0" column="7">
+        <widget class="QSlider" name="horizontalSlider">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="pageStep">
+          <number>1</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="5">
+        <widget class="QToolButton" name="toolButtonNext">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -56,30 +69,7 @@
          </property>
          <property name="icon">
           <iconset resource="../calibrationtool_resources.qrc">
-           <normaloff>:/images/resource-files/icons/prev_blue.png</normaloff>:/images/resource-files/icons/prev_blue.png</iconset>
-         </property>
-         <property name="autoRaise">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QToolButton" name="toolButtonPlayBackward">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="../calibrationtool_resources.qrc">
-           <normaloff>:/images/resource-files/icons/playbackward_blue.png</normaloff>:/images/resource-files/icons/playbackward_blue.png</iconset>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
+           <normaloff>:/images/resource-files/icons/next_blue.png</normaloff>:/images/resource-files/icons/next_blue.png</iconset>
          </property>
          <property name="autoRaise">
           <bool>true</bool>
@@ -126,8 +116,31 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="5">
-        <widget class="QToolButton" name="toolButtonNext">
+       <item row="0" column="2">
+        <widget class="QToolButton" name="toolButtonPlayBackward">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../calibrationtool_resources.qrc">
+           <normaloff>:/images/resource-files/icons/playbackward_blue.png</normaloff>:/images/resource-files/icons/playbackward_blue.png</iconset>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="autoRaise">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QToolButton" name="toolButtonPrev">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -136,27 +149,37 @@
          </property>
          <property name="icon">
           <iconset resource="../calibrationtool_resources.qrc">
-           <normaloff>:/images/resource-files/icons/next_blue.png</normaloff>:/images/resource-files/icons/next_blue.png</iconset>
+           <normaloff>:/images/resource-files/icons/prev_blue.png</normaloff>:/images/resource-files/icons/prev_blue.png</iconset>
          </property>
          <property name="autoRaise">
           <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item row="0" column="6">
-        <widget class="QSpinBox" name="spinBoxFrame">
-         <property name="enabled">
-          <bool>false</bool>
+       <item row="0" column="0">
+        <widget class="QCheckBox" name="checkBoxEnable">
+         <property name="text">
+          <string>enable</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="7">
-        <widget class="QSlider" name="horizontalSlider">
-         <property name="enabled">
-          <bool>false</bool>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Focal plane distance</string>
          </property>
-         <property name="pageStep">
+        </widget>
+       </item>
+       <item row="1" column="1" colspan="7">
+        <widget class="QSlider" name="horizontalSlider_FocusPlane">
+         <property name="minimum">
           <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>10000</number>
+         </property>
+         <property name="value">
+          <number>200</number>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>

@@ -62,7 +62,8 @@ WorldViewDockGLWidget::WorldViewDockGLWidget(QWidget* parent)
 	eyedistance = 500.0;
 	azimuth = 45.0;
 	polar = -45.0;
-
+	focal_plane_distance = 200;
+	
 	w = 50;
 	h = 50;
 	setMinimumSize(50, 50);
@@ -78,6 +79,11 @@ void WorldViewDockGLWidget::setFrame(int value)
 void WorldViewDockGLWidget::animate()
 {
 	//    repaint();
+}
+
+void WorldViewDockGLWidget::setFocalPlaneDistance(float distance)
+{
+	focal_plane_distance = distance;
 }
 
 WorldViewDockGLWidget::~WorldViewDockGLWidget()
@@ -299,7 +305,7 @@ void WorldViewDockGLWidget::drawCameras()
 			double y_min = (0 - camTmp.at<double>(1, 2)) / camTmp.at<double>(1, 1);
 			double y_max = (Project::getInstance()->getCameras()[cam]->getHeight() - camTmp.at<double>(1, 2)) / camTmp.at<double>(1, 1);
 
-			double z = -200.0;
+			double z = -focal_plane_distance;
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

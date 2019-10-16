@@ -264,6 +264,12 @@ void WorldViewDockWidget::on_horizontalSlider_valueChanged(int value)
 	QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 }
 
+void WorldViewDockWidget::on_horizontalSlider_FocusPlane_valueChanged(int value)
+{
+	dock->openGL->setFocalPlaneDistance(value);
+	dock->openGL->repaint();
+}
+
 void WorldViewDockWidget::on_spinBoxFrame_valueChanged(int value)
 {
 	if (!updating)changeFrame(value - 1);

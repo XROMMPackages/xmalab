@@ -78,6 +78,7 @@ namespace xma
 
 		void on_checkBoxEnable_clicked(bool state);
 		void on_horizontalSlider_valueChanged(int value);
+		void on_horizontalSlider_FocusPlane_valueChanged(int value);
 		void on_spinBoxFrame_valueChanged(int value);
 		void on_toolButtonNext_clicked();
 		void on_toolButtonPrev_clicked();

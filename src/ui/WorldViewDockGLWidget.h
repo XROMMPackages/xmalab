@@ -57,7 +57,7 @@ namespace xma
 
 	public slots:
 		void animate();
-
+		void setFocalPlaneDistance(float distance);
 	protected:
 		void paintGL();
 		void initializeGL();
@@ -75,7 +75,8 @@ namespace xma
 		double polar;
 		double prev_azi;
 		double prev_pol;
-
+		double focal_plane_distance;
+		
 		int frame;
 		bool useCustomTimeline;
 
