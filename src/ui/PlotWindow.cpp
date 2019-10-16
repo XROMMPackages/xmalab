@@ -243,7 +243,7 @@ void PlotWindow::saveData()
 						&& pt_d != cv::Point3f(0.0f,0.0f,0.0f))
 					{
 						cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getPoints3D()[i]
-							- cv::Point3d(pt_d);
+							- cv::Point3d(pt_d.x,pt_d.y,pt_d.z);
 						outfile << cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z) << std::endl;
 					}
 					else
@@ -2339,7 +2339,7 @@ void PlotWindow::plotDistance(int idx1, int idx2)
 					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED
 						&& pt_d != cv::Point3f(0.0f,0.0f,0.0f))
 					{
-						cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getPoints3D()[i] - cv::Point3d(pt_d);
+						cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getPoints3D()[i] - cv::Point3d(pt_d.x,pt_d.y,pt_d.z);
 						y[count] = cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
 						if (y[count] > max_val) max_val = y[count];
 						if (y[count] < min_val) min_val = y[count];
