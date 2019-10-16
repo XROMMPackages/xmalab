@@ -626,6 +626,26 @@ const std::vector<QString>& RigidBody::getDummyNames()
 	return dummyNames;
 }
 
+cv::Point3f RigidBody::getDummyCoordinates(int id, int frame)
+{
+	if (dummyRBIndex[id] >= 0)
+	{
+		cv::Point3d dummy_tmp;
+		if (trial->getRigidBodies()[dummyRBIndex[id]]->transformPoint(dummypoints2[id], dummy_tmp, frame))
+		{
+			return dummy_tmp;
+		}
+	}
+	else if (dummypointsCoordsSet[id][frame])
+	{
+		return  cv::Point3f(dummypointsCoords[id][frame].x
+			, dummypointsCoords[id][frame].y
+			, dummypointsCoords[id][frame].z);
+	}
+
+	return cv::Point3f(0, 0, 0);
+}
+
 void RigidBody::init(int size)
 {
 	clear();

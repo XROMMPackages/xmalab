@@ -136,6 +136,7 @@ namespace xma
 		void saveDummy(int count, QString filenamePointRef, QString filenamePointRef2, QString filenamePointCoords);
 		void clearAllDummyPoints();
 		const std::vector<QString>& getDummyNames();
+		cv::Point3f getDummyCoordinates(int id, int frame);
 		bool allReferenceMarkerReferencesSet();
 
 		bool transformPoint(cv::Point3d in, cv::Point3d& out, int frame, bool filtered = false);

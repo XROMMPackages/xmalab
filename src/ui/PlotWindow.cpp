@@ -216,19 +216,41 @@ void PlotWindow::saveData()
 		{
 			//Header
 			outfile << "Frame , ";
-			outfile << "Marker_" + std::to_string(dock->comboBoxMarker1->currentIndex() + 1) + "_to_Marker_" + std::to_string(dock->comboBoxMarker2->currentIndex() + 1) << std::endl;
+			outfile << "Marker_" + std::to_string(dock->comboBoxMarker1->currentIndex() + 1) + "_to_Marker_" + dock->comboBoxMarker2->currentText().toAscii().data() << std::endl;
 
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++, count++)
 			{
 				outfile << i + 1 << " , ";
-				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getStatus3D()[i] > UNDEFINED)
+				if (dock->comboBoxMarker2->currentIndex() < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()){
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getStatus3D()[i] > UNDEFINED)
+					{
+						cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getPoints3D()[i] - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getPoints3D()[i];
+						outfile << cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z) << std::endl;
+					}
+					else
+					{
+						outfile << "NaN" << std::endl;
+					}
+				} else
 				{
-					cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getPoints3D()[i] - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getPoints3D()[i];
-					outfile << cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z) << std::endl;
-				}
-				else
-				{
-					outfile << "NaN" << std::endl;
+					int rb_ind;
+					int pt_ind;
+					QStringList splitted = dock->comboBoxMarker2->currentText().split('-');
+					pt_ind = splitted[0].remove(0,2).toInt()-1;
+					rb_ind = splitted[1].remove(0, 2).toInt() - 1;
+					cv::Point3f pt_d = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[rb_ind]->getDummyCoordinates(pt_ind, i);
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getStatus3D()[i] > UNDEFINED 
+						&& pt_d != cv::Point3f(0.0f,0.0f,0.0f))
+					{
+						cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getPoints3D()[i]
+							- cv::Point3d(pt_d);
+						outfile << cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z) << std::endl;
+					}
+					else
+					{
+						outfile << "NaN" << std::endl;
+					}
+					
 				}
 			}
 		}
@@ -664,7 +686,8 @@ void PlotWindow::deleteData()
 			QString::number(frameStart + 1) + " to " + QString::number(frameEnd + 1)))
 			return;
 		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd);
-		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd);
+		if (dock->comboBoxMarker2->currentIndex() < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
+			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd);
 	}
 	else if (dock->comboBoxPlotType->currentIndex() == 4 || dock->comboBoxPlotType->currentIndex() == 5)
 	{
@@ -1480,6 +1503,16 @@ void PlotWindow::updateMarkers(bool rememberSelection)
 			dock->comboBoxMarker2->addItem(QString::number(i + 1));
 		}
 
+		//for (auto & rb : Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies())
+		for (int j = 0; j < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size();j++)
+		{
+			auto rb = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[j];
+			for (int i = 0; i < rb->getDummyNames().size(); i++)
+			{
+				dock->comboBoxMarker2->addItem("VP" + QString::number(i + 1) + "-RB"+ QString::number(j + 1));
+			}
+		}
+		
 		dock->comboBoxCamera->clear();
 		dock->comboBoxCamera->addItem("All Cameras");
 		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
@@ -2265,49 +2298,84 @@ void PlotWindow::plotDistance(int idx1, int idx2)
 
 		if ((int) Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0 &&
 			idx1 >= 0 && idx1 < (int) Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() &&
-			idx2 >= 0 && idx2 < (int) Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
+			idx2 >= 0 ) // && idx2 < (int) Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
 		{
 			dock->plotWidget->addGraph();
-
-
+			
 			QVector<double>
 				x(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() + 1),
 				y(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() + 1); // initialize with entries 0..100
 			double max_val = 0;
 			double min_val = 10000;
-
-			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++ , count++)
-			{
-				x[count] = i * posMultiplier + posOffset; // x goes from -1 to 1
-				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getStatus3D()[i] > UNDEFINED)
-				{
-					cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getPoints3D()[i] - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getPoints3D()[i];
-					y[count] = cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
-					if (y[count] > max_val) max_val = y[count];
-					if (y[count] < min_val) min_val = y[count];
-				}
-				else
-				{
-					y[count] = 0; // let's plot a quadratic function
-				}
-			}
 			int countVisible = 0;
 
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++ , count++)
 			{
-				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getStatus3D()[i] > UNDEFINED)
+				x[count] = i * posMultiplier + posOffset; // x goes from -1 to 1
+				if (idx2 < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()){
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getStatus3D()[i] > UNDEFINED)
+					{
+						cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getPoints3D()[i] - Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getPoints3D()[i];
+						y[count] = cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+						if (y[count] > max_val) max_val = y[count];
+						if (y[count] < min_val) min_val = y[count];
+						mean += y[count];
+						countVisible++;
+					}
+					else
+					{
+						y[count] = 0; // let's plot a quadratic function
+					}
+				}
+				else
 				{
-					mean += y[count];
-					countVisible++;
+					int rb_ind;
+					int pt_ind;
+					QStringList splitted = dock->comboBoxMarker2->currentText().split('-');
+					pt_ind = splitted[0].remove(0, 2).toInt() - 1;
+					rb_ind = splitted[1].remove(0, 2).toInt() - 1;
+					cv::Point3f pt_d = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[rb_ind]->getDummyCoordinates(pt_ind, i);
+
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED
+						&& pt_d != cv::Point3f(0.0f,0.0f,0.0f))
+					{
+						cv::Point3d diff = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getPoints3D()[i] - cv::Point3d(pt_d);
+						y[count] = cv::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+						if (y[count] > max_val) max_val = y[count];
+						if (y[count] < min_val) min_val = y[count];
+						countVisible++;
+						mean += y[count];
+					}
+					else
+					{
+						y[count] = 0; // let's plot a quadratic function
+					}
 				}
 			}
+
 			if (countVisible > 0)mean = mean / countVisible;
 
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++ , count++)
 			{
-				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getStatus3D()[i] > UNDEFINED)
+				if (idx2 < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()){
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getStatus3D()[i] > UNDEFINED)
+					{
+						sd += pow(y[count] - mean, 2);
+					}
+				}
+				else
 				{
-					sd += pow(y[count] - mean, 2);
+					int rb_ind;
+					int pt_ind;
+					QStringList splitted = dock->comboBoxMarker2->currentText().split('-');
+					pt_ind = splitted[0].remove(0, 2).toInt() - 1;
+					rb_ind = splitted[1].remove(0, 2).toInt() - 1;
+					cv::Point3f pt_d = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[rb_ind]->getDummyCoordinates(pt_ind, i);
+					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED 
+						&& pt_d != cv::Point3f(0.0f, 0.0f, 0.0f))
+					{
+						sd += pow(y[count] - mean, 2);
+					}
 				}
 			}
 
@@ -2355,9 +2423,13 @@ void PlotWindow::plotDistance(int idx1, int idx2)
 		{
 			dock->plotWidget->xAxis->setLabel("Frame\nMean intermarker distance: " + QString::number(mean) + " +/- " + QString::number(sd));
 		}
-
-		dock->plotWidget->yAxis->setLabel("Distance Marker " + QString::number(idx1 + 1) + " to Marker " + QString::number(idx2 + 1));
-
+		if (idx2 < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()){
+			dock->plotWidget->yAxis->setLabel("Distance Marker " + QString::number(idx1 + 1) + " to Marker " + QString::number(idx2 + 1));
+		}
+		else
+		{
+			dock->plotWidget->yAxis->setLabel("Distance Marker " + QString::number(idx1 + 1) + " to Marker " + dock->comboBoxMarker2->currentText());
+		}
 		dock->plotWidget->replot();
 		dock->plotWidget->show();
 	}
@@ -2985,7 +3057,8 @@ void PlotWindow::setUntrackable()
 			QString::number(frameStart + 1) + " to " + QString::number(frameEnd + 1)))
 			return;
 		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd, true);
-		Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd, true);
+		if (dock->comboBoxMarker2->currentIndex() < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
+			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->resetMultipleFrames(cam, frameStart, frameEnd, true);
 	}
 	else if (dock->comboBoxPlotType->currentIndex() == 4 || dock->comboBoxPlotType->currentIndex() == 5)
 	{

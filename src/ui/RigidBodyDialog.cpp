@@ -45,6 +45,7 @@
 #include <QInputDialog>
 #include <QFileDialog>
 #include <core/HelperFunctions.h>
+#include "PlotWindow.h"
 
 using namespace xma;
 
@@ -411,7 +412,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 {
 	bool ok;
 	QString name = QInputDialog::getText(this, tr("QInputDialog::getText()"),
-	                                     tr("Enter a name for the virtual point:"), QLineEdit::Normal, "Virtual " + QString::number(m_body->getDummyNames().size() + 1), &ok);
+		tr("Enter a name for the virtual point:"), QLineEdit::Normal, "Virtual " + QString::number(m_body->getDummyNames().size() + 1), &ok);
 	QString filenameCoords;
 	QString filenameRef;
 	QString filenameRef2;
@@ -425,7 +426,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 			if (m_body == m_body->getTrial()->getRigidBodies()[i]) id = i + 1;
 		}
 
-		filenameRef = QFileDialog::getOpenFileName(this, "Open CT coordinate file. (Point in the reference of RB" + QString::number(id) + ")" , Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
+		filenameRef = QFileDialog::getOpenFileName(this, "Open CT coordinate file. (Point in the reference of RB" + QString::number(id) + ")", Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
 		if (!filenameRef.isEmpty())
 		{
 			Settings::getInstance()->setLastUsedDirectory(filenameRef);
@@ -440,7 +441,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 			QStringList rbnames;
 			for (unsigned int i = 0; i < m_body->getTrial()->getRigidBodies().size(); i++)
 			{
-				
+
 				rbnames << "RB" + QString::number(i + 1) + " : " + m_body->getTrial()->getRigidBodies()[i]->getDescription();
 			}
 
@@ -462,7 +463,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 					{
 						Settings::getInstance()->setLastUsedDirectory(filenameRef2);
 					}
-				} 
+				}
 				else
 				{
 					filenameRef2 = filenameRef;
@@ -481,7 +482,7 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 			{
 				return;
 			}
-		} 
+		}
 	}
 	else
 	{
@@ -493,6 +494,8 @@ void RigidBodyDialog::on_pushButton_AddDummy_clicked()
 	reloadDummyPoints();
 
 	m_body->recomputeTransformations();
+
+	PlotWindow::getInstance()->updateMarkers(true);
 }
 
 void RigidBodyDialog::on_pushButton_DeleteDummy_clicked()
