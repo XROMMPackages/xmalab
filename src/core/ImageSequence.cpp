@@ -58,6 +58,6 @@ QString ImageSequence::getFrameName(int frameNumber)
 
 void ImageSequence::reloadFile()
 {
-	//nothing to do
+	image->setImage(filenames.at(0), isFlipped);
 }
 

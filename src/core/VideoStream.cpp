@@ -61,6 +61,8 @@ VideoStream::VideoStream(QStringList _filenames)
 	FileDescription = "";
 	Lab = "";
 	portalID = -1;
+	isFlipped = false;
+	
 }
 
 VideoStream::~VideoStream()
@@ -390,6 +392,7 @@ const int& VideoStream::getPortalID() const
 void VideoStream::setFlipped(bool flipped)
 {
 	isFlipped = flipped;
+	reloadFile();
 }
 
 QString VideoStream::getFileBasename()

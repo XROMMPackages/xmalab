@@ -172,7 +172,6 @@ namespace xma
 		void setFlipped(bool value)
 		{
 			flipped = value;
-			std::cerr << "flip " << std::endl;
 		}
 		
 

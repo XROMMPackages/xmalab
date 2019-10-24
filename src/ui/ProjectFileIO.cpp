@@ -1728,7 +1728,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							QString flipImages = attr.value("FlipImages").toString();
 							if (!flipImages.isEmpty())
 							{
-								old_flip_images = true;
+								old_flip_images = flipImages.toInt();
 							}
 							QString calibType = attr.value("CalibrationType").toString();
 							if (!calibType.isEmpty())
@@ -1750,6 +1750,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							QString isFlipped = attr.value("isFlipped").toString();
 							if (!isFlipped.isEmpty())
 								cam->setFlipped(isFlipped.toInt());
+							
 							if (old_flip_images) 
 								cam->setFlipped(old_flip_images);
 
