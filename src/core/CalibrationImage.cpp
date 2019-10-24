@@ -107,8 +107,10 @@ void CalibrationImage::loadTextures()
 	if (Project::getInstance()->getCalibration() != INTERNAL)
 		return;
 
-	image->loadTexture();
-	undistortedImage->loadTexture();
+	if (image)
+		image->loadTexture();
+	if (undistortedImage)
+		undistortedImage->loadTexture();
 }
 
 void CalibrationImage::reloadTextures()
@@ -116,8 +118,10 @@ void CalibrationImage::reloadTextures()
 	if (Project::getInstance()->getCalibration() != INTERNAL)
 		return;
 
-	image->resetImage();
-	undistortedImage->resetImage();
+	if(image)
+		image->resetImage();
+	if (undistortedImage)
+		undistortedImage->resetImage();
 }
 
 void CalibrationImage::init(int nbPoints)

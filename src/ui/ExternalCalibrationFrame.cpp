@@ -53,6 +53,9 @@ void ExternalCalibrationFrame::setCamera(Camera* cam)
 
 void ExternalCalibrationFrame::update()
 {
+	if (!m_cam || m_cam->getCalibrationImages().size() <= 0)
+		return;
+	
 	frame->spinBox_width->setValue(m_cam->getWidth());
 	frame->spinBox_height->setValue(m_cam->getHeight());
 
