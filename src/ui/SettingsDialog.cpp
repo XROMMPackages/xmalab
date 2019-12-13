@@ -192,7 +192,7 @@ void SettingsDialog::on_checkBox_exportAll_clicked(bool checked)
 
 void SettingsDialog::on_checkBox_DisableImageSearch_clicked(bool checked)
 {
-	
+	Settings::getInstance()->set("DisableImageSearch", diag->checkBox_DisableImageSearch->isChecked());
 }
 
 void SettingsDialog::on_checkBox_DisableCheckerboardRefinement_stateChanged(int state)
