@@ -148,38 +148,38 @@ void PlotWindow::saveData()
 			int cam_end = (dock->comboBoxCamera->currentIndex() == 0) ? Project::getInstance()->getCameras().size() - 1 : dock->comboBoxCamera->currentIndex() - 1;
 			int marker_id = dock->comboBoxMarker1->currentIndex();
 
-			outfile << "Frame , ";
+			outfile << "Frame,";
 
 			//Header
 			for (int c = cam_start; c <= cam_end; c++)
 			{
-				outfile << "Cam" + std::to_string(c + 1) + "_Marker_" + std::to_string(marker_id + 1) + "_x , Cam" + std::to_string(c+1) + "_Marker_" + std::to_string(marker_id + 1) + "_y" <<
-					" , Cam" + std::to_string(c + 1) + "_Marker_" + std::to_string(marker_id + 1) + "_x_undistorted , Cam" + std::to_string(c + 1) + "_Marker_" + std::to_string(marker_id + 1) + "_y_undistorted";
+				outfile << "Cam" + std::to_string(c + 1) + "_Marker_" + std::to_string(marker_id + 1) + "_x,Cam" + std::to_string(c+1) + "_Marker_" + std::to_string(marker_id + 1) + "_y" <<
+					",Cam" + std::to_string(c + 1) + "_Marker_" + std::to_string(marker_id + 1) + "_x_undistorted,Cam" + std::to_string(c + 1) + "_Marker_" + std::to_string(marker_id + 1) + "_y_undistorted";
 				if (c != cam_end)
 				{
-					outfile << " , ";
+					outfile << ",";
 				}
 			}
 			outfile << std::endl;
 
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
 			{
-				outfile << i + 1 << " , ";
+				outfile << i + 1 << ",";
 				for (int c = cam_start; c <= cam_end; c++)
 				{
 					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getStatus2D()[c][i] > UNDEFINED)
 					{
 						cv::Point2d undist = Project::getInstance()->getCameras()[c]->undistortPoint(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints2D()[c][i], true);
-						outfile << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints2D()[c][i].x << " , " <<
-							Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints2D()[c][i].y << " , " << undist.x << " , " << undist.y;
+						outfile << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints2D()[c][i].x << "," <<
+							Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints2D()[c][i].y << "," << undist.x << "," << undist.y;
 					}
 					else
 					{
-						outfile << "NaN , NaN , NaN, NaN";
+						outfile << "NaN,NaN,NaN, NaN";
 					}
 					if (c != cam_end)
 					{
-						outfile << " , ";
+						outfile << ",";
 					}
 				}
 				outfile << std::endl;
@@ -192,21 +192,21 @@ void PlotWindow::saveData()
 			int marker_id = dock->comboBoxMarker1->currentIndex();
 			
 			//Header
-			outfile << "Frame , ";
-			outfile << "Marker_" + std::to_string(marker_id + 1) + "_x , Marker_" + std::to_string(marker_id + 1) + "_y , Marker_" + std::to_string(marker_id + 1) + "_z" << std::endl;
+			outfile << "Frame,";
+			outfile << "Marker_" + std::to_string(marker_id + 1) + "_x,Marker_" + std::to_string(marker_id + 1) + "_y,Marker_" + std::to_string(marker_id + 1) + "_z" << std::endl;
 
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
 			{
 
-				outfile << i + 1 << " , ";
+				outfile << i + 1 << ",";
 				if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getStatus3D()[i] > UNDEFINED)
 				{
 					outfile << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints3D()[i].x
-						<< " , " << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints3D()[i].y
-						<< " , " << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints3D()[i].z;
+						<< "," << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints3D()[i].y
+						<< "," << Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[marker_id]->getPoints3D()[i].z;
 				} else
 				{
-					outfile << "NaN , NaN , NaN" << std::endl;
+					outfile << "NaN,NaN,NaN" << std::endl;
 				}
 				
 				outfile << std::endl;
@@ -215,12 +215,12 @@ void PlotWindow::saveData()
 		else if (dock->comboBoxPlotType->currentIndex() == 2)
 		{
 			//Header
-			outfile << "Frame , ";
+			outfile << "Frame,";
 			outfile << "Marker_" + std::to_string(dock->comboBoxMarker1->currentIndex() + 1) + "_to_Marker_" + dock->comboBoxMarker2->currentText().toAscii().data() << std::endl;
 
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++, count++)
 			{
-				outfile << i + 1 << " , ";
+				outfile << i + 1 << ",";
 				if (dock->comboBoxMarker2->currentIndex() < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()){
 					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker1->currentIndex()]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[dock->comboBoxMarker2->currentIndex()]->getStatus3D()[i] > UNDEFINED)
 					{
@@ -261,7 +261,7 @@ void PlotWindow::saveData()
 			int marker_id = dock->comboBoxMarker1->currentIndex();
 			
 			//Header
-			outfile << "Frame , ";
+			outfile << "Frame,";
 			outfile << "ReprojectionError_Marker_" + std::to_string(dock->comboBoxMarker1->currentIndex() + 1) << "_" << dock->comboBoxCamera->currentText().toAscii().data() << std::endl;
 
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
@@ -280,7 +280,7 @@ void PlotWindow::saveData()
 					}
 				}
 
-				outfile << i + 1 << " , ";
+				outfile << i + 1 << ",";
 				if (set)
 				{
 					outfile << error_val / count;
@@ -301,7 +301,7 @@ void PlotWindow::saveData()
 			QStringList data = QStringList();
 
 			//Header
-			outfile << "Frame , ";
+			outfile << "Frame,";
 			if (type == 0 || type == 1 || type == 3)
 			{
 				if (filtered != 1) data << "Unfiltered_Yaw_RB" + QString::number(body + 1);
@@ -340,7 +340,7 @@ void PlotWindow::saveData()
 
 				if (i != data.size() - 1)
 				{
-					outfile << " , ";
+					outfile << ",";
 				}
 			}
 			outfile << std::endl;
@@ -444,14 +444,14 @@ void PlotWindow::saveData()
 				}
 
 				//write DataOut
-				outfile << i + 1 << " , ";
+				outfile << i + 1 << ",";
 				for (int i = 0; i < data.size(); i++)
 				{
 					outfile << data[i].toAscii().data();
 
 					if (i != data.size() - 1)
 					{
-						outfile << " , ";
+						outfile << ",";
 					}
 				}
 				outfile << std::endl;
@@ -469,7 +469,7 @@ void PlotWindow::saveData()
 			QStringList data = QStringList();
 
 			//header
-			outfile << "Frame , ";
+			outfile << "Frame,";
 			if (filtered != 1){
 				data << "Unfiltered_RigidBodyError" + QString(draw3D ? "3D" : "2D") + "_RB" + QString::number(bodyIdx + 1) + "_Mean";
 				data << "Unfiltered_RigidBodyError" + QString(draw3D ? "3D" : "2D") + "_RB" + QString::number(bodyIdx + 1) + "_SD";
@@ -484,7 +484,7 @@ void PlotWindow::saveData()
 
 				if (i != data.size() - 1)
 				{
-					outfile << " , ";
+					outfile << ",";
 				}
 			}
 			outfile << std::endl;
@@ -533,14 +533,14 @@ void PlotWindow::saveData()
 					}
 				}
 
-				outfile << i + 1 << " , ";
+				outfile << i + 1 << ",";
 				for (int i = 0; i < data.size(); i++)
 				{
 					outfile << data[i].toAscii().data();
 
 					if (i != data.size() - 1)
 					{
-						outfile << " , ";
+						outfile << ",";
 					}
 				}
 				outfile << std::endl;
@@ -2131,7 +2131,7 @@ void PlotWindow::plotRigidBodyError(int idx)
 
 			if (drawUnfiltered)
 			{
-				for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++ , count++)
+				for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++,count++)
 				{
 					if (body->getPoseComputed()[i])
 					{
@@ -2141,7 +2141,7 @@ void PlotWindow::plotRigidBodyError(int idx)
 				}
 				if (countUnfiltered > 0)UnfilteredMean = UnfilteredMean / countUnfiltered;
 
-				for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++ , count++)
+				for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++,count++)
 				{
 					if (body->getPoseFiltered()[i])
 					{
@@ -2154,7 +2154,7 @@ void PlotWindow::plotRigidBodyError(int idx)
 
 			if (drawFiltered)
 			{
-				for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++ , count++)
+				for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++,count++)
 				{
 					if (body->getPoseFiltered()[i])
 					{
@@ -2164,7 +2164,7 @@ void PlotWindow::plotRigidBodyError(int idx)
 				}
 				if (countFiltered > 0)FilteredMean = FilteredMean / countFiltered;
 
-				for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++ , count++)
+				for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++,count++)
 				{
 					if (body->getPoseFiltered()[i])
 					{
@@ -2309,7 +2309,7 @@ void PlotWindow::plotDistance(int idx1, int idx2)
 			double min_val = 10000;
 			int countVisible = 0;
 
-			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++ , count++)
+			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++,count++)
 			{
 				x[count] = i * posMultiplier + posOffset; // x goes from -1 to 1
 				if (idx2 < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()){
@@ -2355,7 +2355,7 @@ void PlotWindow::plotDistance(int idx1, int idx2)
 
 			if (countVisible > 0)mean = mean / countVisible;
 
-			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++ , count++)
+			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++,count++)
 			{
 				if (idx2 < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size()){
 					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx1]->getStatus3D()[i] > UNDEFINED && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[idx2]->getStatus3D()[i] > UNDEFINED)

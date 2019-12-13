@@ -271,9 +271,9 @@ void MarkerTreeWidget::action_RefinePointsPolynomialFit_triggered()
 	if (ok && !methodName.isEmpty())
 	{
 		FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
-		                                        , Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
-		                                        , Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
-		                                        , false,false, this);
+		                                       ,Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
+		                                       ,Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
+		                                       ,false,false, this);
 
 		bool ok2 = fromTo->exec();
 		if (ok2)
@@ -485,9 +485,9 @@ void MarkerTreeWidget::action_ResetPoints_triggered()
 	QList<QTreeWidgetItem *> items = this->selectedItems();
 
 	FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame()
-	                                        , Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
-	                                        , Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
-	                                        , false,false, this);
+	                                       ,Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame()
+	                                       ,Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getNbImages()
+	                                       ,false,false, this);
 
 	bool ok = fromTo->exec();
 	if (ok)

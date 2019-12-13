@@ -164,7 +164,7 @@ void CalibrationImage::setPointsUndistorted(cv::vector<cv::Point2d>& _detectedPo
 
 	Inlier.clear();
 	std::vector<cv::Point2d>::const_iterator it_pt = detectedPointsUndistorted.begin();
-	for (std::vector<bool>::const_iterator it = _Inlier.begin(); it != _Inlier.end(); ++it , ++it_pt)
+	for (std::vector<bool>::const_iterator it = _Inlier.begin(); it != _Inlier.end(); ++it,++it_pt)
 	{
 		if ((*it))
 		{
@@ -260,7 +260,7 @@ void CalibrationImage::drawPoints(std::vector<cv::Point2d>& points, bool drawAll
 
 	std::vector<int>::const_iterator it_inlier = Inlier.begin();
 	glBegin(GL_LINES);
-	for (std::vector<cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it , ++it_inlier)
+	for (std::vector<cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it,++it_inlier)
 	{
 		if ((*it_inlier) == 1)
 		{

@@ -258,7 +258,7 @@ void RigidBodyPoseOptimization::optimizeRigidBodySetup()
 	//for (int i = 0; i < nbPoints / 2; i++)
 	//{
 	//	projError(i, p, &out[0]);
-	//	std::cerr << out[0] << " , " << out[1] << std::endl;
+	//	std::cerr << out[0] << "," << out[1] << std::endl;
 	//}
 	int ret = dlevmar_der(rosRigidBody, jacrosRigidBody, p, x, 6, nbPoints, m_iterations, opts, info, NULL, NULL, this); // with analytic Jacobian
 	//std::cerr << info[0] << std::endl;

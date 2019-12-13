@@ -44,7 +44,7 @@ namespace xma
 		Q_OBJECT
 
 	public:
-		explicit NewTrialDialog(Trial * trial = NULL , QWidget* parent = 0);
+		explicit NewTrialDialog(Trial * trial = NULL,QWidget* parent = 0);
 		virtual ~NewTrialDialog();
 
 		Ui::NewTrialDialog* diag;

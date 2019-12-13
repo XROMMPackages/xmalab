@@ -293,7 +293,7 @@ int LocalUndistortion::computeLWM(cv::Mat& detectedPts, cv::Mat& controlPts, cv:
 		radii.at<double>(i) = all_pts_MatEuclideanDistance.at<double>(all_pts_Idx.at<int>(nbNeighbours - 1));
 		if (maxRadius < radii.at<double>(i)) maxRadius = radii.at<double>(i);
 		//set up matrix eqn for polynomial of order=2
-		//set ucp , vcp and X
+		//set ucp,vcp and X
 		for (int j = 0; j < nbNeighbours; j++)
 		{
 			xcp = controlPts.at<double>(all_pts_Idx.at<int>(j), 0);
@@ -353,7 +353,7 @@ void LocalUndistortion::setPointsByInlier(cv::vector<cv::Point2d>& pts, cv::Mat&
 	int count_tmp = 0;
 	cv::vector<bool>::iterator mIt = tmpPoints_inlier.begin();
 	for (cv::vector<cv::Point2d>::iterator it = pts.begin()
-	     ; it != pts.end(); ++mIt , ++it)
+	     ; it != pts.end(); ++mIt,++it)
 	{
 		if (*mIt)
 		{
@@ -413,7 +413,7 @@ void LocalUndistortion::createLookupTable(cv::Mat& controlPts, cv::Mat& A, cv::M
 
 	for (int y_out = 0, processedpixel = 0; y_out < m_height; y_out++)
 	{
-		for (int x_out = 0; x_out < m_width; x_out++ , processedpixel++)
+		for (int x_out = 0; x_out < m_width; x_out++,processedpixel++)
 		{
 			/* precalculate factors */
 

@@ -130,7 +130,7 @@ void Marker::saveReference3DPoint(QString filename)
 {
 	std::ofstream outfile(filename.toAscii().data());
 	outfile.precision(12);
-	outfile << point3D_ref.x << " , " << point3D_ref.y << " , " << point3D_ref.z << std::endl;
+	outfile << point3D_ref.x << "," << point3D_ref.y << "," << point3D_ref.z << std::endl;
 	outfile.close();
 }
 
@@ -548,8 +548,8 @@ void Marker::reconstruct3DPointRayIntersection(int frame)
 		cv::Mat P_inv;
 		P_inv.create(4, 4, CV_64F);
 
-		cv::Mat tmp1 = (cv::Mat_<double>(1, 4) << 0 , 0 , 0 , 1);
-		cv::Mat tmp2 = (cv::Mat_<double>(4, 1) << 0 , 0 , 0 , 1);
+		cv::Mat tmp1 = (cv::Mat_<double>(1, 4) << 0,0,0,1);
+		cv::Mat tmp2 = (cv::Mat_<double>(4, 1) << 0,0,0,1);
 		cv::Mat tmp3;
 		cv::Mat origin;
 		origin.create(1, 4, CV_64F);
@@ -572,7 +572,7 @@ void Marker::reconstruct3DPointRayIntersection(int frame)
 
 				cv::vconcat(Project::getInstance()->getCameras()[i]->getProjectionMatrix(trial->getReferenceCalibrationImage()), tmp1, P_inv);
 				cv::invert(P_inv, P_inv);
-				tmp3 = (cv::Mat_<double>(4, 1) << x , y , 1 , 1);
+				tmp3 = (cv::Mat_<double>(4, 1) << x,y,1,1);
 
 				origin = P_inv * tmp2;
 				dir = P_inv * tmp3 - origin;
@@ -641,8 +641,8 @@ void Marker::save(QString points_filename, QString status_filename, QString mark
 		{
 			for (unsigned int i = 0; i < points2D.size(); i++)
 			{
-				outfile << points2D[i][j].x << " , " << points2D[i][j].y;
-				if (i != points2D.size() - 1) outfile << " , ";
+				outfile << points2D[i][j].x << "," << points2D[i][j].y;
+				if (i != points2D.size() - 1) outfile << ",";
 			}
 			outfile << std::endl;
 		}
@@ -658,7 +658,7 @@ void Marker::save(QString points_filename, QString status_filename, QString mark
 			for (unsigned int i = 0; i < status2D.size(); i++)
 			{
 				outfile_status << status2D[i][j];
-				if (i != status2D.size() - 1) outfile_status << " , ";
+				if (i != status2D.size() - 1) outfile_status << ",";
 			}
 			outfile_status << std::endl;
 		}
@@ -674,7 +674,7 @@ void Marker::save(QString points_filename, QString status_filename, QString mark
 			for (unsigned int i = 0; i < markerSize.size(); i++)
 			{
 				outfile_size << markerSize[i][j];
-				if (i != markerSize.size() - 1) outfile_size << " , ";
+				if (i != markerSize.size() - 1) outfile_size << ",";
 			}
 			outfile_size << std::endl;
 		}
@@ -689,11 +689,11 @@ void Marker::save(QString points_filename, QString status_filename, QString mark
 		{
 			if (status3D[j] <= 0)
 			{
-				outfile_world << "NaN" << " , " << "NaN" << " , " << "NaN" << std::endl;
+				outfile_world << "NaN" << "," << "NaN" << "," << "NaN" << std::endl;
 			}
 			else
 			{
-				outfile_world << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z << std::endl;
+				outfile_world << points3D[j].x << "," << points3D[j].y << "," << points3D[j].z << std::endl;
 			}
 		}
 		outfile_world.close();
@@ -788,7 +788,7 @@ void Marker::save3DPoints(QString points_filename, QString status_filename)
 		outfile_world.precision(12);
 		for (unsigned int j = 0; j < points3D.size(); j++)
 		{
-			outfile_world << points3D[j].x << " , " << points3D[j].y << " , " << points3D[j].z << std::endl;
+			outfile_world << points3D[j].x << "," << points3D[j].y << "," << points3D[j].z << std::endl;
 		}
 		outfile_world.close();
 	}

@@ -127,7 +127,7 @@ void CalibrationSequence::loadImages(QStringList fileNames)
 		sequence_width = sequence->getImage()->getWidth();
 		undistortedImage = new Image(sequence->getImage());
 		for (int i = 0; i < sequence->getNbImages(); i++)
-			calibrationImages.push_back(new CalibrationImage(m_camera, sequence_filename + "/Frame" + QString("%1").arg(i, 6, 10, QChar('0')) , false));
+			calibrationImages.push_back(new CalibrationImage(m_camera, sequence_filename + "/Frame" + QString("%1").arg(i, 6, 10, QChar('0')),false));
 	}
 	else if (fileNames.at(0).endsWith(".avi"))	{
 		sequence_filename = fileNames.at(0);

@@ -91,19 +91,19 @@ void CalibrationInfoFrame::update(Camera* camera)
 
 void CalibrationInfoFrame::getCameraInfo(Camera* camera, QString& CameraCenter, QString& FocalLength, QString& Distortion, QString& FramesCalibrated, QString& ErrorAllDist, QString& ErrorAllUndist)
 {
-	FocalLength = QString::number(camera->getCameraMatrix().at<double>(0, 0), 'f', 2) + QString(" , ") +
+	FocalLength = QString::number(camera->getCameraMatrix().at<double>(0, 0), 'f', 2) + QString(",") +
 		QString::number(camera->getCameraMatrix().at<double>(1, 1), 'f', 2);
 
-	CameraCenter = QString::number(camera->getCameraMatrix().at<double>(0, 2), 'f', 2) + QString(" , ") +
+	CameraCenter = QString::number(camera->getCameraMatrix().at<double>(0, 2), 'f', 2) + QString(",") +
 		QString::number(camera->getCameraMatrix().at<double>(1, 2), 'f', 2);
 
-	Distortion = QString::number(camera->getDistortionCoefficiants().at<double>(0, 0), 'f', 5) + QString(" , ") +
-		QString::number(camera->getDistortionCoefficiants().at<double>(1, 0), 'f', 5) + QString(" , ") +
-		QString::number(camera->getDistortionCoefficiants().at<double>(2, 0), 'f', 5) + QString(" , ") +
-		QString::number(camera->getDistortionCoefficiants().at<double>(3, 0), 'f', 5) + QString(" , ") +
-		QString::number(camera->getDistortionCoefficiants().at<double>(4, 0), 'f', 5) + QString(" , ") +
-		QString::number(camera->getDistortionCoefficiants().at<double>(5, 0), 'f', 5) + QString(" , ") +
-		QString::number(camera->getDistortionCoefficiants().at<double>(6, 0), 'f', 5) + QString(" , ") +
+	Distortion = QString::number(camera->getDistortionCoefficiants().at<double>(0, 0), 'f', 5) + QString(",") +
+		QString::number(camera->getDistortionCoefficiants().at<double>(1, 0), 'f', 5) + QString(",") +
+		QString::number(camera->getDistortionCoefficiants().at<double>(2, 0), 'f', 5) + QString(",") +
+		QString::number(camera->getDistortionCoefficiants().at<double>(3, 0), 'f', 5) + QString(",") +
+		QString::number(camera->getDistortionCoefficiants().at<double>(4, 0), 'f', 5) + QString(",") +
+		QString::number(camera->getDistortionCoefficiants().at<double>(5, 0), 'f', 5) + QString(",") +
+		QString::number(camera->getDistortionCoefficiants().at<double>(6, 0), 'f', 5) + QString(",") +
 		QString::number(camera->getDistortionCoefficiants().at<double>(7, 0), 'f', 5);;
 
 	int countFrames = 0;
@@ -195,12 +195,12 @@ void CalibrationInfoFrame::updateFrame(Camera* camera)
 
 void CalibrationInfoFrame::getInfoFrame(Camera* camera, int frame, QString& ErrorCurrentDist, QString& ErrorCurrentUndist, QString& RotationVector, QString& TranslationVector)
 {
-	RotationVector = QString::number(camera->getCalibrationImages()[frame]->getRotationVector().at<double>(0, 0), 'f', 2) + QString(" , ") +
-		QString::number(camera->getCalibrationImages()[frame]->getRotationVector().at<double>(1, 0), 'f', 2) + QString(" , ") +
+	RotationVector = QString::number(camera->getCalibrationImages()[frame]->getRotationVector().at<double>(0, 0), 'f', 2) + QString(",") +
+		QString::number(camera->getCalibrationImages()[frame]->getRotationVector().at<double>(1, 0), 'f', 2) + QString(",") +
 		QString::number(camera->getCalibrationImages()[frame]->getRotationVector().at<double>(2, 0), 'f', 2);
 
-	TranslationVector = QString::number(camera->getCalibrationImages()[frame]->getTranslationVector().at<double>(0, 0), 'f', 2) + QString(" , ") +
-		QString::number(camera->getCalibrationImages()[frame]->getTranslationVector().at<double>(1, 0), 'f', 2) + QString(" , ") +
+	TranslationVector = QString::number(camera->getCalibrationImages()[frame]->getTranslationVector().at<double>(0, 0), 'f', 2) + QString(",") +
+		QString::number(camera->getCalibrationImages()[frame]->getTranslationVector().at<double>(1, 0), 'f', 2) + QString(",") +
 		QString::number(camera->getCalibrationImages()[frame]->getTranslationVector().at<double>(2, 0), 'f', 2);
 
 	int countInlier = 0;

@@ -68,7 +68,7 @@ void MultisampleFrameBuffer::blitFramebuffer()
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, outbuffer->getFBO());   // Make sure no FBO is set as the draw framebuffer
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, getFBO()); // Make sure your multisampled FBO is the read framebuffer
-	glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT , GL_NEAREST);
+	glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT,GL_NEAREST);
 	glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);   // Make sure no FBO is set as the draw framebuffer

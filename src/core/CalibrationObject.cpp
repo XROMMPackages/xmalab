@@ -193,7 +193,7 @@ void CalibrationObject::saveCoords(QString folder)
 	}
 	for (unsigned int i = 0; i < frameSpecifications.size(); i++)
 	{
-		outfile << frameSpecifications[i].x << " , " << frameSpecifications[i].y << " , " << frameSpecifications[i].z << std::endl;
+		outfile << frameSpecifications[i].x << "," << frameSpecifications[i].y << "," << frameSpecifications[i].z << std::endl;
 	}
 	outfile.close();
 

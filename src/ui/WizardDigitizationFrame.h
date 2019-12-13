@@ -68,7 +68,7 @@ namespace xma
 		int trackID; //id for point or rb
 		int tmptrackID;
 		int trackType; //1 point, 2 selected, 2 all
-		int trackDirection; // -2 back -1 prev, 0 none , 1 next, 2 forward
+		int trackDirection; // -2 back -1 prev, 0 none,1 next, 2 forward
 		bool singleTrack;
 		//bool isTracking;
 

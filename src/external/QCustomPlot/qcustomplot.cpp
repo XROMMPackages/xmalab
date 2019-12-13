@@ -564,14 +564,14 @@ void QCPScatterStyle::drawShape(QCPPainter *painter, double x, double y) const
     }
     case ssCircle:
     {
-      painter->drawEllipse(QPointF(x , y), w, w);
+      painter->drawEllipse(QPointF(x,y), w, w);
       break;
     }
     case ssDisc:
     {
       QBrush b = painter->brush();
       painter->setBrush(painter->pen().color());
-      painter->drawEllipse(QPointF(x , y), w, w);
+      painter->drawEllipse(QPointF(x,y), w, w);
       painter->setBrush(b);
       break;
     }

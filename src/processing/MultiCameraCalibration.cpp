@@ -261,7 +261,7 @@ void MultiCameraCalibration::projError(int n, double* p, double* x)
 
 
 MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, double initial): QObject()
-                                                                                            , m_method(method), m_iterations(iterations), m_initial(initial)
+                                                                                           ,m_method(method), m_iterations(iterations), m_initial(initial)
 {
 	nbInstances++;
 

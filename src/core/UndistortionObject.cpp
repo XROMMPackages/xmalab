@@ -464,7 +464,7 @@ void UndistortionObject::drawPoints(std::vector<cv::Point2d>& points)
 {
 	std::vector<bool>::const_iterator it_inlier = points_grid_inlier.begin();
 	glBegin(GL_LINES);
-	for (std::vector<cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it , ++it_inlier)
+	for (std::vector<cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it,++it_inlier)
 	{
 		if ((*it_inlier))
 		{

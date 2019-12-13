@@ -1675,12 +1675,12 @@ void MainWindow::on_actionExport2D_Points_triggered(bool checked)
 			if (outputPath.isNull() == false)
 			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(outputPath + OS_SEP
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DMulti")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DDistorted")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DCount1")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DYUp")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DHeader")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
+				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DMulti")
+				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DDistorted")
+				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DCount1")
+				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DYUp")
+				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DHeader")
+				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
 				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 			}
 		}
@@ -1693,12 +1693,12 @@ void MainWindow::on_actionExport2D_Points_triggered(bool checked)
 			if (fileName.isNull() == false)
 			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(fileName
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DMulti")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DDistorted")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DCount1")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DYUp")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DHeader")
-				                                                                                          , Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
+				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DMulti")
+				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DDistorted")
+				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DCount1")
+				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DYUp")
+				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DHeader")
+				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
 				Settings::getInstance()->setLastUsedDirectory(fileName);
 			}
 		}
@@ -1840,9 +1840,9 @@ void MainWindow::on_actionPrecisionInfo_triggered(bool checked)
 void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(bool checked)
 {
 	FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame()
-	                                        , Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame()
-	                                        , Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages()
-	                                        , true, true, this);
+	                                       ,Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame()
+	                                       ,Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getNbImages()
+	                                       ,true, true, this);
 
 	bool ok = fromTo->exec();
 	if (ok)
@@ -1961,11 +1961,11 @@ void MainWindow::on_actionImport2D_Points_triggered(bool checked)
 			for (int i = 0; i < fileNames.size(); i++)
 			{
 				loadPoints += Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->load2dPoints(fileNames.at(i)
-				                                                                                                        , Settings::getInstance()->getBoolSetting("Import2DDistorted")
-				                                                                                                        , Settings::getInstance()->getBoolSetting("Import2DCount1")
-				                                                                                                        , Settings::getInstance()->getBoolSetting("Import2DYUp")
-				                                                                                                        , Settings::getInstance()->getBoolSetting("Import2DHeader")
-				                                                                                                        , Settings::getInstance()->getBoolSetting("Import2DOffsetCols"));
+				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DDistorted")
+				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DCount1")
+				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DYUp")
+				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DHeader")
+				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DOffsetCols"));
 			}
 			ProgressDialog::getInstance()->closeProgressbar();
 			Settings::getInstance()->setLastUsedDirectory(fileNames.at(0));

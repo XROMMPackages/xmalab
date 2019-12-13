@@ -882,7 +882,7 @@ void Trial::saveRigidBodies(QString filename)
 		for (unsigned int k = 0; k < this->getRigidBodies()[i]->getPointsIdx().size(); k++)
 		{
 			outfile << this->getRigidBodies()[i]->getPointsIdx()[k] + 1;
-			if (k != (this->getRigidBodies()[i]->getPointsIdx().size() - 1)) outfile << " , ";
+			if (k != (this->getRigidBodies()[i]->getPointsIdx().size() - 1)) outfile << ",";
 		}
 		outfile << "]" << std::endl;
 	}
@@ -928,7 +928,7 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 		{
 			if (saveColumn)
 			{
-				outfile << "Frame" << " , ";
+				outfile << "Frame" << ",";
 			}
 			for (std::vector<int>::const_iterator it = _bodies.begin(); it < _bodies.end(); ++it)
 			{
@@ -948,26 +948,26 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 					filterRate = "_" + QString::number(getRigidBodies()[*it]->getOverrideCutoffFrequency() ? getRigidBodies()[*it]->getCutoffFrequency() : getCutoffFrequency()) + "Hz";
 				}
 
-				outfile << name.toAscii().data() << "_R11" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R12" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R13" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_01" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R21" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R22" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R23" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_02" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R31" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R32" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R33" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_03" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_TX" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_TZ" << filterRate.toAscii().data() << " , "
+				outfile << name.toAscii().data() << "_R11" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R12" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R13" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_01" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R21" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R22" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R23" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_02" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R31" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R32" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R33" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_03" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_TX" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_TZ" << filterRate.toAscii().data() << ","
 					<< name.toAscii().data() << "_1" << filterRate.toAscii().data();
 
 				if (it != _bodies.end() - 1)
 				{
-					outfile << " , ";
+					outfile << ",";
 				}
 				else
 				{
@@ -985,28 +985,28 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 		{
 			if (saveColumn)
 			{
-				outfile << f + 1 << " , ";
+				outfile << f + 1 << ",";
 			}
 			for (std::vector<int>::const_iterator it = _bodies.begin(); it < _bodies.end(); ++it)
 			{
 				if (getRigidBodies()[*it]->getTransformationMatrix(f, filtered, &trans[0]))
 				{
-					outfile << trans[0] << " , " << trans[1] << " , " << trans[2] << " , " << trans[3] << " , ";
-					outfile << trans[4] << " , " << trans[5] << " , " << trans[6] << " , " << trans[7] << " , ";
-					outfile << trans[8] << " , " << trans[9] << " , " << trans[10] << " , " << trans[11] << " , ";
-					outfile << trans[12] << " , " << trans[13] << " , " << trans[14] << " , " << trans[15];
+					outfile << trans[0] << "," << trans[1] << "," << trans[2] << "," << trans[3] << ",";
+					outfile << trans[4] << "," << trans[5] << "," << trans[6] << "," << trans[7] << ",";
+					outfile << trans[8] << "," << trans[9] << "," << trans[10] << "," << trans[11] << ",";
+					outfile << trans[12] << "," << trans[13] << "," << trans[14] << "," << trans[15];
 				}
 				else
 				{
-					outfile << "NaN , NaN , NaN , NaN , ";
-					outfile << "NaN , NaN , NaN , NaN , ";
-					outfile << "NaN , NaN , NaN , NaN , ";
-					outfile << "NaN , NaN , NaN , NaN";
+					outfile << "NaN,NaN,NaN,NaN,";
+					outfile << "NaN,NaN,NaN,NaN,";
+					outfile << "NaN,NaN,NaN,NaN,";
+					outfile << "NaN,NaN,NaN,NaN";
 				}
 
 				if (it != _bodies.end() - 1)
 				{
-					outfile << " , ";
+					outfile << ",";
 				}
 				else
 				{
@@ -1037,7 +1037,7 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 			{
 				if (saveColumn)
 				{
-					outfile << "Frame" << " , ";
+					outfile << "Frame" << ",";
 				}
 				QString name;
 				QString filterRate = "";
@@ -1055,21 +1055,21 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 					filterRate = "_" + QString::number(getRigidBodies()[*it]->getOverrideCutoffFrequency() ? getRigidBodies()[*it]->getCutoffFrequency() : getCutoffFrequency()) + "Hz";
 				}
 
-				outfile << name.toAscii().data() << "_R11" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R12" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R13" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_01" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R21" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R22" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R23" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_02" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R31" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R32" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_R33" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_03" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_TX" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << " , "
-					<< name.toAscii().data() << "_TZ" << filterRate.toAscii().data() << " , "
+				outfile << name.toAscii().data() << "_R11" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R12" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R13" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_01" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R21" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R22" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R23" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_02" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R31" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R32" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_R33" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_03" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_TX" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_TY" << filterRate.toAscii().data() << ","
+					<< name.toAscii().data() << "_TZ" << filterRate.toAscii().data() << ","
 					<< name.toAscii().data() << "_1" << filterRate.toAscii().data();
 
 				outfile << std::endl;
@@ -1085,21 +1085,21 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 			{
 				if (saveColumn)
 				{
-					outfile << f + 1 << " , ";
+					outfile << f + 1 << ",";
 				}
 				if (getRigidBodies()[*it]->getTransformationMatrix(f, filtered, &trans[0]))
 				{
-					outfile << trans[0] << " , " << trans[1] << " , " << trans[2] << " , " << trans[3] << " , ";
-					outfile << trans[4] << " , " << trans[5] << " , " << trans[6] << " , " << trans[7] << " , ";
-					outfile << trans[8] << " , " << trans[9] << " , " << trans[10] << " , " << trans[11] << " , ";
-					outfile << trans[12] << " , " << trans[13] << " , " << trans[14] << " , " << trans[15];
+					outfile << trans[0] << "," << trans[1] << "," << trans[2] << "," << trans[3] << ",";
+					outfile << trans[4] << "," << trans[5] << "," << trans[6] << "," << trans[7] << ",";
+					outfile << trans[8] << "," << trans[9] << "," << trans[10] << "," << trans[11] << ",";
+					outfile << trans[12] << "," << trans[13] << "," << trans[14] << "," << trans[15];
 				}
 				else
 				{
-					outfile << "NaN , NaN , NaN , NaN , ";
-					outfile << "NaN , NaN , NaN , NaN , ";
-					outfile << "NaN , NaN , NaN , NaN , ";
-					outfile << "NaN , NaN , NaN , NaN";
+					outfile << "NaN,NaN,NaN,NaN,";
+					outfile << "NaN,NaN,NaN,NaN,";
+					outfile << "NaN,NaN,NaN,NaN,";
+					outfile << "NaN,NaN,NaN,NaN";
 				}
 
 				outfile << std::endl;
@@ -1280,13 +1280,13 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 	outfile << "Mean";
 	for (unsigned int i = 0; i < markers.size(); i++)
 	{
-		outfile << " , " << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data() ;
+		outfile << "," << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data() ;
 	}
 	outfile << std::endl;
 
 	for (unsigned int i = 0; i < markers.size(); i++)
 	{
-		outfile << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data() << " , ";
+		outfile << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data() << ",";
 
 		for (unsigned int j = 0; j < markers.size(); j++)
 		{
@@ -1308,7 +1308,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 			if (value.size() > 0) mean = mean / value.size();
 
 			outfile << mean ;
-			if (j != markers.size() - 1) outfile << " , ";
+			if (j != markers.size() - 1) outfile << ",";
 		}
 		outfile << std::endl;
 	}
@@ -1318,13 +1318,13 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 	outfile << "SD";
 	for (unsigned int i = 0; i < markers.size(); i++)
 	{
-		outfile << " , " << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data();
+		outfile << "," << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data();
 	}
 	outfile << std::endl;
 
 	for (unsigned int i = 0; i < markers.size(); i++)
 	{
-		outfile << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data() << " , ";
+		outfile << "Marker " << (i + 1) << " " << markers[i]->getDescription().toAscii().data() << ",";
 
 		for (unsigned int j = 0; j < markers.size(); j++)
 		{
@@ -1353,7 +1353,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 			if (value.size() > 1)sd = sqrt(sd / (value.size() - 1));
 
 			outfile << sd;
-			if (j != markers.size() - 1) outfile << " , ";
+			if (j != markers.size() - 1) outfile << ",";
 		}
 		outfile << std::endl;
 	}
@@ -1369,13 +1369,13 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 		
 		for (unsigned int i = 0; i < rigidBodies[body]->getPointsIdx().size(); i++)
 		{
-			outfile << " , " << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toAscii().data();
+			outfile << "," << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toAscii().data();
 		}
 		outfile << std::endl;
 
 		for (unsigned int i = 0; i < rigidBodies[body]->getPointsIdx().size(); i++)
 		{
-			outfile << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toAscii().data() << " , ";
+			outfile << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toAscii().data() << ",";
 
 			for (unsigned int j = 0; j < rigidBodies[body]->getPointsIdx().size(); j++)
 			{
@@ -1397,7 +1397,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 				if (value.size() > 0) mean = mean / value.size();
 
 				outfile << mean;
-				if (j != rigidBodies[body]->getPointsIdx().size() - 1) outfile << " , ";
+				if (j != rigidBodies[body]->getPointsIdx().size() - 1) outfile << ",";
 			}
 			outfile << std::endl;
 		}
@@ -1407,13 +1407,13 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 		outfile << rigidBodies[body]->getDescription().toAscii().data() << " SD";
 		for (unsigned int i = 0; i < rigidBodies[body]->getPointsIdx().size(); i++)
 		{
-			outfile << " , " << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toAscii().data();
+			outfile << "," << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toAscii().data();
 		}
 		outfile << std::endl;
 
 		for (unsigned int i = 0; i < rigidBodies[body]->getPointsIdx().size(); i++)
 		{
-			outfile << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toAscii().data() << " , ";
+			outfile << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toAscii().data() << ",";
 
 			for (unsigned int j = 0; j < rigidBodies[body]->getPointsIdx().size(); j++)
 			{
@@ -1442,7 +1442,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 				if (value.size() > 1)sd = sqrt(sd / (value.size() - 1));
 
 				outfile << sd;
-				if (j != rigidBodies[body]->getPointsIdx().size() - 1) outfile << " , ";
+				if (j != rigidBodies[body]->getPointsIdx().size() - 1) outfile << ",";
 			}
 			outfile << std::endl;
 		}
@@ -1453,7 +1453,7 @@ void Trial::savePrecisionInfo(QString filename, int from, int to)
 {
 	std::ofstream outfile(filename.toAscii().data());
 	outfile.precision(12);
-	outfile << "RigidBodies , nb tracked frames , marker to marker sd , error 3d Unfiltered , error 3D filtered" << std::endl;
+	outfile << "RigidBodies,nb tracked frames,marker to marker sd,error 3d Unfiltered,error 3D filtered" << std::endl;
 	for (auto rb : rigidBodies)
 	{
 		double averageSD;
@@ -1461,14 +1461,14 @@ void Trial::savePrecisionInfo(QString filename, int from, int to)
 		rb->getMarkerToMarkerSD(averageSD, count, from, to);
 		double val1 = rb->getError3D(false,from, to);
 		double val2 = rb->getError3D(true, from, to);
-		outfile << rb->getDescription().toStdString() << " , " << rb->getFramesTracked() << " , " << averageSD << " , " << val1 << " , " << val2 << std::endl;
+		outfile << rb->getDescription().toStdString() << "," << rb->getFramesTracked() << "," << averageSD << "," << val1 << "," << val2 << std::endl;
 	}
-	outfile << std::endl << std::endl << "Markers , nb tracked frames , reprojectionerror , sd" << std::endl;
+	outfile << std::endl << std::endl << "Markers,nb tracked frames,reprojectionerror,sd" << std::endl;
 	for (auto marker : markers)
 	{
 		double sd;
 		double val = marker->getReprojectionError(&sd, from, to);
-		outfile << marker->getDescription().toStdString() << " , " << marker->getFramesTracked() << " , " << val << " , " << sd << std::endl;
+		outfile << marker->getDescription().toStdString() << "," << marker->getFramesTracked() << "," << val << "," << sd << std::endl;
 	}
 }
 
@@ -1525,7 +1525,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 		{
 			if (saveColumn)
 			{
-				outfile << "Frame" << " , ";
+				outfile << "Frame" << ",";
 			}
 			for (std::vector<int>::const_iterator it = _markers.begin(); it < _markers.end(); ++it)
 			{
@@ -1544,11 +1544,11 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 					name = name + "_" + QString::number(filterFrequency) + "Hz";
 				}
 
-				outfile << name.toAscii().data() << "_X" << " , " << name.toAscii().data() << "_Y" << " , " << name.toAscii().data() << "_Z";
+				outfile << name.toAscii().data() << "_X" << "," << name.toAscii().data() << "_Y" << "," << name.toAscii().data() << "_Z";
 
 				if (it != _markers.end() - 1)
 				{
-					outfile << " , ";
+					outfile << ",";
 				}
 				else
 				{
@@ -1565,22 +1565,22 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 		{
 			if (saveColumn)
 			{
-				outfile << f + 1 << " , ";
+				outfile << f + 1 << ",";
 			}
 			for (unsigned int i = 0; i < points3D.size(); i++)
 			{
 				if (status3D[i][f] <= 0)
 				{
-					outfile << "NaN" << " , " << "NaN" << " , " << "NaN";
+					outfile << "NaN" << "," << "NaN" << "," << "NaN";
 				}
 				else
 				{
-					outfile << points3D[i][f].x << " , " << points3D[i][f].y << " , " << points3D[i][f].z;
+					outfile << points3D[i][f].x << "," << points3D[i][f].y << "," << points3D[i][f].z;
 				}
 
 				if (i != points3D.size() - 1)
 				{
-					outfile << " , ";
+					outfile << ",";
 				}
 				else
 				{
@@ -1608,7 +1608,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 			{
 				if (saveColumn)
 				{
-					outfile << "Frame" << " , ";
+					outfile << "Frame" << ",";
 				}
 				QString name;
 				if (getMarkers()[*it]->getDescription().isEmpty())
@@ -1623,7 +1623,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 				{
 					name = name + "_" + QString::number(filterFrequency) + "Hz";
 				}
-				outfile << name.toAscii().data() << "_X" << " , " << name.toAscii().data() << "_Y" << " , " << name.toAscii().data() << "_Z";
+				outfile << name.toAscii().data() << "_X" << "," << name.toAscii().data() << "_Y" << "," << name.toAscii().data() << "_Z";
 
 				outfile << std::endl;
 			}
@@ -1636,15 +1636,15 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 			{
 				if (saveColumn)
 				{
-					outfile << f + 1 << " , ";
+					outfile << f + 1 << ",";
 				}
 				if (status3D[count][f] <= 0)
 				{
-					outfile << "NaN" << " , " << "NaN" << " , " << "NaN";
+					outfile << "NaN" << "," << "NaN" << "," << "NaN";
 				}
 				else
 				{
-					outfile << points3D[count][f].x << " , " << points3D[count][f].y << " , " << points3D[count][f].z;
+					outfile << points3D[count][f].x << "," << points3D[count][f].y << "," << points3D[count][f].z;
 				}
 
 				outfile << std::endl;
@@ -1699,11 +1699,11 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 
 				for (unsigned int j = start; j < end; j++)
 				{
-					outfile << name.toAscii().data() << "_cam" << j + 1 << "_X" << " , " << name.toAscii().data() << "_cam" << j + 1 << "_Y";
+					outfile << name.toAscii().data() << "_cam" << j + 1 << "_X" << "," << name.toAscii().data() << "_cam" << j + 1 << "_Y";
 
 					if (i != getMarkers().size() - 1 || j != end- 1)
 					{
-						outfile << " , ";
+						outfile << ",";
 					}
 					else
 					{
@@ -1719,7 +1719,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 			{
 				for (unsigned int j = start; j < end; j++)
 				{
-					outfile << 0.0 << " , ";
+					outfile << 0.0 << ",";
 				}
 			}
 			for (unsigned int i = 0; i < getMarkers().size(); i++)
@@ -1752,16 +1752,16 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 							y += 1;
 							x += 1;
 						}
-						outfile << x << " , " << y;
+						outfile << x << "," << y;
 					}
 					else
 					{
-						outfile << "NaN" << " , " << "NaN";
+						outfile << "NaN" << "," << "NaN";
 					}
 
 					if (i != getMarkers().size() - 1 || j != end - 1)
 					{
-						outfile << " , ";
+						outfile << ",";
 					}
 					else
 					{
@@ -1801,11 +1801,11 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 
 				for (unsigned int j = start; j < end; j++)
 				{
-					outfile << name.toAscii().data() << "_cam" << j + 1 << "_X" << " , " << name.toAscii().data() << "_cam" << j + 1 << "_Y";
+					outfile << name.toAscii().data() << "_cam" << j + 1 << "_X" << "," << name.toAscii().data() << "_cam" << j + 1 << "_Y";
 
 					if (j != end - 1)
 					{
-						outfile << " , ";
+						outfile << ",";
 					}
 					else
 					{
@@ -1820,7 +1820,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 				{
 					for (unsigned int j = start; j < end; j++)
 					{
-						outfile << 0.0 << " , ";
+						outfile << 0.0 << ",";
 					}
 				}
 
@@ -1852,16 +1852,16 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 							y += 1;
 							x += 1;
 						}
-						outfile << x << " , " << y;
+						outfile << x << "," << y;
 					}
 					else
 					{
-						outfile << "NaN" << " , " << "NaN";
+						outfile << "NaN" << "," << "NaN";
 					}
 
 					if (j != end - 1)
 					{
-						outfile << " , ";
+						outfile << ",";
 					}
 					else
 					{
