@@ -29,7 +29,7 @@
 
 #include <QString>
 
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 #include <fstream>
 
 namespace xma
@@ -75,17 +75,17 @@ namespace xma
 			return whiteBlobs;
 		}
 
-		cv::vector<cv::Point3d>& getFrameSpecifications()
+		std::vector<cv::Point3d>& getFrameSpecifications()
 		{
 			return frameSpecifications;
 		}
 
-		cv::vector<int>& getReferenceIDs()
+		std::vector<int>& getReferenceIDs()
 		{
 			return referenceIDs;
 		}
 
-		cv::vector<QString>& getReferenceNames()
+		std::vector<QString>& getReferenceNames()
 		{
 			return referenceNames;
 		}
@@ -116,9 +116,9 @@ namespace xma
 
 		cv::Point3d scale;
 
-		cv::vector<cv::Point3d> frameSpecifications;
-		cv::vector<int> referenceIDs;
-		cv::vector<QString> referenceNames;
+		std::vector<cv::Point3d> frameSpecifications;
+		std::vector<int> referenceIDs;
+		std::vector<QString> referenceNames;
 
 		QString frameSpecificationsFilename;
 		QString referencesFilename;

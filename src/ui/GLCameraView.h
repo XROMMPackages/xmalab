@@ -27,7 +27,7 @@
 #ifndef GLWIDGET_H_
 #define GLWIDGET_H_
 
-#include <QGLWidget>
+#include <QOpenGLWidget>
 
 namespace xma
 {
@@ -35,7 +35,7 @@ namespace xma
 	class FrameBuffer;
 	class DistortionShader;
 	class BlendShader;
-	class GLCameraView : public QGLWidget
+	class GLCameraView : public QOpenGLWidget
 	{
 		Q_OBJECT
 
@@ -88,6 +88,9 @@ namespace xma
 		void setZoomRatio(double newZoomRation, bool autozoom = false);
 
 		void renderTextCentered(QString string);
+		inline bool projectTextPos(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble proj[16], const GLint viewport[4], GLdouble * winx, GLdouble * winy, GLdouble * winz);
+		inline void transformTextPos(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
+		void renderText(double x, double y, double z, const QString &str, QColor fontColor, const QFont & font = QFont());
 		void renderPointText(bool calibration);
 		void drawTexture();
 		void drawQuad();

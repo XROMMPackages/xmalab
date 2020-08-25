@@ -40,6 +40,7 @@
 #include "core/CalibrationObject.h"
 
 #include <QtCore>
+#include <QtConcurrent/QtConcurrent>
 #include <math.h>
 
 #include "levmar.h"
@@ -410,7 +411,7 @@ MultiCameraCalibration::MultiCameraCalibration(int method, int iterations, doubl
 			distortion.resize(nbCameras);
 		}
 
-		cv::vector<bool> cameraset(nbCameras, false);
+		std::vector<bool> cameraset(nbCameras, false);
 
 		// We can then set all the cameras which are present
 		for(int c = 0; c < nbCameras; c++)
@@ -827,55 +828,43 @@ void MultiCameraCalibration::reproject(int c)
 
 	bool m_planar = CalibrationObject::getInstance()->isPlanar();
 
-	CvMat* object_points2 = cvCreateMat(CalibrationObject::getInstance()->getFrameSpecifications().size(), 3, CV_64FC1);
-	CvMat* image_points2 = cvCreateMat(CalibrationObject::getInstance()->getFrameSpecifications().size(), 2, CV_64FC1);
+	std::vector<cv::Point3f> object_points2;
+	std::vector<cv::Point2f> image_points2;
 
-	// Transfer the points into the correct size matrices
 	for (unsigned int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); ++i)
 	{
-		CV_MAT_ELEM(*object_points2, double, i, 0) = CalibrationObject::getInstance()->getFrameSpecifications()[i].x;
-		CV_MAT_ELEM(*object_points2, double, i, 1) = CalibrationObject::getInstance()->getFrameSpecifications()[i].y;
-		CV_MAT_ELEM(*object_points2, double, i, 2) = CalibrationObject::getInstance()->getFrameSpecifications()[i].z;
+		object_points2.push_back(cv::Point3f(
+			CalibrationObject::getInstance()->getFrameSpecifications()[i].x,
+			CalibrationObject::getInstance()->getFrameSpecifications()[i].y,
+			CalibrationObject::getInstance()->getFrameSpecifications()[i].z
+		));
+		image_points2.push_back(cv::Point2f(0,0));
 	}
 
-	// initialize camera and distortion initial guess
-	CvMat* intrinsic_matrix2 = cvCreateMat(3, 3, CV_64FC1);
-	CvMat* distortion_coeffs2 = cvCreateMat(8, 1, CV_64FC1);
 
-	for (unsigned int i = 0; i < 3; ++i)
-	{
-		CV_MAT_ELEM(*intrinsic_matrix2, double, i, 0) = Project::getInstance()->getCameras()[c]->getCameraMatrix().at<double>(i, 0);
-		CV_MAT_ELEM(*intrinsic_matrix2, double, i, 1) = Project::getInstance()->getCameras()[c]->getCameraMatrix().at<double>(i, 1);
-		CV_MAT_ELEM(*intrinsic_matrix2, double, i, 2) = Project::getInstance()->getCameras()[c]->getCameraMatrix().at<double>(i, 2);
-	}
-
-	//We save the  undistorted points
-	for (unsigned int i = 0; i < 8; ++i)
-	{
-		CV_MAT_ELEM(*distortion_coeffs2, double, i, 0) = 0;
-	}
-
-	CvMat* r_matrices = cvCreateMat(1, 1, CV_64FC3);
-	CvMat* t_matrices = cvCreateMat(1, 1, CV_64FC3);
-	cv::vector<cv::Point2d> projectedPoints;
+	std::vector<cv::Point2d> projectedPoints;
 	for (int f = 0; f < Project::getInstance()->getNbImagesCalibration(); f++)
 	{
 		if ((!m_planar && Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->isCalibrated() > 0)
 			|| (m_planar && Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getDetectedPoints().size() > 0))
 		{
 			projectedPoints.clear();
-			for (unsigned int i = 0; i < 3; i++)
-			{
-				CV_MAT_ELEM(*r_matrices, cv::Vec3d, 0, 0)[i] = Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getRotationVector().at<double>(i, 0);
-				CV_MAT_ELEM(*t_matrices, cv::Vec3d, 0, 0)[i] = Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getTranslationVector().at<double>(i, 0);
-			}
+
 			try
 			{
-				cvProjectPoints2(object_points2, r_matrices, t_matrices, intrinsic_matrix2, distortion_coeffs2, image_points2);
+				std::vector<float> distCoeff;
+				cv::projectPoints(
+					object_points2,
+					Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getRotationVector(),
+					Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->getTranslationVector(),
+					Project::getInstance()->getCameras()[c]->getCameraMatrix(),
+					distCoeff,
+					image_points2);
+				
 				projectedPoints.clear();
 				for (unsigned int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); i++)
 				{
-					cv::Point2d pt = cv::Point2d(CV_MAT_ELEM(*image_points2, double, i, 0), CV_MAT_ELEM(*image_points2, double, i, 1));
+					cv::Point2d pt = image_points2[i];
 					projectedPoints.push_back(pt);
 				}
 				Project::getInstance()->getCameras()[c]->getCalibrationImages()[f]->setPointsProjectedUndistorted(projectedPoints);
@@ -888,11 +877,5 @@ void MultiCameraCalibration::reproject(int c)
 	}
 
 	projectedPoints.clear();
-	cvReleaseMat(&intrinsic_matrix2);
-	cvReleaseMat(&distortion_coeffs2);
-	cvReleaseMat(&object_points2);
-	cvReleaseMat(&image_points2);
-	cvReleaseMat(&r_matrices);
-	cvReleaseMat(&t_matrices);
 }
 

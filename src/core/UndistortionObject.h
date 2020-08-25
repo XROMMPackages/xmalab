@@ -33,7 +33,7 @@
 
 #include <QString>
 
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 
 namespace xma
 {
@@ -70,12 +70,12 @@ namespace xma
 		bool undistort(Image* distorted, Image* undistorted);
 		bool undistort(Image* distorted, QString filenameOut, bool filter = false);
 		bool undistort(QString filenameIn, QString filenameOut);
-		void setDetectedPoints(cv::vector<cv::Point2d>& points);
-		void getDetectedPoints(cv::vector<cv::Point2d>& points);
+		void setDetectedPoints(std::vector<cv::Point2d>& points);
+		void getDetectedPoints(std::vector<cv::Point2d>& points);
 		void removeOutlier(double threshold_circle, double threshold_border);
 
-		void setGridPoints(cv::vector<cv::Point2d>& points_distorted, cv::vector<cv::Point2d>& points_references, cv::vector<bool>& points_inlier);
-		void getGridPoints(cv::vector<cv::Point2d>& points_distorted, cv::vector<cv::Point2d>& points_references, cv::vector<bool>& points_inlier);
+		void setGridPoints(std::vector<cv::Point2d>& points_distorted, std::vector<cv::Point2d>& points_references, std::vector<bool>& points_inlier);
+		void getGridPoints(std::vector<cv::Point2d>& points_distorted, std::vector<cv::Point2d>& points_references, std::vector<bool>& points_inlier);
 
 		void setMaps(cv::Mat& map_x, cv::Mat& map_y);
 
@@ -153,12 +153,12 @@ namespace xma
 		void drawData(int type);
 		void bindTexture(int type);
 
-		cv::vector<bool>& getInlier()
+		std::vector<bool>& getInlier()
 		{
 			return points_grid_inlier;
 		}
 
-		cv::vector<double>& getError()
+		std::vector<double>& getError()
 		{
 			return error;
 		}
@@ -180,12 +180,12 @@ namespace xma
 		bool computed;
 
 		//Points
-		cv::vector<cv::Point2d> points_detected;
-		cv::vector<cv::Point2d> points_grid_distorted;
-		cv::vector<cv::Point2d> points_grid_undistorted;
-		cv::vector<bool> points_grid_inlier;
-		cv::vector<cv::Point2d> points_grid_references;
-		cv::vector<double> error;
+		std::vector<cv::Point2d> points_detected;
+		std::vector<cv::Point2d> points_grid_distorted;
+		std::vector<cv::Point2d> points_grid_undistorted;
+		std::vector<bool> points_grid_inlier;
+		std::vector<cv::Point2d> points_grid_references;
+		std::vector<double> error;
 
 		cv::Mat undistortionMapX;
 		cv::Mat undistortionMapY;
@@ -201,7 +201,7 @@ namespace xma
 		cv::Mat undistortionPoints;
 
 		void savePoints(std::vector<cv::Point2d>& points, QString filename);
-		void loadPoints(cv::vector<cv::Point2d>& points, QString filename);
+		void loadPoints(std::vector<cv::Point2d>& points, QString filename);
 		void drawPoints(std::vector<cv::Point2d>& points);
 		int findClosestPoint(std::vector<cv::Point2d>& points, double x, double y, double macDistSquare = 100);
 		void computeError();

@@ -34,7 +34,7 @@
 
 #include <QtCore/QFileInfo>
 
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 #include "Project.h"
 
 using namespace xma;
@@ -190,10 +190,10 @@ void CineVideo::loadCineInfo()
 	//Open File
 	if (QFile::exists(filenames.at(0)))
 	{
-		std::ifstream is(filenames.at(0).toAscii().data(), std::ifstream::binary);
+		std::ifstream is(filenames.at(0).toStdString(), std::ifstream::binary);
 
 		char* counter;
-		if (printHeader)std::cout << "Read Cine File " << filenames.at(0).toAscii().data() << std::endl;
+		if (printHeader)std::cout << "Read Cine File " << filenames.at(0).toStdString() << std::endl;
 		//Read CINEFILEHEADER
 		is.seekg(0);
 		char* header = new char[44];
@@ -679,7 +679,7 @@ void CineVideo::loadCineInfo()
 
 		is.close();
 
-		if (printHeader) std::cout << "Read Cine File " << filenames.at(0).toAscii().data() << " Finished" << std::endl << std::endl;
+		if (printHeader) std::cout << "Read Cine File " << filenames.at(0).toStdString() << " Finished" << std::endl << std::endl;
 	}
 }
 
@@ -696,7 +696,7 @@ void CineVideo::setActiveFrame(int _activeFrame)
 
 	lastFrame = _activeFrame;
 
-	std::ifstream is(filenames.at(0).toAscii().data(), std::ifstream::binary);
+	std::ifstream is(filenames.at(0).toStdString(), std::ifstream::binary);
 	if (_activeFrame < (int) ImageCount && _activeFrame < (int) image_addresses.size())
 	{
 		is.seekg(image_addresses[_activeFrame]);

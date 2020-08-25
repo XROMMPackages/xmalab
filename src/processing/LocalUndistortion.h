@@ -30,7 +30,7 @@
 #include <QFutureWatcher>
 #include <QObject>
 
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 
 namespace xma
 {
@@ -59,11 +59,11 @@ namespace xma
 		int m_camera;
 		bool hasReferences;
 
-		cv::vector<cv::Point2d> detectedPoints;
-		cv::vector<cv::Point2d> tmpPoints_distorted;
-		cv::vector<cv::Point2d> tmpPoints_references;
+		std::vector<cv::Point2d> detectedPoints;
+		std::vector<cv::Point2d> tmpPoints_distorted;
+		std::vector<cv::Point2d> tmpPoints_references;
 
-		cv::vector<bool> tmpPoints_inlier;
+		std::vector<bool> tmpPoints_inlier;
 		cv::Mat map_x;
 		cv::Mat map_y;
 
@@ -84,16 +84,16 @@ namespace xma
 
 		void setupCorrespondances();
 		int computeLWM(cv::Mat& detectedPointsPtsInlier, cv::Mat& controlPtsInlier, cv::Mat& A, cv::Mat& B, cv::Mat& radii);
-		void setPointsByInlier(cv::vector<cv::Point2d>& pts, cv::Mat& ptsInlier);
+		void setPointsByInlier(std::vector<cv::Point2d>& pts, cv::Mat& ptsInlier);
 		void createLookupTable(cv::Mat& controlPts, cv::Mat& A, cv::Mat& B, cv::Mat& radii, cv::Mat& outMat_x, cv::Mat& outMat_y, int gridSize);
 
-		bool findNClosestPoint(int numberPoints, cv::Point2d pt, cv::vector<cv::Point2d>& closest_pts, cv::vector<cv::Point2d> all_pts, bool skipfirst);
-		double getHexagonalGridOrientation(cv::Point2d center, cv::vector<cv::Point2d> all_pts);
+		bool findNClosestPoint(int numberPoints, cv::Point2d pt, std::vector<cv::Point2d>& closest_pts, std::vector<cv::Point2d> all_pts, bool skipfirst);
+		double getHexagonalGridOrientation(cv::Point2d center, std::vector<cv::Point2d> all_pts);
 		double getHexagonalGridSize(cv::Point2d center);
-		cv::vector<cv::Point2d> get6adjCells(cv::Point2d center, cv::vector<cv::Point2d> all_pts);
-		bool contains(cv::Point2d centercont, cv::vector<cv::Point2d>& pts);
-		void checkAndAddPoint(cv::Point2d centerdet, cv::Point2d ptA1cont, cv::Point2d ptA1det, double thresh, cv::vector<double>& dy_vec, bool & newPoint);
-		bool addNeighbours(cv::Point2d centercont, cv::Point2d centerdet, double dY, double dX, double dOffY, double dYdist, cv::vector<double>& dy_vec);
+		std::vector<cv::Point2d> get6adjCells(cv::Point2d center, std::vector<cv::Point2d> all_pts);
+		bool contains(cv::Point2d centercont, std::vector<cv::Point2d>& pts);
+		void checkAndAddPoint(cv::Point2d centerdet, cv::Point2d ptA1cont, cv::Point2d ptA1det, double thresh, std::vector<double>& dy_vec, bool & newPoint);
+		bool addNeighbours(cv::Point2d centercont, cv::Point2d centerdet, double dY, double dX, double dOffY, double dYdist, std::vector<double>& dy_vec);
 		void setupHexagonalGrid(cv::Point2d center, double dY);
 		
 	};

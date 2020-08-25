@@ -32,7 +32,7 @@
 #include <QFutureWatcher>
 #include <QObject>
 
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 
 namespace xma
 {
@@ -52,7 +52,7 @@ namespace xma
 		int m_camera;
 		//if -1 undistortion;
 		int m_image;
-		cv::vector<cv::Point2d> tmpPoints;
+		std::vector<cv::Point2d> tmpPoints;
 	};
 }
 #endif // BLOBDETECTION_H

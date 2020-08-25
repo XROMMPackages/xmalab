@@ -38,10 +38,10 @@
 
 #include <QCloseEvent>
 #include <iostream>
-#include <QtGui/QInputDialog>
+#include <QInputDialog>
 #include <QCheckBox>
 #include <QToolButton>
-#include <QtGui/QColorDialog>
+#include <QColorDialog>
 #include "ErrorDialog.h"
 #include "PlotWindow.h"
 

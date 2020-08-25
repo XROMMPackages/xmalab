@@ -64,7 +64,7 @@ std::vector<Trial *> TrialSelectorDialog::getTrials()
 		{
 			if (items[i]->text() == (*trial_it)->getName())
 			{
-				//std::cerr << (*trial_it)->getName().toAscii().data() << std::endl;
+				//std::cerr << (*trial_it)->getName().toStdString() << std::endl;
 				out_trials.push_back((*trial_it));
 
 			}

@@ -42,6 +42,7 @@
 #include "core/CalibrationSequence.h"
 
 #include <QtCore>
+#include <QtConcurrent/QtConcurrent>
 
 using namespace xma;
 
@@ -95,12 +96,12 @@ void CheckerboardDetection::detectCorner_thread()
 	Project::getInstance()->getCameras()[m_camera]->getCalibrationSequence()->getImage(m_image,true)->getImage(image);
 
 	if (!viaHomography){
-		cv::vector<cv::Point2f> tmpPoints2;
+		std::vector<cv::Point2f> tmpPoints2;
 		bool pattern_found = findChessboardCorners(image, cv::Size(CalibrationObject::getInstance()->getNbHorizontalSquares(), CalibrationObject::getInstance()->getNbVerticalSquares()), tmpPoints2,
 			cv::CALIB_CB_ADAPTIVE_THRESH);
 
 		if (pattern_found) cv::cornerSubPix(image, tmpPoints2, cv::Size(11, 11), cv::Size(-1, -1),
-			cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
+			cv::TermCriteria(cv::TermCriteria::MAX_ITER + cv::TermCriteria::EPS, 30, 0.1));
 
 		for (unsigned int i = 0; i < tmpPoints2.size(); i++)
 		{
@@ -111,7 +112,7 @@ void CheckerboardDetection::detectCorner_thread()
 	else
 	{
 		cv::Mat homo = cv::findHomography(gridPoints, selectedPoints);
-		cv::vector<cv::Point2f> tmpPoints2;
+		std::vector<cv::Point2f> tmpPoints2;
 		for (unsigned int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); i++)
 		{
 			cv::Point2d pt;
@@ -123,7 +124,7 @@ void CheckerboardDetection::detectCorner_thread()
 
 		if(!Settings::getInstance()->getBoolSetting("DisableCheckerboardRefinement"))
 			cv::cornerSubPix(image, tmpPoints2, cv::Size(11, 11), cv::Size(-1, -1),
-				cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
+				cv::TermCriteria(cv::TermCriteria::MAX_ITER + cv::TermCriteria::EPS, 30, 0.1));
 
 
 		for (unsigned int i = 0; i < tmpPoints2.size(); i++)

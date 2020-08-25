@@ -428,11 +428,11 @@ void VideoStream::changeImagePath(QString newfolder, QString oldfolder)
 
 void VideoStream::save(QString path)
 {
-	std::ofstream outfile(path.toAscii().data());
+	std::ofstream outfile(path.toStdString());
 	outfile.precision(12);
 	for (int j = 0; j < filenames.size(); ++j)
 	{
-		outfile << filenames.at(j).toAscii().data() << std::endl;;
+		outfile << filenames.at(j).toStdString() << std::endl;;
 	}
 	outfile.close();
 }

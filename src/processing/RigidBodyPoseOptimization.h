@@ -27,7 +27,7 @@
 #ifndef RIGIDBODYPOSEOPTIMIZATION_H_
 #define RIGIDBODYPOSEOPTIMIZATION_H_
 
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 #include <QMutex>
 
 namespace xma

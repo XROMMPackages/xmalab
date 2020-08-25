@@ -61,13 +61,6 @@ void CameraViewDetailWidget::updateCamera()
 	widget->glCameraView->setCamera(camera);
 }
 
-void CameraViewDetailWidget::setSharedGLContext(const QGLContext* sharedContext)
-{
-	QGLContext* context = new QGLContext(sharedContext->format(), widget->glCameraView);
-	context->create(sharedContext);
-	widget->glCameraView->setContext(context, sharedContext, true);
-}
-
 void CameraViewDetailWidget::draw()
 {
 	if (m_visible) widget->glCameraView->update();

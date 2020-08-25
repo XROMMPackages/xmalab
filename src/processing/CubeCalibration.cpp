@@ -41,6 +41,7 @@
 #include "core/Settings.h"
 
 #include <QtCore>
+#include <QtConcurrent/QtConcurrent>
 #include <math.h>
 
 using namespace xma;
@@ -260,7 +261,7 @@ void CubeCalibration::setPose_thread()
 }
 
 
-void CubeCalibration::getRandomReferences(unsigned int nbPoints, cv::vector<cv::Point2d>& pt2d, cv::vector<cv::Point3d>& pt3d)
+void CubeCalibration::getRandomReferences(unsigned int nbPoints, std::vector<cv::Point2d>& pt2d, std::vector<cv::Point3d>& pt3d)
 {
 	unsigned int pts_Set = 0;
 	unsigned int ptsUsed = nbPoints;
@@ -323,8 +324,8 @@ double CubeCalibration::euclideanDist(cv::Point2d& p, cv::Point2d& q)
 
 bool CubeCalibration::calibrateOpenCV(bool singleFocal)
 {
-	cv::vector<cv::Point3d> corr3D;
-	cv::vector<cv::Point2d> corr2D;
+	std::vector<cv::Point3d> corr3D;
+	std::vector<cv::Point2d> corr2D;
 
 	for (unsigned int i = 0; i < detectedPoints.size(); i++)
 	{
@@ -337,83 +338,66 @@ bool CubeCalibration::calibrateOpenCV(bool singleFocal)
 
 	if (corr3D.size() > 8)
 	{
-		// Allocate matrices according to how many chessboards found
-		CvMat* object_points = cvCreateMat(corr3D.size(), 3, CV_64FC1);
-		CvMat* image_points = cvCreateMat(corr2D.size(), 2, CV_64FC1);
-		CvMat* point_counts = cvCreateMat(1, 1, CV_32SC1);
+
+		std::vector<std::vector<cv::Point3f> > object_points;
+		std::vector<std::vector<cv::Point2f> > image_points;
+		object_points.push_back(std::vector<cv::Point3f>());
+		image_points.push_back(std::vector<cv::Point2f>());
+
+		std::vector <float> distCoefs;
+		distCoefs.resize(5, 0.0f);
+
+		std::vector<cv::Mat> rvecs, tvecs;
 
 		// Transfer the points into the correct size matrices
 		for (unsigned int i = 0; i < corr3D.size(); ++i)
 		{
-			CV_MAT_ELEM( *image_points, double, i, 0) = corr2D[i].x;
-			CV_MAT_ELEM( *image_points, double, i, 1) = corr2D[i].y;
-			CV_MAT_ELEM( *object_points, double, i, 0) = corr3D[i].x;
-			CV_MAT_ELEM( *object_points, double, i, 1) = corr3D[i].y;
-			CV_MAT_ELEM( *object_points, double, i, 2) = corr3D[i].z;
+			object_points[0].push_back(cv::Point3f(
+				corr3D[i].x,
+				corr3D[i].y,
+				corr3D[i].z
+			));
+			image_points[0].push_back(cv::Point2f(
+				corr2D[i].x,
+				corr2D[i].y
+			));
 		}
-		CV_MAT_ELEM( *point_counts, int, 0, 0 ) = corr3D.size();
 
 		if (cameramatrix.at<double>(0, 2) < 0) cameramatrix.at<double>(0, 2) = 1;
 		if (cameramatrix.at<double>(0, 2) > Project::getInstance()->getCameras()[m_camera]->getWidth()) cameramatrix.at<double>(0, 2) = Project::getInstance()->getCameras()[m_camera]->getWidth() - 1;
 		if (cameramatrix.at<double>(1, 2) < 0) cameramatrix.at<double>(1, 2) = 0;
 		if (cameramatrix.at<double>(1, 2) > Project::getInstance()->getCameras()[m_camera]->getHeight()) cameramatrix.at<double>(1, 2) = Project::getInstance()->getCameras()[m_camera]->getHeight() - 1;
+		cameramatrix.at<double>(0, 1) = 0;
 
-
-		// initialize camera and distortion initial guess
-		CvMat* intrinsic_matrix = cvCreateMat(3, 3, CV_64FC1);
-		CvMat* distortion_coeffs = cvCreateMat(5, 1, CV_64FC1);
-		for (unsigned int i = 0; i < 3; ++i)
-		{
-			CV_MAT_ELEM( *intrinsic_matrix, double, i, 0) = cameramatrix.at<double>(i, 0);
-			CV_MAT_ELEM( *intrinsic_matrix, double, i, 1) = cameramatrix.at<double>(i, 1);
-			CV_MAT_ELEM( *intrinsic_matrix, double, i, 2) = cameramatrix.at<double>(i, 2);
-		}
-		CV_MAT_ELEM( *intrinsic_matrix, double, 0, 1) = 0;
-
-		for (int i = 0; i < 5; ++i)
-		{
-			CV_MAT_ELEM( *distortion_coeffs, double, i, 0) = 0;
-		}
-
-		CvMat* r_matrices = cvCreateMat(1, 1, CV_64FC3);
-		CvMat* t_matrices = cvCreateMat(1, 1, CV_64FC3);
-		int flags = CV_CALIB_USE_INTRINSIC_GUESS + CV_CALIB_FIX_K1 + CV_CALIB_FIX_K2 + CV_CALIB_FIX_K3 + CV_CALIB_ZERO_TANGENT_DIST;
+		int flags = cv::CALIB_USE_INTRINSIC_GUESS + cv::CALIB_FIX_K1 + cv::CALIB_FIX_K2 + cv::CALIB_FIX_K3 + cv::CALIB_ZERO_TANGENT_DIST;
 		if (singleFocal)
 		{
-			flags += CV_CALIB_FIX_ASPECT_RATIO ;
+			flags += cv::CALIB_FIX_ASPECT_RATIO ;
 			double focal = 0.5 * (cameramatrix.at<double>(0, 0) + cameramatrix.at<double>(1, 1));
-			CV_MAT_ELEM( *intrinsic_matrix, double, 0, 0) = focal;
-			CV_MAT_ELEM( *intrinsic_matrix, double, 1, 1) = focal;
+			cameramatrix.at<double>(0, 0) = focal;
+			cameramatrix.at<double>(1, 1) = focal;
 		}
 		if (Settings::getInstance()->getBoolSetting("FixPrincipal"))
 		{
 			std::cerr << "fix" << std::endl;
-			flags += CV_CALIB_FIX_PRINCIPAL_POINT;
-			CV_MAT_ELEM( *intrinsic_matrix, double, 0, 2) = 0.5 * (Project::getInstance()->getCameras()[m_camera]->getWidth() + 1);
-			CV_MAT_ELEM( *intrinsic_matrix, double, 1, 2) = 0.5 * (Project::getInstance()->getCameras()[m_camera]->getHeight() + 1);
+			flags += cv::CALIB_FIX_PRINCIPAL_POINT;
+			cameramatrix.at<double>(0, 2) = 0.5 * (Project::getInstance()->getCameras()[m_camera]->getWidth() + 1);
+			cameramatrix.at<double>(1, 2) = 0.5 * (Project::getInstance()->getCameras()[m_camera]->getHeight() + 1);
 		}
 		try
 		{
-			cvCalibrateCamera2(object_points, image_points, point_counts, cv::Size(Project::getInstance()->getCameras()[m_camera]->getWidth(), Project::getInstance()->getCameras()[m_camera]->getHeight()),
-			                   intrinsic_matrix, distortion_coeffs, r_matrices, t_matrices, flags);
-
-			for (unsigned int i = 0; i < 3; ++i)
-			{
-				cameramatrix.at<double>(i, 0) = CV_MAT_ELEM( *intrinsic_matrix, double, i, 0);
-				cameramatrix.at<double>(i, 1) = CV_MAT_ELEM( *intrinsic_matrix, double, i, 1);
-				cameramatrix.at<double>(i, 2) = CV_MAT_ELEM( *intrinsic_matrix, double, i, 2);
-			}
-
-			rotationvector.at<double>(0, 0) = CV_MAT_ELEM( *r_matrices, cv::Vec3d, 0, 0)[0];
-			rotationvector.at<double>(1, 0) = CV_MAT_ELEM( *r_matrices, cv::Vec3d, 0, 0)[1];
-			rotationvector.at<double>(2, 0) = CV_MAT_ELEM( *r_matrices, cv::Vec3d, 0, 0)[2];
-
-			translationvector.at<double>(0, 0) = CV_MAT_ELEM( *t_matrices, cv::Vec3d, 0, 0)[0];
-			translationvector.at<double>(1, 0) = CV_MAT_ELEM( *t_matrices, cv::Vec3d, 0, 0)[1];
-			translationvector.at<double>(2, 0) = CV_MAT_ELEM( *t_matrices, cv::Vec3d, 0, 0)[2];
-
-			cvReleaseMat(&r_matrices);
-			cvReleaseMat(&t_matrices);
+			cv::calibrateCamera(
+				object_points,
+				image_points,
+				cv::Size(Project::getInstance()->getCameras()[m_camera]->getWidth(), Project::getInstance()->getCameras()[m_camera]->getHeight()),
+				cameramatrix,
+				distCoefs,
+				rvecs,
+				tvecs,
+				flags
+			);
+			rotationvector = rvecs[0];
+			translationvector = tvecs[0];
 
 			poseComputed = true;
 			reprojectAndComputeError();
@@ -423,12 +407,6 @@ bool CubeCalibration::calibrateOpenCV(bool singleFocal)
 			fprintf(stderr, "Frame::calibrateOpenCV : cvCalibrateCamera2 Failed with Exception - %s\n", e.what());
 			poseComputed = false;
 		}
-
-		cvReleaseMat(&intrinsic_matrix);
-		cvReleaseMat(&distortion_coeffs);
-		cvReleaseMat(&object_points);
-		cvReleaseMat(&image_points);
-		cvReleaseMat(&point_counts);
 
 		corr3D.clear();
 		corr2D.clear();
@@ -444,49 +422,35 @@ bool CubeCalibration::calibrateOpenCV(bool singleFocal)
 
 void CubeCalibration::reprojectAndComputeError()
 {
-	CvMat* object_points = cvCreateMat(coords3DSize, 3, CV_64FC1);
-	CvMat* image_points = cvCreateMat(coords3DSize, 2, CV_64FC1);
+
+	std::vector<cv::Point3f>object_points;
+	std::vector<cv::Point2f>image_points;
 
 	// Transfer the points into the correct size matrices
-	for (int i = 0; i < coords3DSize; ++i)
+	for (unsigned int i = 0; i < coords3DSize; ++i)
 	{
-		CV_MAT_ELEM( *object_points, double, i, 0) = coords3D[i].x;
-		CV_MAT_ELEM( *object_points, double, i, 1) = coords3D[i].y;
-		CV_MAT_ELEM( *object_points, double, i, 2) = coords3D[i].z;
+		object_points.push_back(cv::Point3f(
+			coords3D[i].x,
+			coords3D[i].y,
+			coords3D[i].z));
+		image_points.push_back(cv::Point2f(0, 0));
 	}
 
-	// initialize camera and distortion initial guess
-	CvMat* intrinsic_matrix = cvCreateMat(3, 3, CV_64FC1);
-	CvMat* distortion_coeffs = cvCreateMat(5, 1, CV_64FC1);
-	for (unsigned int i = 0; i < 3; ++i)
-	{
-		CV_MAT_ELEM( *intrinsic_matrix, double, i, 0) = cameramatrix.at<double>(i, 0);
-		CV_MAT_ELEM( *intrinsic_matrix, double, i, 1) = cameramatrix.at<double>(i, 1);
-		CV_MAT_ELEM( *intrinsic_matrix, double, i, 2) = cameramatrix.at<double>(i, 2);
-	}
-	CV_MAT_ELEM( *intrinsic_matrix, double, 0, 1) = 0;
-
-	for (unsigned int i = 0; i < 5; ++i)
-	{
-		CV_MAT_ELEM( *distortion_coeffs, double, i, 0) = 0;
-	}
-
-	CvMat* r_matrices = cvCreateMat(1, 1, CV_64FC3);
-	CvMat* t_matrices = cvCreateMat(1, 1, CV_64FC3);
-
-	for (unsigned int i = 0; i < 3; i++)
-	{
-		CV_MAT_ELEM( *r_matrices, cv::Vec3d, 0, 0)[i] = rotationvector.at<double>(i, 0);
-		CV_MAT_ELEM( *t_matrices, cv::Vec3d, 0, 0)[i] = translationvector.at<double>(i, 0);
-	}
 	try
 	{
-		cvProjectPoints2(object_points, r_matrices, t_matrices, intrinsic_matrix, distortion_coeffs, image_points);
+		std::vector<float> distCoeff;
+		cv::projectPoints(
+			object_points,
+			rotationvector,
+			translationvector,
+			cameramatrix,
+			distCoeff,
+			image_points);
 
 		projectedPoints.clear();
 		for (int i = 0; i < coords3DSize; i++)
 		{
-			cv::Point2d pt = cv::Point2d(CV_MAT_ELEM( *image_points, double, i, 0), CV_MAT_ELEM( *image_points, double, i, 1));
+			cv::Point2d pt = image_points[i];
 			projectedPoints.push_back(pt);
 		}
 
@@ -499,13 +463,6 @@ void CubeCalibration::reprojectAndComputeError()
 	{
 		fprintf(stderr, "Frame::reprojectAndComputeError : cvProjectPoints2 Failed with Exception - %s\n", e.what());
 	}
-
-	cvReleaseMat(&intrinsic_matrix);
-	cvReleaseMat(&distortion_coeffs);
-	cvReleaseMat(&object_points);
-	cvReleaseMat(&image_points);
-	cvReleaseMat(&r_matrices);
-	cvReleaseMat(&t_matrices);
 }
 
 void CubeCalibration::setupCorrespondancesRansac(unsigned int loop_max, double threshold)
@@ -517,8 +474,8 @@ void CubeCalibration::setupCorrespondancesRansac(unsigned int loop_max, double t
 	for (unsigned int loop = 0; loop < loop_max; loop ++)
 	{
 		//Vector for points
-		cv::vector<cv::Point2d> pt2d;
-		cv::vector<cv::Point3d> pt3d;
+		std::vector<cv::Point2d> pt2d;
+		std::vector<cv::Point3d> pt3d;
 		getRandomReferences(6, pt2d, pt3d);
 
 		double error_projection = computeProjection(pt2d, pt3d, tmp_projection);
@@ -615,8 +572,8 @@ void CubeCalibration::refineResults(bool withCameraRefinement)
 
 void CubeCalibration::setPoseFromInlier()
 {
-	cv::vector<cv::Point2d> pt2d;
-	cv::vector<cv::Point3d> pt3d;
+	std::vector<cv::Point2d> pt2d;
+	std::vector<cv::Point3d> pt3d;
 
 	if (Inlier.size() == detectedPoints.size() && coords3DSize == Inlier.size())
 	{
@@ -683,8 +640,8 @@ void CubeCalibration::calibrateFromInliers(bool singleFocal)
 
 void CubeCalibration::computeProjectionMatrixFromInlier()
 {
-	cv::vector<cv::Point3d> corr3D;
-	cv::vector<cv::Point2d> corr2D;
+	std::vector<cv::Point3d> corr3D;
+	std::vector<cv::Point2d> corr2D;
 
 	for (unsigned int i = 0; i < detectedPoints.size(); i++)
 	{
@@ -721,57 +678,38 @@ void CubeCalibration::computeProjectionMatrixFromInlier()
 	corr2D.clear();
 }
 
-void CubeCalibration::computePose(cv::vector<cv::Point2d> pt2d, cv::vector<cv::Point3d> pt3d)
+void CubeCalibration::computePose(std::vector<cv::Point2d> pt2d, std::vector<cv::Point3d> pt3d)
 {
 	if (calibrated && pt2d.size() == pt3d.size() && pt2d.size() >= 5)
 	{
-		CvMat* object_points = cvCreateMat(pt3d.size(), 3, CV_64FC1);
-		CvMat* image_points = cvCreateMat(pt2d.size(), 2, CV_64FC1);
+
+		std::vector<cv::Point3f> object_points;
+		std::vector<cv::Point2f> image_points;
+		
+		std::vector <float> distCoefs;
+		cv::Mat rvec, tvec;
 
 		// Transfer the points into the correct size matrices
 		for (unsigned int i = 0; i < pt3d.size(); ++i)
 		{
-			CV_MAT_ELEM( *image_points, double, i, 0) = pt2d[i].x;
-			CV_MAT_ELEM( *image_points, double, i, 1) = pt2d[i].y;
-			CV_MAT_ELEM( *object_points, double, i, 0) = pt3d[i].x;
-			CV_MAT_ELEM( *object_points, double, i, 1) = pt3d[i].y;
-			CV_MAT_ELEM( *object_points, double, i, 2) = pt3d[i].z;
+			object_points.push_back(cv::Point3f(
+				pt3d[i].x,
+				pt3d[i].y,
+				pt3d[i].z
+			));
+			image_points.push_back(cv::Point2f(
+				pt2d[i].x,
+				pt2d[i].y
+			));
 		}
-
-		// initialize camera and distortion initial guess
-		CvMat* intrinsic_matrix = cvCreateMat(3, 3, CV_64FC1);
-		CvMat* distortion_coeffs = cvCreateMat(5, 1, CV_64FC1);
-		for (unsigned int i = 0; i < 3; ++i)
-		{
-			CV_MAT_ELEM( *intrinsic_matrix, double, i, 0) = cameramatrix.at<double>(i, 0);
-			CV_MAT_ELEM( *intrinsic_matrix, double, i, 1) = cameramatrix.at<double>(i, 1);
-			CV_MAT_ELEM( *intrinsic_matrix, double, i, 2) = cameramatrix.at<double>(i, 2);
-		}
-		CV_MAT_ELEM( *intrinsic_matrix, double, 0, 1) = 0;
-
-		for (unsigned int i = 0; i < 5; ++i)
-		{
-			CV_MAT_ELEM( *distortion_coeffs, double, i, 0) = 0;
-		}
-
-		CvMat* r_matrices = cvCreateMat(1, 1, CV_64FC3);
-		CvMat* t_matrices = cvCreateMat(1, 1, CV_64FC3);
 
 		try
 		{
-			cvFindExtrinsicCameraParams2(object_points, image_points, intrinsic_matrix, distortion_coeffs, r_matrices, t_matrices);
+			cv::solvePnP(object_points, image_points, cameramatrix, distCoefs, rvec, tvec, false);
 
-			rotationvector.at<double>(0, 0) = CV_MAT_ELEM( *r_matrices, cv::Vec3d, 0, 0)[0];
-			rotationvector.at<double>(1, 0) = CV_MAT_ELEM( *r_matrices, cv::Vec3d, 0, 0)[1];
-			rotationvector.at<double>(2, 0) = CV_MAT_ELEM( *r_matrices, cv::Vec3d, 0, 0)[2];
-
-			translationvector.at<double>(0, 0) = CV_MAT_ELEM( *t_matrices, cv::Vec3d, 0, 0)[0];
-			translationvector.at<double>(1, 0) = CV_MAT_ELEM( *t_matrices, cv::Vec3d, 0, 0)[1];
-			translationvector.at<double>(2, 0) = CV_MAT_ELEM( *t_matrices, cv::Vec3d, 0, 0)[2];
-
-			cvReleaseMat(&r_matrices);
-			cvReleaseMat(&t_matrices);
-
+			rotationvector = rvec;
+			translationvector = tvec;
+		
 			reprojectAndComputeError();
 		}
 		catch (std::exception& e)
@@ -779,11 +717,6 @@ void CubeCalibration::computePose(cv::vector<cv::Point2d> pt2d, cv::vector<cv::P
 			fprintf(stderr, "Frame::computePose : cvFindExtrinsicCameraParams2 Failed with Exception - %s\n", e.what());
 			poseComputed = false;
 		}
-
-		cvReleaseMat(&intrinsic_matrix);
-		cvReleaseMat(&distortion_coeffs);
-		cvReleaseMat(&object_points);
-		cvReleaseMat(&image_points);
 	}
 }
 
@@ -854,7 +787,7 @@ int CubeCalibration::setCorrespondances(double threshold, bool setAsInliers)
 	return inlier;
 }
 
-double CubeCalibration::computeProjection(cv::vector<cv::Point2d> pt2d, cv::vector<cv::Point3d> pt3d, cv::Mat& _projection)
+double CubeCalibration::computeProjection(std::vector<cv::Point2d> pt2d, std::vector<cv::Point3d> pt3d, cv::Mat& _projection)
 {
 	if (pt2d.size() != pt3d.size() || pt2d.size() < 6) return 1000;
 
@@ -1008,8 +941,8 @@ void CubeCalibration::computeProjectionFromInliers(double threshold)
 	while (inlier_changed)
 	{
 		inlier_changed = false;
-		cv::vector<cv::Point3d> corr3D;
-		cv::vector<cv::Point2d> corr2D;
+		std::vector<cv::Point3d> corr3D;
+		std::vector<cv::Point2d> corr2D;
 
 		cv::Mat pt4d;
 		pt4d.create(4, 1, CV_64F);
@@ -1141,14 +1074,14 @@ void CubeCalibration::setupCorrespondancesRansacPose(unsigned int loop_max, doub
 {
 	maxinlier = 0;
 
-	cv::vector<cv::Point2d> pt2d_best;
-	cv::vector<cv::Point3d> pt3d_best;
+	std::vector<cv::Point2d> pt2d_best;
+	std::vector<cv::Point3d> pt3d_best;
 	//fprintf(stderr,"Start Ransac\n", maxinlier);
 	for (unsigned int loop = 0; loop < loop_max; loop ++)
 	{
 		//Vector for points
-		cv::vector<cv::Point2d> pt2d;
-		cv::vector<cv::Point3d> pt3d;
+		std::vector<cv::Point2d> pt2d;
+		std::vector<cv::Point3d> pt3d;
 
 		getRandomReferences(5, pt2d, pt3d);
 		//Then compute the projection and find the inlier in case the projection fits the points well

@@ -31,7 +31,6 @@
 #include <QTimer>
 #include <QFuture>
 #include <QSignalMapper>
-
 #include "ui/State.h"
 
 namespace Ui

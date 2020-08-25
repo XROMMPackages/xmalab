@@ -29,7 +29,7 @@
 
 #include <QString>
 
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 
 namespace xma
 {
@@ -81,40 +81,40 @@ namespace xma
 		void reloadTextures();
 		void init(int nbPoints);
 
-		void setDetectedPoints(cv::vector<cv::Point2d>& points);
+		void setDetectedPoints(std::vector<cv::Point2d>& points);
 
-		cv::vector<cv::Point2d>& getDetectedPointsAll()
+		std::vector<cv::Point2d>& getDetectedPointsAll()
 		{
 			return detectedPoints_ALL;
 		}
 
-		cv::vector<cv::Point2d>& getDetectedPoints()
+		std::vector<cv::Point2d>& getDetectedPoints()
 		{
 			return detectedPoints;
 		}
 
-		cv::vector<int>& getInliers()
+		std::vector<int>& getInliers()
 		{
 			return Inlier;
 		}
 
-		cv::vector<double>& getErrorDist()
+		std::vector<double>& getErrorDist()
 		{
 			return error;
 		}
 
-		cv::vector<double>& getErrorUndist()
+		std::vector<double>& getErrorUndist()
 		{
 			return errorUndistorted;
 		}
 
-		cv::vector<cv::Point2d>& getDetectedPointsUndistorted()
+		std::vector<cv::Point2d>& getDetectedPointsUndistorted()
 		{
 			return detectedPointsUndistorted;
 		}
 
-		void setPointsUndistorted(cv::vector<cv::Point2d>& _detectedPoints, cv::vector<cv::Point2d>& _projectedPoints, cv::vector<bool>& _Inlier);
-		void setPointsProjectedUndistorted(cv::vector<cv::Point2d>& _projectedPoints);
+		void setPointsUndistorted(std::vector<cv::Point2d>& _detectedPoints, std::vector<cv::Point2d>& _projectedPoints, std::vector<bool>& _Inlier);
+		void setPointsProjectedUndistorted(std::vector<cv::Point2d>& _projectedPoints);
 		void undistortPoints();
 
 		void setMatrices(cv::Mat& _rotationvector, cv::Mat& _translationvector);
@@ -158,7 +158,7 @@ namespace xma
 
 	private:
 		void savePoints(std::vector<cv::Point2d>& points, QString filename);
-		void loadPoints(cv::vector<cv::Point2d>& points, QString filename);
+		void loadPoints(std::vector<cv::Point2d>& points, QString filename);
 		void drawPoints(std::vector<cv::Point2d>& points, bool drawAllPoints = false);
 		void computeError();
 		int calibrated;
@@ -177,14 +177,14 @@ namespace xma
 		cv::Mat translationvector;
 
 		//CalibrationInput
-		cv::vector<cv::Point2d> detectedPoints_ALL;
-		cv::vector<cv::Point2d> detectedPoints;
-		cv::vector<cv::Point2d> projectedPoints;
-		cv::vector<cv::Point2d> detectedPointsUndistorted;
-		cv::vector<cv::Point2d> projectedPointsUndistorted;
-		cv::vector<int> Inlier;
-		cv::vector<double> error;
-		cv::vector<double> errorUndistorted;
+		std::vector<cv::Point2d> detectedPoints_ALL;
+		std::vector<cv::Point2d> detectedPoints;
+		std::vector<cv::Point2d> projectedPoints;
+		std::vector<cv::Point2d> detectedPointsUndistorted;
+		std::vector<cv::Point2d> projectedPointsUndistorted;
+		std::vector<int> Inlier;
+		std::vector<double> error;
+		std::vector<double> errorUndistorted;
 		int nbInlier;
 	};
 }

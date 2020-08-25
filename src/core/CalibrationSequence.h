@@ -30,7 +30,7 @@
 #include <QString>
 #include <QStringList>
 
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 #include <fstream>
 
 namespace xma

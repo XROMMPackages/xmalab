@@ -77,7 +77,7 @@ int CalibrationObject::loadCoords(QString pointsfilename, QString references)
 	referenceNames.clear();
 
 	std::ifstream fin;
-	fin.open(pointsfilename.toAscii().data());
+	fin.open(pointsfilename.toStdString());
 	std::istringstream in;
 	std::string line;
 	//read first line 
@@ -138,7 +138,7 @@ int CalibrationObject::loadCoords(QString pointsfilename, QString references)
 	}
 
 
-	fin.open(references.toAscii().data(), std::ios::binary);
+	fin.open(references.toStdString(), std::ios::binary);
 
 	char str[100];
 	int id;
@@ -181,7 +181,7 @@ void CalibrationObject::saveCoords(QString folder)
 	QFileInfo referencesFilenameInfo(referencesFilename);
 	QString references = folder + referencesFilenameInfo.fileName();
 
-	std::ofstream outfile(cubefilename.toAscii().data());
+	std::ofstream outfile(cubefilename.toStdString());
 	outfile.precision(12);
 	if (whiteBlobs)
 	{
@@ -197,11 +197,11 @@ void CalibrationObject::saveCoords(QString folder)
 	}
 	outfile.close();
 
-	std::ofstream outfile_references(references.toAscii().data());
+	std::ofstream outfile_references(references.toStdString());
 	outfile.precision(12);
 	for (unsigned int i = 0; i < referenceIDs.size(); i++)
 	{
-		outfile_references << referenceIDs[i] + 1 << " " << referenceNames[i].toAscii().data() << std::endl;
+		outfile_references << referenceIDs[i] + 1 << " " << referenceNames[i].toStdString() << std::endl;
 	}
 	outfile_references.close();
 }

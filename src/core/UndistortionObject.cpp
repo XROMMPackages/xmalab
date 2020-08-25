@@ -36,9 +36,8 @@
 #include <QFileInfo>
 #include <fstream>
 
-#include <opencv2/contrib/contrib.hpp>
 #include <opencv2/core/core.hpp>
-#include <opencv/highgui.h>
+#include <opencv2/highgui.hpp>
 #include "processing/FilterImage.h"
 
 using namespace xma;
@@ -117,7 +116,7 @@ bool UndistortionObject::undistort(Image* distorted, QString filenameOut, bool f
 			{
 				imageMat = FilterImage().run(imageMat);
 			}
-			cv::imwrite(filenameOut.toAscii().data(), imageMat);
+			cv::imwrite(filenameOut.toStdString(), imageMat);
 			success = true;
 		}
 		imageMat.release();
@@ -131,12 +130,12 @@ bool UndistortionObject::undistort(QString filenameIn, QString filenameOut)
 	if (computed)
 	{
 		cv::Mat imageMat;
-		imageMat = cv::imread(filenameIn.toAscii().data());
+		imageMat = cv::imread(filenameIn.toStdString());
 		if (imageMat.size().width == undistortionMapX.size().width &&
 			imageMat.size().height == undistortionMapX.size().height)
 		{
 			cv::remap(imageMat, imageMat, undistortionMapX, undistortionMapY, cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
-			cv::imwrite(filenameOut.toAscii().data(), imageMat);
+			cv::imwrite(filenameOut.toStdString(), imageMat);
 			success = true;
 		}
 		imageMat.release();
@@ -144,7 +143,7 @@ bool UndistortionObject::undistort(QString filenameIn, QString filenameOut)
 	return success;
 }
 
-void UndistortionObject::setDetectedPoints(cv::vector<cv::Point2d>& points)
+void UndistortionObject::setDetectedPoints(std::vector<cv::Point2d>& points)
 {
 	points_detected.clear();
 	for (std::vector<cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it)
@@ -153,7 +152,7 @@ void UndistortionObject::setDetectedPoints(cv::vector<cv::Point2d>& points)
 	}
 }
 
-void UndistortionObject::getDetectedPoints(cv::vector<cv::Point2d>& points)
+void UndistortionObject::getDetectedPoints(std::vector<cv::Point2d>& points)
 {
 	points.clear();
 	for (std::vector<cv::Point2d>::const_iterator it = points_detected.begin(); it != points_detected.end(); ++it)
@@ -166,7 +165,7 @@ void UndistortionObject::removeOutlier(double threshold_circle, double threshold
 {
 	cv::Point2f center;
 	float radius;
-	cv::vector<cv::Point2f> points_float;
+	std::vector<cv::Point2f> points_float;
 
 	cv::Mat image_val;
 	image->getImage(image_val);
@@ -201,7 +200,7 @@ void UndistortionObject::removeOutlier(double threshold_circle, double threshold
 	setRecalibrationRequired(1);
 }
 
-void UndistortionObject::setGridPoints(cv::vector<cv::Point2d>& points_distorted, cv::vector<cv::Point2d>& points_references, cv::vector<bool>& points_inlier)
+void UndistortionObject::setGridPoints(std::vector<cv::Point2d>& points_distorted, std::vector<cv::Point2d>& points_references, std::vector<bool>& points_inlier)
 {
 	points_grid_distorted.clear();
 	for (std::vector<cv::Point2d>::const_iterator it = points_distorted.begin(); it != points_distorted.end(); ++it)
@@ -220,7 +219,7 @@ void UndistortionObject::setGridPoints(cv::vector<cv::Point2d>& points_distorted
 	}
 }
 
-void UndistortionObject::getGridPoints(cv::vector<cv::Point2d>& points_distorted, cv::vector<cv::Point2d>& points_references, cv::vector<bool>& points_inlier)
+void UndistortionObject::getGridPoints(std::vector<cv::Point2d>& points_distorted, std::vector<cv::Point2d>& points_references, std::vector<bool>& points_inlier)
 {
 	points_distorted.clear();
 	for (std::vector<cv::Point2d>::const_iterator it = points_grid_distorted.begin(); it != points_grid_distorted.end(); ++it)
@@ -701,7 +700,7 @@ void UndistortionObject::getDisplacementScaledAngle(cv::Mat& imageOut)
 	disp_length -= min;
 	cv::convertScaleAbs(disp_length, adjMap, 255.0 / double(max - min));
 
-	cv::cvtColor(adjMap, adjMap, CV_GRAY2RGB);
+	cv::cvtColor(adjMap, adjMap, cv::COLOR_GRAY2RGB);
 	cv::multiply(adjMap, imageOut, imageOut, 1.0 / 255.0);
 
 	disp_angle.release();
@@ -844,7 +843,7 @@ QString UndistortionObject::getFilenameGridPointsInlier()
 
 void UndistortionObject::savePoints(std::vector<cv::Point2d>& points, QString filename)
 {
-	std::ofstream outfile(filename.toAscii().data());
+	std::ofstream outfile(filename.toStdString());
 	outfile.precision(12);
 	for (std::vector<cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it)
 	{
@@ -870,7 +869,7 @@ void UndistortionObject::saveGridPointsReferences(QString filename)
 
 void UndistortionObject::saveGridPointsInlier(QString filename)
 {
-	std::ofstream outfile(filename.toAscii().data());
+	std::ofstream outfile(filename.toStdString());
 	outfile.precision(12);
 	for (std::vector<bool>::const_iterator it = points_grid_inlier.begin(); it != points_grid_inlier.end(); ++it)
 	{
@@ -888,11 +887,10 @@ void UndistortionObject::saveGridPointsInlier(QString filename)
 
 void UndistortionObject::exportData(QString csvFileNameLUT, QString csvFileNameInPoints, QString csvFileNameBasePoints)
 {
-	cv::Formatter const* c_formatter(cv::Formatter::get("CSV"));
-	std::ofstream outfile(csvFileNameLUT.toAscii().data());
+	std::ofstream outfile(csvFileNameLUT.toStdString());
 	outfile.precision(12);
-	c_formatter->write(outfile, undistortionMapX);
-	c_formatter->write(outfile, undistortionMapY);
+	outfile << cv::format(undistortionMapX, cv::Formatter::FMT_CSV) << std::endl;
+	outfile << cv::format(undistortionMapY, cv::Formatter::FMT_CSV) << std::endl;
 	outfile.close();
 
 	std::ofstream outfile2(csvFileNameInPoints.toStdString().c_str());
@@ -922,10 +920,10 @@ void UndistortionObject::exportData(QString csvFileNameLUT, QString csvFileNameI
 	outfile3.close();
 }
 
-void UndistortionObject::loadPoints(cv::vector<cv::Point2d>& points, QString filename)
+void UndistortionObject::loadPoints(std::vector<cv::Point2d>& points, QString filename)
 {
 	std::vector<std::vector<double> > values;
-	std::ifstream fin(filename.toAscii().data());
+	std::ifstream fin(filename.toStdString());
 	std::istringstream in;
 	std::string line;
 	while (!littleHelper::safeGetline(fin, line).eof())
@@ -973,7 +971,7 @@ void UndistortionObject::loadGridPointsReferences(QString filename)
 void UndistortionObject::loadGridPointsInlier(QString filename)
 {
 	std::vector<std::vector<double> > values;
-	std::ifstream fin(filename.toAscii().data());
+	std::ifstream fin(filename.toStdString());
 	std::istringstream in;
 	std::string line;
 	while (!littleHelper::safeGetline(fin, line).eof())

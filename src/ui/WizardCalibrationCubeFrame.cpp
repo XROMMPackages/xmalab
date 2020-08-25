@@ -189,13 +189,13 @@ void WizardCalibrationCubeFrame::updateFrameList()
 {
 	frame->frametreeWidget->clear();
 	frame->frametreeWidget->setColumnCount(Project::getInstance()->getCameras().size() + 1);
-	frame->frametreeWidget->header()->setResizeMode(0, QHeaderView::Stretch);
+	frame->frametreeWidget->header()->setSectionResizeMode(0, QHeaderView::Stretch);
 	frame->frametreeWidget->headerItem()->setText(0, "");
 
 	for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 	{
 		frame->frametreeWidget->headerItem()->setText(1 + i, "");
-		frame->frametreeWidget->header()->setResizeMode(1 + i, QHeaderView::ResizeToContents);
+		frame->frametreeWidget->header()->setSectionResizeMode(1 + i, QHeaderView::ResizeToContents);
 	}
 	frame->frametreeWidget->setHeaderHidden(true);
 
@@ -803,13 +803,13 @@ bool WizardCalibrationCubeFrame::calibrateOtherFrames()
 	temporaryFrameIdx.clear();
 	std::vector<BlobDetection *> detectors;
 	bool isRunning = false;
-	cv::vector<cv::vector<cv::Mat> > CamJToCamKTransformation;
-	cv::vector<cv::vector<bool> > CamJToCamKTransformationSet;
+	std::vector<std::vector<cv::Mat> > CamJToCamKTransformation;
+	std::vector<std::vector<bool> > CamJToCamKTransformationSet;
 
 	for (unsigned int j = 0; j < Project::getInstance()->getCameras().size(); j ++)
 	{
-		cv::vector<cv::Mat> jTokTransformations;
-		cv::vector<bool> jTokTransformationSet;
+		std::vector<cv::Mat> jTokTransformations;
+		std::vector<bool> jTokTransformationSet;
 
 		for (unsigned int k = 0; k < Project::getInstance()->getCameras().size(); k ++)
 		{

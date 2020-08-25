@@ -416,7 +416,7 @@ QString Camera::getFilenameCameraMatrix()
 
 void Camera::saveCameraMatrix(QString filename)
 {
-	std::ofstream outfile(filename.toAscii().data());
+	std::ofstream outfile(filename.toStdString());
 	outfile.precision(12);
 	for (unsigned int i = 0; i < 3; ++i)
 	{
@@ -429,7 +429,7 @@ void Camera::saveCameraMatrix(QString filename)
 void Camera::loadCameraMatrix(QString filename)
 {
 	std::vector<std::vector<double> > values;
-	std::ifstream fin(filename.toAscii().data());
+	std::ifstream fin(filename.toStdString());
 	std::istringstream in;
 	std::string line;
 	while (!littleHelper::safeGetline(fin, line).eof())
@@ -466,7 +466,7 @@ QString Camera::getFilenameUndistortionParam()
 
 void Camera::saveUndistortionParam(QString filename)
 {
-	std::ofstream outfile(filename.toAscii().data());
+	std::ofstream outfile(filename.toStdString());
 	outfile.precision(12);
 	for (unsigned int i = 0; i < 8; ++i)
 	{
@@ -482,7 +482,7 @@ void Camera::saveUndistortionParam(QString filename)
 void Camera::loadUndistortionParam(QString filename)
 {
 	std::vector<std::vector<double> > values;
-	std::ifstream fin(filename.toAscii().data());
+	std::ifstream fin(filename.toStdString());
 	std::istringstream in;
 	std::string line;
 	while (!littleHelper::safeGetline(fin, line).eof())
@@ -517,7 +517,7 @@ void Camera::loadUndistortionParam(QString filename)
 
 void Camera::saveMayaCamVersion2(int ImageId, QString filename)
 {
-	std::ofstream outfile(filename.toAscii().data());
+	std::ofstream outfile(filename.toStdString());
 	outfile.precision(12);
 	outfile << "image size" << std::endl;
 	outfile << getWidth() << "," << getHeight() << std::endl;

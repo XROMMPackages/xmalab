@@ -50,7 +50,7 @@ void EventData::init(int size)
 void EventData::loadData(QString name)
 {
 	std::ifstream fin;
-	fin.open(name.toAscii().data());
+	fin.open(name.toStdString());
 	std::istringstream in;
 	std::string line;
 	//read first line 
@@ -81,7 +81,7 @@ void EventData::saveData(QString name)
 {
 	if (!name.isEmpty())
 	{
-		std::ofstream outfile(name.toAscii().data());
+		std::ofstream outfile(name.toStdString());
 		for (unsigned int i = 0; i < data_.size(); i++)
 		{
 			outfile << data_[i] << std::endl;

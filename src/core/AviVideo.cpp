@@ -30,7 +30,7 @@
 
 #include "core/AviVideo.h"
 #include <QtCore/QFileInfo>
-#include <opencv/highgui.h>
+#include <opencv2/highgui.hpp>
 #include "Project.h"
 using namespace xma;
 
@@ -50,10 +50,10 @@ void AviVideo::setActiveFrame(int _activeFrame)
 		return;
 
 	lastFrame = _activeFrame;
-	cv::VideoCapture cap(filenames.at(0).toAscii().data());
+	cv::VideoCapture cap(filenames.at(0).toStdString());
 	if (cap.isOpened() && _activeFrame >= 0 && _activeFrame < nbImages)
 	{
-		cap.set(CV_CAP_PROP_POS_FRAMES, _activeFrame);
+		cap.set(cv::CAP_PROP_POS_FRAMES, _activeFrame);
 
 		cv::Mat frame;
 		cap.read(frame);
@@ -83,13 +83,13 @@ QString AviVideo::getFrameName(int frameNumber)
 
 void AviVideo::reloadFile()
 {
-	cv::VideoCapture cap(filenames.at(0).toAscii().data()); // open the default camera
+	cv::VideoCapture cap(filenames.at(0).toStdString()); // open the default camera
 
 	if (cap.isOpened())
 	{
-		double frnb(cap.get(CV_CAP_PROP_FRAME_COUNT));
+		double frnb(cap.get(cv::CAP_PROP_FRAME_COUNT));
 		nbImages = (int)(frnb + 0.45);
-		fps = cap.get(CV_CAP_PROP_FPS);
+		fps = cap.get(cv::CAP_PROP_FPS);
 
 		cv::Mat frame;
 		cap.read(frame);

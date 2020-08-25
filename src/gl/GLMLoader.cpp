@@ -126,7 +126,7 @@ VertexBuffer* GLMLoader::load(QString filename)
 	FILE*     file;
 
 	/* open the file */
-	file = fopen(filename.toAscii().data(), "r");
+	file = fopen(filename.toUtf8(), "r");
 	if (!file)
 		return NULL;
 

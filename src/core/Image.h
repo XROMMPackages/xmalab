@@ -28,7 +28,7 @@
 #define IMAGE_H_
 
 #include <QString>
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 
 #ifdef __APPLE__
 	#include <OpenGL/gl.h>

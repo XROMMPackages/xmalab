@@ -30,6 +30,7 @@
 #include "core/Camera.h"
 
 #include <QtCore>
+#include <QtConcurrent/QtConcurrent>
 
 #include <iostream>
 

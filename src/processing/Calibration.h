@@ -32,7 +32,7 @@
 #include <QFutureWatcher>
 #include <QObject>
 
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 
 namespace xma
 {
@@ -66,8 +66,8 @@ namespace xma
 		cv::Mat rotationvector;
 		cv::Mat translationvector;
 
-		cv::vector<cv::Point2d> projectedPointsUndistorted;
-		cv::vector<double> error;
+		std::vector<cv::Point2d> projectedPointsUndistorted;
+		std::vector<double> error;
 	};
 }
 #endif // CALIBRATION_H

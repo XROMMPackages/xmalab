@@ -122,7 +122,7 @@ void ProgressDialog::showProgressbar(int min_, int max_, const char* key, bool c
 	}
 	isCanceled = false;
 	diag->progressBar->setTextVisible(false);
-	setWindowTitle(QApplication::translate("ProgressDialog", key, 0, QApplication::UnicodeUTF8));
+	setWindowTitle(QApplication::translate("ProgressDialog", key, 0));
 	QApplication::processEvents();
 }
 

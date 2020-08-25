@@ -1041,10 +1041,10 @@ void RigidBody::computePose(int Frame)
 
 		if (dst.size() >= 3)
 		{
-			cv::vector<cv::vector<double> > y, x;
-			cv::vector<cv::vector<double> > Y, X;
-			cv::vector<double> vnl_tmp(3), yg(3, 0), xg(3, 0);
-			cv::vector<double> tmp;
+			std::vector<std::vector<double> > y, x;
+			std::vector<std::vector<double> > Y, X;
+			std::vector<double> vnl_tmp(3), yg(3, 0), xg(3, 0);
+			std::vector<double> tmp;
 			cv::Mat K = cv::Mat::zeros(3, 3, CV_64F);
 
 			//set Data
@@ -1156,7 +1156,7 @@ void RigidBody::computePose(int Frame)
 				}
 
 
-				cv::solvePnP(object_points, image_points, Project::getInstance()->getCameras()[goodCamera]->getCameraMatrix(), distortion_coeffs, rotationVec_tmp, translationVec_tmp, false, CV_ITERATIVE);
+				cv::solvePnP(object_points, image_points, Project::getInstance()->getCameras()[goodCamera]->getCameraMatrix(), distortion_coeffs, rotationVec_tmp, translationVec_tmp, false, cv::SOLVEPNP_ITERATIVE);
 
 				cv::Mat trans1;
 				trans1.create(4, 4, CV_64FC1);
@@ -1334,10 +1334,10 @@ double RigidBody::fitAndComputeError(std::vector<cv::Point3d> src, std::vector<c
 
 	if (src.size() >= 3)
 	{
-		cv::vector<cv::vector<double> > y, x;
-		cv::vector<cv::vector<double> > Y, X;
-		cv::vector<double> vnl_tmp(3), yg(3, 0), xg(3, 0);
-		cv::vector<double> tmp;
+		std::vector<std::vector<double> > y, x;
+		std::vector<std::vector<double> > Y, X;
+		std::vector<double> vnl_tmp(3), yg(3, 0), xg(3, 0);
+		std::vector<double> tmp;
 		cv::Mat K = cv::Mat::zeros(3, 3, CV_64F);
 
 		//set Data
@@ -1437,14 +1437,14 @@ double RigidBody::fitAndComputeError(std::vector<cv::Point3d> src, std::vector<c
 
 void RigidBody::save(QString filename_referenceNames, QString filename_points3D)
 {
-	std::ofstream outfile_Names(filename_referenceNames.toAscii().data());
+	std::ofstream outfile_Names(filename_referenceNames.toStdString());
 	outfile_Names.precision(12);
 	for (unsigned int i = 0; i < referenceNames.size(); i++)
 	{
-		outfile_Names << referenceNames[i].toAscii().data() << std::endl;
+		outfile_Names << referenceNames[i].toStdString() << std::endl;
 	}
 	outfile_Names.close();
-	std::ofstream outfile_Points(filename_points3D.toAscii().data());
+	std::ofstream outfile_Points(filename_points3D.toStdString());
 	outfile_Points.precision(12);
 	for (unsigned int j = 0; j < points3D.size(); j++)
 	{
@@ -1462,13 +1462,13 @@ void RigidBody::save(QString filename_referenceNames, QString filename_points3D)
 
 void RigidBody::saveOptimized(QString filename_points3DOptimized, bool withHeader)
 {
-	std::ofstream outfile_Points(filename_points3DOptimized.toAscii().data());
+	std::ofstream outfile_Points(filename_points3DOptimized.toStdString());
 	outfile_Points.precision(12);
 	if (withHeader)
 	{
 		for (unsigned int j = 0; j < points3D.size(); j++)
 		{
-			outfile_Points << referenceNames[j].toAscii().data() << "_x," << referenceNames[j].toAscii().data() << "_y," << referenceNames[j].toAscii().data() << "_z";
+			outfile_Points << referenceNames[j].toStdString() << "_x," << referenceNames[j].toStdString() << "_y," << referenceNames[j].toStdString() << "_z";
 			if (j == points3D.size() - 1)
 			{
 				outfile_Points << std::endl;
@@ -1509,7 +1509,7 @@ void RigidBody::load(QString filename_referenceNames, QString filename_points3D)
 
 	hasOptimizedCoordinates = false;
 
-	fin.open(filename_points3D.toAscii().data());
+	fin.open(filename_points3D.toStdString());
 	points3D.clear();
 	points3D_original.clear();
 	while (!littleHelper::safeGetline(fin, line).eof())
@@ -1524,7 +1524,7 @@ void RigidBody::load(QString filename_referenceNames, QString filename_points3D)
 	}
 	fin.close();
 
-	fin.open(filename_referenceNames.toAscii().data());
+	fin.open(filename_referenceNames.toStdString());
 	referenceNames.clear();
 	while (!littleHelper::safeGetline(fin, line).eof())
 	{
@@ -1553,7 +1553,7 @@ void RigidBody::loadOptimized(QString filename_points3DOptimized)
 		points3D_original[i] = points3D[i];
 	}
 
-	fin.open(filename_points3DOptimized.toAscii().data());
+	fin.open(filename_points3DOptimized.toStdString());
 	points3D.clear();
 	while (!littleHelper::safeGetline(fin, line).eof())
 	{
@@ -1740,7 +1740,7 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString fi
 	std::ifstream fin;
 	std::string line;
 
-	fin.open(filenamePointRef.toAscii().data());
+	fin.open(filenamePointRef.toStdString());
 	littleHelper::safeGetline(fin, line);
 	littleHelper::safeGetline(fin, line);
 	fin.close();
@@ -1757,7 +1757,7 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString fi
 
 	if (markerID == -1)
 	{
-		fin.open(filenamePointCoords.toAscii().data());
+		fin.open(filenamePointCoords.toStdString());
 		littleHelper::safeGetline(fin, line);
 		std::vector<cv::Point3d> tmpCoords;
 		std::vector<bool> tmpDef;
@@ -1794,7 +1794,7 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString fi
 	}
 	else
 	{
-		fin.open(filenamePointRef2.toAscii().data());
+		fin.open(filenamePointRef2.toStdString());
 		littleHelper::safeGetline(fin, line);
 		littleHelper::safeGetline(fin, line);
 		fin.close();
@@ -1812,14 +1812,14 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString fi
 
 void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenamePointRef2, QString filenamePointCoords)
 {
-	std::ofstream outfileRef(filenamePointRef.toAscii().data());
+	std::ofstream outfileRef(filenamePointRef.toStdString());
 	outfileRef.precision(12);
 	outfileRef << "x,y,z" << std::endl;
 	outfileRef << dummypoints[count].x << "," << dummypoints[count].y << "," << dummypoints[count].z << "," << dummyRBIndex[count] << std::endl;
 	outfileRef.close();
 	
 	if(dummyRBIndex[count] < 0){
-		std::ofstream outfileCoords(filenamePointCoords.toAscii().data());
+		std::ofstream outfileCoords(filenamePointCoords.toStdString());
 		outfileCoords.precision(12);
 		outfileCoords << "x,y,z" << std::endl;
 		for (unsigned int i = 0; i < dummypointsCoords[count].size(); i++)
@@ -1836,7 +1836,7 @@ void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenameP
 	}
 	else
 	{
-		std::ofstream outfileRef2(filenamePointRef2.toAscii().data());
+		std::ofstream outfileRef2(filenamePointRef2.toStdString());
 		outfileRef2.precision(12);
 		outfileRef2 << "x,y,z" << std::endl;
 		outfileRef2 << dummypoints2[count].x << "," << dummypoints2[count].y << "," << dummypoints2[count].z << std::endl;
@@ -1956,7 +1956,7 @@ void RigidBody::saveTransformations(QString filename, bool inverse, bool filtere
 {
 	if (!filename.isEmpty())
 	{
-		std::ofstream outfile(filename.toAscii().data());
+		std::ofstream outfile(filename.toStdString());
 		outfile.precision(12);
 		for (int i = 0; i < trial->getNbImages(); i++)
 		{
@@ -2195,55 +2195,38 @@ std::vector<cv::Point2d> RigidBody::projectToImage(Camera* cam, int Frame, bool 
 		}
 	}
 	rotMatTmp.release();
-
-	CvMat* object_points = cvCreateMat(points3D_frame.size(), 3, CV_64FC1);
-	CvMat* image_points = cvCreateMat(points3D_frame.size(), 2, CV_64FC1);
+	std::vector<cv::Point3f>object_points;
+	std::vector<cv::Point2f>image_points;
 
 	// Transfer the points into the correct size matrices
 	for (unsigned int i = 0; i < points3D_frame.size(); ++i)
 	{
-		CV_MAT_ELEM(*object_points, double, i, 0) = points3D_frame[i].x;
-		CV_MAT_ELEM(*object_points, double, i, 1) = points3D_frame[i].y;
-		CV_MAT_ELEM(*object_points, double, i, 2) = points3D_frame[i].z;
-	}
-
-	// initialize camera and distortion initial guess
-	CvMat* intrinsic_matrix = cvCreateMat(3, 3, CV_64FC1);
-	CvMat* distortion_coeffs = cvCreateMat(5, 1, CV_64FC1);
-	for (unsigned int i = 0; i < 3; ++i)
-	{
-		CV_MAT_ELEM(*intrinsic_matrix, double, i, 0) = cam->getCameraMatrix().at<double>(i, 0);
-		CV_MAT_ELEM(*intrinsic_matrix, double, i, 1) = cam->getCameraMatrix().at<double>(i, 1);
-		CV_MAT_ELEM(*intrinsic_matrix, double, i, 2) = cam->getCameraMatrix().at<double>(i, 2);
-	}
-	CV_MAT_ELEM(*intrinsic_matrix, double, 0, 1) = 0;
-
-	for (unsigned int i = 0; i < 5; ++i)
-	{
-		CV_MAT_ELEM(*distortion_coeffs, double, i, 0) = 0;
-	}
-
-	CvMat* r_matrices = cvCreateMat(1, 1, CV_64FC3);
-	CvMat* t_matrices = cvCreateMat(1, 1, CV_64FC3);
-
-	for (unsigned int i = 0; i < 3; i++)
-	{
-		CV_MAT_ELEM(*r_matrices, cv::Vec3d, 0, 0)[i] = cam->getCalibrationImages()[trial->getReferenceCalibrationImage()]->getRotationVector().at<double>(i, 0);
-		CV_MAT_ELEM(*t_matrices, cv::Vec3d, 0, 0)[i] = cam->getCalibrationImages()[trial->getReferenceCalibrationImage()]->getTranslationVector().at<double>(i, 0);
+		object_points.push_back(cv::Point3f(
+			points3D_frame[i].x,
+			points3D_frame[i].y,
+			points3D_frame[i].z));
+		image_points.push_back(cv::Point2f(0, 0));
 	}
 
 	if (points3D_frame.size() != 0){
-		cvProjectPoints2(object_points, r_matrices, t_matrices, intrinsic_matrix, distortion_coeffs, image_points);
+		std::vector<float> distCoeff;
+		cv::projectPoints(
+			object_points,
+			cam->getCalibrationImages()[trial->getReferenceCalibrationImage()]->getRotationVector(),
+			cam->getCalibrationImages()[trial->getReferenceCalibrationImage()]->getTranslationVector(),
+			cam->getCameraMatrix(),
+			distCoeff,
+			image_points);
 	}
 	else
 	{
-		std::cerr << description.toAscii().data() << " " << poseComputed[Frame] << " " << Frame << std::endl;
+		std::cerr << description.toStdString() << " " << poseComputed[Frame] << " " << Frame << std::endl;
  	}
 
 	std::vector<cv::Point2d> points2D_frame;
 	for (unsigned int i = 0; i < points3D_frame.size(); i++)
 	{
-		cv::Point2d pt = cv::Point2d(CV_MAT_ELEM(*image_points, double, i, 0), CV_MAT_ELEM(*image_points, double, i, 1));
+		cv::Point2d pt = image_points[i];
 		points2D_frame.push_back(cam->undistortPoint(pt, false));
 	}
 	points3D_frame.clear();
@@ -2279,7 +2262,7 @@ int RigidBody::setReferenceFromFile(QString filename)
 	QString tmp_coords;
 
 	std::ifstream fin;
-	fin.open(filename.toAscii().data());
+	fin.open(filename.toStdString());
 	std::istringstream in;
 	std::string line;
 	littleHelper::safeGetline(fin, line);

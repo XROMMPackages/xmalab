@@ -43,7 +43,7 @@
 #include <QFileDialog>
 
 #include <fstream>
-#include <QtGui/QInputDialog>
+#include <QInputDialog>
 
 using namespace xma;
 

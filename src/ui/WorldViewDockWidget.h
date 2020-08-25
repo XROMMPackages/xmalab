@@ -49,7 +49,6 @@ namespace xma
 		virtual ~WorldViewDockWidget();
 		//WorldViewDockGLWidget* openGL;
 
-		void setSharedGLContext(const QGLContext* sharedContext);
 		void draw();
 		void setStartEndSequence(int start, int end);
 		static WorldViewDockWidget* getInstance();

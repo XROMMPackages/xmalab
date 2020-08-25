@@ -103,8 +103,8 @@ void BlobDetection::process()
 	paramsBlob.minConvexity = Settings::getInstance()->getFloatSetting("BlobDetectorMinConvexity");
 	paramsBlob.maxConvexity = Settings::getInstance()->getFloatSetting("BlobDetectorMaxConvexity");
 
-	cv::FeatureDetector* detector = new cv::SimpleBlobDetector(paramsBlob);
-	cv::vector<cv::KeyPoint> keypoints;
+	cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(paramsBlob);
+	std::vector<cv::KeyPoint> keypoints;
 
 	detector->detect(image, keypoints);
 

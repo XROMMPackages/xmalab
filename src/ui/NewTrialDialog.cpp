@@ -36,6 +36,7 @@
 #include "ui/ProjectFileIO.h"
 #include "ui/WorkspaceNavigationFrame.h"
 #include "ui/ProgressDialog.h"
+#include "ConfirmationDialog.h"
 
 #include "core/Camera.h"
 #include "core/Project.h"
@@ -44,7 +45,8 @@
 
 #include <QFileDialog>
 #include <QtCore>
-#include "ConfirmationDialog.h"
+
+#include <QtConcurrent/QtConcurrent>
 
 using namespace xma;
 
@@ -263,7 +265,7 @@ void NewTrialDialog::on_pushButton_LoadXMA_clicked()
 		QFuture<void> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::loadXMAPortalTrial, xmaTrial_filename, this);
 		m_FutureWatcher->setFuture(future);
 
-		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load trial " + xmaTrial_filename).toAscii().data());
+		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load trial " + xmaTrial_filename).toUtf8());
 	}
 }
 

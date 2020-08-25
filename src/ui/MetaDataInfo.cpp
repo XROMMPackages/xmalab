@@ -36,9 +36,9 @@
 #include "core/Trial.h"
 #include "core/VideoStream.h"
 #include "ConfirmationDialog.h"
-#include <QtGui/QFileDialog>
+#include <QFileDialog>
 #include <core/Settings.h>
-#include <QtGui/QInputDialog>
+#include <QInputDialog>
 
 
 using namespace xma;

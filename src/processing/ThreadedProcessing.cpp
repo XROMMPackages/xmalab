@@ -33,6 +33,7 @@
 #include "ui/ProgressDialog.h"
 
 #include <QtCore>
+#include <QtConcurrent/QtConcurrent>
 
 using namespace xma;
 
@@ -57,7 +58,7 @@ void ThreadedProcessing::start()
 	QFuture<void> future = QtConcurrent::run(this, &ThreadedProcessing::thread);
 	m_FutureWatcher->setFuture(future);
 
-	if (!message.isEmpty()) ProgressDialog::getInstance()->showProgressbar(0, 0, message.toAscii().data());
+	if (!message.isEmpty()) ProgressDialog::getInstance()->showProgressbar(0, 0, message.toUtf8());
 }
 
 void ThreadedProcessing::thread()

@@ -38,12 +38,13 @@ using namespace xma;
 
 GLSharedWidget* GLSharedWidget::instance = NULL;
 
-GLSharedWidget::GLSharedWidget(QGLFormat format, QWidget* parent)
-	: QGLWidget(format, parent), version(0.0f)
+GLSharedWidget::GLSharedWidget(QWidget* parent)
+	: QOpenGLWidget(parent), version(0.0f)
 {
 	setAutoFillBackground(false);
-	makeCurrent();
+	show();
 	initializeGL();
+	hide();
 }
 
 GLSharedWidget::~GLSharedWidget()
@@ -55,22 +56,21 @@ GLSharedWidget* GLSharedWidget::getInstance()
 {
 	if (!instance)
 	{
-		QGLFormat fmt = QGLFormat(QGL::SampleBuffers);
-		//fmt.setProfile(QGLFormat::CoreProfile);
-		instance = new GLSharedWidget(fmt);
+		std::cerr << "getInstance" << std::endl;
+		instance = new GLSharedWidget();
 	}
 	return instance;
 }
 
-const QGLContext* GLSharedWidget::getQGLContext()
-{
-	return this->context();
-}
+//const QGLContext* GLSharedWidget::getQGLContext()
+//{
+//	return this->context();
+//}
 
-void GLSharedWidget::makeGLCurrent()
-{
-	((QGLContext*) this->context())->makeCurrent();
-}
+//void GLSharedWidget::makeGLCurrent()
+//{
+	//((QGLContext*) this->context())->makeCurrent();
+//}
 
 double GLSharedWidget::getVersion()
 {
@@ -85,21 +85,21 @@ QString GLSharedWidget::getInfo()
 
 void GLSharedWidget::initializeGL()
 {
-	gl_VENDOR = QString::fromAscii(reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
-	gl_RENDERER = QString::fromAscii(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
-	gl_VERSION = QString::fromAscii(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
-	gl_SHADING_LANGUAGE_VERSION = QString::fromAscii(reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
-	gl_EXTENSIONS = QString::fromAscii(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
-
-	QString version_string = QString::fromAscii(reinterpret_cast<const char*>(glGetString(GL_VERSION)), 3);
-	version = version_string.toDouble();
-
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
 		/* Problem: glewInit failed, something is seriously wrong. */
 		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
 	}
+
+	gl_VENDOR = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
+	gl_RENDERER = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+	gl_VERSION = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+	gl_SHADING_LANGUAGE_VERSION = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
+	gl_EXTENSIONS = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
+
+	QString version_string = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_VERSION)), 3);
+	version = version_string.toDouble();
 
 	hasBlendSubtract = glewGetExtension("GL_EXT_blend_subtract");
 	hasBlendExt = glewGetExtension("GL_EXT_blend_minmax");

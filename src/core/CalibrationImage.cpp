@@ -140,12 +140,12 @@ void CalibrationImage::init(int nbPoints)
 	Inlier.resize(nbPoints, 0);
 }
 
-void CalibrationImage::setDetectedPoints(cv::vector<cv::Point2d>& points)
+void CalibrationImage::setDetectedPoints(std::vector<cv::Point2d>& points)
 {
 	detectedPoints_ALL = points;
 }
 
-void CalibrationImage::setPointsUndistorted(cv::vector<cv::Point2d>& _detectedPoints, cv::vector<cv::Point2d>& _projectedPoints, cv::vector<bool>& _Inlier)
+void CalibrationImage::setPointsUndistorted(std::vector<cv::Point2d>& _detectedPoints, std::vector<cv::Point2d>& _projectedPoints, std::vector<bool>& _Inlier)
 {
 	detectedPointsUndistorted = _detectedPoints;
 	projectedPointsUndistorted = _projectedPoints;
@@ -203,7 +203,7 @@ void CalibrationImage::undistortPoints()
 }
 
 
-void CalibrationImage::setPointsProjectedUndistorted(cv::vector<cv::Point2d>& _projectedPoints)
+void CalibrationImage::setPointsProjectedUndistorted(std::vector<cv::Point2d>& _projectedPoints)
 {
 	projectedPointsUndistorted = _projectedPoints;
 
@@ -573,7 +573,7 @@ QString CalibrationImage::getFilenameTranslationVector()
 
 void CalibrationImage::savePoints(std::vector<cv::Point2d>& points, QString filename)
 {
-	std::ofstream outfile(filename.toAscii().data());
+	std::ofstream outfile(filename.toStdString());
 	outfile.precision(12);
 	for (std::vector<cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it)
 	{
@@ -584,7 +584,7 @@ void CalibrationImage::savePoints(std::vector<cv::Point2d>& points, QString file
 
 void CalibrationImage::savePointsInlier(QString filename)
 {
-	std::ofstream outfile(filename.toAscii().data());
+	std::ofstream outfile(filename.toStdString());
 	outfile.precision(12);
 	for (std::vector<int>::const_iterator it = Inlier.begin(); it != Inlier.end(); ++it)
 	{
@@ -609,7 +609,7 @@ void CalibrationImage::saveRotationMatrix(QString filename)
 	rotationmatrix.create(3, 3,CV_64F);
 	cv::Rodrigues(rotationvector, rotationmatrix);
 
-	std::ofstream outfile(filename.toAscii().data());
+	std::ofstream outfile(filename.toStdString());
 	outfile.precision(12);
 	for (unsigned int i = 0; i < 3; ++i)
 	{
@@ -622,7 +622,7 @@ void CalibrationImage::saveRotationMatrix(QString filename)
 
 void CalibrationImage::saveTranslationVector(QString filename)
 {
-	std::ofstream outfile(filename.toAscii().data());
+	std::ofstream outfile(filename.toStdString());
 	outfile.precision(12);
 	for (unsigned int i = 0; i < 3; ++i)
 	{
@@ -631,10 +631,10 @@ void CalibrationImage::saveTranslationVector(QString filename)
 	outfile.close();
 }
 
-void CalibrationImage::loadPoints(cv::vector<cv::Point2d>& points, QString filename)
+void CalibrationImage::loadPoints(std::vector<cv::Point2d>& points, QString filename)
 {
 	std::vector<std::vector<double> > values;
-	std::ifstream fin(filename.toAscii().data());
+	std::ifstream fin(filename.toStdString());
 	std::istringstream in;
 	std::string line;
 	while (!littleHelper::safeGetline(fin, line).eof())
@@ -667,7 +667,7 @@ void CalibrationImage::loadPoints(cv::vector<cv::Point2d>& points, QString filen
 void CalibrationImage::loadPointsInlier(QString filename)
 {
 	std::vector<std::vector<double> > values;
-	std::ifstream fin(filename.toAscii().data());
+	std::ifstream fin(filename.toStdString());
 	std::istringstream in;
 	std::string line;
 	while (!littleHelper::safeGetline(fin, line).eof())
@@ -710,7 +710,7 @@ void CalibrationImage::loadPointsDetectedAll(QString filename)
 void CalibrationImage::loadRotationMatrix(QString filename)
 {
 	std::vector<std::vector<double> > values;
-	std::ifstream fin(filename.toAscii().data());
+	std::ifstream fin(filename.toStdString());
 	std::istringstream in;
 	std::string line;
 	while (!littleHelper::safeGetline(fin, line).eof())
@@ -747,7 +747,7 @@ void CalibrationImage::loadRotationMatrix(QString filename)
 void CalibrationImage::loadTranslationVector(QString filename)
 {
 	std::vector<std::vector<double> > values;
-	std::ifstream fin(filename.toAscii().data());
+	std::ifstream fin(filename.toStdString());
 	std::istringstream in;
 	std::string line;
 	while (!littleHelper::safeGetline(fin, line).eof())

@@ -35,8 +35,8 @@
 #include "core/Project.h"
 #include "core/Trial.h"
 
-#include <QtGui/QApplication>
-#include <QtGui/QCloseEvent>
+#include <QApplication>
+#include <QCloseEvent>
 
 using namespace xma;
 
@@ -155,12 +155,6 @@ void WorldViewDockWidget::resizeEvent(QResizeEvent* event)
 	dock->openGL->repaint();
 }
 
-void WorldViewDockWidget::setSharedGLContext(const QGLContext* sharedContext)
-{
-	QGLContext* context = new QGLContext(sharedContext->format(), dock->openGL);
-	context->create(sharedContext);
-	dock->openGL->setContext(context, sharedContext, true);
-}
 
 void WorldViewDockWidget::draw()
 {

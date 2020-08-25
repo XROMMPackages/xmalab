@@ -54,6 +54,7 @@
 
 
 #include <QMouseEvent>
+#include <QPainter>
 
 #include <iostream> 
 #include <math.h>
@@ -74,7 +75,7 @@
 using namespace xma;
 
 GLCameraView::GLCameraView(QWidget* parent)
-	: QGLWidget(GLSharedWidget::getInstance()->format(), parent)
+	: QOpenGLWidget(parent)
 {
 	camera = NULL;
 	window_width = 50;
@@ -177,14 +178,13 @@ void GLCameraView::mouseMoveEvent(QMouseEvent* e)
 {
 	if (e->buttons() & Qt::RightButton)
 	{
-		y_offset -= (prev_y - zoomRatio * e->posF().y());
-		x_offset -= (prev_x - zoomRatio * e->posF().x());
+		x_offset -= (prev_x - zoomRatio * e->pos().x());
 
-		prev_y = zoomRatio * e->posF().y();
-		prev_x = zoomRatio * e->posF().x();
+		prev_y = zoomRatio * e->pos().y();
+		prev_x = zoomRatio * e->pos().x();
 
 		clampXY();
-		updateGL();
+		update();
 	}
 }
 
@@ -196,10 +196,10 @@ void GLCameraView::mouseDoubleClickEvent(QMouseEvent* e)
 		if (State::getInstance()->getWorkspace() == CALIBRATION
 			&& camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() == 1)
 		{
-			double x = zoomRatio * (e->posF().x()) - ((window_width) * zoomRatio * 0.5 + x_offset);
-			double y = zoomRatio * (e->posF().y()) - ((window_height) * zoomRatio * 0.5 + y_offset);
+			double x = zoomRatio * (e->pos().x()) - ((window_width) * zoomRatio * 0.5 + x_offset);
+			double y = zoomRatio * (e->pos().y()) - ((window_height) * zoomRatio * 0.5 + y_offset);
 			camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->toggleInlier(x, y, State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
-			updateGL();
+			update();
 		}
 	}
 }
@@ -209,13 +209,13 @@ void GLCameraView::mousePressEvent(QMouseEvent* e)
 	State::getInstance()->changeActiveCamera(this->camera->getID());
 	if (e->buttons() & Qt::RightButton)
 	{
-		prev_y = zoomRatio * e->posF().y();
-		prev_x = zoomRatio * e->posF().x();
+		prev_y = zoomRatio * e->pos().y();
+		prev_x = zoomRatio * e->pos().x();
 	}
 	else if (e->buttons() & Qt::LeftButton)
 	{
-		double x = zoomRatio * (e->posF().x()) - ((window_width) * zoomRatio * 0.5 + x_offset) - 0.5;
-		double y = zoomRatio * (e->posF().y()) - ((window_height) * zoomRatio * 0.5 + y_offset) - 0.5;
+		double x = zoomRatio * (e->pos().x()) - ((window_width) * zoomRatio * 0.5 + x_offset) - 0.5;
+		double y = zoomRatio * (e->pos().y()) - ((window_height) * zoomRatio * 0.5 + y_offset) - 0.5;
 		if (State::getInstance()->getWorkspace() == UNDISTORTION)
 		{
 			if (camera->hasUndistortion())
@@ -336,7 +336,7 @@ void GLCameraView::wheelEvent(QWheelEvent* e)
 			y_offset += (zoom_prev - zoomRatio) * (0.5 * window_height - coordinates.y());
 			x_offset += (zoom_prev - zoomRatio) * (0.5 * window_width - coordinates.x());
 
-			updateGL();
+			update();
 		}
 	}
 }
@@ -441,12 +441,78 @@ void GLCameraView::resizeGL(int _w, int _h)
 	if (autozoom)setZoomToFit();
 }
 
+void GLCameraView::transformTextPos(GLdouble out[4], const GLdouble m[16], const GLdouble in[4])
+{
+#define M(row,col)  m[col*4+row]
+	out[0] =
+		M(0, 0) * in[0] + M(0, 1) * in[1] + M(0, 2) * in[2] + M(0, 3) * in[3];
+	out[1] =
+		M(1, 0) * in[0] + M(1, 1) * in[1] + M(1, 2) * in[2] + M(1, 3) * in[3];
+	out[2] =
+		M(2, 0) * in[0] + M(2, 1) * in[1] + M(2, 2) * in[2] + M(2, 3) * in[3];
+	out[3] =
+		M(3, 0) * in[0] + M(3, 1) * in[1] + M(3, 2) * in[2] + M(3, 3) * in[3];
+#undef M
+}
+
+bool GLCameraView::projectTextPos(GLdouble objx, GLdouble objy, GLdouble objz,
+	const GLdouble model[16], const GLdouble proj[16],
+	const GLint viewport[4],
+	GLdouble * winx, GLdouble * winy, GLdouble * winz)
+{
+	GLdouble in[4], out[4];
+
+	in[0] = objx;
+	in[1] = objy;
+	in[2] = objz;
+	in[3] = 1.0;
+	transformTextPos(out, model, in);
+	transformTextPos(in, proj, out);
+
+	if (in[3] == 0.0)
+		return GL_FALSE;
+
+	in[0] /= in[3];
+	in[1] /= in[3];
+	in[2] /= in[3];
+
+	*winx = viewport[0] + (1 + in[0]) * viewport[2] / 2;
+	*winy = viewport[1] + (1 + in[1]) * viewport[3] / 2;
+
+	*winz = (1 + in[2]) / 2;
+	return GL_TRUE;
+}
+
+void GLCameraView::renderText(double x, double y, double z, const QString &str, QColor fontColor , const QFont & font) {
+	int width = this->width();
+	int height = this->height();
+
+	GLdouble model[4][4], proj[4][4];
+	GLint view[4];
+	glGetDoublev(GL_MODELVIEW_MATRIX, &model[0][0]);
+	glGetDoublev(GL_PROJECTION_MATRIX, &proj[0][0]);
+	glGetIntegerv(GL_VIEWPORT, &view[0]);
+	GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
+
+	if (!projectTextPos(x, y, z,
+		&model[0][0], &proj[0][0], &view[0],
+		&textPosX, &textPosY, &textPosZ))
+		return;
+
+	textPosY = height - textPosY; // y is inverted
+
+	QPainter painter(this);
+	painter.setPen(fontColor);
+	painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+	painter.drawText(textPosX, textPosY, str); // z = pointT4.z + distOverOp / 4
+	painter.end();
+}
+
 void GLCameraView::renderTextCentered(QString string)
 {
 	setFont(QFont(this->font().family(), 24));
-	qglColor(QColor(255, 0, 0));
 	QFontMetrics fm(this->font());
-	renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, - zoomRatio * fm.height() * 0.5 - y_offset, 0.0, string);
+	renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, - zoomRatio * fm.height() * 0.5 - y_offset, 0.0, string, QColor(255, 0, 0));
 }
 
 void GLCameraView::renderPointText(bool calibration)
@@ -466,15 +532,16 @@ void GLCameraView::renderPointText(bool calibration)
 		{
 			for (unsigned int i = 0; i < x.size(); i++)
 			{
+				QColor color;
 				if (inlier[i])
 				{
-					qglColor(QColor(0, 255, 0));
+					color =  QColor(0, 255, 0);
 				}
 				else
 				{
-					qglColor(QColor(255, 0, 0));
+					color = QColor(255, 0, 0);
 				}
-				renderText(x[i] + 3, y[i], 0.0, text[i]);
+				renderText(x[i] + 3, y[i], 0.0, text[i], color);
 			}
 		}
 		else
@@ -487,8 +554,7 @@ void GLCameraView::renderPointText(bool calibration)
 			for (unsigned int i = 0; i < x.size(); i++)
 			{
 				double val = text[i].toDouble();
-				qglColor(QColor(255.0 * val / max, 255.0 * (1.0 - val / max), 0));
-				renderText(x[i] + 3, y[i], 0.0, text[i]);
+				renderText(x[i] + 3, y[i], 0.0, text[i], QColor(255.0 * val / max, 255.0 * (1.0 - val / max), 0));
 			}
 		}
 		inlier.clear();
@@ -501,21 +567,22 @@ void GLCameraView::renderPointText(bool calibration)
 		int active = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
 		for (unsigned int i = 0; i < x.size(); i++)
 		{
+			QColor color;
 			if (Settings::getInstance()->getBoolSetting("ShowColoredMarkerIDs"))
 			{
-				qglColor(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->getStatusColor(this->camera->getID(), State::getInstance()->getActiveFrameTrial()));
+				color = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[i]->getStatusColor(this->camera->getID(), State::getInstance()->getActiveFrameTrial());
 			}
 			else{
 				if (active == i)
 				{
-					qglColor(QColor(255, 0, 0));
+					color = QColor(255, 0, 0);
 				}
 				else
 				{
-					qglColor(QColor(0, 255, 0));
+					color = QColor(0, 255, 0);
 				}
 			}
-			renderText(x[i] + 3, y[i], 0.0, text[i]);
+			renderText(x[i] + 3, y[i], 0.0, text[i], color);
 		}
 	}
 
@@ -735,10 +802,9 @@ void GLCameraView::paintGL()
 	{
 		if (Settings::getInstance()->getBoolSetting("TrialDrawFiltered") && (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getCutoffFrequency() <= 0 || Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() <= 0)){
 			setFont(QFont(this->font().family(), 12));
-			qglColor(QColor(255, 0, 0));
 			QFontMetrics fm(this->font());
 			QString string("Rendering of filtered data is enabled, but framrate and cutoff are not set correctly");
-			renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, -zoomRatio * (fm.height() - window_height)* 0.5 - y_offset, 0.0, string);
+			renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, -zoomRatio * (fm.height() - window_height)* 0.5 - y_offset, 0.0, string, QColor(255, 0, 0));
 		}
 
 		if (renderMeshes){
@@ -748,10 +814,9 @@ void GLCameraView::paintGL()
 				{
 					if (!doDistortion){
 						setFont(QFont(this->font().family(), 12));
-						qglColor(QColor(255, 0, 0));
 						QFontMetrics fm(this->font());
 						QString string("Rigid body models are not distorted! XMALab is currently computing the distortion!");
-						renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, -zoomRatio * (fm.height() - window_height)* 0.5 - y_offset, 0.0, string);
+						renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, -zoomRatio * (fm.height() - window_height)* 0.5 - y_offset, 0.0, string, QColor(255, 0, 0));
 						blendShader->draw(camera_width, camera_height, transparency, rigidbodyBufferUndistorted->getTextureID(), rigidbodyBufferUndistorted->getDepthTextureID(), true);
 					}
 					else

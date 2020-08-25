@@ -42,7 +42,7 @@
 #include "core/RigidBody.h"
 #include "core/CalibrationSequence.h"
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include <QMouseEvent>
 #include "GLSharedWidget.h"
 
@@ -57,7 +57,7 @@ GLfloat LightDiffuse[] = {0.5f, 0.5f, 0.5f, 1.0f}; // Diffuse Light Values
 GLfloat LightPosition[] = {0.0f, 10.0f, 0.0f, 1.0f}; // Light Position
 
 WorldViewDockGLWidget::WorldViewDockGLWidget(QWidget* parent)
-	: QGLWidget(GLSharedWidget::getInstance()->format(), parent), useCustomTimeline(false), frame(0)
+	: QOpenGLWidget(parent), useCustomTimeline(false), frame(0)
 {
 	eyedistance = 500.0;
 	azimuth = 45.0;
@@ -100,8 +100,8 @@ void WorldViewDockGLWidget::mouseMoveEvent(QMouseEvent* e)
 {
 	if (e->buttons() & Qt::LeftButton)
 	{
-		azimuth -= prev_azi - e->posF().y();
-		polar -= prev_pol - e->posF().x();
+		azimuth -= prev_azi - e->pos().y();
+		polar -= prev_pol - e->pos().x();
 
 		azimuth = (azimuth > 180) ? 180.0 : azimuth;
 		azimuth = (azimuth < 0) ? 0.0 : azimuth;
@@ -109,9 +109,9 @@ void WorldViewDockGLWidget::mouseMoveEvent(QMouseEvent* e)
 		while (polar > 360) polar = polar - 360.0;
 		while (polar < 0) polar = polar + 360.0;
 
-		prev_azi = e->posF().y();
-		prev_pol = e->posF().x();
-		updateGL();
+		prev_azi = e->pos().y();
+		prev_pol = e->pos().x();
+		update();
 	}
 }
 
@@ -120,15 +120,15 @@ void WorldViewDockGLWidget::mousePressEvent(QMouseEvent* e)
 {
 	if (e->buttons() & Qt::LeftButton)
 	{
-		prev_azi = e->posF().y();
-		prev_pol = e->posF().x();
+		prev_azi = e->pos().y();
+		prev_pol = e->pos().x();
 	}
 }
 
 void WorldViewDockGLWidget::wheelEvent(QWheelEvent* e)
 {
 	eyedistance += e->delta() / 12.0;
-	updateGL();
+	update();
 }
 
 void WorldViewDockGLWidget::initializeGL()

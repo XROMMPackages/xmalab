@@ -31,13 +31,13 @@
 
 #include "ui/PlotWindow.h"
 #include "ui_PlotWindow.h"
-#include <QtGui/QComboBox>
-#include <QtGui/QFrame>
-#include <QtGui/QLabel>
-#include <QtGui/QPushButton>
-#include <QtGui/QFileDialog>
-#include <QtGui/QLineEdit>
-#include <QtGui/QInputDialog>
+#include <QComboBox>
+#include <QFrame>
+#include <QLabel>
+#include <QPushButton>
+#include <QFileDialog>
+#include <QLineEdit>
+#include <QInputDialog>
 #include <fstream>
 
 #include "core/Trial.h"
@@ -139,7 +139,7 @@ void PlotWindow::saveData()
 		text, Settings::getInstance()->getLastUsedDirectory() + OS_SEP + "PlotData.csv", tr("Comma seperated data (*.csv)"));
 	if (fileName.isNull() == false)
 	{
-		std::ofstream outfile(fileName.toAscii().data());
+		std::ofstream outfile(fileName.toStdString());
 		outfile.precision(12);
 		
 		if (dock->comboBoxPlotType->currentIndex() == 0)
@@ -216,7 +216,7 @@ void PlotWindow::saveData()
 		{
 			//Header
 			outfile << "Frame,";
-			outfile << "Marker_" + std::to_string(dock->comboBoxMarker1->currentIndex() + 1) + "_to_Marker_" + dock->comboBoxMarker2->currentText().toAscii().data() << std::endl;
+			outfile << "Marker_" + std::to_string(dock->comboBoxMarker1->currentIndex() + 1) + "_to_Marker_" + dock->comboBoxMarker2->currentText().toStdString() << std::endl;
 
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1, count = 0; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++, count++)
 			{
@@ -262,7 +262,7 @@ void PlotWindow::saveData()
 			
 			//Header
 			outfile << "Frame,";
-			outfile << "ReprojectionError_Marker_" + std::to_string(dock->comboBoxMarker1->currentIndex() + 1) << "_" << dock->comboBoxCamera->currentText().toAscii().data() << std::endl;
+			outfile << "ReprojectionError_Marker_" + std::to_string(dock->comboBoxMarker1->currentIndex() + 1) << "_" << dock->comboBoxCamera->currentText().toStdString() << std::endl;
 
 			for (int i = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1; i++)
 			{
@@ -336,7 +336,7 @@ void PlotWindow::saveData()
 
 			for (int i = 0; i < data.size(); i++)
 			{
-				outfile << data[i].toAscii().data();
+				outfile << data[i].toStdString();
 
 				if (i != data.size() - 1)
 				{
@@ -447,7 +447,7 @@ void PlotWindow::saveData()
 				outfile << i + 1 << ",";
 				for (int i = 0; i < data.size(); i++)
 				{
-					outfile << data[i].toAscii().data();
+					outfile << data[i].toStdString();
 
 					if (i != data.size() - 1)
 					{
@@ -480,7 +480,7 @@ void PlotWindow::saveData()
 			}
 			for (int i = 0; i < data.size(); i++)
 			{
-				outfile << data[i].toAscii().data();
+				outfile << data[i].toStdString();
 
 				if (i != data.size() - 1)
 				{
@@ -536,7 +536,7 @@ void PlotWindow::saveData()
 				outfile << i + 1 << ",";
 				for (int i = 0; i < data.size(); i++)
 				{
-					outfile << data[i].toAscii().data();
+					outfile << data[i].toStdString();
 
 					if (i != data.size() - 1)
 					{
@@ -2887,7 +2887,7 @@ void PlotWindow::on_toolButtonExtraPlot_clicked()
 				std::ifstream fin;
 				std::istringstream in;
 				std::string line;
-				fin.open(fileName.toAscii().data());
+				fin.open(fileName.toStdString());
 				while (!littleHelper::safeGetline(fin, line).eof())
 				{
 					QString tmp_coords = QString::fromStdString(line);

@@ -38,7 +38,8 @@
 #include "core/Marker.h"
 
 #include <QtCore>
-#include <opencv/highgui.h>
+#include <QtConcurrent/QtConcurrent>
+#include <opencv2/highgui.hpp>
 #include <core/Settings.h>
 
 //#define WRITEIMAGES 1
@@ -212,9 +213,9 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		}
 
 		//Find contours
-		cv::vector<cv::vector<cv::Point> > contours;
-		cv::vector<cv::Vec4i> hierarchy;
-		cv::findContours(subimage, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cv::Point(off_x, off_y));
+		std::vector<std::vector<cv::Point> > contours;
+		std::vector<cv::Vec4i> hierarchy;
+		cv::findContours(subimage, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(off_x, off_y));
 		double dist = 1000;
 		int bestIdx = -1;
 
@@ -302,24 +303,19 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 	}
 	else if (method == 3)
 	{
-		IplImage* imgGrey = new IplImage(subimage);
-		int w = imgGrey->width;
-		int h = imgGrey->height;
-		IplImage* eig_image = cvCreateImage(cvSize(w, h), IPL_DEPTH_32F, 1);
-		IplImage* temp_image = cvCreateImage(cvSize(w, h), IPL_DEPTH_32F, 1);
-
-		CvPoint2D32f corners[50] = {0};
+		std::vector<cv::Point2f> corners;
 		int corner_count = 50;
 		double quality_level = 0.0001;
 		double min_distance = 3;
 		int eig_block_size = 7;
 		int use_harris = true;
-		cvGoodFeaturesToTrack(imgGrey, eig_image, temp_image, corners, &corner_count, quality_level, min_distance,NULL, eig_block_size, use_harris);
+		cv::goodFeaturesToTrack(subimage, corners, corner_count, quality_level, min_distance, cv::Mat(), eig_block_size, use_harris);
+
 
 		int half_win_size = 7;
 		int iteration = 100;
 		double epislon = 0.001;
-		cvFindCornerSubPix(imgGrey, corners, corner_count, cvSize(half_win_size, half_win_size), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, iteration, epislon));
+		cv::cornerSubPix(subimage, corners, cv::Size(half_win_size, half_win_size), cv::Size(-1, -1), cv::TermCriteria(cv::TermCriteria::MAX_ITER | cv::TermCriteria::EPS, iteration, epislon));
 
 		double dist_min = searchArea * searchArea;
 		double dist;
@@ -334,8 +330,6 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 				dist_min = dist;
 			}
 		}
-		cvReleaseImage(&eig_image);
-		cvReleaseImage(&temp_image);
 	}
 	else if (method == 1 || method == 6)
 	{
@@ -371,8 +365,9 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		paramsBlob.minConvexity = Settings::getInstance()->getFloatSetting("BlobDetectorMinConvexity");
 		paramsBlob.maxConvexity = Settings::getInstance()->getFloatSetting("BlobDetectorMaxConvexity");
 
-		cv::FeatureDetector* detector = new cv::SimpleBlobDetector(paramsBlob);
-		cv::vector<cv::KeyPoint> keypoints;
+		cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(paramsBlob);
+
+		std::vector<cv::KeyPoint> keypoints;
 
 		detector->detect(subimage, keypoints);
 

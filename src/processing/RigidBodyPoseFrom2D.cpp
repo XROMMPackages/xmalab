@@ -71,7 +71,7 @@ void RigidBodyPoseFrom2D::findFrom2Dwith3D(std::vector<cv::Point3d> &src, std::v
 		std::vector<cv::Point3d> dst_Sol;
 		for (int r = 0; r < dst.size(); r++)
 		{
-			cv::vector <cv::Point3d> pts = get3DPoint(plucker[i], Pts3D[i], src[r], dst[r]);
+			std::vector <cv::Point3d> pts = get3DPoint(plucker[i], Pts3D[i], src[r], dst[r]);
 			for (int s = 0; s < pts.size(); s++)
 			{
 				src_Sol.push_back(pts[s]);
@@ -141,10 +141,10 @@ void RigidBodyPoseFrom2D::findFrom2Dwith3D(std::vector<cv::Point3d> &src, std::v
 
 double RigidBodyPoseFrom2D::computeAlignementError(std::vector<cv::Point3d> &src, std::vector <cv::Point3d> &dst)
 {
-	cv::vector<cv::vector<double> > y, x;
-	cv::vector<cv::vector<double> > Y, X;
-	cv::vector<double> vnl_tmp(3), yg(3, 0), xg(3, 0);
-	cv::vector<double> tmp;
+	std::vector<std::vector<double> > y, x;
+	std::vector<std::vector<double> > Y, X;
+	std::vector<double> vnl_tmp(3), yg(3, 0), xg(3, 0);
+	std::vector<double> tmp;
 	cv::Mat K = cv::Mat::zeros(3, 3, CV_64F);
 
 	//set Data

@@ -36,9 +36,10 @@
 #include "core/Marker.h"
 
 #include <QtCore>
-#include <opencv/highgui.h>
+#include <QtConcurrent/QtConcurrent>
+#include <opencv2/highgui.hpp>
 
-#define WRITEIMAGES 1
+#define WRITEIMAGES 0
 
 using namespace xma;
 

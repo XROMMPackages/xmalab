@@ -94,7 +94,6 @@ void DetailViewDockWidget::setup()
 	for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
 	{
 		CameraViewDetailWidget* cam_widget = new CameraViewDetailWidget((*it), this);
-		cam_widget->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());
 		cameraViews.push_back(cam_widget);
 	}
 

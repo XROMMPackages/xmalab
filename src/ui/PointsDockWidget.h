@@ -30,7 +30,7 @@
 #include <QDockWidget>
 #include <QTreeWidgetItem>
 #include <QString>
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 
 //forward declarations
 namespace Ui

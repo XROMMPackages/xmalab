@@ -55,8 +55,8 @@
 #include <QFileInfo>
 #include <QFile>
 
-#include "quazip.h"
-#include "quazipfile.h"
+#include "Qt5Quazip\quazip.h"
+#include "Qt5Quazip\quazipfile.h"
 
 #ifdef WIN32
 #define OS_SEP "\\"
@@ -391,7 +391,7 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 							if (xml.name() == "Project")
 							{
 								QXmlStreamAttributes attr = xml.attributes();
-								std::cout << "Load project file Version " << attr.value("Version").toString().toAscii().data() << std::endl;
+								std::cout << "Load project file Version " << attr.value("Version").toString().toStdString() << std::endl;
 								version = attr.value("Version").toString().toDouble();
 							}
 							if (xml.name() == "Trial")
@@ -1711,7 +1711,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 						if (xml.name() == "Project")
 						{
 							QXmlStreamAttributes attr = xml.attributes();
-							std::cout << "Load project file Version " << attr.value("Version").toString().toAscii().data() << std::endl;
+							std::cout << "Load project file Version " << attr.value("Version").toString().toStdString() << std::endl;
 							version = attr.value("Version").toString().toDouble();
 							QString activeTrialString = attr.value("ActiveTrial").toString();
 							if (!activeTrialString.isEmpty())activeTrial = activeTrialString.toInt();

@@ -38,7 +38,11 @@
 #include <QPushButton>
 
 #include <iostream>
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
+
+#if (_MSC_VER >= 1915)
+#define no_init_all deprecated
+#endif
 
 #ifdef _MSC_VER 
 #ifndef WITH_CONSOLE
@@ -106,8 +110,9 @@ public:
 
 int main(int argc, char** argv)
 {
+	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 	MApplication app(argc, argv);
-
+	
 #ifdef _DEBUG
 	cv::setBreakOnError(true);
 #endif

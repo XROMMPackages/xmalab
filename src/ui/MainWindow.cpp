@@ -79,7 +79,7 @@
 #include <QSplitter>
 #include <QFileDialog>
 #include <QtCore>
-
+#include <QtConcurrent/QtConcurrent>
 
 #include <iostream>
 
@@ -88,7 +88,7 @@
 #else
 #define OS_SEP "/"
 #endif
-#include <QtGui/QInputDialog>
+#include <QInputDialog>
 #include "ProjectOverview.h"
 
 #ifdef __APPLE__
@@ -193,9 +193,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	resizeTimer.setSingleShot(true);
 	connect(&resizeTimer, SIGNAL(timeout()), SLOT(resizeDone()));
 
-	GLSharedWidget::getInstance()->makeGLCurrent();
 	addDockWidget(Qt::LeftDockWidgetArea, WorldViewDockWidget::getInstance());
-	WorldViewDockWidget::getInstance()->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());
 
 	WizardDockWidget::getInstance();
 	ProgressDialog::getInstance();
@@ -205,6 +203,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	DisplayOptionsDockWidget::getInstance();
 	PlotWindow::getInstance();
 	EventDockWidget::getInstance();
+	GLSharedWidget::getInstance();
 
 	if (!restoreState(Settings::getInstance()->getUIState("XMALab"), UI_VERSION))
 	{
@@ -354,7 +353,6 @@ void MainWindow::setupProjectUI()
 	for (std::vector<Camera*>::const_iterator it = project->getCameras().begin(); it != project->getCameras().end(); ++it)
 	{
 		CameraViewWidget* cam_widget = new CameraViewWidget((*it), this);
-		cam_widget->setSharedGLContext(GLSharedWidget::getInstance()->getQGLContext());
 		cameraViews.push_back(cam_widget);
 		hasUndistorion = hasUndistorion || (*it)->hasUndistortion();
 		//WorkspaceNavigationFrame::getInstance()->addCamera(count, (*it)->getName());
@@ -681,7 +679,7 @@ void MainWindow::loadProject(QString fileName)
 	QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::loadProject, fileName);
 	m_FutureWatcher->setFuture(future);
 
-	ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load dataset " + fileName).toAscii().data());
+	ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load dataset " + fileName).toUtf8());
 }
 
 void MainWindow::loadProjectFinished()
@@ -880,7 +878,7 @@ void MainWindow::saveProject()
 		QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, project->getProjectFilename(), project->getTrials(), false);
 		m_FutureWatcher->setFuture(future);
 
-		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + project->getProjectFilename()).toAscii().data());
+		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + project->getProjectFilename()).toUtf8());
 	}
 }
 
@@ -907,7 +905,7 @@ void MainWindow::saveProjectAs(bool subset)
 				QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, fileName, project->getTrials(), false);
 				m_FutureWatcher->setFuture(future);
 
-				ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + fileName).toAscii().data());
+				ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + fileName).toUtf8());
 			}
 			else
 			{
@@ -921,7 +919,7 @@ void MainWindow::saveProjectAs(bool subset)
 					QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, fileName, diag->getTrials(), true);
 					m_FutureWatcher->setFuture(future);
 
-					ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + fileName).toAscii().data());
+					ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + fileName).toUtf8());
 				}
 				delete diag;
 			}

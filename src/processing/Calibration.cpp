@@ -249,26 +249,26 @@ void Calibration::process()
 
 		if (!m_planar)
 		{
-			flags = CV_CALIB_USE_INTRINSIC_GUESS;
+			flags = cv::CALIB_USE_INTRINSIC_GUESS;
 		}
 
 		if (!Project::getInstance()->getCameras()[m_camera]->hasModelDistortion())
 		{
-			flags = flags + (CV_CALIB_FIX_K1 + CV_CALIB_FIX_K2 + CV_CALIB_FIX_K3 + CV_CALIB_FIX_K4 + CV_CALIB_FIX_K5 + CV_CALIB_FIX_K6 + CV_CALIB_ZERO_TANGENT_DIST);
+			flags = flags + (cv::CALIB_FIX_K1 + cv::CALIB_FIX_K2 + cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5 + cv::CALIB_FIX_K6 + cv::CALIB_ZERO_TANGENT_DIST);
 		}
 		else
 		{
-			flags = flags + CV_CALIB_RATIONAL_MODEL;
+			flags = flags + cv::CALIB_RATIONAL_MODEL;
 		}
 		if (Settings::getInstance()->getBoolSetting("FixPrincipal"))
 		{
 			std::cerr << "fix" << std::endl;
-			flags += CV_CALIB_FIX_PRINCIPAL_POINT;
+			flags += cv::CALIB_FIX_PRINCIPAL_POINT;
 			intrinsic_matrix.at<double>(0, 2) = 0.5 * (Project::getInstance()->getCameras()[m_camera]->getWidth() + 1);
 			intrinsic_matrix.at<double>(1, 2) = 0.5 * (Project::getInstance()->getCameras()[m_camera]->getHeight() + 1);
 		}
-		cv::vector<cv::Mat> rvecs;
-		cv::vector<cv::Mat> tvecs;
+		std::vector<cv::Mat> rvecs;
+		std::vector<cv::Mat> tvecs;
 
 		cv::calibrateCamera(object_points, image_points, cv::Size(Project::getInstance()->getCameras()[m_camera]->getWidth(), Project::getInstance()->getCameras()[m_camera]->getHeight()), intrinsic_matrix, distortion_coeffs, rvecs, tvecs, flags);
 

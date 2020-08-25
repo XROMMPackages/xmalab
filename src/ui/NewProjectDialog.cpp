@@ -153,7 +153,7 @@ bool NewProjectDialog::referencesValid()
 
 	std::ifstream fin;
 	std::string line;
-	fin.open(diag->lineEditReferencePoints->text().toAscii().data(), std::ios::binary);
+	fin.open(diag->lineEditReferencePoints->text().toStdString(), std::ios::binary);
 
 	char str[100];
 	int id;

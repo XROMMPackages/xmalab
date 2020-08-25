@@ -30,7 +30,7 @@
 #include <QFutureWatcher>
 #include <QObject>
 
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 
 namespace xma
 {
@@ -73,13 +73,13 @@ namespace xma
 		cv::Point2d selectedPoints[4];
 		int selectedPointsID[4];
 
-		void getRandomReferences(unsigned int nbPoints, cv::vector<cv::Point2d>& pt2d, cv::vector<cv::Point3d>& pt3d);
+		void getRandomReferences(unsigned int nbPoints, std::vector<cv::Point2d>& pt2d, std::vector<cv::Point3d>& pt3d);
 		double euclideanDist(cv::Point2d& p, cv::Point2d& q);
 		bool calibrateOpenCV(bool singleFocal = false);
 		void reprojectAndComputeError();
 
 		void setupCorrespondancesRansac(unsigned int loop_max, double threshold);
-		double computeProjection(cv::vector<cv::Point2d> pt2d, cv::vector<cv::Point3d> pt3d, cv::Mat& _projection);
+		double computeProjection(std::vector<cv::Point2d> pt2d, std::vector<cv::Point3d> pt3d, cv::Mat& _projection);
 		int computeInlier(cv::Mat& projection, double threshold);
 		void computeProjectionFromInliers(double threshold);
 		void refineResults(bool withCameraRefinement);
@@ -87,7 +87,7 @@ namespace xma
 		void setPoseFromInlier();
 		void calibrateFromInliers(bool singleFocal = false);
 		void computeProjectionMatrixFromInlier();
-		void computePose(cv::vector<cv::Point2d> pt2d, cv::vector<cv::Point3d> pt3d);
+		void computePose(std::vector<cv::Point2d> pt2d, std::vector<cv::Point3d> pt3d);
 		int selectCorrespondances(double threshold);
 
 		void setupCorrespondancesRansacPose(unsigned int loop_max, double threshold);
@@ -100,10 +100,10 @@ namespace xma
 		int alldetectedPointsSize;
 		cv::Point2d* alldetectedPoints;
 
-		cv::vector<cv::Point2d> projectedPoints;
-		cv::vector<cv::Point2d> detectedPoints;
-		cv::vector<double> error;
-		cv::vector<bool> Inlier;
+		std::vector<cv::Point2d> projectedPoints;
+		std::vector<cv::Point2d> detectedPoints;
+		std::vector<double> error;
+		std::vector<bool> Inlier;
 
 		cv::Mat projection;
 		cv::Mat rotationvector;

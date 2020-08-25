@@ -48,6 +48,7 @@ m_visible(true)
 
 	widget->setupUi(this);
 	widget->frame_calibration->setCamera(camera);
+	widget->frame_calibration->hide();
 	cameraName = camera->getName();
 	widget->glCameraView->setCamera(camera);
 	widget->frameInfo->hide();
@@ -134,13 +135,6 @@ const bool& CameraViewWidget::isVisible()
 void CameraViewWidget::setIsVisible(bool value)
 {
 	m_visible = value;
-}
-
-void CameraViewWidget::setSharedGLContext(const QGLContext* sharedContext)
-{
-	QGLContext* context = new QGLContext(sharedContext->format(), widget->glCameraView);
-	context->create(sharedContext);
-	widget->glCameraView->setContext(context, sharedContext, true);
 }
 
 void CameraViewWidget::draw()

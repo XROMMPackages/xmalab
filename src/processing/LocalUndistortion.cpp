@@ -40,6 +40,7 @@
 #include "core/Settings.h"
 
 #include <QtCore>
+#include <QtConcurrent/QtConcurrent>
 #include <stdlib.h>
 #include <math.h>
 
@@ -134,7 +135,7 @@ void LocalUndistortion::setupCorrespondances()
 	tmpPoints_references.clear();
 	tmpPoints_inlier.clear();
 
-	cv::vector<cv::Point2d> center;
+	std::vector<cv::Point2d> center;
 	if (Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->isCenterSet())
 	{
 		findNClosestPoint(1, Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->getCenter(), center, detectedPoints, false);
@@ -260,7 +261,7 @@ int LocalUndistortion::computeLWM(cv::Mat& detectedPts, cv::Mat& controlPts, cv:
 	vcp.create(cv::Size(nbNeighbours, 1),CV_64F);
 
 	cv::Mat tmpXY;
-	cv::vector<cv::Mat> tmpXY_splitted;
+	std::vector<cv::Mat> tmpXY_splitted;
 
 	cv::Mat X_inv;
 	cv::Mat all_pts_Matx2;
@@ -287,7 +288,7 @@ int LocalUndistortion::computeLWM(cv::Mat& detectedPts, cv::Mat& controlPts, cv:
 			cv::sqrt(all_pts_Matx2y2, all_pts_MatEuclideanDistance);
 
 			//sortIndices to find closest
-			cv::sortIdx(all_pts_MatEuclideanDistance, all_pts_Idx,CV_SORT_EVERY_COLUMN + CV_SORT_ASCENDING);
+			cv::sortIdx(all_pts_MatEuclideanDistance, all_pts_Idx,cv::SORT_EVERY_COLUMN + cv::SORT_ASCENDING);
 		}
 		//set radius of influence
 		radii.at<double>(i) = all_pts_MatEuclideanDistance.at<double>(all_pts_Idx.at<int>(nbNeighbours - 1));
@@ -335,10 +336,10 @@ int LocalUndistortion::computeLWM(cv::Mat& detectedPts, cv::Mat& controlPts, cv:
 	return std::ceil(maxRadius);
 }
 
-void LocalUndistortion::setPointsByInlier(cv::vector<cv::Point2d>& pts, cv::Mat& ptsInlier)
+void LocalUndistortion::setPointsByInlier(std::vector<cv::Point2d>& pts, cv::Mat& ptsInlier)
 {
 	int count = 0;
-	for (cv::vector<bool>::iterator mIt = tmpPoints_inlier.begin(); mIt != tmpPoints_inlier.end();)
+	for (std::vector<bool>::iterator mIt = tmpPoints_inlier.begin(); mIt != tmpPoints_inlier.end();)
 	{
 		if (*mIt)
 		{
@@ -351,8 +352,8 @@ void LocalUndistortion::setPointsByInlier(cv::vector<cv::Point2d>& pts, cv::Mat&
 	ptsInlier.create(count, 1,CV_64FC2);
 
 	int count_tmp = 0;
-	cv::vector<bool>::iterator mIt = tmpPoints_inlier.begin();
-	for (cv::vector<cv::Point2d>::iterator it = pts.begin()
+	std::vector<bool>::iterator mIt = tmpPoints_inlier.begin();
+	for (std::vector<cv::Point2d>::iterator it = pts.begin()
 	     ; it != pts.end(); ++mIt,++it)
 	{
 		if (*mIt)
@@ -379,14 +380,14 @@ void LocalUndistortion::createLookupTable(cv::Mat& controlPts, cv::Mat& A, cv::M
 
 	//vector for holding points in a grid
 
-	cv::vector<cv::vector<cv::vector<int> >> grid_pts;
+	std::vector<std::vector<std::vector<int> >> grid_pts;
 	for (int x = 0; x < gwidth; x ++)
 	{
-		cv::vector<cv::vector<int> > col_pts;
+		std::vector<std::vector<int> > col_pts;
 		grid_pts.push_back(col_pts);
 		for (int y = 0; y < gheight; y ++)
 		{
-			cv::vector<int> pts;
+			std::vector<int> pts;
 			grid_pts[x].push_back(pts);
 		}
 	}
@@ -497,14 +498,14 @@ void LocalUndistortion::createLookupTable(cv::Mat& controlPts, cv::Mat& A, cv::M
 	grid_pts.clear();
 }
 
-bool LocalUndistortion::findNClosestPoint(int numberPoints, cv::Point2d pt, cv::vector<cv::Point2d>& closest_pts, cv::vector<cv::Point2d> all_pts, bool skipfirst)
+bool LocalUndistortion::findNClosestPoint(int numberPoints, cv::Point2d pt, std::vector<cv::Point2d>& closest_pts, std::vector<cv::Point2d> all_pts, bool skipfirst)
 {
 	cv::Mat all_pts_Mat(all_pts, true);
 	//substract pt
 	all_pts_Mat = all_pts_Mat - cv::Scalar(pt.x, pt.y);
 
 	//split channels to 2 matrices
-	cv::vector<cv::Mat> all_pts_Matsplitted;
+	std::vector<cv::Mat> all_pts_Matsplitted;
 	cv::split(all_pts_Mat, all_pts_Matsplitted);
 
 	//compute norm of rows
@@ -519,7 +520,7 @@ bool LocalUndistortion::findNClosestPoint(int numberPoints, cv::Point2d pt, cv::
 
 	//sort by lowest Distance
 	cv::Mat all_pts_Idx;
-	cv::sortIdx(all_pts_MatEuclideanDistance, all_pts_Idx,CV_SORT_EVERY_COLUMN + CV_SORT_ASCENDING);
+	cv::sortIdx(all_pts_MatEuclideanDistance, all_pts_Idx, cv::SORT_EVERY_COLUMN + cv::SORT_ASCENDING);
 
 	closest_pts.clear();
 
@@ -548,7 +549,7 @@ bool LocalUndistortion::findNClosestPoint(int numberPoints, cv::Point2d pt, cv::
 double LocalUndistortion::getHexagonalGridSize(cv::Point2d center)
 {
 	//set the cell center to center distance
-	cv::vector<cv::Point2d> neigh = get6adjCells(center, detectedPoints);
+	std::vector<cv::Point2d> neigh = get6adjCells(center, detectedPoints);
 	double dY = 0;
 	for (unsigned int j = 0; j < neigh.size(); j++)
 	{
@@ -559,9 +560,9 @@ double LocalUndistortion::getHexagonalGridSize(cv::Point2d center)
 	return dY;
 }
 
-double LocalUndistortion::getHexagonalGridOrientation(cv::Point2d center, cv::vector<cv::Point2d> all_pts)
+double LocalUndistortion::getHexagonalGridOrientation(cv::Point2d center, std::vector<cv::Point2d> all_pts)
 {
-	cv::vector<cv::Point2d> closestToCenter;
+	std::vector<cv::Point2d> closestToCenter;
 	findNClosestPoint(6, center, closestToCenter, all_pts, true);
 
 	cv::Mat angles = cv::Mat::zeros(1, 6,CV_64F);
@@ -577,27 +578,27 @@ double LocalUndistortion::getHexagonalGridOrientation(cv::Point2d center, cv::ve
 	// reorder six
 	// angles in radians from the center point to each of the six points
 	tmpMat = abs(angles + cv::Scalar(90));
-	cv::sortIdx(tmpMat, tmpMatIdx,CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	cv::sortIdx(tmpMat, tmpMatIdx, cv::SORT_EVERY_ROW + cv::SORT_ASCENDING);
 	perfectlyPlacedGrid.at<double>(tmpMatIdx.at<int>(0)) = 90;
 
 	tmpMat = abs(angles + cv::Scalar(30));
-	cv::sortIdx(tmpMat, tmpMatIdx,CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	cv::sortIdx(tmpMat, tmpMatIdx, cv::SORT_EVERY_ROW + cv::SORT_ASCENDING);
 	perfectlyPlacedGrid.at<double>(tmpMatIdx.at<int>(0)) = 30;
 
 	tmpMat = abs(angles + cv::Scalar(-30));
-	cv::sortIdx(tmpMat, tmpMatIdx,CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	cv::sortIdx(tmpMat, tmpMatIdx, cv::SORT_EVERY_ROW + cv::SORT_ASCENDING);
 	perfectlyPlacedGrid.at<double>(tmpMatIdx.at<int>(0)) = -30;
 
 	tmpMat = abs(angles + cv::Scalar(-90));
-	cv::sortIdx(tmpMat, tmpMatIdx,CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	cv::sortIdx(tmpMat, tmpMatIdx, cv::SORT_EVERY_ROW + cv::SORT_ASCENDING);
 	perfectlyPlacedGrid.at<double>(tmpMatIdx.at<int>(0)) = -90;
 
 	tmpMat = abs(angles + cv::Scalar(-150));
-	cv::sortIdx(tmpMat, tmpMatIdx,CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	cv::sortIdx(tmpMat, tmpMatIdx, cv::SORT_EVERY_ROW + cv::SORT_ASCENDING);
 	perfectlyPlacedGrid.at<double>(tmpMatIdx.at<int>(0)) = -150;
 
 	tmpMat = abs(angles + cv::Scalar(150));
-	cv::sortIdx(tmpMat, tmpMatIdx,CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	cv::sortIdx(tmpMat, tmpMatIdx, cv::SORT_EVERY_ROW + cv::SORT_ASCENDING);
 	perfectlyPlacedGrid.at<double>(tmpMatIdx.at<int>(0)) = 150;
 
 	cv::Scalar gridOrient = cv::mean(angles + perfectlyPlacedGrid);
@@ -611,15 +612,15 @@ double LocalUndistortion::getHexagonalGridOrientation(cv::Point2d center, cv::ve
 	return gridOrient.val[0];
 }
 
-cv::vector<cv::Point2d> LocalUndistortion::get6adjCells(cv::Point2d center, cv::vector<cv::Point2d> all_pts)
+std::vector<cv::Point2d> LocalUndistortion::get6adjCells(cv::Point2d center, std::vector<cv::Point2d> all_pts)
 {
 	//returns the 6 closest cells to cp
 	//[note: dist is for all centroids, not just neighborhood of cp.]
-	cv::vector<cv::Point2d> closestToCenter;
+	std::vector<cv::Point2d> closestToCenter;
 	findNClosestPoint(6, center, closestToCenter, all_pts, true);
 
 	cv::Mat angles = cv::Mat::zeros(1, 6,CV_64F);
-	cv::vector<cv::Point2d> sixN;
+	std::vector<cv::Point2d> sixN;
 
 	for (int i = 0; i < 6; i++)
 	{
@@ -631,27 +632,27 @@ cv::vector<cv::Point2d> LocalUndistortion::get6adjCells(cv::Point2d center, cv::
 	// reorder six
 	// angles in radians from the center point to each of the six points
 	tmpMat = abs(angles + cv::Scalar(90));
-	cv::sortIdx(tmpMat, tmpMatIdx,CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	cv::sortIdx(tmpMat, tmpMatIdx, cv::SORT_EVERY_ROW + cv::SORT_ASCENDING);
 	sixN.push_back(closestToCenter[tmpMatIdx.at<int>(0)]);
 
 	tmpMat = abs(angles + cv::Scalar(30));
-	cv::sortIdx(tmpMat, tmpMatIdx,CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	cv::sortIdx(tmpMat, tmpMatIdx, cv::SORT_EVERY_ROW + cv::SORT_ASCENDING);
 	sixN.push_back(closestToCenter[tmpMatIdx.at<int>(0)]);
 
 	tmpMat = abs(angles + cv::Scalar(-30));
-	cv::sortIdx(tmpMat, tmpMatIdx,CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	cv::sortIdx(tmpMat, tmpMatIdx, cv::SORT_EVERY_ROW + cv::SORT_ASCENDING);
 	sixN.push_back(closestToCenter[tmpMatIdx.at<int>(0)]);
 
 	tmpMat = abs(angles + cv::Scalar(-90));
-	cv::sortIdx(tmpMat, tmpMatIdx,CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	cv::sortIdx(tmpMat, tmpMatIdx, cv::SORT_EVERY_ROW + cv::SORT_ASCENDING);
 	sixN.push_back(closestToCenter[tmpMatIdx.at<int>(0)]);
 
 	tmpMat = abs(angles + cv::Scalar(150));
-	cv::sortIdx(tmpMat, tmpMatIdx,CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	cv::sortIdx(tmpMat, tmpMatIdx, cv::SORT_EVERY_ROW + cv::SORT_ASCENDING);
 	sixN.push_back(closestToCenter[tmpMatIdx.at<int>(0)]);
 
 	tmpMat = abs(angles + cv::Scalar(-150));
-	cv::sortIdx(tmpMat, tmpMatIdx,CV_SORT_EVERY_ROW + CV_SORT_ASCENDING);
+	cv::sortIdx(tmpMat, tmpMatIdx, cv::SORT_EVERY_ROW + cv::SORT_ASCENDING);
 	sixN.push_back(closestToCenter[tmpMatIdx.at<int>(0)]);
 
 	angles.release();
@@ -662,7 +663,7 @@ cv::vector<cv::Point2d> LocalUndistortion::get6adjCells(cv::Point2d center, cv::
 	return sixN;
 }
 
-bool LocalUndistortion::contains(cv::Point2d centercont, cv::vector<cv::Point2d>& pts)
+bool LocalUndistortion::contains(cv::Point2d centercont, std::vector<cv::Point2d>& pts)
 {
 	for (auto pt : pts)
 	{
@@ -672,9 +673,9 @@ bool LocalUndistortion::contains(cv::Point2d centercont, cv::vector<cv::Point2d>
 	return false;
 }
 
-void LocalUndistortion::checkAndAddPoint(cv::Point2d centerdet, cv::Point2d ptA1cont, cv::Point2d ptA1det, double thresh, cv::vector<double>& dy_vec, bool & newPoint)
+void LocalUndistortion::checkAndAddPoint(cv::Point2d centerdet, cv::Point2d ptA1cont, cv::Point2d ptA1det, double thresh, std::vector<double>& dy_vec, bool & newPoint)
 {
-	cv::vector<cv::Point2d> ptB1det;
+	std::vector<cv::Point2d> ptB1det;
 	if (findNClosestPoint(1, ptA1det, ptB1det, detectedPoints, false) &&
 		//Control point not yet present
 		!contains(ptA1cont, tmpPoints_references) &&
@@ -691,7 +692,7 @@ void LocalUndistortion::checkAndAddPoint(cv::Point2d centerdet, cv::Point2d ptA1
 
 }
 
-bool LocalUndistortion::addNeighbours(cv::Point2d centercont, cv::Point2d centerdet, double dY, double dX, double dOffY, double dYdist, cv::vector<double>& dy_vec)
+bool LocalUndistortion::addNeighbours(cv::Point2d centercont, cv::Point2d centerdet, double dY, double dX, double dOffY, double dYdist, std::vector<double>& dy_vec)
 {
 	bool newPoint = false;
 	double dXdist = sin(M_PI / 3.0) * dYdist;
@@ -700,7 +701,7 @@ bool LocalUndistortion::addNeighbours(cv::Point2d centercont, cv::Point2d center
 
 	cv::Point2d ptA1cont;
 	cv::Point2d ptA1det;
-	cv::vector<cv::Point2d> ptB1det;
+	std::vector<cv::Point2d> ptB1det;
 
 	//Test 1st Point dY
 	ptA1cont = cv::Point2d(centercont.x, centercont.y + dY);
@@ -743,7 +744,7 @@ void LocalUndistortion::setupHexagonalGrid(cv::Point2d center, double dY)
 	tmpPoints_references.clear();
 
 	//tmpCheck.clear();
-	cv::vector<double> dy_vec;
+	std::vector<double> dy_vec;
 
 	//set first point to the point closest to the center of the image
 	tmpPoints_distorted.push_back(center);

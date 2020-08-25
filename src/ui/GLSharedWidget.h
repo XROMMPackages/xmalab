@@ -27,19 +27,18 @@
 #ifndef GLSHAREDWIDGET_H
 #define GLSHAREDWIDGET_H
 
-#include <QGLWidget>
+#include <QOpenGLWidget>
 
 namespace xma
 {
-	class GLSharedWidget : public QGLWidget
+	class GLSharedWidget : public QOpenGLWidget
 	{
 		Q_OBJECT
 
 	public:
 		virtual ~GLSharedWidget();
 		static GLSharedWidget* getInstance();
-		const QGLContext* getQGLContext();
-		void makeGLCurrent();
+		//const QGLContext* getQGLContext();
 		double getVersion();
 		QString getInfo();
 	public slots:
@@ -48,7 +47,7 @@ namespace xma
 		bool getHasBlendSubtract();
 
 	protected:
-		GLSharedWidget(QGLFormat format, QWidget* parent = NULL);
+		GLSharedWidget(QWidget* parent = NULL);
 		void initializeGL();
 
 		void paintEvent(QPaintEvent* event)

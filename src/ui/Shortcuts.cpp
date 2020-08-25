@@ -35,7 +35,7 @@
 #include "ui/WizardDockWidget.h"
 #include "ui/DisplayOptionsDockWidget.h"
 #include "ui/PlotWindow.h"
-#include <QtGui/QShortcut>
+#include <QShortcut>
 #include <QKeyEvent>
 
 using namespace xma;

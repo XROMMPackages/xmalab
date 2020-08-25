@@ -27,7 +27,7 @@
 #ifndef WorldViewDockGLWidget_H_
 #define WorldViewDockGLWidget_H_
 
-#include <QGLWidget>
+#include <QOpenGLWidget>
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
@@ -44,7 +44,7 @@ namespace xma
 {
 	class Trial;
 
-	class WorldViewDockGLWidget : public QGLWidget
+	class WorldViewDockGLWidget : public QOpenGLWidget
 	{
 		Q_OBJECT
 

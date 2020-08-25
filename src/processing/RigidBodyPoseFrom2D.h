@@ -27,7 +27,7 @@
 #ifndef RIGIDBODYPOSEFROM2D_H_
 #define RIGIDBODYPOSEFROM2D_H_
 
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 
 namespace xma
 {

@@ -32,7 +32,7 @@
 #include "Camera.h"
 #include "ui/GLSharedWidget.h"
 
-#include <opencv/highgui.h>
+#include <opencv2/highgui.hpp>
 
 #include <QFileInfo>
 #include "Project.h"
@@ -50,7 +50,7 @@ Image::Image(QString _imageFileName, bool flip)
 {
 	cv::Mat imageTMP;
 	
-	imageTMP = cv::imread(_imageFileName.toAscii().data(), CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH);
+	imageTMP = cv::imread(_imageFileName.toStdString(), cv::IMREAD_ANYCOLOR  | cv::IMREAD_ANYDEPTH);
 
 	if (imageTMP.channels()> 1){
 		colorImage_set = COLOR_ORIGINAL;
@@ -63,7 +63,7 @@ Image::Image(QString _imageFileName, bool flip)
 		{
 			image_color = imageTMP.clone();
 		}
-		cvtColor(image_color, image, CV_RGB2GRAY);
+		cvtColor(image_color, image, cv::COLOR_RGB2GRAY);
 	} 
 	else
 	{
@@ -167,7 +167,7 @@ void Image::setImage(cv::Mat& _image, bool _color)
 		colorImage_set = COLOR_ORIGINAL;
 		image_color.release();
 		image_color = _image.clone();
-		cvtColor(image_color, image, CV_RGB2GRAY);
+		cvtColor(image_color, image, cv::COLOR_RGB2GRAY);
 	}
 	else{
 		colorImage_set = GRAY;
@@ -183,7 +183,7 @@ void Image::setImage(QString imageFileName, bool flip)
 {	
 	image.release();
 	cv::Mat imageTMP;
-	imageTMP = cv::imread(imageFileName.toAscii().data(), CV_LOAD_IMAGE_ANYCOLOR | CV_LOAD_IMAGE_ANYDEPTH);
+	imageTMP = cv::imread(imageFileName.toStdString(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
 
 	if (imageTMP.channels()> 1){
 		colorImage_set = COLOR_ORIGINAL;
@@ -196,7 +196,7 @@ void Image::setImage(QString imageFileName, bool flip)
 		{
 			image_color = imageTMP.clone();
 		}
-		cvtColor(image_color, image, CV_RGB2GRAY);
+		cvtColor(image_color, image, cv::COLOR_RGB2GRAY);
 	}
 	else
 	{
@@ -228,7 +228,7 @@ void Image::loadTexture()
 	cv::Mat  * tex_image = &image_color;
 	if (!textureLoaded || image_reset)
 	{
-		if (!textureLoaded)((QGLContext*)(GLSharedWidget::getInstance()->getQGLContext()))->makeCurrent();
+		//if (!textureLoaded)((QGLContext*)(GLSharedWidget::getInstance()->getQGLContext()))->makeCurrent();
 
 		if (colorImage_set != COLOR_ORIGINAL || (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && State::getInstance()->getWorkspace() == DIGITIZATION && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll")))
 		{
@@ -240,12 +240,12 @@ void Image::loadTexture()
 		{
 			if (!image.empty()){
 				cv::Mat img_gamma = FilterImage().run(image);
-				cvtColor(img_gamma, image_color_disp, CV_GRAY2RGB);
+				cvtColor(img_gamma, image_color_disp, cv::COLOR_GRAY2RGB);
 			}
 		}
 		else if (colorImage_set == GRAY)
 		{
-			cvtColor(image, image_color_disp, CV_GRAY2RGB);
+			cvtColor(image, image_color_disp, cv::COLOR_GRAY2RGB);
 		}
 
 		glEnable(GL_TEXTURE_2D);
@@ -283,7 +283,7 @@ void Image::deleteTexture()
 {
 	if (textureLoaded)
 	{
-		GLSharedWidget::getInstance()->makeCurrent();
+		//GLSharedWidget::getInstance()->makeCurrent();
 		glDeleteTextures(1, &texture);
 	}
 	textureLoaded = false;
@@ -301,16 +301,16 @@ void Image::save(QString filename, bool flip, bool filter)
 			{
 				image_tmp = FilterImage().run(image_tmp);
 			}
-			cv::imwrite(filename.toAscii().data(), image_tmp);
+			cv::imwrite(filename.toStdString(), image_tmp);
 		}
 		else{
 			if (filter)
 			{
 				cv::Mat image_tmp = FilterImage().run(image_color);
-				cv::imwrite(filename.toAscii().data(), image_tmp);
+				cv::imwrite(filename.toStdString(), image_tmp);
 			}
 			else
-				cv::imwrite(filename.toAscii().data(), image_color);
+				cv::imwrite(filename.toStdString(), image_color);
 		}
 	}
 	else{
@@ -322,15 +322,15 @@ void Image::save(QString filename, bool flip, bool filter)
 			{
 				image_tmp = FilterImage().run(image_tmp);
 			}
-			cv::imwrite(filename.toAscii().data(), image_tmp);
+			cv::imwrite(filename.toStdString(), image_tmp);
 		}
 		else{
 			if (filter)
 			{
 				cv::Mat image_tmp = FilterImage().run(image);
-				cv::imwrite(filename.toAscii().data(), image_tmp);
+				cv::imwrite(filename.toStdString(), image_tmp);
 			}else
-			cv::imwrite(filename.toAscii().data(), image);
+			cv::imwrite(filename.toStdString(), image);
 		}
 	}
 }

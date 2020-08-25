@@ -29,7 +29,7 @@
 
 #include <QFrame>
 #include "ui/State.h"
-#include "cv.h"
+#include "opencv2/opencv.hpp"
 
 
 namespace Ui
