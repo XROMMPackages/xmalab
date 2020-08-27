@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1145
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "XMALab_installer_generator", "XMALab_installer_generator\XMALab_installer_generator.vdproj", "{49E054A7-66B5-428B-BF2B-07B9D50001CF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Default = Debug|Default
+		Release|Default = Release|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{49E054A7-66B5-428B-BF2B-07B9D50001CF}.Debug|Default.ActiveCfg = Debug
+		{49E054A7-66B5-428B-BF2B-07B9D50001CF}.Debug|Default.Build.0 = Debug
+		{49E054A7-66B5-428B-BF2B-07B9D50001CF}.Release|Default.ActiveCfg = Release
+		{49E054A7-66B5-428B-BF2B-07B9D50001CF}.Release|Default.Build.0 = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B74560EA-AC21-46B3-B482-54DDCA8356BB}
+	EndGlobalSection
+EndGlobal
