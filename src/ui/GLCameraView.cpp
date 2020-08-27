@@ -179,6 +179,7 @@ void GLCameraView::mouseMoveEvent(QMouseEvent* e)
 	if (e->buttons() & Qt::RightButton)
 	{
 		x_offset -= (prev_x - zoomRatio * e->pos().x());
+		y_offset -= (prev_y - zoomRatio * e->pos().y());
 
 		prev_y = zoomRatio * e->pos().y();
 		prev_x = zoomRatio * e->pos().x();

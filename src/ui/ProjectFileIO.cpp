@@ -55,8 +55,8 @@
 #include <QFileInfo>
 #include <QFile>
 
-#include "Qt5Quazip\quazip.h"
-#include "Qt5Quazip\quazipfile.h"
+#include "quazip.h"
+#include "quazipfile.h"
 
 #ifdef WIN32
 #define OS_SEP "\\"
