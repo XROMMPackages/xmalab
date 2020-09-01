@@ -623,7 +623,7 @@ void GLCameraView::drawTexture()
 	if (drawImage)
 	{
 		glDisable(GL_LIGHTING);
-		if (State::getInstance()->getWorkspace() != DIGITIZATION || !Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault())
+		if (State::getInstance()->getWorkspace() != DIGITIZATION ||( State::getInstance()->getActiveTrial() != -1 && !Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault()))
 			drawQuad();
 	}
 	glDisable(GL_TEXTURE_2D);

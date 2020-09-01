@@ -245,7 +245,8 @@ void Image::loadTexture()
 		}
 		else if (colorImage_set == GRAY)
 		{
-			cvtColor(image, image_color_disp, cv::COLOR_GRAY2RGB);
+			if (!image.empty()) 
+				cvtColor(image, image_color_disp, cv::COLOR_GRAY2RGB);
 		}
 
 		glEnable(GL_TEXTURE_2D);
