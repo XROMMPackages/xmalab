@@ -212,8 +212,16 @@ void WizardCalibrationCubeFrame::updateFrameList()
 			pix.fill(QColor::fromRgb(0, 200, 100));
 			for (auto cam : Project::getInstance()->getCameras())
 			{
-				if(cam->getCalibrationImages()[i]->isCalibrated())
+				if (cam->getCalibrationImages()[i]->isCalibrated() == 1) {
+					QPixmap pix(8, 16);
+					pix.fill(QColor::fromRgb(0, 200, 100));
 					qtreewidgetitem->setIcon(cam->getID() + 1, pix);
+				}
+				else if (cam->getCalibrationImages()[i]->isCalibrated() == 2) {
+					QPixmap pix(8, 16);
+					pix.fill(QColor::fromRgb(0, 100, 200));
+					qtreewidgetitem->setIcon(cam->getID() + 1, pix);
+				}
 			}
 			frame->frametreeWidget->addTopLevelItem(qtreewidgetitem);
 		}
