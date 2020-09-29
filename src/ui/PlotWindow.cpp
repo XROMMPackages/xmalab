@@ -2979,8 +2979,15 @@ void PlotWindow::updateExtraPlot()
 
 void PlotWindow::setInterpolation()
 {
-	if (!(dock->comboBoxPlotType->currentIndex() == 0 || dock->comboBoxPlotType->currentIndex() == 1))
-		return;
+	if (!(dock->comboBoxPlotType->currentIndex() == 0 || dock->comboBoxPlotType->currentIndex() == 1)) {
+		if (ConfirmationDialog::getInstance()->showConfirmationDialog("You have to be in either the 2D positions or 3D positions plot to modify Interpolation. Do you want to change to the 2D position plot and continue with the active marker?"))
+		{
+			dock->comboBoxPlotType->setCurrentIndex(0);
+		}
+		else {
+			return;
+		}
+	}
 
 	Marker * marker = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveMarker();
 	if (marker == NULL)
