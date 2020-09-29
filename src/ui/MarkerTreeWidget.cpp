@@ -203,6 +203,7 @@ void MarkerTreeWidget::action_ChangeDescription_triggered()
 			Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getRigidBodies()[idx]->setDescription(description);
 		}
 	}
+	PlotWindow::getInstance()->updateMarkers(true);
 }
 
 void MarkerTreeWidget::action_DeletePoints_triggered()
