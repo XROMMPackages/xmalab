@@ -246,6 +246,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	setCorner(Qt::BottomRightCorner, Qt::BottomDockWidgetArea);
 
 	ui->actionExport2D_Points->setEnabled(false);
+	ui->actionReprojection_Errors->setEnabled(false);
 	ui->actionExportEvents->setEnabled(false);
 	ui->actionExport3D_Points->setEnabled(false);
 	ui->actionRigidBodyTransformations->setEnabled(false);
@@ -1201,6 +1202,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->imageMainFrame->setVisible(true);
 		ui->startTrialFrame->setVisible(false);
 		ui->actionExport2D_Points->setEnabled(false);
+		ui->actionReprojection_Errors->setEnabled(false);
 		ui->actionPrecisionInfo->setEnabled(false);
 		ui->actionExportEvents->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
@@ -1238,6 +1240,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->startTrialFrame->setVisible(false);
 		ui->actionExport2D_Points->setEnabled(false);
 		ui->actionPrecisionInfo->setEnabled(false);
+		ui->actionReprojection_Errors->setEnabled(false);
 		ui->actionExportEvents->setEnabled(false);
 		ui->actionExport3D_Points->setEnabled(false);
 		ui->actionRigidBodyTransformations->setEnabled(false);
@@ -1361,6 +1364,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			}
 			ui->actionPrecisionInfo->setEnabled(true);
 			ui->actionExport2D_Points->setEnabled(true);
+			ui->actionReprojection_Errors->setEnabled(true);
 			ui->actionExportEvents->setEnabled(true);
 			ui->actionExport3D_Points->setEnabled(true);
 			ui->actionRigidBodyTransformations->setEnabled(true);
@@ -1391,6 +1395,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 			}
 			ui->actionPrecisionInfo->setEnabled(false);
 			ui->actionExport2D_Points->setEnabled(false);
+			ui->actionReprojection_Errors->setEnabled(false);
 			ui->actionExportEvents->setEnabled(false);
 			ui->actionExport3D_Points->setEnabled(false);
 			ui->actionRigidBodyTransformations->setEnabled(false);
@@ -1835,6 +1840,17 @@ void MainWindow::on_actionPrecisionInfo_triggered(bool checked)
 	delete fromTo;
 }
 
+void MainWindow::on_actionReprojection_Errors_triggered(bool checked) {
+	QString outputPath = QFileDialog::getExistingDirectory(this,
+		tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+
+	if (outputPath.isNull() == false)
+	{
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveReprojectionErrors(outputPath + OS_SEP);
+		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+	}
+}
+
 void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(bool checked)
 {
 	FromToDialog* fromTo = new FromToDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame()
@@ -1935,6 +1951,8 @@ void MainWindow::on_actionAll_Trials_for_External_triggered(bool checked)
 				tr->saveTrialImages(cam_path + OS_SEP + "images" + OS_SEP, 1, tr->getVideoStreams()[i]->getNbImages(), "tif", i);
 				QDir().mkpath(cam_path + OS_SEP + "markers" + OS_SEP);
 				tr->save2dPoints(cam_path + OS_SEP + "markers" + OS_SEP, false, false, false, false, false, false, i);
+				QDir().mkpath(cam_path + OS_SEP + "reprojection_errors" + OS_SEP);
+				tr->saveReprojectionErrors(cam_path + OS_SEP + "reprojection_errors" + OS_SEP);
 			}
 		}
 		ProgressDialog::getInstance()->closeProgressbar();

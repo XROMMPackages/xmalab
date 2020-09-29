@@ -1976,6 +1976,44 @@ int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinver
 	return newMarkers.size();
 }
 
+void Trial::saveReprojectionErrors(QString outputfolder) {
+	int end = Project::getInstance()->getCameras().size();
+	
+	for (unsigned int i = 0; i < getMarkers().size(); i++)
+	{
+		QString filename = outputfolder + "Marker" + QString().sprintf("%03d", i + 1) + "_" + getMarkers()[i]->getDescription() + "_reprojectionError.csv";
+		std::ofstream outfile(filename.toStdString());
+		outfile.precision(12);
+
+		for (int f = 0; f < nbImages; f++)
+		{
+			for (unsigned int j = 0; j < end; j++)
+			{
+				if (getMarkers()[i]->getStatus2D()[j][f] > 0 && getMarkers()[i]->getStatus3D()[f])
+				{
+					outfile << getMarkers()[i]->getError2D()[j][f];
+				}
+				else
+				{
+					outfile << "NaN";
+				}
+
+				if (j != end - 1)
+				{
+					outfile << ",";
+				}
+				else
+				{
+					outfile << std::endl;
+				}
+			}
+		}
+		outfile.close();
+	}
+	
+}
+
+
 void Trial::getDrawTextData(int cam, int frame, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text)
 {
 	x.clear();

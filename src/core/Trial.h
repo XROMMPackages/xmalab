@@ -118,6 +118,8 @@ namespace xma
 		bool save3dPoints(std::vector<int> _markers, QString outputfolder, bool onefile, bool headerRow, double filterFrequency, bool saveColumn, int start, int stop);
 		void save2dPoints(QString outputfolder, bool onefile, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols, int id = -1);
 		int load2dPoints(QString outputfolder, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols);
+		void saveReprojectionErrors(QString outputfolder);
+
 
 		void saveRigidBodyTransformations(std::vector<int> _bodies, QString outputfolder, bool onefile, bool headerRow, bool filtered, bool saveColumn, int start, int stop);
 		void saveTrialImages(QString outputfolder, int from, int to, QString format, bool filter, int id = -1);
