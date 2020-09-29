@@ -167,6 +167,7 @@ namespace xma
 		bool checkTrialImageSizeValid();
 
 		void saveVR(QString folder);
+		void setNbImagesFromConfig(int _nbImages);
 		void setNbImagesByMarkers();
 
 	private:

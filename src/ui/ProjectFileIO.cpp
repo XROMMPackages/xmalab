@@ -424,6 +424,9 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 									QString interpolate3D = attr.value("interpolate3D").toString();
 									if (!interpolate3D.isEmpty())trial->setInterpolate3D(interpolate3D.toInt());
 
+									QString nbImages = attr.value("nbImages").toString();
+									if (!nbImages.isEmpty())trial->setNbImagesFromConfig(nbImages.toInt());
+
 									trial->loadMarkers(trialfolder + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
 
 									trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
@@ -1592,6 +1595,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 				xmlWriter.writeAttribute("recordingSpeed", QString::number((*trial_it)->getRecordingSpeed()));
 				xmlWriter.writeAttribute("cutOffFrequency", QString::number((*trial_it)->getCutoffFrequency()));
 				xmlWriter.writeAttribute("interpolate3D", QString::number((*trial_it)->getInterpolate3D()));
+				xmlWriter.writeAttribute("nbImages", QString::number((*trial_it)->getNbImages()));
 
 				if ((*trial_it)->getHasStudyData()){
 					xmlWriter.writeAttribute("MetaData", (*trial_it)->getName() + OS_SEP + QString("metadata.xml"));
@@ -1980,6 +1984,9 @@ bool ProjectFileIO::readProjectFile(QString filename)
 
 							QString interpolate3D = attr.value("interpolate3D").toString();
 							if (!interpolate3D.isEmpty())trial->setInterpolate3D(interpolate3D.toInt());
+
+							QString nbImages = attr.value("nbImages").toString();
+							if (!nbImages.isEmpty())trial->setNbImagesFromConfig(nbImages.toInt());
 
 							trial->loadMarkers(trialfolder + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
 							trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");

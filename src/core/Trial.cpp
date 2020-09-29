@@ -103,6 +103,7 @@ Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
 		videos.push_back(newSequence);
 	}
 
+	nbImages = 0;
 	setNbImages();
 
 	for (int i = 0; i < videos.size(); i++)
@@ -290,7 +291,6 @@ void Trial::setNbImages()
 	if (isDefault)
 		return;
 
-	nbImages = 0;
 	for (unsigned int i = 0; i < videos.size(); i++)
 	{
 		if (videos[i]->getNbImages() >= 0)
@@ -305,6 +305,15 @@ void Trial::setNbImages()
 			}
 		}
 	}
+}
+
+
+void Trial::setNbImagesFromConfig(int _nbImages)
+{
+	if (isDefault)
+		return;
+
+	nbImages = _nbImages;
 }
 
 void Trial::setNbImagesByMarkers()
