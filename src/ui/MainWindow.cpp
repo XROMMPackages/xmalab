@@ -2033,6 +2033,7 @@ void MainWindow::on_actionImportTrial_triggered(bool checked)
 		{
 			for (auto &item : selected){
 				Trial* trial = ProjectFileIO::getInstance()->loadTrials(fileName, item);
+				trial->setRequiresRecomputation(true);
 				if (trial->getIsDefault() && project->hasDefaultTrial())
 				{
 					if (ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to replace your current Default trial. Are you sure you want to update it?")){
