@@ -661,7 +661,22 @@ void MainWindow::loadProject()
 	}
 }
 
-void MainWindow::loadProject(QString fileName)
+void MainWindow::loadProjectWithDifferentCalibration() {
+	QString fileName_calibration = QFileDialog::getOpenFileName(this,
+		tr("Select dataset for the calibration"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xma  *.zip)"));
+	
+	QString fileName_trials = QFileDialog::getOpenFileName(this,
+		tr("Select dataset for the trials"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xma  *.zip)"));
+
+	if (fileName_calibration.isNull() == false && fileName_trials.isNull() == false)
+	{
+		//replacementTrialsXMAfilename = fileName_trials;
+		loadProject(fileName_calibration, fileName_trials);
+	}
+
+}
+
+void MainWindow::loadProject(QString fileName, QString fileName_extraCalib)
 {
 	if (project)
 		closeProject();
@@ -677,7 +692,7 @@ void MainWindow::loadProject(QString fileName)
 	m_FutureWatcher = new QFutureWatcher<int>();
 	connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(loadProjectFinished()));
 
-	QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::loadProject, fileName);
+	QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::loadProject, fileName, fileName_extraCalib);
 	m_FutureWatcher->setFuture(future);
 
 	ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load dataset " + fileName).toUtf8());
@@ -1516,6 +1531,12 @@ void MainWindow::on_actionLoad_Project_triggered(bool checked)
 	loadProject();
 }
 
+void MainWindow::on_actionLoad_Project_with_different_calibration_triggered(bool checked) {
+	if (project && !ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to close your dataset. Please make sure your data have been saved. \nAre you sure you want to close current dataset and load an existing dataset?"))
+		return;
+	loadProjectWithDifferentCalibration();
+}
+
 void MainWindow::on_actionClose_Project_triggered(bool checked)
 {
 	if (project && !ConfirmationDialog::getInstance()->showConfirmationDialog("You are about to close your dataset. Please make sure your data have been saved. \nAre you sure you want to close current dataset?"))
@@ -2124,6 +2145,10 @@ void MainWindow::on_pushButtonNew_Project_clicked()
 void MainWindow::on_pushButtonLoad_Project_clicked()
 {
 	loadProject();
+}
+
+void  MainWindow::on_pushButtonLoad_Project_with_different_Calbration_clicked() {
+	loadProjectWithDifferentCalibration();
 }
 
 void MainWindow::on_pushButtonNewTrial_clicked()

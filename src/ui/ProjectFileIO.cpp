@@ -265,8 +265,12 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 	return success ? 0 : -1;
 }
 
-int ProjectFileIO::loadProject(QString filename)
+int ProjectFileIO::loadProject(QString filename, QString filename_extraCalib)
 {
+	if (!filename_extraCalib.isEmpty()) {
+		filename_extraCalib.swap(filename);
+	}
+
 	bool success = true;
 	Project::getInstance()->projectFilename = filename;
 	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
@@ -296,6 +300,25 @@ int ProjectFileIO::loadProject(QString filename)
 	}
 
 	removeDir(tmpDir_path);
+
+	if (!filename_extraCalib.isEmpty()) {
+		filename_extraCalib.swap(filename);
+		Project::getInstance()->projectFilename = filename;
+
+		for (int i = Project::getInstance()->getTrials().size() - 1; i >= 0; i--) {
+			WorkspaceNavigationFrame::getInstance()->removeTrial(Project::getInstance()->getTrials()[i]->getName());
+			Project::getInstance()->deleteTrial(Project::getInstance()->getTrials()[i]);	
+		}
+
+		QStringList trialnames = readTrials(filename);
+		for (auto &item : trialnames) {
+			std::cerr << "Load trial " << item.toStdString() << std::endl;
+			Trial* trial = loadTrials(filename, item);
+			trial->setRequiresRecomputation(true);
+			Project::getInstance()->addTrial(trial);
+			WorkspaceNavigationFrame::getInstance()->addTrial(item);
+		}
+	}
 
 	return 0;
 }

@@ -279,6 +279,20 @@
             </property>
            </widget>
           </item>
+          <item row="9" column="1">
+           <widget class="QPushButton" name="pushButtonLoad_Project_with_different_Calbration">
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Open .xma trial file with calibration 
+from another xma-file</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -453,6 +467,7 @@
     <addaction name="actionNew_dataset_external_calibration"/>
     <addaction name="actionNew_trial_without_calibration"/>
     <addaction name="actionLoad_Project"/>
+    <addaction name="actionLoad_Project_with_different_calibration"/>
     <addaction name="actionClose_Project"/>
     <addaction name="menuRecent_Files"/>
     <addaction name="separator"/>
@@ -1086,6 +1101,11 @@
   <action name="actionReprojection_Errors">
    <property name="text">
     <string>Reprojection Errors</string>
+   </property>
+  </action>
+  <action name="actionLoad_Project_with_different_calibration">
+   <property name="text">
+    <string>Open Dataset with different calibration</string>
    </property>
   </action>
  </widget>

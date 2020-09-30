@@ -81,7 +81,8 @@ namespace xma
 		void newProjectExternalCalibration();
 		void newProjectFromXMALab(QString filename);
 		void loadProject();
-		void loadProject(QString filename);
+		void loadProjectWithDifferentCalibration();
+		void loadProject(QString fileName, QString fileName_extraCalib = "");
 		void closeProject();
 		void saveProject();
 		void saveProjectAs(bool subset = false);
@@ -127,6 +128,7 @@ namespace xma
 		void on_actionNew_dataset_external_calibration_triggered(bool checked);
 		void on_actionNew_trial_without_calibration_triggered(bool checked);
 		void on_actionLoad_Project_triggered(bool checked);
+		void on_actionLoad_Project_with_different_calibration_triggered(bool checked);
 		void on_actionClose_Project_triggered(bool checked);
 		void on_actionSave_Project_triggered(bool checked);
 		void on_actionSave_Project_as_triggered(bool checked);
@@ -173,6 +175,7 @@ namespace xma
 		//startMainFrameButtons
 		void on_pushButtonNew_Project_clicked();
 		void on_pushButtonLoad_Project_clicked();
+		void on_pushButtonLoad_Project_with_different_Calbration_clicked();
 		void on_pushButtonNewTrial_clicked();
 		void on_pushButtonDefaultTrial_clicked();
 		void on_pushButtonTrailWOCalibration_clicked();

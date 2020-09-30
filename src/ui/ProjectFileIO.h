@@ -46,7 +46,7 @@ namespace xma
 		virtual ~ProjectFileIO();
 
 		int saveProject(QString filename, std::vector <Trial*> trials, bool subset = false);
-		int loadProject(QString filename);
+		int loadProject(QString filename, QString filename_extraCalib);
 
 		QStringList readTrials(QString filename);
 		Trial* loadTrials(QString filename, QString trialname);
