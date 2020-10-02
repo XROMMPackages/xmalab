@@ -172,6 +172,7 @@ Trial::Trial(QString trialname, QString folder)
 		videos.push_back(newSequence);
 	}
 
+	nbImages = 0;
 	setNbImages();
 	
 	for (int i = 0; i < videos.size(); i++)
