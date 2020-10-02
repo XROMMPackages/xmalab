@@ -679,6 +679,21 @@ void Trial::drawPoints(int cameraId, bool detailView)
 				glEnd();
 			}
 		}
+		if (!detailView  && Settings::getInstance()->getBoolSetting("DrawProjected2DpositionsForAllPoints")) {
+			for (std::vector<Marker *>::const_iterator it = markers.begin(); it != markers.end(); ++it)
+			{
+				if ((*it)->getStatus3D()[activeFrame] > 0)
+				{
+					glBegin(GL_LINES);
+					glColor3f(0.0, 1.0, 1.0);
+					glVertex2f((*it)->getPoints2D_projected()[cameraId][activeFrame].x - 5, (*it)->getPoints2D_projected()[cameraId][activeFrame].y - 5);
+					glVertex2f((*it)->getPoints2D_projected()[cameraId][activeFrame].x + 5, (*it)->getPoints2D_projected()[cameraId][activeFrame].y + 5);
+					glVertex2f((*it)->getPoints2D_projected()[cameraId][activeFrame].x + 5, (*it)->getPoints2D_projected()[cameraId][activeFrame].y - 5);
+					glVertex2f((*it)->getPoints2D_projected()[cameraId][activeFrame].x - 5, (*it)->getPoints2D_projected()[cameraId][activeFrame].y + 5);
+					glEnd();
+				}
+			}
+		}
 	}
 	if (Settings::getInstance()->getBoolSetting("TrialDrawEpipolar") &&
 		(!detailView || Settings::getInstance()->getBoolSetting("ShowEpiLineDetailView")))

@@ -85,6 +85,7 @@ Settings::Settings()
 	//Digitizing
 	addBoolSetting("CenterDetailView", false);
 	addBoolSetting("AdvancedCrosshairDetailView", false);
+	addBoolSetting("DrawProjected2DpositionsForAllPoints", false);
 	addBoolSetting("Show3dPointDetailView", false);
 	addBoolSetting("ShowEpiLineDetailView", true);
 	addIntSetting("TriangulationMethod", 1);

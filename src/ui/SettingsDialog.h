@@ -76,13 +76,13 @@ namespace xma
 		void on_checkBox_Advanced_stateChanged(int state);
 		void on_checkBox_HideWarningsCalibration_stateChanged(int state);
 		void on_checkBox_UseCenteredDetailWindow_stateChanged(int state);
+		void on_checkBox_DrawProjected2DpositionsForAllPoints_stateChanged(int state);
 		void on_checkBox_ShowAdvancedCrosshairDetailWindow_stateChanged(int state);
 		void on_checkBox_Show3DPointDetailWindow_stateChanged(int state);
 		void on_checkBox_ShowEpiLineDetailWindow_stateChanged(int state);
 		void on_checkBox_ShowColoredMarkerCross_stateChanged(int state);
 		void on_checkBox_ShowColoredMarkerIDs_stateChanged(int state);
-
-
+		
 		void on_spinBoxEpiPrecision_valueChanged(int value);
 		void on_comboBox_TriangulationMethod_currentIndexChanged(int value);
 		void on_comboBox_DetectionMethodForCalibration_currentIndexChanged(int value);

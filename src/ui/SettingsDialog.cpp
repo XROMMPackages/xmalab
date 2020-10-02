@@ -73,6 +73,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 
 	diag->checkBox_UseCenteredDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("CenterDetailView"));
 	diag->checkBox_ShowAdvancedCrosshairDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView"));
+	diag->checkBox_DrawProjected2DpositionsForAllPoints->setChecked(Settings::getInstance()->getBoolSetting("DrawProjected2DpositionsForAllPoints"));
 	diag->checkBox_Show3DPointDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("Show3dPointDetailView"));
 	diag->checkBox_ShowEpiLineDetailWindow->setChecked(Settings::getInstance()->getBoolSetting("ShowEpiLineDetailView"));
 	diag->checkBox_ShowIDsInDetail->setChecked(Settings::getInstance()->getBoolSetting("ShowIDsInDetail"));
@@ -246,6 +247,11 @@ void SettingsDialog::on_checkBox_Advanced_stateChanged(int state)
 void SettingsDialog::on_checkBox_UseCenteredDetailWindow_stateChanged(int state)
 {
 	Settings::getInstance()->set("CenterDetailView", diag->checkBox_UseCenteredDetailWindow->isChecked());
+}
+
+void SettingsDialog::on_checkBox_DrawProjected2DpositionsForAllPoints_stateChanged(int state)
+{
+	Settings::getInstance()->set("DrawProjected2DpositionsForAllPoints", diag->checkBox_DrawProjected2DpositionsForAllPoints->isChecked());
 }
 
 void SettingsDialog::on_checkBox_ShowAdvancedCrosshairDetailWindow_stateChanged(int state)
