@@ -45,6 +45,7 @@ ThreadScheduler* ThreadScheduler::instance = NULL;
 ThreadScheduler::ThreadScheduler()
 {
 	data_ptr = NULL;
+	running = false;
 }
 
 ThreadScheduler::~ThreadScheduler()
@@ -63,8 +64,10 @@ ThreadScheduler* ThreadScheduler::getInstance()
 
 void ThreadScheduler::updateTrialData(Trial* trial)
 {
-	data_ptr = trial;
+	running = true;
 
+	trials.push_back(trial);
+	
 	std::vector<UpdateTrialFrame*> threads;
 
 	if (trial->getRequiresRecomputation())
@@ -94,13 +97,16 @@ void ThreadScheduler::updateTrialData(Trial* trial)
 
 void ThreadScheduler::finalize_updateTrialData()
 {
-	Trial* trial = (Trial *) data_ptr;
-	for (unsigned int i = 0; i < trial->getRigidBodies().size(); i++)
-	{
-		trial->getRigidBodies()[i]->makeRotationsContinous();
-		trial->getRigidBodies()[i]->filterTransformations();
+	for (auto & trial : trials) {
+		for (unsigned int i = 0; i < trial->getRigidBodies().size(); i++)
+		{
+			trial->getRigidBodies()[i]->makeRotationsContinous();
+			trial->getRigidBodies()[i]->filterTransformations();
+		}
+		trial->setRequiresRecomputation(false);
 	}
-	trial->setRequiresRecomputation(false);
+	trials->clear();
+	running = false;
 	MainWindow::getInstance()->redrawGL();
 }
 

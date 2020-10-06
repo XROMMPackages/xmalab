@@ -41,17 +41,21 @@ namespace xma
 		static ThreadScheduler* instance;
 
 		void* data_ptr;
+		bool running;
+		
+		std::vector<Trial*> trials;
 
 	protected:
 		ThreadScheduler();
-
 
 	public:
 		virtual ~ThreadScheduler();
 		static ThreadScheduler* getInstance();
 
 		void updateTrialData(Trial* trial);
-
+		bool isRunning() {
+			return running;	
+		}
 
 	public slots:
 		void finalize_updateTrialData();

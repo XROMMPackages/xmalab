@@ -75,6 +75,7 @@
 #include "processing/BlobDetection.h"
 #include "processing/LocalUndistortion.h"
 #include "processing/MultiCameraCalibration.h"
+#include "processing/ThreadScheduler.h"
 
 #include <QSplitter>
 #include <QFileDialog>
@@ -877,6 +878,19 @@ void MainWindow::closeProject()
 	ui->actionDisplay_Options->setEnabled(false);
 }
 
+void MainWindow::updateBeforeSaveProject(std::vector <Trial*> trials) {
+	if (Settings::getInstance()->getBoolSetting("RecomputeWhenSaving")) {
+		for (auto &trial : trials) {
+			if (trial->getRequiresRecomputation()) {
+				ThreadScheduler::getInstance()->updateTrialData(trial);
+			}
+		}
+		while (ThreadScheduler::getInstance()->isRunning()) {
+			QApplication::processEvents();
+		}
+	}
+}
+
 void MainWindow::saveProject()
 {
 	//if (!ConfirmationDialog::getInstance()->showConfirmationDialog("Are you sure you want to overwrite the existing File " + project->getProjectFilename() + "?")) return;
@@ -887,6 +901,8 @@ void MainWindow::saveProject()
 		{
 			Project::getInstance()->set_date_created();
 		}
+
+		updateBeforeSaveProject(project->getTrials());
 
 		m_FutureWatcher = new QFutureWatcher<int>();
 		connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( saveProjectFinished() ));
@@ -915,6 +931,8 @@ void MainWindow::saveProjectAs(bool subset)
 			updateRecentFiles();
 
 			if (!subset){
+				updateBeforeSaveProject(project->getTrials());
+
 				m_FutureWatcher = new QFutureWatcher<int>();
 				connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(saveProjectFinished()));
 
@@ -929,6 +947,8 @@ void MainWindow::saveProjectAs(bool subset)
 				bool ok = diag->exec();
 				if (ok)
 				{
+					updateBeforeSaveProject(diag->getTrials());
+
 					m_FutureWatcher = new QFutureWatcher<int>();
 					connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(saveProjectFinished()));
 

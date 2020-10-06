@@ -63,6 +63,8 @@ namespace xma
 		void on_spinBoxFrameAdvance_valueChanged(int value);
 		void on_checkBox_exportAll_clicked(bool checked);
 		void on_checkBox_DisableImageSearch_clicked(bool checked);
+		void on_checkBox_recomputeWhenSaving_clicked(bool checked);
+		
 
 		void on_checkBox_DisableCheckerboardRefinement_stateChanged(int state);
 		void on_checkBox_DisableCheckerboardDetection_stateChanged(int state);

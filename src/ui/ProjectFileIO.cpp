@@ -193,6 +193,12 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 	{
 		for (std::vector<Trial*>::const_iterator trial_it = trials.begin(); trial_it != trials.end(); ++trial_it)
 		{
+			if (!((*trial_it)->getRequiresRecomputation())) {
+				(*trial_it)->savePrecisionInfo(tmpDir_path + OS_SEP + "PrecisionInfo_" + (*trial_it)->getName() + ".txt", 0, (*trial_it)->getNbImages());
+				(*trial_it)->saveMarkerToMarkerDistances(tmpDir_path + OS_SEP + "MarkerDistances_" + (*trial_it)->getName() + ".txt", 0, (*trial_it)->getNbImages());
+			}
+
+
 			QString path = tmpDir_path + OS_SEP + (*trial_it)->getName() + OS_SEP;
 			if (!QDir().mkpath(path))
 			{

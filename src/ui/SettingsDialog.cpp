@@ -59,7 +59,8 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 	diag->spinBoxFrameAdvance->setValue(Settings::getInstance()->getIntSetting("FrameAdvance"));
 	diag->checkBox_exportAll->setChecked(Settings::getInstance()->getBoolSetting("ExportAllEnabled"));
 	diag->checkBox_DisableImageSearch->setChecked(Settings::getInstance()->getBoolSetting("DisableImageSearch"));
-
+	diag->checkBox_recomputeWhenSaving->setChecked(Settings::getInstance()->getBoolSetting("RecomputeWhenSaving"));
+	
 	diag->checkBox_AutoConfirmPendingChanges->setChecked(Settings::getInstance()->getBoolSetting("AutoConfirmPendingChanges"));
 	diag->checkBox_ConfirmQuitXMALab->setChecked(Settings::getInstance()->getBoolSetting("ConfirmQuitXMALab"));
 	diag->checkBox_AutoCalibAfterReference->setChecked(Settings::getInstance()->getBoolSetting("AutoCalibAfterReference"));
@@ -194,6 +195,11 @@ void SettingsDialog::on_checkBox_exportAll_clicked(bool checked)
 void SettingsDialog::on_checkBox_DisableImageSearch_clicked(bool checked)
 {
 	Settings::getInstance()->set("DisableImageSearch", diag->checkBox_DisableImageSearch->isChecked());
+}
+
+void SettingsDialog::on_checkBox_recomputeWhenSaving_clicked(bool checked)
+{
+	Settings::getInstance()->set("RecomputeWhenSaving", diag->checkBox_recomputeWhenSaving->isChecked());
 }
 
 void SettingsDialog::on_checkBox_DisableCheckerboardRefinement_stateChanged(int state)

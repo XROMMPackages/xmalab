@@ -33,6 +33,8 @@
 #include <QSignalMapper>
 #include "ui/State.h"
 
+#include <vector>
+
 namespace Ui
 {
 	class MainWindow;
@@ -43,6 +45,7 @@ namespace xma
 	class Project;
 	class CameraViewWidget;
 	class NewProjectDialog;
+	class Trial;
 
 	class MainWindow : public QMainWindow
 	{
@@ -84,6 +87,7 @@ namespace xma
 		void loadProjectWithDifferentCalibration();
 		void loadProject(QString fileName, QString fileName_extraCalib = "");
 		void closeProject();
+		void updateBeforeSaveProject(std::vector <Trial*> trials);
 		void saveProject();
 		void saveProjectAs(bool subset = false);
 
