@@ -105,7 +105,7 @@ void ThreadScheduler::finalize_updateTrialData()
 		}
 		trial->setRequiresRecomputation(false);
 	}
-	trials->clear();
+	trials.clear();
 	running = false;
 	MainWindow::getInstance()->redrawGL();
 }
