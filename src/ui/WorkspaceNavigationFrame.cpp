@@ -38,10 +38,25 @@
 #include "core/Camera.h"
 #include "core/Trial.h"
 #include "core/CalibrationImage.h"
+#include "core/HelperFunctions.h"
+#include "core/Settings.h"
 
 #include "processing/ThreadScheduler.h"
+#include "processing/DenoiseTrial.h"
+
 #include "ui/CameraSelector.h"
 #include "ui/DetailViewDockWidget.h"
+#include "ui/DenoiseDialog.h"
+
+#include <QFileInfo>
+#include <QDir>
+#include <QFileDialog>
+
+#ifdef WIN32
+#define OS_SEP "\\"
+#else
+#define OS_SEP "/"
+#endif
 
 using namespace xma;
 
@@ -322,8 +337,36 @@ void WorkspaceNavigationFrame::on_toolButtonTrialSettings_clicked()
 		{
 			MainWindow::getInstance()->redrawGL();
 		}
-		
-		if (dialog->getDialogReturn() == TRIALDIALOGCHANGE)
+		 
+		if (dialog->getDialogReturn() == TRIALDIALOGDENOISE)
+		{
+			
+			QString outputPath = QFileDialog::getExistingDirectory(this,
+				tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+
+			if (outputPath.isNull() == false)
+			{	
+				DenoiseDialog* diag = new DenoiseDialog(this);
+
+				diag->exec();
+
+				if (diag->result()) {
+					Settings::getInstance()->setLastUsedDirectory(outputPath, true);
+					
+					for (int i = 0; i < Project::getInstance()->getCameras().size(); i++) {
+						Trial* trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
+						DenoiseTrial * thread = new DenoiseTrial(trial, i,
+							diag->getRelinkTrial(), diag->getSearchWindowSize(), diag->getTemplateWindowSize(), diag->getTemporalWindowSize(),
+							diag->getFilterStrength(),outputPath);
+						if(diag->getRelinkTrial())
+							connect(thread, SIGNAL(signal_finished()), this, SLOT(changeDenoiseTrialDataAfterDenoise()));
+						thread->start();
+					}
+				}
+				delete diag;
+			}			
+		}
+		else if (dialog->getDialogReturn() == TRIALDIALOGCHANGE)
 		{
 			frame->comboBoxTrial->setItemText(State::getInstance()->getActiveTrial(), Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getName());
 			State::getInstance()->changeWorkspace(DIGITIZATION, true); 
@@ -370,6 +413,26 @@ void WorkspaceNavigationFrame::on_toolButtonTrialSettings_clicked()
 
 		delete dialog;
 	}
+}
+
+void WorkspaceNavigationFrame::changeDenoiseTrialDataAfterDenoise() {
+
+	Trial* trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
+	int nbVideoStreams = trial->getVideoStreams().size();
+
+	std::vector<QStringList> imageFileNames_vector;
+	for (int i = 0; i < nbVideoStreams; i++) {
+		QStringList imageFileNames;
+		QDir pdir(DenoiseTrial::output_directory + OS_SEP + "Cam" + QString::number(i));
+		QStringList imageFileNames_rel = pdir.entryList(QStringList() << "*.jpg", QDir::Files | QDir::NoSymLinks);
+		for (int i = 0; i < imageFileNames_rel.size(); ++i)
+		{
+			imageFileNames << QString("%1/%2").arg(pdir.absolutePath()).arg(imageFileNames_rel.at(i));
+		}
+		qSort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
+		imageFileNames_vector.push_back(imageFileNames);
+	}
+	trial->changeTrialData(trial->getName(), imageFileNames_vector);
 }
 
 void WorkspaceNavigationFrame::on_toolButtonCameraSettings_clicked()

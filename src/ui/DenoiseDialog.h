@@ -20,35 +20,49 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file HelperFunctions.h
+///\file DenoiseDialog.h
 ///\author Benjamin Knorlein
-///\date 11/20/2015
+///\date 10/06/2020
 
-#ifndef HELPERFUNCTIONS_H
-#define HELPERFUNCTIONS_H
+#ifndef DENOISEDIALOG_H_
+#define DENOISEDIALOG_H_
 
-#include <fstream>
+#include <QDialog>
 #include <QString>
 
-#ifdef WIN32
-#define OS_SEP "\\"
-#else
-	#define OS_SEP "/"
-#endif
-
-namespace littleHelper
+namespace Ui
 {
-	bool compareNames(const QString& s1, const QString& s2);
-
-	std::istream& safeGetline(std::istream& is, std::string& t);
-
-	std::istream& comma(std::istream& in);
-
-	QString adjustPathToOS(QString filename);
-
-	void copyPath(QString src, QString dst);
+	class DenoiseDialog;
 }
 
-#endif //VIDEOSTREAM_H
+namespace xma
+{
+	class DenoiseDialog : public QDialog
+	{
+		Q_OBJECT
 
+	private:
+		Ui::DenoiseDialog* diag;
+
+	public:
+		DenoiseDialog(QWidget* parent = 0);
+		virtual ~DenoiseDialog();
+
+		int getSearchWindowSize();
+		int getTemplateWindowSize();
+		int getTemporalWindowSize();
+		int getFilterStrength();
+		bool getRelinkTrial();
+
+	public slots:
+		void on_pushButtonOK_clicked();
+		void on_pushButtonCancel_clicked();
+		void on_spinBox_searchWindowSize_textChanged(QString value);
+		void on_spinBox_templateWindowSize_textChanged(QString value);
+		void on_spinBox_temporalWindowSize_textChanged(QString value);
+	};
+}
+
+
+#endif /* CONFIRMATIONDIALOG_H_ */
 

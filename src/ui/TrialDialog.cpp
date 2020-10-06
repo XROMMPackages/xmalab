@@ -182,4 +182,9 @@ void TrialDialog::on_pushButton_Update_clicked()
 	this->reject();
 }
 
+void TrialDialog::on_pushButton_Denoise_clicked()
+{
+	returnValue = TRIALDIALOGDENOISE;
+	this->reject();
+}
 

@@ -20,35 +20,45 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file HelperFunctions.h
+///\file DenoiseTrial.h
 ///\author Benjamin Knorlein
-///\date 11/20/2015
+///\date 10/06/2020
 
-#ifndef HELPERFUNCTIONS_H
-#define HELPERFUNCTIONS_H
+#ifndef DENOISETRIAL_H
+#define DENOISETRIAL_H
 
-#include <fstream>
-#include <QString>
 
-#ifdef WIN32
-#define OS_SEP "\\"
-#else
-	#define OS_SEP "/"
-#endif
+#include "processing/ThreadedProcessing.h"
 
-namespace littleHelper
+namespace xma
 {
-	bool compareNames(const QString& s1, const QString& s2);
+	class Trial;
 
-	std::istream& safeGetline(std::istream& is, std::string& t);
+	class DenoiseTrial : public ThreadedProcessing
+	{
+		Q_OBJECT;
 
-	std::istream& comma(std::istream& in);
+	public:
+		DenoiseTrial(Trial * trial, int cameraID,bool relinkTrial,int searchWindowSize,int templateWindowSize,int temporalWindowSize,int filterStrength,QString outputFolder);
+		virtual ~DenoiseTrial();
 
-	QString adjustPathToOS(QString filename);
+		static QString output_directory;
+	protected:
+		void process() override;
+		void process_finished() override;
 
-	void copyPath(QString src, QString dst);
+	private:
+
+		Trial * m_trial;
+		int m_cameraID;
+
+		bool m_relinkTrial;
+		int m_searchWindowSize;
+		int m_templateWindowSize;
+		int m_temporalWindowSize;
+		int m_filterStrength;
+	};
 }
-
-#endif //VIDEOSTREAM_H
+#endif // MARKERTRACKING_H
 
 

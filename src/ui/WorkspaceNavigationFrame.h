@@ -68,6 +68,7 @@ namespace xma
 		void workspaceChanged(work_state workspace);
 		void displayChanged(ui_state display);
 		void activeTrialChanged(int activeTrial);
+		void changeDenoiseTrialDataAfterDenoise();
 
 		void on_comboBoxWorkspace_currentIndexChanged(QString value);
 		void on_comboBoxTrial_currentIndexChanged(int idx);

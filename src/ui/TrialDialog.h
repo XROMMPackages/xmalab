@@ -45,7 +45,8 @@ namespace xma
 		TRIALDIALOGDELETE = 1,
 		TRIALDIALOGUPDATE = 2,
 		TRIALDIALOGCHANGE = 3,
-		TRIALDIALOGUPDATEFILTER = 4
+		TRIALDIALOGUPDATEFILTER = 4,
+		TRIALDIALOGDENOISE = 5
 	};
 
 	class TrialDialog : public QDialog
@@ -74,6 +75,7 @@ namespace xma
 		void on_pushButton_DeleteTrial_clicked();
 		void on_pushButton_ChangeTrialData_clicked();
 		void on_pushButton_Update_clicked();
+		void on_pushButton_Denoise_clicked();
 	};
 }
 
