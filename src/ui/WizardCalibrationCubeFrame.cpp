@@ -940,7 +940,7 @@ void WizardCalibrationCubeFrame::setupManualPoints()
 	{
 		manualReferencesCheckBox.push_back(new QCheckBox(this));
 		manualReferencesLabel.push_back(new QLabel("", this));
-		manualReferencesRadioButton.push_back(new QRadioButton(QString::number(i + 1), this));
+		manualReferencesRadioButton.push_back(new QRadioButton(QString::number(i + 1) + " " + CalibrationObject::getInstance()->getMarkerNames()[i], this));
 
 		frame->gridLayout_10->addWidget(manualReferencesRadioButton[i], i, 0, 1, 1);
 		frame->gridLayout_10->addWidget(manualReferencesLabel[i], i, 1, 1, 1);

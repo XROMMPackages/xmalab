@@ -80,6 +80,11 @@ namespace xma
 			return frameSpecifications;
 		}
 
+		std::vector<QString>& getMarkerNames()
+		{
+			return markerNames;
+		}
+
 		std::vector<int>& getReferenceIDs()
 		{
 			return referenceIDs;
@@ -119,6 +124,7 @@ namespace xma
 		std::vector<cv::Point3d> frameSpecifications;
 		std::vector<int> referenceIDs;
 		std::vector<QString> referenceNames;
+		std::vector<QString> markerNames;
 
 		QString frameSpecificationsFilename;
 		QString referencesFilename;

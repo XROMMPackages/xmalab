@@ -43,6 +43,7 @@
 #include "core/Camera.h"
 #include "core/UndistortionObject.h"
 #include "core/CalibrationImage.h"
+#include "core/CalibrationObject.h"
 #include "core/Image.h"
 #include "core/Trial.h"
 #include "core/Project.h"
@@ -529,7 +530,15 @@ void GLCameraView::renderPointText(bool calibration)
 				&& WizardDockWidget::getInstance()->manualCalibrationRunning()) ? IDCALIBTEXT : State::getInstance()->getCalibrationVisText(), State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE, x, y, text, inlier);
 		setFont(QFont(this->font().family(), 15.0));
 		QFontMetrics fm(this->font());
-		if (State::getInstance()->getCalibrationVisText() < 3)
+
+		if (State::getInstance()->getCalibrationVisText() == 4) {
+			for (unsigned int i = 0; i < x.size(); i++)
+			{
+				text[i] = CalibrationObject::getInstance()->getMarkerNames()[i];
+			}
+		}
+
+		if (State::getInstance()->getCalibrationVisText() != 3)
 		{
 			for (unsigned int i = 0; i < x.size(); i++)
 			{

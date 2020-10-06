@@ -439,6 +439,11 @@
              <string>error (coloredcoded)</string>
             </property>
            </item>
+           <item>
+            <property name="text">
+             <string>markerNames</string>
+            </property>
+           </item>
           </widget>
          </item>
         </layout>
@@ -582,8 +587,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>493</width>
-              <height>314</height>
+              <width>510</width>
+              <height>927</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_10"/>
@@ -680,10 +685,10 @@
         <attribute name="headerVisible">
          <bool>true</bool>
         </attribute>
-        <attribute name="headerDefaultSectionSize">
+        <attribute name="headerMinimumSectionSize">
          <number>10</number>
         </attribute>
-        <attribute name="headerMinimumSectionSize">
+        <attribute name="headerDefaultSectionSize">
          <number>10</number>
         </attribute>
         <attribute name="headerShowSortIndicator" stdset="0">

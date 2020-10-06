@@ -113,30 +113,34 @@ int CalibrationObject::loadCoords(QString pointsfilename, QString references)
 
 	while (!littleHelper::safeGetline(fin, line).eof())
 	{
-		in.clear();
-		in.str(line);
-		std::vector<double> tmp;
-		for (double value; in >> value; littleHelper::comma(in))
-		{
-			tmp.push_back(value);
+		QStringList tmp = QString::fromStdString(line).split(",");
+		if (tmp.size() > 0) 
+			frameSpecifications.push_back(cv::Point3d(tmp[0].toDouble() * scale.x, tmp[1].toDouble() * scale.y, tmp[2].toDouble() * scale.z));
+		
+		if (tmp.size() > 3) {
+			markerNames.push_back(tmp[3]);
 		}
-		if (tmp.size() > 0) frameSpecifications.push_back(cv::Point3d(tmp[0] * scale.x, tmp[1] * scale.y, tmp[2] * scale.z));
+		else {
+			markerNames.push_back("");
+		}
 		line.clear();
 	}
 	fin.close();
+
 	if (!line.empty())
 	{
-		in.clear();
-		in.str(line);
-		std::vector<double> tmp;
-		for (double value; in >> value; littleHelper::comma(in))
-		{
-			tmp.push_back(value);
+		QStringList tmp = QString::fromStdString(line).split(",");
+		if (tmp.size() > 0)
+			frameSpecifications.push_back(cv::Point3d(tmp[0].toDouble() * scale.x, tmp[1].toDouble() * scale.y, tmp[2].toDouble() * scale.z));
+
+		if (tmp.size() > 3) {
+			markerNames.push_back(tmp[3]);
 		}
-		if (tmp.size() > 0) frameSpecifications.push_back(cv::Point3d(tmp[0] * scale.x, tmp[1] * scale.y, tmp[2] * scale.z));
+		else {
+			markerNames.push_back("");
+		}
 		line.clear();
 	}
-
 
 	fin.open(references.toStdString(), std::ios::binary);
 
@@ -193,7 +197,7 @@ void CalibrationObject::saveCoords(QString folder)
 	}
 	for (unsigned int i = 0; i < frameSpecifications.size(); i++)
 	{
-		outfile << frameSpecifications[i].x << "," << frameSpecifications[i].y << "," << frameSpecifications[i].z << std::endl;
+		outfile << frameSpecifications[i].x << "," << frameSpecifications[i].y << "," << frameSpecifications[i].z << "," << markerNames[i].toStdString() << std::endl;
 	}
 	outfile.close();
 
@@ -226,9 +230,9 @@ void CalibrationObject::setCheckerboard(int _nbHorizontalSquares, int _nbVertica
 		for (int x = 0; x < _nbHorizontalSquares; x++)
 		{
 			frameSpecifications.push_back(cv::Point3d(inv_x * x * squareSize, inv_y * y * squareSize, 0));
+			markerNames.push_back(QString::number(x) + " , " + QString::number(y));
 		}
 	}
-
 
 	initialised = true;
 }
