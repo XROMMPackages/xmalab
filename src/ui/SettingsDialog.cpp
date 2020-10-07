@@ -89,6 +89,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 	diag->checkBox_ShowColoredMarkerIDs->setChecked(Settings::getInstance()->getBoolSetting("ShowColoredMarkerIDs"));
 	diag->checkBox_optimize2D->setChecked(Settings::getInstance()->getBoolSetting("OptimizeRigidBody"));
 	diag->checkBox_DisableRBComputeAdvanced->setChecked(Settings::getInstance()->getBoolSetting("DisableRBComputeAdvanced"));
+	diag->checkBox_Filter3DPoints->setChecked(Settings::getInstance()->getBoolSetting("Filter3DPoints"));
 	diag->spinBox_DefaultMarkerThreshold->setValue(Settings::getInstance()->getIntSetting("DefaultMarkerThreshold"));
 
 	switch (Settings::getInstance()->getIntSetting("CheckerboadInvertedAxis"))
@@ -358,6 +359,11 @@ void SettingsDialog::on_checkBox_optimize2D_clicked()
 void SettingsDialog::on_checkBox_DisableRBComputeAdvanced_clicked()
 {
 	Settings::getInstance()->set("DisableRBComputeAdvanced", diag->checkBox_DisableRBComputeAdvanced->isChecked());
+}
+
+void SettingsDialog::on_checkBox_Filter3DPoints_clicked()
+{
+	Settings::getInstance()->set("Filter3DPoints", diag->checkBox_Filter3DPoints->isChecked());
 }
 
 void SettingsDialog::on_spinBox_DefaultMarkerThreshold_valueChanged(int value)

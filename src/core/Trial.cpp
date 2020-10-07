@@ -1524,7 +1524,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 		//filter Data
 		if (filterFrequency > 0.0)
 		{
-			if (!getMarkers()[*it]->filterMarker(filterFrequency, marker, status))
+			if (!getMarkers()[*it]->filterMarker(filterFrequency, getMarkers()[*it]->getPoints3D(), getMarkers()[*it]->getStatus3D(), marker, status))
 			{
 				return false;
 			}

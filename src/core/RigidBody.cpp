@@ -1684,44 +1684,250 @@ void RigidBody::filterData(std::vector<int> idx)
 
 void RigidBody::filterTransformations()
 {
-	for (int i = 0; i < trial->getNbImages(); i++)
-	{
-		poseFiltered[i] = 0;
-	}
+	if (Settings::getInstance()->getBoolSetting("Filter3DPoints")) {
+		double cutoff = (getOverrideCutoffFrequency()) ? getCutoffFrequency() : trial->getCutoffFrequency();
+		
+		//Filter 3D points
+		std::vector <std::vector <markerStatus> > status3d_filtered; //= trial->getMarkers()[pointsIdx[i]]->getStatus3D()[Frame]
+		std::vector <std::vector <cv::Point3d> > point3D_filtered; //= trial->getMarkers()[pointsIdx[i]]->getPoints3D()[Frame]
 
-	double cutoff = (getOverrideCutoffFrequency()) ? getCutoffFrequency() : trial->getCutoffFrequency();
-
-	if (cutoff > 0 && trial->getRecordingSpeed() > 0 &&
-		0 < (cutoff / (trial->getRecordingSpeed() * 0.5)) &&
-		(cutoff / (trial->getRecordingSpeed() * 0.5)) < 1)
-	{
-		std::vector<int> idx;
-		for (int i = 0; i < trial->getNbImages(); i++)
+		for (unsigned int i = 0; i < pointsIdx.size(); i++)
 		{
-			if (poseComputed[i])
+			std::vector<cv::Point3d> marker;
+			std::vector<markerStatus> status;
+			trial->getMarkers()[pointsIdx[i]]->filterMarker(cutoff, trial->getMarkers()[pointsIdx[i]]->getPoints3D(), trial->getMarkers()[pointsIdx[i]]->getStatus3D()
+				, marker, status);
+
+			status3d_filtered.push_back(status);
+			point3D_filtered.push_back(marker);
+		}
+
+		std::vector <std::vector <markerStatus> >dummyPoint_status_filtered ;
+		std::vector <std::vector <cv::Point3d> > dummyPoint_filtered;
+
+		for (unsigned int i = 0; i < dummypoints.size(); i++)
+		{
+			std::vector<cv::Point3d> marker_in;
+			std::vector<markerStatus> status_in;
+
+			for (int Frame = 0; Frame < trial->getNbImages(); Frame++)
 			{
-				idx.push_back(i);
-			}
-			else
-			{
-				if (idx.size() >= 1)
+				if (dummyRBIndex[i] >= 0)
 				{
-					filterData(idx);
+					cv::Point3d dummy_tmp;
+					if (trial->getRigidBodies()[dummyRBIndex[i]]->transformPoint(dummypoints2[i], dummy_tmp, Frame))
+					{
+						marker_in.push_back(cv::Point3f(dummy_tmp.x
+							, dummy_tmp.y
+							, dummy_tmp.z));
+
+						status_in.push_back(SET);
+					}
+					else {
+						marker_in.push_back(cv::Point3f(-2, -2, -2));
+						status_in.push_back(UNDEFINED);
+					}
 				}
-				idx.clear();
+				else if (dummypointsCoordsSet[i][Frame])
+				{
+					marker_in.push_back(cv::Point3f(dummypointsCoords[i][Frame].x
+						, dummypointsCoords[i][Frame].y
+						, dummypointsCoords[i][Frame].z));
+
+					status_in.push_back(SET);
+				}
+				else {
+					marker_in.push_back(cv::Point3f(-2, -2, -2));
+					status_in.push_back(UNDEFINED);
+				}
+			}
+			std::vector<cv::Point3d> marker;
+			std::vector<markerStatus> status;
+			trial->getMarkers()[pointsIdx[i]]->filterMarker(cutoff, marker_in, status_in, marker, status);
+
+			dummyPoint_status_filtered.push_back(status);
+			dummyPoint_filtered.push_back(marker);
+		}
+
+		//Compute Transformation
+		for (int Frame = 0; Frame < trial->getNbImages(); Frame++)
+		{
+			std::vector<cv::Point3d> src;
+			std::vector<cv::Point3d> dst;
+			cv::Mat out;
+			cv::Mat inliers;
+
+			for (unsigned int i = 0; i < status3d_filtered.size(); i++)
+			{
+				if (status3d_filtered[i][Frame] > UNDEFINED)
+				{
+					src.push_back(cv::Point3f(point3D_filtered[i][Frame].x
+						, point3D_filtered[i][Frame].y
+						, point3D_filtered[i][Frame].z));
+					dst.push_back(cv::Point3f(points3D[i].x
+						, points3D[i].y
+						, points3D[i].z));
+				}
 			}
 
-			if (i == trial->getNbImages() - 1)
+			for (unsigned int i = 0; i < dummypoints.size(); i++)
 			{
-				if (idx.size() >= 1)
+				if (dummyPoint_status_filtered[i][Frame])
 				{
-					filterData(idx);
+					src.push_back(cv::Point3f(dummyPoint_filtered[i][Frame].x
+						, dummyPoint_filtered[i][Frame].y
+						, dummyPoint_filtered[i][Frame].z));
+					dst.push_back(cv::Point3f(dummypoints[i].x
+						, dummypoints[i].y
+						, dummypoints[i].z));
 				}
-				idx.clear();
+			}
+
+			if (dst.size() >= 3)
+			{
+				std::vector<std::vector<double> > y, x;
+				std::vector<std::vector<double> > Y, X;
+				std::vector<double> vnl_tmp(3), yg(3, 0), xg(3, 0);
+				std::vector<double> tmp;
+				cv::Mat K = cv::Mat::zeros(3, 3, CV_64F);
+
+				//set Data
+				for (unsigned int i = 0; i < src.size(); i++)
+				{
+					vnl_tmp[0] = src[i].x;
+					vnl_tmp[1] = src[i].y;
+					vnl_tmp[2] = src[i].z;
+					X.push_back(vnl_tmp);
+
+					vnl_tmp[0] = dst[i].x;
+					vnl_tmp[1] = dst[i].y;
+					vnl_tmp[2] = dst[i].z;
+					Y.push_back(vnl_tmp);
+				}
+				// Compute the new coordinates of the 3D points
+				// relative to each coordinate frame
+				for (unsigned int i = 0; i < X.size(); i++)
+				{
+					vnl_tmp = X[i];
+					for (int m = 0; m < 3; m++)xg[m] = xg[m] + vnl_tmp[m];
+					x.push_back(vnl_tmp);
+
+					vnl_tmp = Y[i];
+					for (int m = 0; m < 3; m++)yg[m] = yg[m] + vnl_tmp[m];
+					y.push_back(vnl_tmp);
+				}
+				// Compute the gravity center
+				for (int m = 0; m < 3; m++)xg[m] /= X.size();
+				for (int m = 0; m < 3; m++)yg[m] /= Y.size();
+
+				// Barycentric coordinates
+				for (unsigned int i = 0; i < x.size(); i++)
+				{
+					for (int m = 0; m < 3; m++) x[i][m] = x[i][m] - xg[m];
+					for (int m = 0; m < 3; m++) y[i][m] = y[i][m] - yg[m];
+				}
+
+				// Compute the cavariance matrix K = Sum_i( yi.xi' )
+				for (unsigned int i = 0; i < x.size(); i++)
+				{
+					for (int j = 0; j < 3; j++)
+					{
+						for (int l = 0; l < 3; l++)
+						{
+							vnl_tmp[l] = x[i][j] * y[i][l];
+							K.at<double>(l, j) = vnl_tmp[l] + K.at<double>(l, j);
+						}
+					}
+				}
+
+				cv::SVD svd;
+				cv::Mat W;
+				cv::Mat U;
+				cv::Mat VT;
+
+				svd.compute(K, W, U, VT);
+				cv::Mat V = VT.t();
+				double detU = cv::determinant(U);
+				double detV = cv::determinant(V);
+
+				cv::Mat Sd = cv::Mat::zeros(3, 3, CV_64F);
+				Sd.at<double>(0, 0) = 1.0;
+				Sd.at<double>(1, 1) = 1.0;
+				Sd.at<double>(2, 2) = detU * detV;
+
+				cv::Mat rotMatTmp;
+				rotMatTmp = U * Sd * VT;
+				cv::Rodrigues(rotMatTmp, rotationvectors_filtered[Frame]);
+
+				cv::Mat xgmat = cv::Mat(xg, true);
+				cv::Mat ygmat = cv::Mat(yg, true);
+				cv::Mat t = ygmat - rotMatTmp * xgmat;
+				translationvectors_filtered[Frame] = cv::Vec3d(t);
+				poseFiltered[Frame] = true;
+			}
+			else {
+				poseFiltered[Frame] = false;
+			}
+		}
+	
+		//set rotations numerically steady
+		for (int i = 1; i < trial->getNbImages(); i++)
+		{
+			if (poseFiltered[i - 1] && poseFiltered[i])
+			{
+				double d = rotationvectors_filtered[i - 1].dot(rotationvectors_filtered[i]);
+				double diffangle = d / cv::norm(rotationvectors_filtered[i - 1]) / cv::norm(rotationvectors_filtered[i]);
+
+				if (180 / M_PI * acos(diffangle) > 150)
+				{
+					double angle = cv::norm(rotationvectors_filtered[i]);
+					rotationvectors_filtered[i][0] = -rotationvectors_filtered[i][0] / angle * (2 * M_PI - angle);
+					rotationvectors_filtered[i][1] = -rotationvectors_filtered[i][1] / angle * (2 * M_PI - angle);
+					rotationvectors_filtered[i][2] = -rotationvectors_filtered[i][2] / angle * (2 * M_PI - angle);
+				}
 			}
 		}
 	}
+	else {
 
+		for (int i = 0; i < trial->getNbImages(); i++)
+		{
+			poseFiltered[i] = 0;
+		}
+
+		double cutoff = (getOverrideCutoffFrequency()) ? getCutoffFrequency() : trial->getCutoffFrequency();
+
+		if (cutoff > 0 && trial->getRecordingSpeed() > 0 &&
+			0 < (cutoff / (trial->getRecordingSpeed() * 0.5)) &&
+			(cutoff / (trial->getRecordingSpeed() * 0.5)) < 1)
+		{
+			std::vector<int> idx;
+			for (int i = 0; i < trial->getNbImages(); i++)
+			{
+				if (poseComputed[i])
+				{
+					idx.push_back(i);
+				}
+				else
+				{
+					if (idx.size() >= 1)
+					{
+						filterData(idx);
+					}
+					idx.clear();
+				}
+
+				if (i == trial->getNbImages() - 1)
+				{
+					if (idx.size() >= 1)
+					{
+						filterData(idx);
+					}
+					idx.clear();
+				}
+			}
+		}
+	}
 	for (int i = 0; i < trial->getNbImages(); i++)
 	{
 		updateError(i, true);

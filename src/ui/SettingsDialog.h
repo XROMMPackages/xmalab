@@ -97,6 +97,7 @@ namespace xma
 		void on_pushButton_MarkerStatus_clicked();
 		void on_checkBox_optimize2D_clicked();
 		void on_checkBox_DisableRBComputeAdvanced_clicked();
+		void on_checkBox_Filter3DPoints_clicked();
 		void on_spinBox_DefaultMarkerThreshold_valueChanged(int value);
 		void on_checkBox_ShowIDsInDetail_clicked();
 	};

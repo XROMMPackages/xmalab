@@ -97,6 +97,7 @@ Settings::Settings()
 	addBoolSetting("OptimizeRigidBody", true);
 	addBoolSetting("DisableRBComputeAdvanced", false);
 	addBoolSetting("ShowIDsInDetail", false);
+	addBoolSetting("Filter3DPoints", false);
 
 	//Colors
 	addQStringSetting("ColorUntrackable", QColor::fromRgb(0, 0, 0).name());

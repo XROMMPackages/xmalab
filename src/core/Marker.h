@@ -150,7 +150,7 @@ namespace xma
 
 		bool getRequiresRecomputation();
 		void setRequiresRecomputation(bool value);
-		bool filterMarker(double cutoffFrequency, std::vector <cv::Point3d> &marker, std::vector <markerStatus>& status);
+		bool filterMarker(double cutoffFrequency, const std::vector <cv::Point3d> &marker_in, const std::vector <markerStatus>& status_in, std::vector <cv::Point3d> &marker_out, std::vector <markerStatus>& status_out);
 
 		void updateToProject12();
 		void updateToProject13();
@@ -168,7 +168,7 @@ namespace xma
 		void addFrame();
 		void clear();
 		void updateError(int frame);
-		void filterData(std::vector<int> idx, double cutoffFrequency, std::vector<cv::Point3d>& marker, std::vector<markerStatus>& status);
+		void filterData(std::vector<int> idx, double cutoffFrequency, const  std::vector<cv::Point3d>& marker_in, const  std::vector<markerStatus>& status_in, std::vector<cv::Point3d>& marker_out, std::vector<markerStatus>& status_out);
 		markerStatus updateStatus12(int statusOld);
 
 		Trial* trial;

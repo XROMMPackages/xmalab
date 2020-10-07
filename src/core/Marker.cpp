@@ -1106,13 +1106,14 @@ void Marker::setRequiresRecomputation(bool value)
 	requiresRecomputation = value;
 }
 
-bool Marker::filterMarker(double cutoffFrequency, std::vector<cv::Point3d>& marker, std::vector<markerStatus>& status)
+bool Marker::filterMarker(double cutoffFrequency, const std::vector <cv::Point3d> &marker_in, const std::vector <markerStatus>& status_in
+	, std::vector <cv::Point3d> &marker_out, std::vector <markerStatus>& status_out)
 {
-	for (unsigned int i = 0; i < status3D.size(); i++)
+	for (unsigned int i = 0; i < status_in.size(); i++)
 	{
 		cv::Point3d p3(-1000, -1000, -1000);
-		marker.push_back(p3);
-		status.push_back(UNDEFINED);
+		marker_out.push_back(p3);
+		status_out.push_back(UNDEFINED);
 	}
 
 	if (cutoffFrequency > 0 && trial->getRecordingSpeed() > 0 &&
@@ -1122,7 +1123,7 @@ bool Marker::filterMarker(double cutoffFrequency, std::vector<cv::Point3d>& mark
 		std::vector<int> idx;
 		for (int i = 0; i < trial->getNbImages(); i++)
 		{
-			if (status3D[i] > 0)
+			if (status_in[i] > 0)
 			{
 				idx.push_back(i);
 			}
@@ -1130,7 +1131,7 @@ bool Marker::filterMarker(double cutoffFrequency, std::vector<cv::Point3d>& mark
 			{
 				if (idx.size() >= 1)
 				{
-					filterData(idx, cutoffFrequency,marker, status);
+					filterData(idx, cutoffFrequency, marker_in, status_in, marker_out, status_out);
 				}
 				idx.clear();
 			}
@@ -1139,7 +1140,7 @@ bool Marker::filterMarker(double cutoffFrequency, std::vector<cv::Point3d>& mark
 			{
 				if (idx.size() >= 1)
 				{
-					filterData(idx, cutoffFrequency, marker, status);
+					filterData(idx, cutoffFrequency, marker_in, status_in, marker_out, status_out);
 				}
 				idx.clear();
 			}
@@ -1504,17 +1505,17 @@ QColor Marker::getStatusColor(int camera, int frame)
 	return QColor(Settings::getInstance()->getQStringSetting("ColorUndefined"));
 }
 
-void Marker::filterData(std::vector<int> idx, double cutoffFrequency, std::vector<cv::Point3d>& marker, std::vector<markerStatus>& status)
+void Marker::filterData(std::vector<int> idx, double cutoffFrequency, const std::vector<cv::Point3d>& marker_in, const std::vector<markerStatus>& status_in, std::vector<cv::Point3d>& marker_out, std::vector<markerStatus>& status_out)
 {
 	if (idx.size() <= 12)
 	{
 		for (unsigned int i = 0; i < idx.size(); i++)
 		{
-			marker[idx[i]].x = points3D[idx[i]].x;
-			marker[idx[i]].y = points3D[idx[i]].y;
-			marker[idx[i]].z = points3D[idx[i]].z;
+			marker_out[idx[i]].x = marker_in[idx[i]].x;
+			marker_out[idx[i]].y = marker_in[idx[i]].y;
+			marker_out[idx[i]].z = marker_in[idx[i]].z;
 
-			status[idx[i]]= status3D[idx[i]];
+			status_out[idx[i]]= status_in[idx[i]];
 		}
 	}
 	else
@@ -1525,9 +1526,9 @@ void Marker::filterData(std::vector<int> idx, double cutoffFrequency, std::vecto
 
 		for (unsigned int i = 0; i < idx.size(); i++)
 		{
-			x.push_back(points3D[idx[i]].x);
-			y.push_back(points3D[idx[i]].y);
-			z.push_back(points3D[idx[i]].z);
+			x.push_back(marker_in[idx[i]].x);
+			y.push_back(marker_in[idx[i]].y);
+			z.push_back(marker_in[idx[i]].z);
 		}
 
 		std::vector<double> x_out;
@@ -1542,11 +1543,11 @@ void Marker::filterData(std::vector<int> idx, double cutoffFrequency, std::vecto
 
 		for (unsigned int i = 0; i < idx.size(); i++)
 		{
-			marker[idx[i]].x = x_out[i];
-			marker[idx[i]].y = y_out[i];
-			marker[idx[i]].z = z_out[i];
+			marker_out[idx[i]].x = x_out[i];
+			marker_out[idx[i]].y = y_out[i];
+			marker_out[idx[i]].z = z_out[i];
 
-			status[idx[i]] = status3D[idx[i]];
+			status_out[idx[i]] = status_in[idx[i]];
 		}
 
 		delete filter;
