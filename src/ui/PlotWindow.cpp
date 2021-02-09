@@ -746,7 +746,7 @@ void PlotWindow::drawEvents(int idx)
 	{
 		if (e->getDraw()){
 			QColor color = e->getColor();
-			color.setAlpha(25);
+			color.setAlpha(50);
 			QBrush brush = QBrush(color);
 			color.setAlpha(0);
 			QPen pen = QPen(color);
