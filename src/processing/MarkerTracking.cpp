@@ -39,7 +39,7 @@
 #include <QtConcurrent/QtConcurrent>
 #include <opencv2/highgui.hpp>
 
-#define WRITEIMAGES 0
+//#define WRITEIMAGES 0
 
 using namespace xma;
 
