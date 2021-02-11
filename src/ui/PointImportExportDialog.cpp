@@ -59,6 +59,8 @@ PointImportExportDialog::PointImportExportDialog(ImportExportType type, QWidget*
 		diag->radioButton_NoCols->setChecked(Settings::getInstance()->getBoolSetting("Import2DNoCols"));
 		diag->radioButton_OffsetCols->setChecked(Settings::getInstance()->getBoolSetting("Import2DOffsetCols"));
 		diag->radioButton_OffsetCols->setText("cam offset columns(Matlab xromm tools)");
+		diag->radioButton_Set->setChecked(Settings::getInstance()->getBoolSetting("ImportStatusSet"));
+		diag->radioButton_Tracked->setChecked(Settings::getInstance()->getBoolSetting("ImportStatusTracked"));
 		break;
 	case EXPORT2D:
 		this->setWindowTitle("Export 2D points");
@@ -77,6 +79,7 @@ PointImportExportDialog::PointImportExportDialog(ImportExportType type, QWidget*
 		diag->radioButton_NoCols->setChecked(Settings::getInstance()->getBoolSetting("Export2DNoCols"));
 		diag->radioButton_OffsetCols->setChecked(Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
 		diag->radioButton_OffsetCols->setText("cam offset columns(Matlab xromm tools)");
+		diag->frame_Status->hide();
 		break;
 	case EXPORT3D:
 		this->setWindowTitle("Export 3D points");
@@ -94,6 +97,7 @@ PointImportExportDialog::PointImportExportDialog(ImportExportType type, QWidget*
 		diag->radioButton_NoCols->setChecked(Settings::getInstance()->getBoolSetting("Export3DNoCols"));
 		diag->radioButton_OffsetCols->setChecked(Settings::getInstance()->getBoolSetting("Export3DOffsetCols"));
 		diag->radioButton_OffsetCols->setText("Frame Number (allows saving of subsequence)");
+		diag->frame_Status->hide();
 		break;
 
 	case EXPORTTRANS:
@@ -111,6 +115,7 @@ PointImportExportDialog::PointImportExportDialog(ImportExportType type, QWidget*
 		diag->radioButton_NoCols->setChecked(Settings::getInstance()->getBoolSetting("ExportTransNoCols"));
 		diag->radioButton_OffsetCols->setChecked(Settings::getInstance()->getBoolSetting("ExportTransOffsetCols"));
 		diag->radioButton_OffsetCols->setText("Frame Number (allows saving of subsequence)");
+		diag->frame_Status->hide();
 		break;
 	}
 
@@ -339,6 +344,15 @@ void PointImportExportDialog::on_radioButton_Filtered_toggled(bool value)
 {
 	Settings::getInstance()->set("ExportTransFiltered", value);
 }
+
+void PointImportExportDialog::on_radioButton_Set_toggled(bool value) {
+	Settings::getInstance()->set("ImportStatusSet", value);
+}
+
+void PointImportExportDialog::on_radioButton_Tracked_toggled(bool value) {
+	Settings::getInstance()->set("ImportStatusTracked", value);
+}
+
 
 
 void PointImportExportDialog::on_pushButton_OK_clicked()

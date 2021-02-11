@@ -2022,7 +2022,8 @@ void MainWindow::on_actionImport2D_Points_triggered(bool checked)
 				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DCount1")
 				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DYUp")
 				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DHeader")
-				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DOffsetCols"));
+				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DOffsetCols")
+																													   , Settings::getInstance()->getBoolSetting("ImportStatusSet"));
 			}
 			ProgressDialog::getInstance()->closeProgressbar();
 			Settings::getInstance()->setLastUsedDirectory(fileNames.at(0));

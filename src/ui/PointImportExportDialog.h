@@ -73,6 +73,8 @@ namespace xma
 		void on_radioButton_OffsetCols_toggled(bool value);
 		void on_radioButton_Unfiltered_toggled(bool value);
 		void on_radioButton_Filtered_toggled(bool value);
+		void on_radioButton_Set_toggled(bool value);
+		void on_radioButton_Tracked_toggled(bool value);
 
 
 		void on_pushButton_Cancel_clicked();

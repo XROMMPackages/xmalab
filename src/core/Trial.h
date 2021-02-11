@@ -117,7 +117,7 @@ namespace xma
 
 		bool save3dPoints(std::vector<int> _markers, QString outputfolder, bool onefile, bool headerRow, double filterFrequency, bool saveColumn, int start, int stop);
 		void save2dPoints(QString outputfolder, bool onefile, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols, int id = -1);
-		int load2dPoints(QString outputfolder, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols);
+		int load2dPoints(QString outputfolder, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols, bool statusSet);
 		void saveReprojectionErrors(QString outputfolder);
 
 

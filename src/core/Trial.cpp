@@ -1900,7 +1900,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 	}
 }
 
-int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols)
+int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinvert, bool headerRow, bool offsetCols, bool statusSet)
 {
 	std::vector<Marker *> newMarkers;
 
@@ -1983,7 +1983,7 @@ int Trial::load2dPoints(QString input, bool distorted, bool offset1, bool yinver
 								y = pt.y;
 							}
 
-							newMarkers[i]->setPoint(j, frame, x, y, SET);
+							newMarkers[i]->setPoint(j, frame, x, y, statusSet ? SET : TRACKED);
 						}
 					}
 				}

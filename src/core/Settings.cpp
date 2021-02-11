@@ -162,6 +162,8 @@ Settings::Settings()
 	addBoolSetting("Import2DUndistorted", false);
 	addBoolSetting("Import2DNoCols", true);
 	addBoolSetting("Import2DOffsetCols", false);
+	addBoolSetting("ImportStatusSet", true);
+	addBoolSetting("ImportStatusTracked", false);
 
 	addBoolSetting("Export2DMulti", true);
 	addBoolSetting("Export2DSingle", false);
