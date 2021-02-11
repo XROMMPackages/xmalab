@@ -71,11 +71,11 @@ public:
 		}
 		catch (cv::Exception& e)
 		{
-			ErrorDialog::getInstance()->showErrorDialog(QString("OpenCV Error occured\n") + QString::fromStdString(e.err) + QString(" in ") + QString::fromStdString(e.file) + QString(" in function ") + QString::fromStdString(e.func) + QString(" at line ") + QString::number(e.line));
+			ErrorDialog::getInstance()->showErrorDialog(QString("OpenCV Error occured. XMALab might be in an unstable state.\nPlease save your work in a NEW xma-file. Restart XMALab and check carefully if the new file and data are ok.\n : Error-Message: \n") + QString::fromStdString(e.err) + QString(" in ") + QString::fromStdString(e.file) + QString(" in function ") + QString::fromStdString(e.func) + QString(" at line ") + QString::number(e.line));
 		}
 		catch (std::exception& ex)
 		{
-			ErrorDialog::getInstance()->showErrorDialog(QString("Exception occured\n") + QString::fromStdString(ex.what()));
+			ErrorDialog::getInstance()->showErrorDialog(QString("Exception occured. XMALab might be in an unstable state.\nPlease save your work in a NEW xma-file. Restart XMALab and check carefully if the new file and data are ok.\n : Error-Message: \n") + QString::fromStdString(ex.what()));
 		}
 		return false;
 	}

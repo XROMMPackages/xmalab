@@ -1155,8 +1155,9 @@ void RigidBody::computePose(int Frame)
 					}
 				}
 
-
-				cv::solvePnP(object_points, image_points, Project::getInstance()->getCameras()[goodCamera]->getCameraMatrix(), distortion_coeffs, rotationVec_tmp, translationVec_tmp, false, cv::SOLVEPNP_ITERATIVE);
+				
+				cv::solvePnP(object_points, image_points, Project::getInstance()->getCameras()[goodCamera]->getCameraMatrix(), distortion_coeffs, rotationVec_tmp, translationVec_tmp, false, cv::SOLVEPNP_EPNP);
+				
 
 				cv::Mat trans1;
 				trans1.create(4, 4, CV_64FC1);
