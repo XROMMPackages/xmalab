@@ -1317,7 +1317,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 		{
 			double mean = 0;
 			std::vector<double> value;
-			for (int frame = from-1; frame < to; frame++)
+			for (int frame = from; frame < to; frame++)
 			{
 				if (markers[i]->getStatus3D()[frame] > UNDEFINED && markers[j]->getStatus3D()[frame] > UNDEFINED)
 				{
@@ -1355,8 +1355,8 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 		{
 			double sd = 0;
 			double mean = 0;
-			std::vector<double> value;
-			for (int frame = from - 1; frame < to; frame++)
+			std::vector<double> value; 
+			for (int frame = from; frame < to; frame++)
 			{
 				if (markers[i]->getStatus3D()[frame] > UNDEFINED && markers[j]->getStatus3D()[frame] > UNDEFINED)
 				{
@@ -1383,8 +1383,6 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 		outfile << std::endl;
 	}
 
-
-
 	for (unsigned int body = 0; body < rigidBodies.size(); body++)
 	{
 		outfile << std::endl;
@@ -1406,7 +1404,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 			{
 				double mean = 0;
 				std::vector<double> value;
-				for (int frame = from - 1; frame < to; frame++)
+				for (int frame = from; frame < to; frame++)
 				{
 					if (markers[rigidBodies[body]->getPointsIdx()[i]]->getStatus3D()[frame] > UNDEFINED && markers[rigidBodies[body]->getPointsIdx()[j]]->getStatus3D()[frame] > UNDEFINED)
 					{
@@ -1445,7 +1443,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 				double sd = 0;
 				double mean = 0;
 				std::vector<double> value;
-				for (int frame = from - 1; frame < to; frame++)
+				for (int frame = from; frame < to; frame++)
 				{
 					if (markers[rigidBodies[body]->getPointsIdx()[i]]->getStatus3D()[frame] > UNDEFINED && markers[rigidBodies[body]->getPointsIdx()[j]]->getStatus3D()[frame] > UNDEFINED)
 					{
