@@ -705,7 +705,7 @@ void CubeCalibration::computePose(std::vector<cv::Point2d> pt2d, std::vector<cv:
 
 		try
 		{
-			cv::solvePnP(object_points, image_points, cameramatrix, distCoefs, rvec, tvec, false);
+			cv::solvePnP(object_points, image_points, cameramatrix, distCoefs, rvec, tvec, false, cv::SOLVEPNP_EPNP);
 
 			rotationvector = rvec;
 			translationvector = tvec;
