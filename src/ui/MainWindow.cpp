@@ -672,9 +672,8 @@ void MainWindow::loadProjectWithDifferentCalibration() {
 	if (fileName_calibration.isNull() == false && fileName_trials.isNull() == false)
 	{
 		//replacementTrialsXMAfilename = fileName_trials;
-		loadProject(fileName_calibration, fileName_trials);
+		loadProject(fileName_trials, fileName_calibration);
 	}
-
 }
 
 void MainWindow::loadProject(QString fileName, QString fileName_extraCalib)
@@ -1853,7 +1852,7 @@ void MainWindow::on_actionMarkertoMarkerDistances_triggered(bool checked)
 
 		if (fileName.isNull() == false)
 		{
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveMarkerToMarkerDistances(fileName,fromTo->getFrom(), fromTo->getTo());
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveMarkerToMarkerDistances(fileName,fromTo->getFrom() - 1, fromTo->getTo());
 		}
 	}
 	delete fromTo;
