@@ -38,7 +38,6 @@ namespace xma
 	public:
 		virtual ~GLSharedWidget();
 		static GLSharedWidget* getInstance();
-		//const QGLContext* getQGLContext();
 		double getVersion();
 		QString getInfo();
 	public slots:

@@ -132,13 +132,9 @@ void GLCameraView::setCamera(Camera* _camera)
 	if (!detailedView){
 		if (rigidbodyBufferUndistorted)
 			delete rigidbodyBufferUndistorted;
-		if (GLSharedWidget::getInstance()->getVersion() >= 3.2){
-			rigidbodyBufferUndistorted = new MultisampleFrameBuffer(camera_width, camera_height, 4);
-		}
-		else
-		{
+
 			rigidbodyBufferUndistorted = new FrameBuffer(camera_width, camera_height);
-		}
+
 		if (distortionShader)
 			delete distortionShader;
 		distortionShader = new DistortionShader(camera);
@@ -758,23 +754,14 @@ void GLCameraView::paintGL()
 
 						glMatrixMode(GL_MODELVIEW);
 						glLoadMatrixd(&model[0]);
-						if (GLSharedWidget::getInstance()->getVersion() > 3.2){
-							glEnable(GL_MULTISAMPLE);
-						}
 
 						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodiesMesh();
-
-						if (GLSharedWidget::getInstance()->getVersion() > 3.2){
-							glDisable(GL_MULTISAMPLE);
-						}
 
 						glDisable(GL_BLEND);
 						glDisable(GL_LIGHTING);
 						glDisable(GL_DEPTH_TEST);
 						rigidbodyBufferUndistorted->unbindFrameBuffer();
 					}
-
-					rigidbodyBufferUndistorted->blitFramebuffer();
 
 					distortionShader->draw(rigidbodyBufferUndistorted->getTextureID(), rigidbodyBufferUndistorted->getDepthTextureID(), transparency);
 					doDistortion = distortionShader->canRender();

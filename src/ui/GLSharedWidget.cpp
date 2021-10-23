@@ -56,7 +56,6 @@ GLSharedWidget* GLSharedWidget::getInstance()
 {
 	if (!instance)
 	{
-		std::cerr << "getInstance" << std::endl;
 		instance = new GLSharedWidget();
 	}
 	return instance;

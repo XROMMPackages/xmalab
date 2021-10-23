@@ -110,17 +110,6 @@ void FrameBuffer::setupFBO()
 		std::cerr << "Framebuffer not complete" << std::endl;
 	}
 
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	if (m_samples == 0){
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-	else
-	{
-		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-	}
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
 	m_initialised = true;
 }
 
@@ -165,15 +154,23 @@ unsigned FrameBuffer::getDepthTextureID()
 
 void FrameBuffer::bindFrameBuffer()
 {
-	if (!m_initialised) setupFBO();
-	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &m_pdrawFboId);
+	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &m_preadFboId);
+
+	if (!m_initialised) 
+		setupFBO();
+
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
 	if (m_samples > 0)glEnable(GL_MULTISAMPLE);
 }
 
 void FrameBuffer::unbindFrameBuffer()
 {
-	if (m_samples > 0)glDisable(GL_MULTISAMPLE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	if (m_samples > 0)
+		glDisable(GL_MULTISAMPLE);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_pdrawFboId);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_preadFboId);
 }
 
 int FrameBuffer::getWidth()

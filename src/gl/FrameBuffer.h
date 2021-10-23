@@ -63,6 +63,9 @@ namespace xma
 		unsigned int m_texture_id;
 		unsigned int m_depth_id;
 		unsigned int m_fbo;
+		
+		int m_pdrawFboId;
+		int m_preadFboId;
 	};
 }
 
