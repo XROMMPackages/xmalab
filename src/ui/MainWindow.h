@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -52,7 +52,7 @@ namespace xma
 		Q_OBJECT
 	public:
 		static MainWindow* getInstance();
-		virtual ~MainWindow();
+		~MainWindow() override;
 		void recountFrames();
 
 		void save3DPoints(std::vector<int> markers);
@@ -104,10 +104,9 @@ namespace xma
 		QSignalMapper * mapper;
 
 	protected:
-		MainWindow(QWidget* parent = 0);
-
-		void resizeEvent(QResizeEvent* event);
-		void closeEvent(QCloseEvent* event);
+		explicit MainWindow(QWidget* parent = nullptr);
+		void resizeEvent(QResizeEvent* event) override;
+		void closeEvent(QCloseEvent* event) override;
 		QTimer resizeTimer;
 
 	public slots:

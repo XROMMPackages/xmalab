@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -50,27 +50,27 @@ CameraBox::~CameraBox()
 	delete widget;
 }
 
-const bool CameraBox::hasUndistortion()
+bool CameraBox::hasUndistortion() const
 {
 	return widget->radioButtonXRay->isChecked() && widget->checkBoxUndistortionGrid->isChecked();
 }
 
-const QString CameraBox::getUndistortionGridFileName()
+QString CameraBox::getUndistortionGridFileName() const
 {
 	return widget->lineEditUndistortionGrid->text();
 }
 
-const QString CameraBox::getCameraName()
+QString CameraBox::getCameraName() const
 {
 	return widget->groupBox_Camera->title();
 }
 
-void CameraBox::setCameraName(QString name)
+void CameraBox::setCameraName(const QString& name)
 {
 	widget->groupBox_Camera->setTitle(name);
 }
 
-bool CameraBox::isLightCamera()
+bool CameraBox::isLightCamera() const
 {
 	return widget->radioButtonLightCamera->isChecked();
 }
@@ -80,7 +80,7 @@ void CameraBox::setIsLightCamera()
 	widget->radioButtonLightCamera->click();
 }
 
-bool CameraBox::isflipped()
+bool CameraBox::isflipped() const
 {
 	return widget->checkBoxFlip->isChecked();
 }
@@ -106,7 +106,7 @@ QString commonPrefix(QStringList fileNames)
 	return QString(fileNames.at(0).left(count + 1));
 }
 
-bool CameraBox::isComplete()
+bool CameraBox::isComplete() const
 {
 	//No Images set
 	if (imageFileNames.size() == 0)
@@ -133,7 +133,7 @@ void CameraBox::addCalibrationImage(QString filename)
 	imageFileNames << filename;
 	imageFileNames.sort();
 
-	if (imageFileNames.size() > 0 && imageFileNames[0].isNull() == false)
+	if (!imageFileNames.isEmpty() && !imageFileNames[0].isEmpty())
 	{
 		widget->lineEditImages->setText(commonPrefix(imageFileNames));
 		widget->labelNbImages->setText("(" + QString::number(imageFileNames.size()) + ")");
@@ -142,7 +142,7 @@ void CameraBox::addCalibrationImage(QString filename)
 
 void CameraBox::addUndistortionImage(QString filename)
 {
-	if (filename.isNull() == false)
+	if (!filename.isEmpty())
 	{
 		widget->lineEditUndistortionGrid->setText(filename);
 	}
@@ -154,7 +154,7 @@ void CameraBox::on_toolButtonImages_clicked()
 	                                               tr("Open Calibration Images or video"), Settings::getInstance()->getLastUsedDirectory(), tr("Image Files (*.png *.jpg *.jpeg *.bmp *.tif *.avi *.cine)"));
 
 	imageFileNames.sort();
-	if (imageFileNames.size() > 0 && imageFileNames[0].isNull() == false)
+	if (!imageFileNames.isEmpty() && !imageFileNames[0].isEmpty())
 	{
 		widget->lineEditImages->setText(commonPrefix(imageFileNames));
 		widget->labelNbImages->setText("(" + QString::number(imageFileNames.size()) + ")");
@@ -166,7 +166,7 @@ void CameraBox::on_toolButtonUndistortionGrid_clicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this,
 	                                                tr("Open undistortion grid"), Settings::getInstance()->getLastUsedDirectory(), ("Image Files (*.png *.jpg *.jpeg *.bmp *.tif)"));
-	if (fileName.isNull() == false)
+	if (!fileName.isEmpty())
 	{
 		Settings::getInstance()->setLastUsedDirectory(fileName);
 		widget->lineEditUndistortionGrid->setText(fileName);

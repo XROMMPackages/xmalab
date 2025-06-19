@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -45,12 +45,12 @@ namespace xma
 		Ui::FromToDialog* diag;
 
 	public:
-		FromToDialog(int from, int to, int max, bool withFormat, bool withFilter, QWidget* parent = 0);
-		virtual ~FromToDialog();
-		int getFrom();
-		int getTo();
-		QString getFormat();
-		bool getFiltered();
+		explicit FromToDialog(int from, int to, int max, bool withFormat, bool withFilter, QWidget* parent = nullptr);
+		~FromToDialog() override;
+		int getFrom() const;
+		int getTo() const;
+		QString getFormat() const;
+		bool getFiltered() const;
 		
 	public slots:
 		void on_pushButton_OK_clicked();

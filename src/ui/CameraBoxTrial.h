@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -42,24 +42,24 @@ namespace xma
 
 	private:
 		QStringList imageFileNames;
-		QString commonPrefix(QStringList fileNames);
+		QString commonPrefix(const QStringList& fileNames) const;
 
 	public:
-		explicit CameraBoxTrial(QWidget* parent = 0);
-		virtual ~CameraBoxTrial();
+		explicit CameraBoxTrial(QWidget* parent = nullptr);
+		~CameraBoxTrial() override;
 
 		Ui::CameraBoxTrial* widget;
 
-		bool isComplete();
+		bool isComplete() const;
 
-		const QStringList& getImageFileNames()
+		const QStringList& getImageFileNames() const
 		{
 			return imageFileNames;
 		}
-		void setFilename(QString filename);
+		void setFilename(const QString& filename);
 
-		void setCameraName(QString name);
-		const QString getCameraName();
+		void setCameraName(const QString& name);
+		QString getCameraName() const;
 
 	public slots:
 

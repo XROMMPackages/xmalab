@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -48,7 +48,7 @@
 
 using namespace xma;
 
-EventDockWidget* EventDockWidget::instance = NULL;
+EventDockWidget* EventDockWidget::instance = nullptr;
 
 EventDockWidget::EventDockWidget(QWidget* parent) :
 	QDockWidget(parent),
@@ -72,7 +72,7 @@ EventDockWidget::~EventDockWidget()
 	delete dock;
 	delete mapperColor;
 	delete mapperCheckBox;
-	instance = NULL;
+	instance = nullptr;
 }
 
 
@@ -85,7 +85,7 @@ EventDockWidget* EventDockWidget::getInstance()
 	return instance;
 }
 
-void EventDockWidget::addEvent(QString name, QColor color, bool draw)
+void EventDockWidget::addEvent(const QString& name, const QColor& color, bool draw)
 {
 	event_entry entry;
 	entry.name = name;
@@ -224,7 +224,7 @@ void EventDockWidget::on_pushButtonSet_clicked()
 	PlotWindow::getInstance()->setEventOn();
 }
 
-void EventDockWidget::changeColor(QString name)
+void EventDockWidget::changeColor(const QString& name)
 {
 	int idx = getIndex(name);
 	if (idx == -1)
@@ -243,7 +243,7 @@ void EventDockWidget::changeColor(QString name)
 	}
 }
 
-void EventDockWidget::checkbox_clicked(QString name)
+void EventDockWidget::checkbox_clicked(const QString& name)
 {
 	int idx = getIndex(name);
 	if (idx == -1)

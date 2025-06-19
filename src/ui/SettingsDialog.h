@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -42,24 +42,24 @@ namespace xma
 		Q_OBJECT
 
 	public:
-		explicit SettingsDialog(QWidget* parent = 0);
-		virtual ~SettingsDialog();
+		explicit SettingsDialog(QWidget* parent = nullptr);
+		~SettingsDialog() override;
 		Ui::SettingsDialog* diag;
 
 	protected:
-		void closeEvent(QCloseEvent* event);
+		void closeEvent(QCloseEvent* event) override;
 
 	private:
 		bool initPhase;
 
-	public slots :
+	public slots:
 		void on_pushButton_General_clicked();
 		void on_pushButton_Calibration_clicked();
 		void on_pushButton_Digitizing_clicked();
 		
 		void on_toolButton_Workspace_clicked();
 		void on_checkBox_Workspace_stateChanged(int state);
-		void on_lineEditWorkspace_textChanged(QString text);
+		void on_lineEditWorkspace_textChanged(const QString& text);
 		void on_spinBoxFrameAdvance_valueChanged(int value);
 		void on_checkBox_exportAll_clicked(bool checked);
 		void on_checkBox_DisableImageSearch_clicked(bool checked);

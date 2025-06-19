@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -46,13 +46,13 @@ namespace xma
 		static ConfirmationDialog* instance;
 
 	protected:
-		ConfirmationDialog(QWidget* parent = 0);
+		explicit ConfirmationDialog(QWidget* parent = nullptr);
 
 	public:
-		virtual ~ConfirmationDialog();
+		~ConfirmationDialog() override;
 		static ConfirmationDialog* getInstance();
 
-		bool showConfirmationDialog(QString message, bool NoButton = false);
+		bool showConfirmationDialog(const QString& message, bool NoButton = false);
 
 	public slots:
 		void on_pushButton_OK_clicked();

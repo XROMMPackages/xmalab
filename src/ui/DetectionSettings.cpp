@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -39,7 +39,7 @@
 
 using namespace xma;
 
-DetectionSettings* DetectionSettings::instance = NULL;
+DetectionSettings* DetectionSettings::instance = nullptr;
 
 DetectionSettings::DetectionSettings(QWidget* parent) :
 	QDialog(parent),
@@ -74,7 +74,7 @@ void DetectionSettings::on_comboBox_Method_currentIndexChanged(int index)
 DetectionSettings::~DetectionSettings()
 {
 	delete diag;
-	instance = NULL;
+	instance = nullptr;
 }
 
 DetectionSettings* DetectionSettings::getInstance()
@@ -96,7 +96,7 @@ void DetectionSettings::setMarker(Marker* marker)
 	}
 	if (m_marker == NULL || (m_marker->getMethod() != 0 && m_marker->getMethod() != 2 && m_marker->getMethod() != 5))
 	{
-		m_marker = NULL;
+		m_marker = nullptr;
 		diag->spinBox_ThresholdOffset->setValue(0); 	
 	}
 	else{
@@ -108,7 +108,7 @@ void DetectionSettings::setMarker(Marker* marker)
 
 void DetectionSettings::update(int camera, cv::Point2d center)
 {
-	if (m_marker != NULL && (m_marker->getMethod() == 0 || m_marker->getMethod() == 2 || m_marker->getMethod() == 5)){
+	if (m_marker && (m_marker->getMethod() == 0 || m_marker->getMethod() == 2 || m_marker->getMethod() == 5)){
 		double m_input_size = (m_marker->getSizeOverride() > 0) ? m_marker->getSizeOverride() : (m_marker->getSize() > 0) ? m_marker->getSize() : 5;
 
 		int trial = State::getInstance()->getActiveTrial();

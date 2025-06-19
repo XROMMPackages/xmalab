@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -40,8 +40,9 @@ namespace xma
 		Q_OBJECT
 
 	public:
-		GLCameraView(QWidget* parent);
-		virtual ~GLCameraView();
+		explicit GLCameraView(QWidget* parent = nullptr);
+		~GLCameraView() override;
+
 		void setCamera(Camera* _camera);
 
 		void setMinimumWidthGL(bool set);
@@ -58,14 +59,14 @@ namespace xma
 		void UseStatusColors(bool value);
 
 	protected:
-		void paintGL();
-		void initializeGL();
-		void resizeGL(int w, int h);
+		void paintGL() override;
+		void initializeGL() override;
+		void resizeGL(int w, int h) override;
 
-		void mouseMoveEvent(QMouseEvent* e);
-		void mousePressEvent(QMouseEvent* e);
-		void wheelEvent(QWheelEvent* event);
-		void mouseDoubleClickEvent(QMouseEvent* event);
+		void mouseMoveEvent(QMouseEvent* e) override;
+		void mousePressEvent(QMouseEvent* e) override;
+		void wheelEvent(QWheelEvent* event) override;
+		void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 		void setZoomToFit();
 		void setZoomTo100();

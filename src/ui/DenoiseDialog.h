@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -45,21 +45,21 @@ namespace xma
 		Ui::DenoiseDialog* diag;
 
 	public:
-		DenoiseDialog(QWidget* parent = 0);
-		virtual ~DenoiseDialog();
+		explicit DenoiseDialog(QWidget* parent = nullptr);
+		~DenoiseDialog() override;
 
-		int getSearchWindowSize();
-		int getTemplateWindowSize();
-		int getTemporalWindowSize();
-		int getFilterStrength();
-		bool getRelinkTrial();
+		int getSearchWindowSize() const;
+		int getTemplateWindowSize() const;
+		int getTemporalWindowSize() const;
+		int getFilterStrength() const;
+		bool getRelinkTrial() const;
 
 	public slots:
 		void on_pushButtonOK_clicked();
 		void on_pushButtonCancel_clicked();
-		void on_spinBox_searchWindowSize_textChanged(QString value);
-		void on_spinBox_templateWindowSize_textChanged(QString value);
-		void on_spinBox_temporalWindowSize_textChanged(QString value);
+		void on_spinBox_searchWindowSize_textChanged(const QString& value);
+		void on_spinBox_templateWindowSize_textChanged(const QString& value);
+		void on_spinBox_temporalWindowSize_textChanged(const QString& value);
 	};
 }
 
