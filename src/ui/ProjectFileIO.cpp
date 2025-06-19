@@ -50,7 +50,7 @@
 #include "core/HelperFunctions.h"
 #include "core/Settings.h"
 
-#include <QDir>
+#include <QDir>>
 #include <QXmlStreamWriter>
 #include <QFileInfo>
 #include <QFile>

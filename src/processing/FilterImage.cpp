@@ -1,4 +1,4 @@
-ï»¿//  ----------------------------------
+//  ----------------------------------
 //  XMALab -- Copyright Â(c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved

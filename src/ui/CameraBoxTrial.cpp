@@ -36,6 +36,7 @@
 #include "core/Settings.h"
 
 #include <QFileDialog>
+#include <algorithm> // for std::sort
 
 using namespace xma;
 
@@ -56,15 +57,17 @@ void CameraBoxTrial::setFilename(const QString& filename)
 	imageFileNames.clear();
 	if (filename.endsWith(".zip"))
 	{
-		QDir pdir(filename.replace(".zip",""));
+		QString zipBase = filename;
+		zipBase.chop(4); // Remove ".zip"
+		QDir pdir(zipBase);
 		QStringList imageFileNames_rel = pdir.entryList(QStringList() << "*.png" << "*.tif" << "*.bmp" << "*.jpeg" << "*.jpg", QDir::Files | QDir::NoSymLinks);
 		for (int i = 0; i < imageFileNames_rel.size(); ++i)
 		{
 			imageFileNames << QString("%1/%2").arg(pdir.absolutePath()).arg(imageFileNames_rel.at(i));
 		}
 
-		qSort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
-		widget->lineEdit->setText(filename.replace(".zip", ""));
+		std::sort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
+		widget->lineEdit->setText(zipBase);
 	}
 	else{	
 		imageFileNames << filename;
@@ -131,7 +134,7 @@ void CameraBoxTrial::on_toolButtonImage_clicked()
 			imageFileNames << QString("%1/%2").arg(pdir.absolutePath()).arg(imageFileNames_rel.at(i));
 		}
 
-		qSort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
+		std::sort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
 		widget->lineEdit->setText(folder);
 		widget->label->setText("(" + QString::number(imageFileNames.size()) + ")");
 		Settings::getInstance()->setLastUsedDirectory(folder);
@@ -143,7 +146,7 @@ void CameraBoxTrial::on_toolButtonVideo_clicked()
 	imageFileNames = QFileDialog::getOpenFileNames(this,
 	                                               tr("Open video stream movie file or images"), Settings::getInstance()->getLastUsedDirectory(), tr("Image and Video Files (*.cine *.avi *.png *.jpg *.jpeg *.bmp *.tif)"));
 
-	qSort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
+	std::sort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
 
 	if (!imageFileNames.isEmpty())
 	{

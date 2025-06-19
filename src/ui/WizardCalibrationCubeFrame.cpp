@@ -228,7 +228,7 @@ void WizardCalibrationCubeFrame::updateFrameList()
 	}
 	auto items = frame->frametreeWidget->findItems(QString::number(State::getInstance()->getActiveFrameCalibration() + 1), Qt::MatchExactly, 0);
 	if (!items.empty()){
-		frame->frametreeWidget->setItemSelected(items[0], true);
+		items[0]->setSelected(true);
 	}
 	else
 	{
