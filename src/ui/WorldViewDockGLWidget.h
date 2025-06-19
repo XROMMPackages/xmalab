@@ -27,7 +27,7 @@
 #ifndef WorldViewDockGLWidget_H_
 #define WorldViewDockGLWidget_H_
 
-#include <QOpenGLWidget>
+#include <QtOpenGLWidgets/QOpenGLWidget>
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>

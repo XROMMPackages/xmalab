@@ -27,7 +27,7 @@
 #ifndef GLSHAREDWIDGET_H
 #define GLSHAREDWIDGET_H
 
-#include <QOpenGLWidget>
+#include <QtOpenGLWidgets/QOpenGLWidget>
 
 namespace xma
 {
