@@ -53,6 +53,10 @@ ENDIF (APPLE)
 # Set CMP0074 policy to NEW for proper handling of package root variables
 cmake_policy(SET CMP0074 NEW)
 
+# User-supplied paths for non-config-mode libraries
+set(MY_INCLUDE_DIR "" CACHE PATH "Optional: path to extra include directories (leave blank if using package manager)")
+set(MY_LIBRARY_DIR "" CACHE PATH "Optional: path to extra library directories (leave blank if using package manager)")
+
 # Include QuaZip headers and link library directly
 INCLUDE_DIRECTORIES(${QUAZIP_INCLUDE_DIR})
 LINK_DIRECTORIES(${QUAZIP_LIBRARIES})
@@ -116,6 +120,8 @@ INCLUDE_DIRECTORIES(
 	${GLEW_INCLUDE_DIR}
 	${OPENCV_INCLUDE_DIRS}
 	${LEVMAR_INCLUDE_DIR}
+	${MY_INCLUDE_DIR}  # Add this to pick up user-defined headers
+
 	# Qt include dirs are provided by the Qt6:: targets
 )
 
@@ -141,6 +147,8 @@ ADD_EXECUTABLE(${PROJECT_NAME} ${GUI_TYPE}
 		${XMALab_FORMS_HEADERS_GEN}
 		src/ui/calibrationtool_resources.rc
 )
+
+link_directories(${MY_LIBRARY_DIR})
 
 IF(APPLE)
   ADD_DEPENDENCIES(${PROJECT_NAME} osx_bundle_dirs )
