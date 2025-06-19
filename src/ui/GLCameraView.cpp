@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -318,7 +318,7 @@ void GLCameraView::wheelEvent(QWheelEvent* e)
 		if (e->modifiers().testFlag(Qt::ControlModifier))
 		{
 			if (State::getInstance()->getWorkspace() == DIGITIZATION){
-				setTransparency(transparency + 1.0 / 2400.0 * e->delta());
+				setTransparency(transparency + 1.0 / 2400.0 * e->angleDelta().y());
 				emit transparencyChanged(transparency);
 			}
 		}
@@ -326,9 +326,9 @@ void GLCameraView::wheelEvent(QWheelEvent* e)
 			State::getInstance()->changeActiveCamera(this->camera->getID());
 			double zoom_prev = zoomRatio;
 
-			setZoomRatio(zoomRatio * 1 - e->delta() / 1000.0, false);
+			setZoomRatio(zoomRatio * 1 - e->angleDelta().y() / 1000.0, false);
 
-			QPoint coordinatesGlobal = e->globalPos();
+			QPoint coordinatesGlobal = e->globalPosition().toPoint();
 			QPoint coordinates = this->mapFromGlobal(coordinatesGlobal);
 
 			y_offset += (zoom_prev - zoomRatio) * (0.5 * window_height - coordinates.y());
@@ -510,7 +510,9 @@ void GLCameraView::renderTextCentered(QString string)
 {
 	setFont(QFont(this->font().family(), 24));
 	QFontMetrics fm(this->font());
-	renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, - zoomRatio * fm.height() * 0.5 - y_offset, 0.0, string, QColor(255, 0, 0));
+	renderText(-zoomRatio * fm.horizontalAdvance(string) * 0.5 - x_offset,
+               -zoomRatio * fm.height() * 0.5 - y_offset,
+               0.0, string, QColor(255, 0, 0));
 }
 
 void GLCameraView::renderPointText(bool calibration)
@@ -798,10 +800,12 @@ void GLCameraView::paintGL()
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		if (Settings::getInstance()->getBoolSetting("TrialDrawFiltered") && (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getCutoffFrequency() <= 0 || Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() <= 0)){
-			setFont(QFont(this->font().family(), 12));
-			QFontMetrics fm(this->font());
-			QString string("Rendering of filtered data is enabled, but framrate and cutoff are not set correctly");
-			renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, -zoomRatio * (fm.height() - window_height)* 0.5 - y_offset, 0.0, string, QColor(255, 0, 0));
+		 setFont(QFont(this->font().family(), 12));
+		 QFontMetrics fm(this->font());
+		 QString string("Rendering of filtered data is enabled, but framrate and cutoff are not set correctly");
+		 renderText(-zoomRatio * fm.horizontalAdvance(string) * 0.5 - x_offset,
+           -zoomRatio * (fm.height() - window_height) * 0.5 - y_offset,
+           0.0, string, QColor(255, 0, 0));
 		}
 
 		if (renderMeshes){
@@ -813,7 +817,9 @@ void GLCameraView::paintGL()
 						setFont(QFont(this->font().family(), 12));
 						QFontMetrics fm(this->font());
 						QString string("Rigid body models are not distorted! XMALab is currently computing the distortion!");
-						renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, -zoomRatio * (fm.height() - window_height)* 0.5 - y_offset, 0.0, string, QColor(255, 0, 0));
+						renderText(-zoomRatio * fm.horizontalAdvance(string) * 0.5 - x_offset,
+           -zoomRatio * (fm.height() - window_height) * 0.5 - y_offset,
+           0.0, string, QColor(255, 0, 0));
 						blendShader->draw(camera_width, camera_height, transparency, rigidbodyBufferUndistorted->getTextureID(), rigidbodyBufferUndistorted->getDepthTextureID(), true);
 					}
 					else

@@ -41,7 +41,7 @@
 #include "core/RigidBody.h"
 
 #include <QFileDialog>
-
+#include <QStringList>
 #include <fstream>
 #include <QInputDialog>
 

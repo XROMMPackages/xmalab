@@ -55,7 +55,6 @@ namespace xma
 	private:
 
 		static WorldViewDockWidget* instance;
-		WorldViewDockWidget(QWidget* parent);
 
 		//QGridLayout* layout;
 		Ui::WorldViewDockWidget* dock;

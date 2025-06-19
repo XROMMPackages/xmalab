@@ -1412,7 +1412,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 			{
 				double mean = 0;
 				std::vector<double> value;
-				for (int frame = from, frame < to; frame++)
+				for (int frame = from; frame < to; frame++)
 				{
 					if (markers[rigidBodies[body]->getPointsIdx()[i]]->getStatus3D()[frame] > UNDEFINED && markers[rigidBodies[body]->getPointsIdx()[j]]->getStatus3D()[frame] > UNDEFINED)
 					{
@@ -1626,7 +1626,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 		int count = 0;
 		for (std::vector<int>::const_iterator it = _markers.begin(); it < _markers.end(); ++it)
 		{
-			QString filename = outputfolder + "Marker" + QString().sprintf("%03d", *it + 1) + "_" + getMarkers()[*it]->getDescription() + "_points3d";
+			QString filename = outputfolder + "Marker" + QString("%1").arg(*it + 1, 3, 10, QChar('0')) + "_" + getMarkers()[*it]->getDescription() + "_points3d";
 			if (filterFrequency > 0.0)
 			{
 				filename = filename + "_" + QString::number(filterFrequency) + "Hz";
@@ -1721,7 +1721,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 				QString name;
 				if (getMarkers()[i]->getDescription().isEmpty())
 				{
-					name = "marker" + QString().sprintf("%03d", i + 1);
+					name = "marker" + QString("%1").arg(i + 1, 3, 10, QChar('0'));
 				}
 				else
 				{
@@ -1807,7 +1807,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 	{
 		for (unsigned int i = 0; i < getMarkers().size(); i++)
 		{
-			QString filename = outputfolder + "Marker" + QString().sprintf("%03d", i + 1) + "_" + getMarkers()[i]->getDescription() + "_points2d.csv";
+			QString filename = outputfolder + "Marker" + QString("%1").arg(i + 1, 3, 10, QChar('0')) + "_" + getMarkers()[i]->getDescription() + "_points2d.csv";
 			std::ofstream outfile(filename.toStdString());
 			outfile.precision(12);
 			if (headerRow)
@@ -1823,7 +1823,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 				QString name;
 				if (getMarkers()[i]->getDescription().isEmpty())
 				{
-					name = "marker" + QString().sprintf("%03d", i + 1);
+					name = "marker" + QString("%1").arg(i + 1, 3, 10, QChar('0'));
 				}
 				else
 				{
@@ -2012,7 +2012,7 @@ void Trial::saveReprojectionErrors(QString outputfolder) {
 	
 	for (unsigned int i = 0; i < getMarkers().size(); i++)
 	{
-		QString filename = outputfolder + "Marker" + QString().sprintf("%03d", i + 1) + "_" + getMarkers()[i]->getDescription() + "_reprojectionError.csv";
+		QString filename = outputfolder + "Marker" + QString("%1").arg(i + 1, 3, 10, QChar('0')) + "_" + getMarkers()[i]->getDescription() + "_reprojectionError.csv";
 		std::ofstream outfile(filename.toStdString());
 		outfile.precision(12);
 

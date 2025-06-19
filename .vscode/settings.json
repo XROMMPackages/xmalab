@@ -1,6 +1,9 @@
 {
     "files.associations": {
         "system_error": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "deque": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp"
     }
 }
