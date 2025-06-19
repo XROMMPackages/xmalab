@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -68,7 +68,7 @@ void LocalUndistortion::computeUndistortion(bool recompute)
 	m_FutureWatcher = new QFutureWatcher<void>();
 	connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( localUndistortion_threadFinished() ));
 
-	QFuture<void> future = QtConcurrent::run(this, &LocalUndistortion::localUndistortion_thread);
+	QFuture<void> future = QtConcurrent::run(&LocalUndistortion::localUndistortion_thread, this);
 	m_FutureWatcher->setFuture(future);
 
 	ProgressDialog::getInstance()->showProgressbar(0, 0, "Local Undistortion");
@@ -284,8 +284,8 @@ int LocalUndistortion::computeLWM(cv::Mat& detectedPts, cv::Mat& controlPts, cv:
 			//compute norm of rows
 			cv::multiply(tmpXY_splitted[0], tmpXY_splitted[0], all_pts_Matx2);
 			cv::multiply(tmpXY_splitted[1], tmpXY_splitted[1], all_pts_Maty2);
-			cv::add(all_pts_Matx2, all_pts_Maty2, all_pts_Matx2y2);
-			cv::sqrt(all_pts_Matx2y2, all_pts_MatEuclideanDistance);
+			cv::add(all_pts_Matx2, all_pts_Matx2y2, all_pts_MatEuclideanDistance);
+			cv::sqrt(all_pts_MatEuclideanDistance, all_pts_Matx2y2);
 
 			//sortIndices to find closest
 			cv::sortIdx(all_pts_MatEuclideanDistance, all_pts_Idx,cv::SORT_EVERY_COLUMN + cv::SORT_ASCENDING);
@@ -515,7 +515,7 @@ bool LocalUndistortion::findNClosestPoint(int numberPoints, cv::Point2d pt, std:
 	cv::Mat all_pts_MatEuclideanDistance;
 	cv::multiply(all_pts_Matsplitted.at(0), all_pts_Matsplitted.at(0), all_pts_Matx2);
 	cv::multiply(all_pts_Matsplitted.at(1), all_pts_Matsplitted.at(1), all_pts_Maty2);
-	cv::add(all_pts_Matx2, all_pts_Maty2, all_pts_Matx2y2);
+	cv::add(all_pts_Matx2, all_pts_Matx2y2, all_pts_MatEuclideanDistance);
 	cv::sqrt(all_pts_Matx2y2, all_pts_MatEuclideanDistance);
 
 	//sort by lowest Distance

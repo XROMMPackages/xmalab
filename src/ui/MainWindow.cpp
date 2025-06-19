@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -547,7 +547,8 @@ void MainWindow::newProject()
 		m_FutureWatcher = new QFutureWatcher<int>();
 		connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( newProjectFinished() ));
 
-		QFuture<int> future = QtConcurrent::run(newProjectdialog, &NewProjectDialog::createProject);
+		// Qt6: run member function pointer first, instance second
+		QFuture<int> future = QtConcurrent::run(&NewProjectDialog::createProject, newProjectdialog);
 		m_FutureWatcher->setFuture(future);
 
 		ProgressDialog::getInstance()->showProgressbar(0, 0, "Create new dataset");
@@ -692,7 +693,7 @@ void MainWindow::loadProject(QString fileName, QString fileName_extraCalib)
 	m_FutureWatcher = new QFutureWatcher<int>();
 	connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(loadProjectFinished()));
 
-	QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::loadProject, fileName, fileName_extraCalib);
+	QFuture<int> future = QtConcurrent::run(&ProjectFileIO::loadProject, ProjectFileIO::getInstance(), fileName, fileName_extraCalib);
 	m_FutureWatcher->setFuture(future);
 
 	ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load dataset " + fileName).toUtf8());
@@ -906,7 +907,7 @@ void MainWindow::saveProject()
 		m_FutureWatcher = new QFutureWatcher<int>();
 		connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( saveProjectFinished() ));
 
-		QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, project->getProjectFilename(), project->getTrials(), false);
+		QFuture<int> future = QtConcurrent::run(&ProjectFileIO::saveProject, ProjectFileIO::getInstance(), project->getProjectFilename(), project->getTrials(), false);
 		m_FutureWatcher->setFuture(future);
 
 		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + project->getProjectFilename()).toUtf8());
@@ -935,7 +936,7 @@ void MainWindow::saveProjectAs(bool subset)
 				m_FutureWatcher = new QFutureWatcher<int>();
 				connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(saveProjectFinished()));
 
-				QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, fileName, project->getTrials(), false);
+				QFuture<int> future = QtConcurrent::run(&ProjectFileIO::saveProject, ProjectFileIO::getInstance(), fileName, project->getTrials(), false);
 				m_FutureWatcher->setFuture(future);
 
 				ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + fileName).toUtf8());
@@ -951,7 +952,7 @@ void MainWindow::saveProjectAs(bool subset)
 					m_FutureWatcher = new QFutureWatcher<int>();
 					connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(saveProjectFinished()));
 
-					QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, fileName, diag->getTrials(), true);
+					QFuture<int> future = QtConcurrent::run(&ProjectFileIO::saveProject, ProjectFileIO::getInstance(), fileName, diag->getTrials(), true);
 					m_FutureWatcher->setFuture(future);
 
 					ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + fileName).toUtf8());

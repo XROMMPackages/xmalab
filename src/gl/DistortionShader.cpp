@@ -111,7 +111,7 @@ void DistortionShader::draw(unsigned texture_id, unsigned depth_texture_id, floa
 		m_FutureWatcher = new QFutureWatcher<void>();
 		connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(loadComplete()));
 
-		QFuture<void> future = QtConcurrent::run(this, &DistortionShader::setDistortionMap);		
+		QFuture<void> future = QtConcurrent::run(&DistortionShader::setDistortionMap, this);		
 		m_FutureWatcher->setFuture(future);
 		
 	}
