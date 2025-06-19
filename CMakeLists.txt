@@ -59,7 +59,6 @@ set(MY_LIBRARY_DIR "" CACHE PATH "Optional: path to extra library directories (l
 
 # Include QuaZip headers and link library directly
 INCLUDE_DIRECTORIES(${QUAZIP_INCLUDE_DIR})
-LINK_DIRECTORIES(${QUAZIP_LIBRARIES})
 
 #ADD OPENCV 
 FIND_PACKAGE( OpenCV REQUIRED )
@@ -154,9 +153,9 @@ IF(APPLE)
   ADD_DEPENDENCIES(${PROJECT_NAME} osx_bundle_dirs )
 ENDIF (APPLE)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-		${GLEW_LIBRARIES} 
-		${QUAZIP_LIBRARIES}
-		${LEVMAR_LIBRARY}
+		glew32s
+		quazip
+		levmar
 		Qt6::Core
 		Qt6::Widgets
 		Qt6::OpenGL
