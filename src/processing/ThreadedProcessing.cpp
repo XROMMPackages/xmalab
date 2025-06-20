@@ -55,7 +55,7 @@ void ThreadedProcessing::start()
 	m_FutureWatcher = new QFutureWatcher<void>();
 	connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(thread_complete()));
 
-	QFuture<void> future = QtConcurrent::run(&ThreadedProcessing::thread, this);
+	QFuture<void> future = QtConcurrent::run([this]() { thread(); });
 	m_FutureWatcher->setFuture(future);
 
 	if (!message.isEmpty()) ProgressDialog::getInstance()->showProgressbar(0, 0, message.toUtf8());

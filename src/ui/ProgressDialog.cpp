@@ -144,9 +144,9 @@ void ProgressDialog::closeProgressbar()
 	this->close();
 }
 
-const bool& ProgressDialog::getIsCanceled()
+bool ProgressDialog::getIsCanceled() const
 {
-	return isCanceled;
+	return this->isCanceled;
 }
 
 void ProgressDialog::on_cancelButton_clicked()

@@ -111,14 +111,14 @@ void NewTrialDialog::setNBCamerasVisible()
 	}
 }
 
-void NewTrialDialog::setCam(int i, QString filename)
+void NewTrialDialog::setCam(int i, const QString& filename)
 {
-	cameras[i]->setFilename(filename);
+	this->cameras[i]->setFilename(filename);
 }
 
-void NewTrialDialog::setTrialName(QString trialName)
+void NewTrialDialog::setTrialName(const QString& trialName)
 {
-	diag->lineEditTrialName->setText(trialName);
+	this->diag->lineEditTrialName->setText(trialName);
 }
 
 void NewTrialDialog::setXmlMetadata(const QString& _xml_metadata)
@@ -250,23 +250,25 @@ void NewTrialDialog::on_pushButton_Cancel_clicked()
 
 void NewTrialDialog::on_pushButton_LoadXMA_clicked()
 {
-	if (!ConfirmationDialog::getInstance()->showConfirmationDialog("The data will be extracted to the folder where your xmatrial-file is located in case you did not setup a workspace. Also please make sure that you added enough cameras to the trial before importing. Do you want to proceed?", true))
-		return;
+    if (!ConfirmationDialog::getInstance()->showConfirmationDialog("The data will be extracted to the folder where your xmatrial-file is located in case you did not setup a workspace. Also please make sure that you added enough cameras to the trial before importing. Do you want to proceed?", true))
+        return;
 
-	xmaTrial_filename = QFileDialog::getOpenFileName(this,
-		tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xmatrial  *.zip)"));
-	if (xmaTrial_filename.isNull() == false)
-	{
-		deleteAfterLoad = ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to delete the .xmatrial file after the import? Click Yes if you want to delete it. No if you do not want to delete it.", true);
+    xmaTrial_filename = QFileDialog::getOpenFileName(this,
+        tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xmatrial  *.zip)"));
+    if (xmaTrial_filename.isNull() == false)
+    {
+        deleteAfterLoad = ConfirmationDialog::getInstance()->showConfirmationDialog("Do you want to delete the .xmatrial file after the import? Click Yes if you want to delete it. No if you do not want to delete it.", true);
 
-		m_FutureWatcher = new QFutureWatcher<void>();
-		connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(LoadXMAFinished()));
+        m_FutureWatcher = new QFutureWatcher<void>();
+        connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(LoadXMAFinished()));
 
-		QFuture<void> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::loadXMAPortalTrial, xmaTrial_filename, this);
-		m_FutureWatcher->setFuture(future);
+        QFuture<void> future = QtConcurrent::run([this]() {
+            ProjectFileIO::getInstance()->loadXMAPortalTrial(xmaTrial_filename, this);
+        });
+        m_FutureWatcher->setFuture(future);
 
-		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load trial " + xmaTrial_filename).toUtf8());
-	}
+        ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load trial " + xmaTrial_filename).toUtf8());
+    }
 }
 
 void NewTrialDialog::on_pushButton_Default_clicked()
@@ -289,9 +291,9 @@ void NewTrialDialog::LoadXMAFinished()
 	ProgressDialog::getInstance()->closeProgressbar();
 }
 
-void NewTrialDialog::on_lineEditTrialName_textChanged(QString text)
+void NewTrialDialog::on_lineEditTrialName_textChanged(const QString& text)
 {
-	trialname = text;
+	this->trialname = text;
 }
 
 //Cameras

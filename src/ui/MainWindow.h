@@ -29,7 +29,7 @@
 
 #include <QMainWindow>
 #include <QTimer>
-#include <QFuture>
+#include <QFutureWatcher>
 #include <QSignalMapper>
 #include "ui/State.h"
 
@@ -101,7 +101,7 @@ namespace xma
 		QFutureWatcher<int>* m_FutureWatcher;
 		NewProjectDialog* newProjectdialog;
 
-		QSignalMapper * mapper;
+		QSignalMapper* mapper;
 
 	protected:
 		explicit MainWindow(QWidget* parent = nullptr);

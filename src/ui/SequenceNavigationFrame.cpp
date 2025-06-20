@@ -58,14 +58,14 @@ SequenceNavigationFrame::SequenceNavigationFrame(QWidget* parent) :
 	frame->spinBoxFrame->setMinimum(1);
 	frame->horizontalSlider->setValue(0);
 	frame->spinBoxFrame->setValue(1);
-	connect(State::getInstance(), SIGNAL(activeFrameCalibrationChanged(int)), this, SLOT(activeFrameChanged(int)));
-	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameChanged(int)));
-	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
-	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
+	connect(State::getInstance(), &State::activeFrameCalibrationChanged, this, &SequenceNavigationFrame::activeFrameChanged);
+	connect(State::getInstance(), &State::activeFrameTrialChanged, this, &SequenceNavigationFrame::activeFrameChanged);
+	connect(State::getInstance(), &State::workspaceChanged, this, &SequenceNavigationFrame::workspaceChanged);
+	connect(State::getInstance(), &State::activeTrialChanged, this, &SequenceNavigationFrame::activeTrialChanged);
 
 	play_tag = 0;
 	play_timer = new QTimer(this);
-	connect(play_timer, SIGNAL(timeout()), this, SLOT(play_update()));
+	connect(play_timer, &QTimer::timeout, this, &SequenceNavigationFrame::play_update);
 
 	updating = false;
 }

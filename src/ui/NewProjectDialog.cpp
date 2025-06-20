@@ -76,33 +76,33 @@ NewProjectDialog::~NewProjectDialog()
 	cameras.clear();
 }
 
-void NewProjectDialog::addCalibrationImage(int id_camera, QString filename)
+void NewProjectDialog::addCalibrationImage(int id_camera, const QString& filename)
 {
-	while (id_camera >= (int)cameras.size())
+	while (id_camera >= static_cast<int>(this->cameras.size()))
 	{
-		on_toolButtonCameraPlus_clicked();
+		this->on_toolButtonCameraPlus_clicked();
 	}
 
-	cameras[id_camera]->addCalibrationImage(filename);
+	this->cameras[id_camera]->addCalibrationImage(filename);
 }
 
-void NewProjectDialog::addGridImage(int id_camera, QString filename)
+void NewProjectDialog::addGridImage(int id_camera, const QString& filename)
 {
-	while (id_camera >= (int)cameras.size())
+	while (id_camera >= static_cast<int>(this->cameras.size()))
 	{
-		on_toolButtonCameraPlus_clicked();
+		this->on_toolButtonCameraPlus_clicked();
 	}
-	cameras[id_camera]->addUndistortionImage(filename);
+	this->cameras[id_camera]->addUndistortionImage(filename);
 }
 
-void NewProjectDialog::setCalibrationCubeCSV(QString filename)
+void NewProjectDialog::setCalibrationCubeCSV(const QString& filename)
 {
-	diag->lineEditFrameSpecifications->setText(filename);
+	this->diag->lineEditFrameSpecifications->setText(filename);
 }
 
-void NewProjectDialog::setCalibrationCubeREF(QString filename)
+void NewProjectDialog::setCalibrationCubeREF(const QString& filename)
 {
-	diag->lineEditReferencePoints->setText(filename);
+	this->diag->lineEditReferencePoints->setText(filename);
 }
 
 void NewProjectDialog::setupBasedOnMissingParameters()

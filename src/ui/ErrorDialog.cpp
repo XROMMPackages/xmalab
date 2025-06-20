@@ -58,7 +58,7 @@ ErrorDialog* ErrorDialog::getInstance()
 	return instance;
 }
 
-void ErrorDialog::showErrorDialog(QString message)
+void ErrorDialog::showErrorDialog(const QString& message)
 {
 	diag->message->setText(message);
 	this->exec();

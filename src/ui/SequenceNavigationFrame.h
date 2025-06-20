@@ -27,6 +27,7 @@
 #ifndef SEQUENCENAVIGATIONFRAME_H_
 #define SEQUENCENAVIGATIONFRAME_H_
 
+// Ensure compatibility with Qt 6 APIs
 #include <QFrame>
 #include <QTimer>
 #include "ui/State.h"

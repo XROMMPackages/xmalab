@@ -57,8 +57,32 @@ cmake_policy(SET CMP0074 NEW)
 set(MY_INCLUDE_DIR "" CACHE PATH "Optional: path to extra include directories (leave blank if using package manager)")
 set(MY_LIBRARY_DIR "" CACHE PATH "Optional: path to extra library directories (leave blank if using package manager)")
 
+# Dynamically detect QuaZip paths for portability
+find_path(QUAZIP_INCLUDE_DIR quazip PATHS ${CMAKE_INSTALL_PREFIX}/include NO_DEFAULT_PATH)
+find_library(QUAZIP_LIBRARIES quazip1-qt6 PATHS ${CMAKE_INSTALL_PREFIX}/lib NO_DEFAULT_PATH)
+
+# Ensure variables are set
+if(NOT QUAZIP_INCLUDE_DIR)
+    message(FATAL_ERROR "Quazip include directory not found. Please set CMAKE_INSTALL_PREFIX or QUAZIP_INCLUDE_DIR manually.")
+endif()
+
+if(NOT QUAZIP_LIBRARIES)
+    message(FATAL_ERROR "Quazip library not found. Please set CMAKE_INSTALL_PREFIX or QUAZIP_LIBRARIES manually.")
+endif()
+
 # Include QuaZip headers and link library directly
-INCLUDE_DIRECTORIES(${QUAZIP_INCLUDE_DIR})
+include_directories(${QUAZIP_INCLUDE_DIR})
+link_directories(${QUAZIP_LIBRARIES})
+
+# Add the correct QuaZip library directory and name
+link_directories("D:/vcpkg/installed/x64-windows/lib")
+set(QUAZIP_LIBRARIES "quazip1-qt6.lib")
+
+# Set GLEW_USE_STATIC_LIBS to TRUE and add vcpkg static path
+set(GLEW_USE_STATIC_LIBS TRUE)
+set(CMAKE_PREFIX_PATH "D:/vcpkg/installed/x64-windows-static" ${CMAKE_PREFIX_PATH})
+set(GLEW_INCLUDE_DIR "D:/vcpkg/installed/x64-windows-static/include")
+set(GLEW_LIBRARY "D:/vcpkg/installed/x64-windows-static/lib/glew32s.lib")
 
 #ADD OPENCV 
 FIND_PACKAGE( OpenCV REQUIRED )
@@ -68,9 +92,10 @@ SET(GLEW_USE_STATIC_LIBS FALSE)
 FIND_PACKAGE( Levmar REQUIRED)
 
 # Set paths for QuaZip and Levmar
-SET(QUAZIP_INCLUDE_DIR "${CMAKE_PREFIX_PATH}/include/quazip")
-SET(QUAZIP_LIBRARIES "${CMAKE_PREFIX_PATH}/lib")
-SET(LEVMAR_INCLUDE_DIR "${CMAKE_PREFIX_PATH}/include/levmar")
+SET(QUAZIP_INCLUDE_DIR "${CMAKE_PREFIX_PATH}/include/quazip" CACHE PATH "Path to QuaZip include directory")
+# Update QUAZIP_LIBRARIES to point to the specific library file
+SET(QUAZIP_LIBRARIES "${CMAKE_PREFIX_PATH}/lib/quazip1-qt6.lib" CACHE FILEPATH "Path to QuaZip library file")
+SET(LEVMAR_INCLUDE_DIR "${CMAKE_PREFIX_PATH}/include/levmar" CACHE PATH "Path to Levmar include directory")
 
 #ADD QT4 SUPPORT
 FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGL OpenGLWidgets Concurrent PrintSupport)
@@ -109,6 +134,7 @@ IF("${PROJECT_BETA_VERSION}" GREATER 0)
 ENDIF()
 
 ADD_DEFINITIONS(-DQCUSTOMPLOT_USE_OPENGL)
+ADD_DEFINITIONS(-DGLEW_STATIC)
 
 #Set Includes and CMAKE_CURRENT_SOURCE_DIR
 SET(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -126,6 +152,9 @@ INCLUDE_DIRECTORIES(
 
 #Get Files from Subdirectory
 ADD_SUBDIRECTORY(src)
+
+# Add vcpkg static lib directory to linker search path
+link_directories("D:/vcpkg/installed/x64-windows-static/lib")
 
 #Create QT4 UI related tasks
 SET(XMALab_RESOURCE_FILES
@@ -154,7 +183,7 @@ IF(APPLE)
 ENDIF (APPLE)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
 		glew32s
-		quazip
+		quazip1-qt6
 		levmar
 		Qt6::Core
 		Qt6::Widgets

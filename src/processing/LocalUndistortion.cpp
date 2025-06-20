@@ -68,7 +68,7 @@ void LocalUndistortion::computeUndistortion(bool recompute)
 	m_FutureWatcher = new QFutureWatcher<void>();
 	connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( localUndistortion_threadFinished() ));
 
-	QFuture<void> future = QtConcurrent::run(&LocalUndistortion::localUndistortion_thread, this);
+	QFuture<void> future = QtConcurrent::run([this]() { localUndistortion_thread(); });
 	m_FutureWatcher->setFuture(future);
 
 	ProgressDialog::getInstance()->showProgressbar(0, 0, "Local Undistortion");

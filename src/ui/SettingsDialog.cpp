@@ -178,9 +178,9 @@ void SettingsDialog::on_checkBox_Workspace_stateChanged(int state)
 	}
 }
 
-void SettingsDialog::on_lineEditWorkspace_textChanged(QString text)
+void xma::SettingsDialog::on_lineEditWorkspace_textChanged(const QString& text)
 {
-	Settings::getInstance()->set("WorkspacePath", text);
+    Settings::getInstance()->set("WorkspacePath", text);
 }
 
 void SettingsDialog::on_spinBoxFrameAdvance_valueChanged(int value)

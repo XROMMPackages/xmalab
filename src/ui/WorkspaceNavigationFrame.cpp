@@ -51,6 +51,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QFileDialog>
+#include <algorithm>
 
 #ifdef WIN32
 #define OS_SEP "\\"
@@ -429,7 +430,7 @@ void WorkspaceNavigationFrame::changeDenoiseTrialDataAfterDenoise() {
 		{
 			imageFileNames << QString("%1/%2").arg(pdir.absolutePath()).arg(imageFileNames_rel.at(i));
 		}
-		qSort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
+		std::sort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
 		imageFileNames_vector.push_back(imageFileNames);
 	}
 	trial->changeTrialData(trial->getName(), imageFileNames_vector);

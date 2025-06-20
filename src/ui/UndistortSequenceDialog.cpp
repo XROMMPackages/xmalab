@@ -42,6 +42,7 @@
 
 #include <QFileDialog>
 #include "core/ImageSequence.h"
+#include <algorithm>
 
 
 #ifdef WIN32
@@ -256,7 +257,7 @@ void UndistortSequenceDialog::on_pushButtonUndist_clicked()
 			{
 				imageFileNames << QString("%1/%2").arg(pdir.absolutePath()).arg(imageFileNames_rel.at(i));
 			}
-			qSort(imageFileNames.begin(), imageFileNames.end(), compareNames2);
+			std::sort(imageFileNames.begin(), imageFileNames.end(), compareNames2);
 			stream = new ImageSequence(imageFileNames);
 		}
 
