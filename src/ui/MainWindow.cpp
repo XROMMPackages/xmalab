@@ -81,6 +81,10 @@
 #include <QFileDialog>
 #include <QtCore>
 #include <QtConcurrent/QtConcurrent>
+#include <QMenu>
+#include <QAction>
+#include <QPalette>
+#include <QStyleFactory>
 
 #include <iostream>
 
@@ -276,8 +280,10 @@ MainWindow::MainWindow(QWidget* parent) :
 		diag->show();
 		diag->setAttribute(Qt::WA_DeleteOnClose);
 	}
-}
 
+	// Add Theme menu to View menu
+	createThemeMenu();
+}
 
 MainWindow::~MainWindow()
 {
@@ -2342,4 +2348,68 @@ void MainWindow::on_actionXROMM_VR_triggered(bool checked)
 	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveVR(outputPath + OS_SEP);
 	}
+}
+
+void MainWindow::createThemeMenu() {
+    themeMenu = new QMenu(tr("Theme"), this);
+    actionThemeLight = new QAction(tr("Light"), this);
+    actionThemeDark = new QAction(tr("Dark"), this);
+    actionThemeSystem = new QAction(tr("Follow System"), this);
+    actionThemeLight->setCheckable(true);
+    actionThemeDark->setCheckable(true);
+    actionThemeSystem->setCheckable(true);
+    QActionGroup* group = new QActionGroup(this);
+    group->addAction(actionThemeLight);
+    group->addAction(actionThemeDark);
+    group->addAction(actionThemeSystem);
+    themeMenu->addAction(actionThemeLight);
+    themeMenu->addAction(actionThemeDark);
+    themeMenu->addAction(actionThemeSystem);
+    ui->menuView->addMenu(themeMenu);
+    connect(actionThemeLight, &QAction::triggered, this, &MainWindow::onThemeLight);
+    connect(actionThemeDark, &QAction::triggered, this, &MainWindow::onThemeDark);
+    connect(actionThemeSystem, &QAction::triggered, this, &MainWindow::onThemeSystem);
+    // Set default (system)
+    actionThemeSystem->setChecked(true);
+}
+
+void MainWindow::applyTheme(const QString& themeName) {
+    QPalette palette;
+    if (themeName == "dark") {
+        palette = QStyleFactory::create("Fusion")->standardPalette();
+        palette.setColor(QPalette::Window, QColor(53,53,53));
+        palette.setColor(QPalette::WindowText, Qt::white);
+        palette.setColor(QPalette::Base, QColor(42,42,42));
+        palette.setColor(QPalette::AlternateBase, QColor(66,66,66));
+        palette.setColor(QPalette::ToolTipBase, Qt::white);
+        palette.setColor(QPalette::ToolTipText, Qt::white);
+        palette.setColor(QPalette::Text, Qt::white);
+        palette.setColor(QPalette::Button, QColor(53,53,53));
+        palette.setColor(QPalette::ButtonText, Qt::white);
+        palette.setColor(QPalette::BrightText, Qt::red);
+        palette.setColor(QPalette::Link, QColor(42, 130, 218));
+        palette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+        palette.setColor(QPalette::HighlightedText, Qt::black);
+        qApp->setPalette(palette);
+    } else if (themeName == "light") {
+        palette = QStyleFactory::create("Fusion")->standardPalette();
+        qApp->setPalette(palette);
+    } else { // system
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+        qApp->setPalette(QPalette()); // Let Qt use system palette
+#else
+        palette = QStyleFactory::create("Fusion")->standardPalette();
+        qApp->setPalette(palette);
+#endif
+    }
+}
+
+void MainWindow::onThemeLight() {
+    applyTheme("light");
+}
+void MainWindow::onThemeDark() {
+    applyTheme("dark");
+}
+void MainWindow::onThemeSystem() {
+    applyTheme("system");
 }

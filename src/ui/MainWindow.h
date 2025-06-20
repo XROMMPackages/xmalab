@@ -103,6 +103,14 @@ namespace xma
 
 		QSignalMapper* mapper;
 
+		QMenu* themeMenu = nullptr;
+		QAction* actionThemeLight = nullptr;
+		QAction* actionThemeDark = nullptr;
+		QAction* actionThemeSystem = nullptr;
+
+		void createThemeMenu();
+		void applyTheme(const QString& themeName);
+
 	protected:
 		explicit MainWindow(QWidget* parent = nullptr);
 		void resizeEvent(QResizeEvent* event) override;
@@ -187,6 +195,10 @@ namespace xma
 		void resizeDone();
 
 		void centerViews();
+
+		void onThemeLight();
+		void onThemeDark();
+		void onThemeSystem();
 	};
 }
 
