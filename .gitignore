@@ -1,5 +1,6 @@
 build/*
 build*/*
+.vscode
 */.DS_Store
 .DS_Store
 deployment/VS2013/xmalab_installer_generator/Release/*
