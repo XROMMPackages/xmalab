@@ -109,7 +109,9 @@ void MarkerTracking::trackMarker_thread()
 
 #ifdef WRITEIMAGES
 	cv::imwrite("Tra_Result.png", result);
-#endif	cv::Mat springforce;
+#endif
+	
+	cv::Mat springforce;
 	springforce.create(result_cols, result_rows, CV_32FC1);
 	double halfcol = 0.5 * result_cols;
 	double halfrow = 0.5 * result_rows;
