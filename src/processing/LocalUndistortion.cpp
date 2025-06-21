@@ -243,6 +243,14 @@ void LocalUndistortion::setupCorrespondances()
 
 int LocalUndistortion::computeLWM(cv::Mat& detectedPts, cv::Mat& controlPts, cv::Mat& A, cv::Mat& B, cv::Mat& radii)
 {
+	// Check for empty input matrices (fixes OpenCV 4.11.0 compatibility)
+	if (detectedPts.empty() || controlPts.empty()) {
+		A.release();
+		B.release();
+		radii.release();
+		return -1;
+	}
+	
 	A.release();
 	B.release();
 	radii.release();
@@ -280,12 +288,11 @@ int LocalUndistortion::computeLWM(cv::Mat& detectedPts, cv::Mat& controlPts, cv:
 			tmpXY = controlPts - cv::Scalar(controlPts.at<double>(i, 0), controlPts.at<double>(i, 1));
 
 			//split channels to 2 matrices
-			cv::split(tmpXY, tmpXY_splitted);
-			//compute norm of rows
+			cv::split(tmpXY, tmpXY_splitted);			//compute norm of rows
 			cv::multiply(tmpXY_splitted[0], tmpXY_splitted[0], all_pts_Matx2);
 			cv::multiply(tmpXY_splitted[1], tmpXY_splitted[1], all_pts_Maty2);
-			cv::add(all_pts_Matx2, all_pts_Matx2y2, all_pts_MatEuclideanDistance);
-			cv::sqrt(all_pts_MatEuclideanDistance, all_pts_Matx2y2);
+			cv::add(all_pts_Matx2, all_pts_Maty2, all_pts_Matx2y2);
+			cv::sqrt(all_pts_Matx2y2, all_pts_MatEuclideanDistance);
 
 			//sortIndices to find closest
 			cv::sortIdx(all_pts_MatEuclideanDistance, all_pts_Idx,cv::SORT_EVERY_COLUMN + cv::SORT_ASCENDING);
@@ -500,6 +507,12 @@ void LocalUndistortion::createLookupTable(cv::Mat& controlPts, cv::Mat& A, cv::M
 
 bool LocalUndistortion::findNClosestPoint(int numberPoints, cv::Point2d pt, std::vector<cv::Point2d>& closest_pts, std::vector<cv::Point2d> all_pts, bool skipfirst)
 {
+	// Check if input vector is empty (fixes OpenCV 4.11.0 compatibility)
+	if (all_pts.empty()) {
+		closest_pts.clear();
+		return false;
+	}
+	
 	cv::Mat all_pts_Mat(all_pts, true);
 	//substract pt
 	all_pts_Mat = all_pts_Mat - cv::Scalar(pt.x, pt.y);
@@ -512,10 +525,9 @@ bool LocalUndistortion::findNClosestPoint(int numberPoints, cv::Point2d pt, std:
 	cv::Mat all_pts_Matx2;
 	cv::Mat all_pts_Maty2;
 	cv::Mat all_pts_Matx2y2;
-	cv::Mat all_pts_MatEuclideanDistance;
-	cv::multiply(all_pts_Matsplitted.at(0), all_pts_Matsplitted.at(0), all_pts_Matx2);
+	cv::Mat all_pts_MatEuclideanDistance;	cv::multiply(all_pts_Matsplitted.at(0), all_pts_Matsplitted.at(0), all_pts_Matx2);
 	cv::multiply(all_pts_Matsplitted.at(1), all_pts_Matsplitted.at(1), all_pts_Maty2);
-	cv::add(all_pts_Matx2, all_pts_Matx2y2, all_pts_MatEuclideanDistance);
+	cv::add(all_pts_Matx2, all_pts_Maty2, all_pts_Matx2y2);
 	cv::sqrt(all_pts_Matx2y2, all_pts_MatEuclideanDistance);
 
 	//sort by lowest Distance
