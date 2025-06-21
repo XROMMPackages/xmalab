@@ -141,7 +141,7 @@ void ProgressDialog::closeProgressbar()
 	WorkspaceNavigationFrame::getInstance()->setEnabled(true);
 	DetailViewDockWidget::getInstance()->setEnabled(true);
 	
-	this->close();
+	this->hide();
 }
 
 bool ProgressDialog::getIsCanceled() const

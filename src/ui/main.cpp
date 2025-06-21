@@ -112,6 +112,11 @@ public:
 int main(int argc, char** argv)
 {
 	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+	
+	// Enable proper high DPI scaling for modern displays
+	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+	
 	MApplication app(argc, argv);
 
 	// Set Fusion style by default for cross-platform theming

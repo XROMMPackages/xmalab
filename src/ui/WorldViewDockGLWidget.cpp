@@ -155,7 +155,9 @@ void WorldViewDockGLWidget::resizeGL(int _w, int _h)
 	w = _w;
 	h = _h;
 
-	glViewport(0, 0, w, h);
+	// Handle high DPI displays by using device pixel ratio
+	qreal devicePixelRatio = this->devicePixelRatio();
+	glViewport(0, 0, w * devicePixelRatio, h * devicePixelRatio);
 }
 
 void WorldViewDockGLWidget::paintGL()

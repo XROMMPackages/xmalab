@@ -996,8 +996,10 @@ void MainWindow::updateRecentFiles()
 	for (QStringList::const_iterator iter = recentFiles.constBegin(); iter != recentFiles.constEnd(); ++iter)
 	{
 		QAction * action = ui->menuRecent_Files->addAction(*iter);
-		connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
-		mapper->setMapping(action, *iter);
+		QString filename = *iter; // Capture the filename for the lambda
+		connect(action, &QAction::triggered, [this, filename]() {
+			loadRecentFile(filename);
+		});
 	}
 	
 	QLayoutItem* item;
@@ -1011,8 +1013,10 @@ void MainWindow::updateRecentFiles()
 	for (QStringList::const_iterator iter = recentFiles.constBegin(); iter != recentFiles.constEnd(); ++iter)
 	{
 		QPushButton * button = new QPushButton(*iter, this);
-		connect(button, SIGNAL(clicked()), mapper, SLOT(map()));
-		mapper->setMapping(button, *iter);
+		QString filename = *iter; // Capture the filename for the lambda
+		connect(button, &QPushButton::clicked, [this, filename]() {
+			loadRecentFile(filename);
+		});
 		ui->gridLayout->addWidget(button, count, 0, 1, 1);
 		count++;
 	}
