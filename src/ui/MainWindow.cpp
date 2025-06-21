@@ -2374,7 +2374,7 @@ void MainWindow::createThemeMenu() {
     connect(actionThemeSystem, &QAction::triggered, this, &MainWindow::onThemeSystem);
     
     // Load and apply saved theme preference
-    QString savedTheme = Settings::getInstance()->getStringSetting("Theme");
+    QString savedTheme = Settings::getInstance()->getQStringSetting("Theme");
     if (savedTheme.isEmpty()) {
         savedTheme = "system"; // Default to system theme
     }
