@@ -48,7 +48,6 @@ Settings::Settings()
 	QSettings::setDefaultFormat(QSettings::IniFormat);
 
 	addQStringListSetting("RecentFiles", QStringList());
-
 	//UI
 	addBoolSetting("ShowDetailView", true);
 	addBoolSetting("ShowDisplayOptions", true);
@@ -57,6 +56,7 @@ Settings::Settings()
 	addBoolSetting("Show3DView", true);
 	addBoolSetting("Console", false);
 	addQStringSetting("WelcomeDialog", "0");
+	addQStringSetting("Theme", "system");
 
 	//General
 	addBoolSetting("AutoConfirmPendingChanges", false);
