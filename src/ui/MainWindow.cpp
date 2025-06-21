@@ -2377,8 +2377,7 @@ void MainWindow::createThemeMenu() {
     QString savedTheme = Settings::getInstance()->getQStringSetting("Theme");    if (savedTheme.isEmpty()) {
         savedTheme = "light"; // Default to light theme
     }
-    
-    if (savedTheme == "light") {
+      if (savedTheme == "light") {
         actionThemeLight->setChecked(true);
         applyTheme("light");
     } else if (savedTheme == "dark") {
@@ -2388,6 +2387,9 @@ void MainWindow::createThemeMenu() {
         actionThemeSystem->setChecked(true);
         applyTheme("system");
     }
+    
+    // Ensure the theme setting is saved after applying it
+    Settings::getInstance()->set("Theme", savedTheme);
 }
 
 void MainWindow::applyTheme(const QString& themeName) {
