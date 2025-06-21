@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED AS IS, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -267,9 +267,8 @@ int LocalUndistortion::computeLWM(cv::Mat& detectedPts, cv::Mat& controlPts, cv:
 	ucp.create(cv::Size(nbNeighbours, 1),CV_64F);
 	cv::Mat vcp;
 	vcp.create(cv::Size(nbNeighbours, 1),CV_64F);
-
 	cv::Mat tmpXY;
-	std::vector<cv::Mat> tmpXY_splitted;
+	std::vector<cv::Mat> tmpXY_splitted(2); // Pre-allocate with size
 
 	cv::Mat X_inv;
 	cv::Mat all_pts_Matx2;
@@ -280,57 +279,73 @@ int LocalUndistortion::computeLWM(cv::Mat& detectedPts, cv::Mat& controlPts, cv:
 	double xcp, ycp;
 	double maxRadius = 0;
 
+	// Pre-allocate matrices to avoid repeated allocation
+	tmpXY.create(controlPts.size(), CV_64FC2);
+	all_pts_Matx2.create(controlPts.rows, 1, CV_64F);
+	all_pts_Maty2.create(controlPts.rows, 1, CV_64F);
+	all_pts_Matx2y2.create(controlPts.rows, 1, CV_64F);
+	all_pts_MatEuclideanDistance.create(controlPts.rows, 1, CV_64F);
+	all_pts_Idx.create(controlPts.rows, 1, CV_32S);
+
 	for (int i = 0; i < controlPts.rows; i++)
 	{
 		//find closest point
 		{
 			//substract pt
-			tmpXY = controlPts - cv::Scalar(controlPts.at<double>(i, 0), controlPts.at<double>(i, 1));
+			const double curr_x = controlPts.at<double>(i, 0);
+			const double curr_y = controlPts.at<double>(i, 1);
+			tmpXY = controlPts - cv::Scalar(curr_x, curr_y);
 
 			//split channels to 2 matrices
-			cv::split(tmpXY, tmpXY_splitted);			//compute norm of rows
+			cv::split(tmpXY, tmpXY_splitted);
+			
+			//compute norm of rows - optimized
 			cv::multiply(tmpXY_splitted[0], tmpXY_splitted[0], all_pts_Matx2);
 			cv::multiply(tmpXY_splitted[1], tmpXY_splitted[1], all_pts_Maty2);
 			cv::add(all_pts_Matx2, all_pts_Maty2, all_pts_Matx2y2);
 			cv::sqrt(all_pts_Matx2y2, all_pts_MatEuclideanDistance);
 
 			//sortIndices to find closest
-			cv::sortIdx(all_pts_MatEuclideanDistance, all_pts_Idx,cv::SORT_EVERY_COLUMN + cv::SORT_ASCENDING);
+			cv::sortIdx(all_pts_MatEuclideanDistance, all_pts_Idx, cv::SORT_EVERY_COLUMN + cv::SORT_ASCENDING);
 		}
+		
 		//set radius of influence
-		radii.at<double>(i) = all_pts_MatEuclideanDistance.at<double>(all_pts_Idx.at<int>(nbNeighbours - 1));
-		if (maxRadius < radii.at<double>(i)) maxRadius = radii.at<double>(i);
+		const double current_radius = all_pts_MatEuclideanDistance.at<double>(all_pts_Idx.at<int>(nbNeighbours - 1));
+		radii.at<double>(i) = current_radius;
+		if (maxRadius < current_radius) maxRadius = current_radius;
+		
 		//set up matrix eqn for polynomial of order=2
 		//set ucp,vcp and X
 		for (int j = 0; j < nbNeighbours; j++)
 		{
-			xcp = controlPts.at<double>(all_pts_Idx.at<int>(j), 0);
-			ycp = controlPts.at<double>(all_pts_Idx.at<int>(j), 1);
+			const int idx = all_pts_Idx.at<int>(j);
+			xcp = controlPts.at<double>(idx, 0);
+			ycp = controlPts.at<double>(idx, 1);
 
-			X.at<double>(0, j) = 1;
+			X.at<double>(0, j) = 1.0;
 			X.at<double>(1, j) = xcp;
 			X.at<double>(2, j) = ycp;
 			X.at<double>(3, j) = xcp * ycp;
 			X.at<double>(4, j) = xcp * xcp;
 			X.at<double>(5, j) = ycp * ycp;
 
-			ucp.at<double>(j) = detectedPts.at<double>(all_pts_Idx.at<int>(j), 0);
-			vcp.at<double>(j) = detectedPts.at<double>(all_pts_Idx.at<int>(j), 1);
+			ucp.at<double>(j) = detectedPts.at<double>(idx, 0);
+			vcp.at<double>(j) = detectedPts.at<double>(idx, 1);
 		}
 
 		cv::invert(X, X_inv, cv::DECOMP_SVD);
 		A.row(i) = ucp * X_inv;
 		B.row(i) = vcp * X_inv;
 	}
-
 	X.release();
 	ucp.release();
 	vcp.release();
 	tmpXY.release();
 
-	for (unsigned int i = 0; i < tmpXY_splitted.size(); i++)
+	// Matrices are pre-allocated, so release them properly
+	for (auto& mat : tmpXY_splitted)
 	{
-		tmpXY_splitted[i].release();
+		mat.release();
 	}
 	tmpXY_splitted.clear();
 	X_inv.release();
@@ -340,7 +355,7 @@ int LocalUndistortion::computeLWM(cv::Mat& detectedPts, cv::Mat& controlPts, cv:
 	all_pts_MatEuclideanDistance.release();
 	all_pts_Idx.release();
 
-	return std::ceil(maxRadius);
+	return static_cast<int>(std::ceil(maxRadius));
 }
 
 void LocalUndistortion::setPointsByInlier(std::vector<cv::Point2d>& pts, cv::Mat& ptsInlier)
@@ -406,9 +421,8 @@ void LocalUndistortion::createLookupTable(cv::Mat& controlPts, cv::Mat& A, cv::M
 		yi = controlPts.at<double>(i, 1) / gridSize;
 		grid_pts[xi][yi].push_back(i);
 	}
-
 	//variables needed
-	double dx, dy, dist_to_cp, Ri, Ri2, Ri3;
+	double dx, dy, dist_to_cp_sq, Ri, Ri2, Ri3; // Use squared distance to avoid sqrt when possible
 	double u, v, w;
 	int i;
 	double xy, x2, y2, xg, yg;
@@ -416,55 +430,75 @@ void LocalUndistortion::createLookupTable(cv::Mat& controlPts, cv::Mat& A, cv::M
 	double v_numerator;
 	double denominator;
 
+	// Pre-calculate grid size factors to avoid repeated division
+	const double inv_gridSize = 1.0 / gridSize;
+	const double gridWidth = ceil(((double)m_width) / gridSize);
+	const double gridHeight = ceil(((double)m_height) / gridSize);
+
+	// Pre-allocate pointers for faster matrix access
+	float* outMat_x_ptr = outMat_x.ptr<float>(0);
+	float* outMat_y_ptr = outMat_y.ptr<float>(0);
+
 	//for all pixel in output image compute the coordinates in the original image
 	//we take the shift of the center already into account
 
 	for (int y_out = 0, processedpixel = 0; y_out < m_height; y_out++)
 	{
-		for (int x_out = 0; x_out < m_width; x_out++,processedpixel++)
+		// Cache y_out calculations
+		const double y_out_d = static_cast<double>(y_out);
+		const double y2_cached = y_out_d * y_out_d;
+		
+		for (int x_out = 0; x_out < m_width; x_out++, processedpixel++)
 		{
 			/* precalculate factors */
-
-			xy = x_out * y_out;
-			x2 = x_out * x_out;
-			y2 = y_out * y_out;
+			const double x_out_d = static_cast<double>(x_out);
+			xy = x_out_d * y_out_d;
+			x2 = x_out_d * x_out_d;
+			y2 = y2_cached; // Use cached value
 
 			//compute the UV coordinates with all points
 			u_numerator = 0.0;
 			v_numerator = 0.0;
-			denominator = 0.0;
+			denominator = 0.0;			// Optimize grid bounds calculation - but keep original loop variable types for exact compatibility
+			const double xg_min = (std::max)(floor(x_out_d * inv_gridSize) - 1, 0.0);
+			const double xg_max = (std::min)(ceil(x_out_d * inv_gridSize) + 1, gridWidth);
+			const double yg_min = (std::max)(floor(y_out_d * inv_gridSize) - 1, 0.0);
+			const double yg_max = (std::min)(ceil(y_out_d * inv_gridSize) + 1, gridHeight);
 
-			//for (i=0; i <controlPts_Mat.rows; i++) {
-			for (xg = (std::max)(floor(((double) x_out) / gridSize) - 1, 0.0); xg < (std::min)(ceil(((double) x_out) / gridSize) + 1, ceil(((double)m_width) / gridSize)); xg ++)
+			for (double xg = xg_min; xg < xg_max; xg++)
 			{
-				for (yg = (std::max)(floor(((double) y_out) / gridSize) - 1, 0.0); yg < (std::min)(ceil(((double) y_out) / gridSize) + 1, ceil(((double)m_height) / gridSize)); yg ++)
+				for (double yg = yg_min; yg < yg_max; yg++)
 				{
-					for (unsigned int p = 0; p < grid_pts[xg][yg].size(); p++)
+					const std::vector<int>& grid_cell = grid_pts[static_cast<int>(xg)][static_cast<int>(yg)];
+					for (size_t p = 0; p < grid_cell.size(); p++)
 					{
-						i = grid_pts[xg][yg][p];
+						i = grid_cell[p];
 						//without ptrs
-						dx = x_out - controlPts.at<double>(i, 0);
-						dy = y_out - controlPts.at<double>(i, 1);
+						dx = x_out_d - controlPts.at<double>(i, 0);
+						dy = y_out_d - controlPts.at<double>(i, 1);
 
-						dist_to_cp = sqrt(dx * dx + dy * dy);
-
-						Ri = dist_to_cp / radii.at<double>(i);
-						if (Ri < 1.0)
+						dist_to_cp_sq = dx * dx + dy * dy;
+						const double radius_i = radii.at<double>(i);
+						
+						// Use squared comparison to avoid sqrt
+						if (dist_to_cp_sq < radius_i * radius_i)
 						{
+							const double dist_to_cp = sqrt(dist_to_cp_sq);
+							Ri = dist_to_cp / radius_i;
 							Ri2 = Ri * Ri;
 							Ri3 = Ri * Ri2;
 							w = 1.0 - 3.0 * Ri2 + 2.0 * Ri3; /* weight for ControlPoint i */
 
-							//without ptrs
-							u = A.at<double>(i, 0) + A.at<double>(i, 1) * x_out + A.at<double>(i, 2) * y_out +
+							//without ptrs - use cached values
+							u = A.at<double>(i, 0) + A.at<double>(i, 1) * x_out_d + A.at<double>(i, 2) * y_out_d +
 								A.at<double>(i, 3) * xy + A.at<double>(i, 4) * x2 + A.at<double>(i, 5) * y2;
 
-							v = B.at<double>(i, 0) + B.at<double>(i, 1) * x_out + B.at<double>(i, 2) * y_out +
+							v = B.at<double>(i, 0) + B.at<double>(i, 1) * x_out_d + B.at<double>(i, 2) * y_out_d +
 								B.at<double>(i, 3) * xy + B.at<double>(i, 4) * x2 + B.at<double>(i, 5) * y2;
 
-							u_numerator = u_numerator + w * u;
-							v_numerator = v_numerator + w * v ;
-							denominator = denominator + w ;
+							u_numerator += w * u;
+							v_numerator += w * v;
+							denominator += w;
 						}
 					}
 				}
@@ -476,8 +510,8 @@ void LocalUndistortion::createLookupTable(cv::Mat& controlPts, cv::Mat& A, cv::M
 				//qDebug("pt %i %i to %lf %lf",x_out,y_out,u_numerator/denominator + center_detectedPts.x,v_numerator/denominator + center_detectedPts.y );
 				//without ptrs
 
-				outMat_x.at<float>(y_out, x_out) = u_numerator / denominator;
-				outMat_y.at<float>(y_out, x_out) = v_numerator / denominator;
+				outMat_x_ptr[processedpixel] = static_cast<float>(u_numerator / denominator);
+				outMat_y_ptr[processedpixel] = static_cast<float>(v_numerator / denominator);
 			}
 			else
 			{
@@ -487,8 +521,7 @@ void LocalUndistortion::createLookupTable(cv::Mat& controlPts, cv::Mat& A, cv::M
 				 * are one or more such points
 				 */
 
-				outMat_x.at<float>(y_out, x_out) = -1;
-				outMat_y.at<float>(y_out, x_out) = -1;
+				outMat_x_ptr[processedpixel] = -1.0f;				outMat_y_ptr[processedpixel] = -1.0f;
 			}
 		}
 	}
