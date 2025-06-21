@@ -2369,12 +2369,26 @@ void MainWindow::createThemeMenu() {
     themeMenu->addAction(actionThemeLight);
     themeMenu->addAction(actionThemeDark);
     themeMenu->addAction(actionThemeSystem);
-    ui->menuView->addMenu(themeMenu);
-    connect(actionThemeLight, &QAction::triggered, this, &MainWindow::onThemeLight);
+    ui->menuView->addMenu(themeMenu);    connect(actionThemeLight, &QAction::triggered, this, &MainWindow::onThemeLight);
     connect(actionThemeDark, &QAction::triggered, this, &MainWindow::onThemeDark);
     connect(actionThemeSystem, &QAction::triggered, this, &MainWindow::onThemeSystem);
-    // Set default (system)
-    actionThemeSystem->setChecked(true);
+    
+    // Load and apply saved theme preference
+    QString savedTheme = Settings::getInstance()->getStringSetting("Theme");
+    if (savedTheme.isEmpty()) {
+        savedTheme = "system"; // Default to system theme
+    }
+    
+    if (savedTheme == "light") {
+        actionThemeLight->setChecked(true);
+        applyTheme("light");
+    } else if (savedTheme == "dark") {
+        actionThemeDark->setChecked(true);
+        applyTheme("dark");
+    } else {
+        actionThemeSystem->setChecked(true);
+        applyTheme("system");
+    }
 }
 
 void MainWindow::applyTheme(const QString& themeName) {
@@ -2410,10 +2424,13 @@ void MainWindow::applyTheme(const QString& themeName) {
 
 void MainWindow::onThemeLight() {
     applyTheme("light");
+    Settings::getInstance()->set("Theme", "light");
 }
 void MainWindow::onThemeDark() {
     applyTheme("dark");
+    Settings::getInstance()->set("Theme", "dark");
 }
 void MainWindow::onThemeSystem() {
     applyTheme("system");
+    Settings::getInstance()->set("Theme", "system");
 }
