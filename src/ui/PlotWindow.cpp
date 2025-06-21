@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright � 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -2877,7 +2877,7 @@ void PlotWindow::on_toolButtonExtraPlot_clicked()
 	else
 	{
 		QString fileName = QFileDialog::getOpenFileName(this,
-			tr("Select data you want to plot"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.csv)"));
+			tr("Select data you want to plot"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.csv)"), nullptr, QFileDialog::DontUseNativeDialog);
 
 		if (!fileName.isEmpty()){
 			bool ok;

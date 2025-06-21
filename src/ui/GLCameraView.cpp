@@ -313,30 +313,30 @@ void GLCameraView::mousePressEvent(QMouseEvent* e)
 
 void GLCameraView::wheelEvent(QWheelEvent* e)
 {
-	if (!detailedView || !Settings::getInstance()->getBoolSetting("CenterDetailView"))
-	{
-		if (e->modifiers().testFlag(Qt::ControlModifier))
-		{
-			if (State::getInstance()->getWorkspace() == DIGITIZATION){
-				setTransparency(transparency + 1.0 / 2400.0 * e->angleDelta().y());
-				emit transparencyChanged(transparency);
-			}
-		}
-		else{
-			State::getInstance()->changeActiveCamera(this->camera->getID());
-			double zoom_prev = zoomRatio;
+    if (!detailedView || !Settings::getInstance()->getBoolSetting("CenterDetailView"))
+    {
+        if (e->modifiers().testFlag(Qt::ControlModifier))
+        {
+            if (State::getInstance()->getWorkspace() == DIGITIZATION){
+                setTransparency(transparency + 1.0 / 2400.0 * e->angleDelta().y());
+                emit transparencyChanged(transparency);
+            }
+        }
+        else{
+            State::getInstance()->changeActiveCamera(this->camera->getID());
+            double zoom_prev = zoomRatio;
 
-			setZoomRatio(zoomRatio * 1 - e->angleDelta().y() / 1000.0, false);
+            setZoomRatio(zoomRatio * 1 - e->angleDelta().y() / 1000.0, false);
 
-			QPoint coordinatesGlobal = e->globalPosition().toPoint();
-			QPoint coordinates = this->mapFromGlobal(coordinatesGlobal);
+            QPointF coordinatesGlobal = e->globalPosition();
+            QPoint coordinates = this->mapFromGlobal(coordinatesGlobal.toPoint());
 
-			y_offset += (zoom_prev - zoomRatio) * (0.5 * window_height - coordinates.y());
-			x_offset += (zoom_prev - zoomRatio) * (0.5 * window_width - coordinates.x());
+            y_offset += (zoom_prev - zoomRatio) * (0.5 * window_height - coordinates.y());
+            x_offset += (zoom_prev - zoomRatio) * (0.5 * window_width - coordinates.x());
 
-			update();
-		}
-	}
+            update();
+        }
+    }
 }
 
 void GLCameraView::initializeGL()
@@ -435,8 +435,9 @@ void GLCameraView::resizeGL(int _w, int _h)
 	window_width = _w;
 	window_height = _h;
 
-	glViewport(0, 0, window_width, window_height);
-	if (autozoom)setZoomToFit();
+	const qreal retinaScale = devicePixelRatio();
+	glViewport(0, 0, window_width * retinaScale, window_height * retinaScale);
+	if (autozoom) setZoomToFit();
 }
 
 void GLCameraView::transformTextPos(GLdouble out[4], const GLdouble m[16], const GLdouble in[4])
@@ -481,38 +482,49 @@ bool GLCameraView::projectTextPos(GLdouble objx, GLdouble objy, GLdouble objz,
 	return GL_TRUE;
 }
 
-void GLCameraView::renderText(double x, double y, double z, const QString &str, QColor fontColor , const QFont & font) {
-	int width = this->width();
-	int height = this->height();
+void GLCameraView::renderText(double x, double y, double z, const QString &str, QColor fontColor, const QFont & font) {
+    const qreal retinaScale = devicePixelRatio();
+    int width = this->width();
+    int height = this->height();
 
-	GLdouble model[4][4], proj[4][4];
-	GLint view[4];
-	glGetDoublev(GL_MODELVIEW_MATRIX, &model[0][0]);
-	glGetDoublev(GL_PROJECTION_MATRIX, &proj[0][0]);
-	glGetIntegerv(GL_VIEWPORT, &view[0]);
-	GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
+    GLdouble model[4][4], proj[4][4];
+    GLint view[4];
+    glGetDoublev(GL_MODELVIEW_MATRIX, &model[0][0]);
+    glGetDoublev(GL_PROJECTION_MATRIX, &proj[0][0]);
+    glGetIntegerv(GL_VIEWPORT, &view[0]);
+    GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
 
-	if (!projectTextPos(x, y, z,
-		&model[0][0], &proj[0][0], &view[0],
-		&textPosX, &textPosY, &textPosZ))
-		return;
+    // Project the 3D coordinates to window coordinates
+    if (!projectTextPos(x, y, z,
+        &model[0][0], &proj[0][0], &view[0],
+        &textPosX, &textPosY, &textPosZ))
+        return;
 
-	textPosY = height - textPosY; // y is inverted
+    // Account for retina display in the viewport
+    textPosX *= retinaScale;
+    textPosY *= retinaScale;
 
-	QPainter painter(this);
-	painter.setPen(fontColor);
-	painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
-	painter.drawText(textPosX, textPosY, str); // z = pointT4.z + distOverOp / 4
-	painter.end();
+    // Add fixed pixel offset independent of zoom
+    textPosX += 10.0;
+
+    // Y coordinate needs to be flipped since GL has origin at bottom-left
+    textPosY = height * retinaScale - textPosY;
+
+    // Scale everything back for proper text rendering
+    QPainter painter(this);
+    painter.scale(1.0/retinaScale, 1.0/retinaScale);
+    painter.setPen(fontColor);
+    painter.setFont(font);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+    painter.drawText(textPosX, textPosY, str);
+    painter.end();
 }
 
 void GLCameraView::renderTextCentered(QString string)
 {
 	setFont(QFont(this->font().family(), 24));
 	QFontMetrics fm(this->font());
-	renderText(-zoomRatio * fm.horizontalAdvance(string) * 0.5 - x_offset,
-               -zoomRatio * fm.height() * 0.5 - y_offset,
-               0.0, string, QColor(255, 0, 0));
+	renderText(-zoomRatio * fm.horizontalAdvance(string) * 0.5 - x_offset, - zoomRatio * fm.height() * 0.5 - y_offset, 0.0, string, QColor(255, 0, 0));
 }
 
 void GLCameraView::renderPointText(bool calibration)
@@ -692,6 +704,7 @@ void GLCameraView::UseStatusColors(bool value)
 
 void GLCameraView::paintGL()
 {
+	const qreal retinaScale = devicePixelRatio();
 	doDistortion = false;
 	renderMeshes = false;
 
@@ -772,7 +785,7 @@ void GLCameraView::paintGL()
 		}
 	}
 
-	glViewport(0, 0, window_width, window_height);
+	glViewport(0, 0, window_width * retinaScale, window_height * retinaScale);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -800,12 +813,10 @@ void GLCameraView::paintGL()
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		if (Settings::getInstance()->getBoolSetting("TrialDrawFiltered") && (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getCutoffFrequency() <= 0 || Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() <= 0)){
-		 setFont(QFont(this->font().family(), 12));
-		 QFontMetrics fm(this->font());
-		 QString string("Rendering of filtered data is enabled, but framrate and cutoff are not set correctly");
-		 renderText(-zoomRatio * fm.horizontalAdvance(string) * 0.5 - x_offset,
-           -zoomRatio * (fm.height() - window_height) * 0.5 - y_offset,
-           0.0, string, QColor(255, 0, 0));
+			setFont(QFont(this->font().family(), 12));
+			QFontMetrics fm(this->font());
+			QString string("Rendering of filtered data is enabled, but framrate and cutoff are not set correctly");
+			renderText(-zoomRatio * fm.horizontalAdvance(string) * 0.5 - x_offset, -zoomRatio * (fm.height() - window_height)* 0.5 - y_offset, 0.0, string, QColor(255, 0, 0));
 		}
 
 		if (renderMeshes){
@@ -817,9 +828,7 @@ void GLCameraView::paintGL()
 						setFont(QFont(this->font().family(), 12));
 						QFontMetrics fm(this->font());
 						QString string("Rigid body models are not distorted! XMALab is currently computing the distortion!");
-						renderText(-zoomRatio * fm.horizontalAdvance(string) * 0.5 - x_offset,
-           -zoomRatio * (fm.height() - window_height) * 0.5 - y_offset,
-           0.0, string, QColor(255, 0, 0));
+						renderText(-zoomRatio * fm.horizontalAdvance(string) * 0.5 - x_offset, -zoomRatio * (fm.height() - window_height)* 0.5 - y_offset, 0.0, string, QColor(255, 0, 0));
 						blendShader->draw(camera_width, camera_height, transparency, rigidbodyBufferUndistorted->getTextureID(), rigidbodyBufferUndistorted->getDepthTextureID(), true);
 					}
 					else

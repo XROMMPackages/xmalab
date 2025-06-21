@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright � 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -27,7 +27,7 @@
 #ifndef GLSHAREDWIDGET_H
 #define GLSHAREDWIDGET_H
 
-#include <QtOpenGLWidgets/QOpenGLWidget>
+#include <QOpenGLWidget>
 
 namespace xma
 {
@@ -36,20 +36,26 @@ namespace xma
 		Q_OBJECT
 
 	public:
-		~GLSharedWidget() override;
+		virtual ~GLSharedWidget();
 		static GLSharedWidget* getInstance();
-		double getVersion() const;
-		QString getInfo() const;
+		double getVersion();
+		QString getInfo();
 	public slots:
-		bool getHasBlendExt() const;
-		bool getHasBlendSubtract() const;
+
+		bool getHasBlendExt();
+		bool getHasBlendSubtract();
 
 	protected:
-		explicit GLSharedWidget(QWidget* parent = nullptr);
-		void initializeGL() override;
+		GLSharedWidget(QWidget* parent = NULL);
+		void initializeGL();
 
-		void paintEvent(QPaintEvent* event) override {}
-		void resizeEvent(QResizeEvent* event) override {}
+		void paintEvent(QPaintEvent* event)
+		{
+		}
+
+		void resizeEvent(QResizeEvent* event)
+		{
+		}
 
 	private:
 		static GLSharedWidget* instance;

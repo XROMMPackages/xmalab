@@ -34,9 +34,9 @@
 #include "ui/ConsoleDockWidget.h"
 #include "core/HelperFunctions.h"
 #include "core/Settings.h"
+#include <algorithm> // For std::sort
 
 #include <QFileDialog>
-#include <algorithm> // for std::sort
 
 using namespace xma;
 
@@ -52,14 +52,12 @@ CameraBoxTrial::~CameraBoxTrial()
 	delete widget;
 }
 
-void CameraBoxTrial::setFilename(const QString& filename)
+void CameraBoxTrial::setFilename(QString filename)
 {
 	imageFileNames.clear();
 	if (filename.endsWith(".zip"))
 	{
-		QString zipBase = filename;
-		zipBase.chop(4); // Remove ".zip"
-		QDir pdir(zipBase);
+		QDir pdir(filename.replace(".zip",""));
 		QStringList imageFileNames_rel = pdir.entryList(QStringList() << "*.png" << "*.tif" << "*.bmp" << "*.jpeg" << "*.jpg", QDir::Files | QDir::NoSymLinks);
 		for (int i = 0; i < imageFileNames_rel.size(); ++i)
 		{
@@ -67,26 +65,26 @@ void CameraBoxTrial::setFilename(const QString& filename)
 		}
 
 		std::sort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
-		widget->lineEdit->setText(zipBase);
+		widget->lineEdit->setText(filename.replace(".zip", ""));
 	}
-	else{	
+	else{
 		imageFileNames << filename;
 		widget->lineEdit->setText(commonPrefix(imageFileNames));	
 	}
 	widget->label->setText("(" + QString::number(imageFileNames.size()) + ")");
 }
 
-void CameraBoxTrial::setCameraName(const QString& name)
+void CameraBoxTrial::setCameraName(QString name)
 {
 	widget->groupBox->setTitle(name);
 }
 
-QString CameraBoxTrial::getCameraName() const
+const QString CameraBoxTrial::getCameraName()
 {
 	return widget->groupBox->title();
 }
 
-QString CameraBoxTrial::commonPrefix(const QStringList& fileNames) const
+QString CameraBoxTrial::commonPrefix(QStringList fileNames)
 {
 	bool isValid = true;
 	int count = 0;
@@ -107,7 +105,7 @@ QString CameraBoxTrial::commonPrefix(const QStringList& fileNames) const
 	return QString(fileNames.at(0).left(count + 1));
 }
 
-bool CameraBoxTrial::isComplete() const
+bool CameraBoxTrial::isComplete()
 {
 	//No Images set
 	if (imageFileNames.size() == 0)
@@ -122,7 +120,10 @@ bool CameraBoxTrial::isComplete() const
 
 void CameraBoxTrial::on_toolButtonImage_clicked()
 {
-	QString folder = QFileDialog::getExistingDirectory(this, tr("Load Directory "), Settings::getInstance()->getLastUsedDirectory());
+	QString folder = QFileDialog::getExistingDirectory(this, 
+		tr("Load Directory "), 
+		Settings::getInstance()->getLastUsedDirectory(),
+		QFileDialog::DontUseNativeDialog);
 
 	if (!folder.isEmpty())
 	{
@@ -144,7 +145,11 @@ void CameraBoxTrial::on_toolButtonImage_clicked()
 void CameraBoxTrial::on_toolButtonVideo_clicked()
 {
 	imageFileNames = QFileDialog::getOpenFileNames(this,
-	                                               tr("Open video stream movie file or images"), Settings::getInstance()->getLastUsedDirectory(), tr("Image and Video Files (*.cine *.avi *.png *.jpg *.jpeg *.bmp *.tif)"));
+	                                               tr("Open video stream movie file or images"), 
+                                                 Settings::getInstance()->getLastUsedDirectory(), 
+                                                 tr("Image and Video Files (*.cine *.avi *.png *.jpg *.jpeg *.bmp *.tif)"),
+                                                 nullptr,
+                                                 QFileDialog::DontUseNativeDialog);
 
 	std::sort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
 

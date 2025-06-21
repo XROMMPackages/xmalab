@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright � 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -45,7 +45,6 @@
 #include <QDir>
 #include <QTextStream>
 #include <QXmlStreamReader>
-#include <QChar>
 
 #include <fstream>
 
@@ -893,7 +892,7 @@ void Trial::saveMarkers(QString filename)
 	outfile.precision(12);
 	for (unsigned int i = 0; i < this->getMarkers().size(); i++)
 	{
-		outfile << this->getMarkers()[i]->getDescription().toStdString() << '\n';
+		outfile << this->getMarkers()[i]->getDescription().toStdString() << std::endl;
 	}
 	outfile.close();
 }
@@ -910,7 +909,7 @@ void Trial::saveRigidBodies(QString filename)
 			outfile << this->getRigidBodies()[i]->getPointsIdx()[k] + 1;
 			if (k != (this->getRigidBodies()[i]->getPointsIdx().size() - 1)) outfile << ",";
 		}
-		outfile << "]" << '\n';
+		outfile << "]" << std::endl;
 	}
 	outfile.close();
 }
@@ -962,8 +961,7 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 				QString filterRate = "";
 				if (getRigidBodies()[*it]->getDescription().isEmpty())
 				{
-					// Qt6: format rigid body index with zero-padding
-					name = QStringLiteral("RigidBody%1").arg(*it + 1, 3, 10, QChar('0'));
+					name = "RigidBody" + QString::asprintf("%03d", *it + 1);
 				}
 				else
 				{
@@ -998,7 +996,7 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 				}
 				else
 				{
-					outfile << '\n';
+					outfile << std::endl;
 				}
 			}
 		}
@@ -1037,7 +1035,7 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 				}
 				else
 				{
-					outfile << '\n';
+					outfile << std::endl;
 				}
 			}
 		}
@@ -1051,16 +1049,11 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 			QString filename;
 			if (filtered)
 			{
-				// Qt6: format filename using QString::arg for rigid body index
-				filename = outputfolder + QStringLiteral("RigidBody%1_").arg(*it + 1, 3, 10, QChar('0'))
-					+ getRigidBodies()[*it]->getDescription() + "_transformationFiltered_"
-					+ QString::number(getRigidBodies()[*it]->getOverrideCutoffFrequency() ? getRigidBodies()[*it]->getCutoffFrequency() : getCutoffFrequency()) + "Hz.csv";
+				filename = outputfolder + "RigidBody" + QString::asprintf("%03d", *it + 1) + "_" + getRigidBodies()[*it]->getDescription() + "_transformationFiltered_" + QString::number(getRigidBodies()[*it]->getOverrideCutoffFrequency() ? getRigidBodies()[*it]->getCutoffFrequency() : getCutoffFrequency()) + "Hz.csv";
 			}
 			else
 			{
-				// Qt6: format filename for unfiltered rigid body
-				filename = outputfolder + QStringLiteral("RigidBody%1_").arg(*it + 1, 3, 10, QChar('0'))
-					+ getRigidBodies()[*it]->getDescription() + "_transformation.csv";
+				filename = outputfolder + "RigidBody" + QString::asprintf("%03d", *it + 1) + "_" + getRigidBodies()[*it]->getDescription() + "_transformation.csv";
 			}
 
 			std::ofstream outfile(filename.toStdString());
@@ -1075,8 +1068,7 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 				QString filterRate = "";
 				if (getRigidBodies()[*it]->getDescription().isEmpty())
 				{
-					// Qt6: format rigid body index with zero-padding
-					name = QStringLiteral("RigidBody%1").arg(*it + 1, 3, 10, QChar('0'));
+					name = "RigidBody" + QString::asprintf("%03d", *it + 1);
 				}
 				else
 				{
@@ -1105,7 +1097,7 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 					<< name.toStdString() << "_TZ" << filterRate.toStdString() << ","
 					<< name.toStdString() << "_1" << filterRate.toStdString();
 
-				outfile << '\n';
+				outfile << std::endl;
 			}
 
 			double trans[16];
@@ -1135,7 +1127,7 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 					outfile << "NaN,NaN,NaN,NaN";
 				}
 
-				outfile << '\n';
+				outfile << std::endl;
 			}
 			outfile.close();
 		}
@@ -1315,7 +1307,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 	{
 		outfile << "," << "Marker " << (i + 1) << " " << markers[i]->getDescription().toStdString() ;
 	}
-	outfile << '\n';
+	outfile << std::endl;
 
 	for (unsigned int i = 0; i < markers.size(); i++)
 	{
@@ -1343,17 +1335,17 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 			outfile << mean ;
 			if (j != markers.size() - 1) outfile << ",";
 		}
-		outfile << '\n';
+		outfile << std::endl;
 	}
 
-	outfile << '\n';
+	outfile << std::endl;
 
 	outfile << "SD";
 	for (unsigned int i = 0; i < markers.size(); i++)
 	{
 		outfile << "," << "Marker " << (i + 1) << " " << markers[i]->getDescription().toStdString();
 	}
-	outfile << '\n';
+	outfile << std::endl;
 
 	for (unsigned int i = 0; i < markers.size(); i++)
 	{
@@ -1388,13 +1380,13 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 			outfile << sd;
 			if (j != markers.size() - 1) outfile << ",";
 		}
-		outfile << '\n';
+		outfile << std::endl;
 	}
 
 	for (unsigned int body = 0; body < rigidBodies.size(); body++)
 	{
-		outfile << '\n';
-		outfile << '\n';
+		outfile << std::endl;
+		outfile << std::endl;
 
 		outfile << rigidBodies[body]->getDescription().toStdString() << " Mean";
 		
@@ -1402,7 +1394,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 		{
 			outfile << "," << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toStdString();
 		}
-		outfile << '\n';
+		outfile << std::endl;
 
 		for (unsigned int i = 0; i < rigidBodies[body]->getPointsIdx().size(); i++)
 		{
@@ -1430,17 +1422,17 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 				outfile << mean;
 				if (j != rigidBodies[body]->getPointsIdx().size() - 1) outfile << ",";
 			}
-			outfile << '\n';
+			outfile << std::endl;
 		}
 
-		outfile << '\n';
+		outfile << std::endl;
 
 		outfile << rigidBodies[body]->getDescription().toStdString() << " SD";
 		for (unsigned int i = 0; i < rigidBodies[body]->getPointsIdx().size(); i++)
 		{
 			outfile << "," << "Marker " << (rigidBodies[body]->getPointsIdx()[i] + 1) << " " << markers[rigidBodies[body]->getPointsIdx()[i]]->getDescription().toStdString();
 		}
-		outfile << '\n';
+		outfile << std::endl;
 
 		for (unsigned int i = 0; i < rigidBodies[body]->getPointsIdx().size(); i++)
 		{
@@ -1475,7 +1467,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 				outfile << sd;
 				if (j != rigidBodies[body]->getPointsIdx().size() - 1) outfile << ",";
 			}
-			outfile << '\n';
+			outfile << std::endl;
 		}
 	}
 }
@@ -1484,7 +1476,7 @@ void Trial::savePrecisionInfo(QString filename, int from, int to)
 {
 	std::ofstream outfile(filename.toStdString());
 	outfile.precision(12);
-	outfile << "RigidBodies,nb tracked frames,marker to marker sd,error 3d Unfiltered,error 3D filtered" << '\n';
+	outfile << "RigidBodies,nb tracked frames,marker to marker sd,error 3d Unfiltered,error 3D filtered" << std::endl;
 	for (auto rb : rigidBodies)
 	{
 		double averageSD;
@@ -1492,14 +1484,14 @@ void Trial::savePrecisionInfo(QString filename, int from, int to)
 		rb->getMarkerToMarkerSD(averageSD, count, from, to);
 		double val1 = rb->getError3D(false,from, to);
 		double val2 = rb->getError3D(true, from, to);
-		outfile << rb->getDescription().toStdString() << "," << rb->getFramesTracked() << "," << averageSD << "," << val1 << "," << val2 << '\n';
+		outfile << rb->getDescription().toStdString() << "," << rb->getFramesTracked() << "," << averageSD << "," << val1 << "," << val2 << std::endl;
 	}
-	outfile << '\n' << '\n' << "Markers,nb tracked frames,reprojectionerror,sd" << '\n';
+	outfile << std::endl << std::endl << "Markers,nb tracked frames,reprojectionerror,sd" << std::endl;
 	for (auto marker : markers)
 	{
 		double sd;
 		double val = marker->getReprojectionError(&sd, from, to);
-		outfile << marker->getDescription().toStdString() << "," << marker->getFramesTracked() << "," << val << "," << sd << '\n';
+		outfile << marker->getDescription().toStdString() << "," << marker->getFramesTracked() << "," << val << "," << sd << std::endl;
 	}
 }
 
@@ -1563,7 +1555,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 				QString name;
 				if (getMarkers()[*it]->getDescription().isEmpty())
 				{
-					name = QStringLiteral("marker%1").arg(*it + 1, 3, 10, QChar('0'));
+					name = "marker" + QString::asprintf("%03d", *it + 1);
 				}
 				else
 				{
@@ -1583,7 +1575,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 				}
 				else
 				{
-					outfile << '\n';
+					outfile << std::endl;
 				}
 			}
 		}
@@ -1615,7 +1607,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 				}
 				else
 				{
-					outfile << '\n';
+					outfile << std::endl;
 				}
 			}
 		}
@@ -1626,7 +1618,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 		int count = 0;
 		for (std::vector<int>::const_iterator it = _markers.begin(); it < _markers.end(); ++it)
 		{
-			QString filename = outputfolder + "Marker" + QString("%1").arg(*it + 1, 3, 10, QChar('0')) + "_" + getMarkers()[*it]->getDescription() + "_points3d";
+			QString filename = outputfolder + "Marker" + QString::asprintf("%03d", *it + 1) + "_" + getMarkers()[*it]->getDescription() + "_points3d";
 			if (filterFrequency > 0.0)
 			{
 				filename = filename + "_" + QString::number(filterFrequency) + "Hz";
@@ -1644,7 +1636,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 				QString name;
 				if (getMarkers()[*it]->getDescription().isEmpty())
 				{
-					name = QStringLiteral("marker%1").arg(*it + 1, 3, 10, QChar('0'));
+					name = "marker" + QString::asprintf("%03d", *it + 1);
 				}
 				else
 				{
@@ -1656,7 +1648,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 				}
 				outfile << name.toStdString() << "_X" << "," << name.toStdString() << "_Y" << "," << name.toStdString() << "_Z";
 
-				outfile << '\n';
+				outfile << std::endl;
 			}
 			if (!saveColumn)
 			{
@@ -1678,7 +1670,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 					outfile << points3D[count][f].x << "," << points3D[count][f].y << "," << points3D[count][f].z;
 				}
 
-				outfile << '\n';
+				outfile << std::endl;
 			}
 			count++;
 			outfile.close();
@@ -1721,7 +1713,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 				QString name;
 				if (getMarkers()[i]->getDescription().isEmpty())
 				{
-					name = "marker" + QString("%1").arg(i + 1, 3, 10, QChar('0'));
+					name = "marker" + QString::asprintf("%03d", i + 1);
 				}
 				else
 				{
@@ -1738,7 +1730,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 					}
 					else
 					{
-						outfile << '\n';
+						outfile << std::endl;
 					}
 				}
 			}
@@ -1796,7 +1788,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 					}
 					else
 					{
-						outfile << '\n';
+						outfile << std::endl;
 					}
 				}
 			}
@@ -1807,7 +1799,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 	{
 		for (unsigned int i = 0; i < getMarkers().size(); i++)
 		{
-			QString filename = outputfolder + "Marker" + QString("%1").arg(i + 1, 3, 10, QChar('0')) + "_" + getMarkers()[i]->getDescription() + "_points2d.csv";
+			QString filename = outputfolder + "Marker" + QString::asprintf("%03d", i + 1) + "_" + getMarkers()[i]->getDescription() + "_points2d.csv";
 			std::ofstream outfile(filename.toStdString());
 			outfile.precision(12);
 			if (headerRow)
@@ -1823,7 +1815,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 				QString name;
 				if (getMarkers()[i]->getDescription().isEmpty())
 				{
-					name = "marker" + QString("%1").arg(i + 1, 3, 10, QChar('0'));
+					name = "marker" + QString::asprintf("%03d", i + 1);
 				}
 				else
 				{
@@ -1840,7 +1832,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 					}
 					else
 					{
-						outfile << '\n';
+						outfile << std::endl;
 					}
 				}
 			}
@@ -1896,7 +1888,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 					}
 					else
 					{
-						outfile << '\n';
+						outfile << std::endl;
 					}
 				}
 			}
@@ -2012,7 +2004,7 @@ void Trial::saveReprojectionErrors(QString outputfolder) {
 	
 	for (unsigned int i = 0; i < getMarkers().size(); i++)
 	{
-		QString filename = outputfolder + "Marker" + QString("%1").arg(i + 1, 3, 10, QChar('0')) + "_" + getMarkers()[i]->getDescription() + "_reprojectionError.csv";
+		QString filename = outputfolder + "Marker" + QString::asprintf("%03d", i + 1) + "_" + getMarkers()[i]->getDescription() + "_reprojectionError.csv";
 		std::ofstream outfile(filename.toStdString());
 		outfile.precision(12);
 
@@ -2035,7 +2027,7 @@ void Trial::saveReprojectionErrors(QString outputfolder) {
 				}
 				else
 				{
-					outfile << '\n';
+					outfile << std::endl;
 				}
 			}
 		}
@@ -2072,7 +2064,7 @@ void Trial::saveXMLData(QString filename)
 
 			for (int i = 0; i < xml_data.size(); i++)
 			{
-				out << xml_data.at(i) << '\n';
+				out << xml_data.at(i) << "\n";
 			}
 		}
 		file.close();
@@ -2453,12 +2445,12 @@ void Trial::saveVR(QString folder)
 	{
 		if (rb->hasMeshModel()){
 			QFileInfo info(rb->getMeshModelname());
-			outfile << "Obj" << "," << info.fileName().toStdString() << "," << (rb->getDescription() + ".csv").toStdString() << "," << rb->getMeshScale() << '\n';
+			outfile << "Obj" << "," << info.fileName().toStdString() << "," << (rb->getDescription() + ".csv").toStdString() << "," << rb->getMeshScale() << std::endl;
 		}
 	}
 	for (auto m : markers)
 	{
-		outfile << "Marker" << "," << (m->getDescription() + ".csv").toStdString() << "," << (m->getDescription() + "_status.csv").toStdString() << "," << -1 << '\n';
+		outfile << "Marker" << "," << (m->getDescription() + ".csv").toStdString() << "," << (m->getDescription() + "_status.csv").toStdString() << "," << -1 << std::endl;
 	}
 
 	outfile.close();

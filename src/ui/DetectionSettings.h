@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright � 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -44,20 +44,20 @@ namespace xma
 		Q_OBJECT
 
 	public:
-		virtual ~DetectionSettings() override;
+		virtual ~DetectionSettings();
 
 		static DetectionSettings* getInstance();
 		void setMarker(Marker * marker);
 		void update(int camera, cv::Point2d center);
 	protected:
-		void closeEvent(QCloseEvent * e) override;
-		void showEvent(QShowEvent * event) override;
+		virtual void closeEvent(QCloseEvent * e);
+		virtual void showEvent(QShowEvent * event);
 	private:
 		QPixmap getPixmap(cv::Mat inMat);
 
 		Ui::DetectionSettings* diag;
 		static DetectionSettings* instance;
-		explicit DetectionSettings(QWidget* parent = nullptr);
+		DetectionSettings(QWidget* parent = 0);
 		Marker* m_marker;
 		std::vector <cv::Mat> m_images;
 		cv::Point2d m_lastCenter;

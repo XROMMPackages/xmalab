@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright � 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -147,7 +147,7 @@ void MetaDataInfo::on_pushButtonAdd_clicked()
 			if (item == "Calibration")
 			{
 				QString fileName = QFileDialog::getOpenFileName(this,
-					tr("Select XMA file"), Settings::getInstance()->getLastUsedDirectory(), tr("XMA-files (*.xma)"));
+					tr("Select XMA file"), Settings::getInstance()->getLastUsedDirectory(), tr("XMA-files (*.xma)"), nullptr, QFileDialog::DontUseNativeDialog);
 				if (fileName.isNull() == false)
 				{
 					if (Project::getInstance()->getHasStudyData())
@@ -173,7 +173,7 @@ void MetaDataInfo::on_pushButtonAdd_clicked()
 				if (trial)
 				{
 					QString fileName = QFileDialog::getOpenFileName(this,
-						tr("Select XMATRIAL file"), Settings::getInstance()->getLastUsedDirectory(), tr("XMATRIAL-files (*.xmatrial)"));
+						tr("Select XMATRIAL file"), Settings::getInstance()->getLastUsedDirectory(), tr("XMATRIAL-files (*.xmatrial)"), nullptr, QFileDialog::DontUseNativeDialog);
 					if (fileName.isNull() == false)
 					{
 						if (trial->getHasStudyData())

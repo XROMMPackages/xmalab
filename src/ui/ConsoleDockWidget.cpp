@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright � 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -42,7 +42,7 @@
 
 using namespace xma;
 
-ConsoleDockWidget* ConsoleDockWidget::instance = nullptr;
+ConsoleDockWidget* ConsoleDockWidget::instance = NULL;
 
 ConsoleDockWidget::ConsoleDockWidget(QWidget* parent) :
 	QDockWidget(parent),
@@ -78,7 +78,7 @@ ConsoleDockWidget::ConsoleDockWidget(QWidget* parent) :
 ConsoleDockWidget::~ConsoleDockWidget()
 {
 	delete dock;
-	instance = nullptr;
+	instance = NULL;
 }
 
 void ConsoleDockWidget::clear()
@@ -96,7 +96,7 @@ void ConsoleDockWidget::prepareSave()
 	mutex.unlock();
 }
 
-void ConsoleDockWidget::save(const QString& filename)
+void ConsoleDockWidget::save(QString filename)
 {
 	QFile file(filename);
 	if (file.open(QIODevice::ReadWrite))
@@ -117,7 +117,7 @@ void ConsoleDockWidget::afterLoad()
 	mutex.unlock();
 }
 
-void ConsoleDockWidget::load(const QString& filename)
+void ConsoleDockWidget::load(QString filename)
 {
 	QFile file(filename);
 	if (file.exists())
@@ -140,7 +140,7 @@ ConsoleDockWidget* ConsoleDockWidget::getInstance()
 	return instance;
 }
 
-void ConsoleDockWidget::writeLog(const QString& message, unsigned int level)
+void ConsoleDockWidget::writeLog(QString message, unsigned int level)
 {
 	mutex.lock();
 	switch (level)

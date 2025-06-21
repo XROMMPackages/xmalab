@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright � 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -151,8 +151,12 @@ void Project::setCalibation(e_calibrationType type)
 
 void Project::set_date_created()
 {
-	// Qt6: use current local date-time in ISO format
-	date_created = QDateTime::currentDateTime().toString(Qt::ISODate);
+	QDateTime local = QDateTime::currentDateTime();
+	QDateTime utc = local.toUTC();
+	int utcOffset = utc.secsTo(local);
+	QTimeZone timeZone(utcOffset * 1000); // Convert seconds to milliseconds
+	local = local.toTimeZone(timeZone);
+	date_created = local.toString(Qt::ISODate);
 }
 
 bool Project::hasDefaultTrial()
@@ -288,16 +292,17 @@ void Project::saveXMLData(QString filename)
 {
 	if (hasStudyData)
 	{
-		QFile file(filename);
+		QFile file(filename); //
 		if (file.open(QIODevice::WriteOnly | QIODevice::Text))
 		{
 			QTextStream out(&file);
-			for (const QString &line : qAsConst(xml_data))
+
+			for (int i = 0; i < xml_data.size(); i++)
 			{
-				out << line << '\n';
+				out << xml_data.at(i)  << "\n";
 			}
-			file.close();
 		}
+		file.close();
 	}
 }
 

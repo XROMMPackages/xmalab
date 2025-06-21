@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright � 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -34,7 +34,7 @@
 using namespace xma;
 
 DenoiseDialog::DenoiseDialog(QWidget* parent) :
-   QDialog(parent),
+	QDialog(parent),
 	diag(new Ui::DenoiseDialog)
 {
 	diag->setupUi(this);
@@ -47,23 +47,23 @@ DenoiseDialog::~DenoiseDialog()
 	delete diag;
 }
 
-int DenoiseDialog::getSearchWindowSize() const {
+int DenoiseDialog::getSearchWindowSize() {
 	return diag->spinBox_searchWindowSize->value();
 }
 
-int DenoiseDialog::getTemplateWindowSize() const {
+int DenoiseDialog::getTemplateWindowSize() {
 	return diag->spinBox_templateWindowSize->value();
 }
 
-int DenoiseDialog::getTemporalWindowSize() const {
+int DenoiseDialog::getTemporalWindowSize() {
 	return diag->spinBox_temporalWindowSize->value();
 }
 
-int DenoiseDialog::getFilterStrength() const {
+int DenoiseDialog::getFilterStrength() {
 	return diag->doubleSpinBox_FilterStrength->value();
 }
 
-bool DenoiseDialog::getRelinkTrial() const {
+bool DenoiseDialog::getRelinkTrial() {
 	return diag->checkBox_RelinkTrial->isChecked();
 }
 
@@ -77,21 +77,21 @@ void DenoiseDialog::on_pushButtonCancel_clicked()
 	this->reject();
 }
 
-void DenoiseDialog::on_spinBox_searchWindowSize_textChanged(const QString& value) {
+void DenoiseDialog::on_spinBox_searchWindowSize_textChanged(QString value) {
 	int val = value.toInt();
 	if (val % 2 == 0) {
 		diag->spinBox_searchWindowSize->setValue(val + 1);
 	}
 }
 
-void DenoiseDialog::on_spinBox_templateWindowSize_textChanged(const QString& value) {
+void DenoiseDialog::on_spinBox_templateWindowSize_textChanged(QString value) {
 	int val = value.toInt();
 	if (val % 2 == 0) {
 		diag->spinBox_templateWindowSize->setValue(val + 1);
 	}
 }
 
-void DenoiseDialog::on_spinBox_temporalWindowSize_textChanged(const QString& value) {
+void DenoiseDialog::on_spinBox_temporalWindowSize_textChanged(QString value) {
 	int val = value.toInt();
 	if (val % 2 == 0) {
 		diag->spinBox_temporalWindowSize->setValue(val + 1);

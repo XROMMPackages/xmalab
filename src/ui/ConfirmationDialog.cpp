@@ -58,9 +58,7 @@ ConfirmationDialog* ConfirmationDialog::getInstance()
 	return instance;
 }
 
-namespace xma {
-
-bool ConfirmationDialog::showConfirmationDialog(const QString& message, bool NoButton)
+bool ConfirmationDialog::showConfirmationDialog(QString message, bool NoButton)
 {
 	if (NoButton) {
 		diag->pushButton_Cancel->setText("No");
@@ -72,11 +70,17 @@ bool ConfirmationDialog::showConfirmationDialog(const QString& message, bool NoB
 		diag->pushButton_OK->setText("OK");
 	}
 	diag->message->setText(message);
-	int dialogResult = this->exec();
-	return (dialogResult == QDialog::Accepted);
-}
+	this->exec();
 
-} // namespace xma
+	if (result())
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
 
 void ConfirmationDialog::on_pushButton_OK_clicked()
 {

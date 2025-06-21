@@ -127,7 +127,7 @@ void WorldViewDockGLWidget::mousePressEvent(QMouseEvent* e)
 
 void WorldViewDockGLWidget::wheelEvent(QWheelEvent* e)
 {
-	eyedistance += e->angleDelta().y() / 12.0;
+	eyedistance += e->angleDelta().y() / 12.0; // Use angleDelta().y() instead of delta()
 	update();
 }
 

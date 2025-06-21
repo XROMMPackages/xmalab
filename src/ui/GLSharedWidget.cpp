@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright � 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -71,12 +71,12 @@ GLSharedWidget* GLSharedWidget::getInstance()
 	//((QGLContext*) this->context())->makeCurrent();
 //}
 
-double GLSharedWidget::getVersion() const
+double GLSharedWidget::getVersion()
 {
 	return version;
 }
 
-QString GLSharedWidget::getInfo() const
+QString GLSharedWidget::getInfo()
 {
 	return gl_VENDOR + "\n" + gl_RENDERER + "\n" + gl_VERSION + "\n" + gl_SHADING_LANGUAGE_VERSION + "\n" + gl_EXTENSIONS;
 }
@@ -104,12 +104,12 @@ void GLSharedWidget::initializeGL()
 	hasBlendExt = glewGetExtension("GL_EXT_blend_minmax");
 }
 
-bool GLSharedWidget::getHasBlendSubtract() const
+bool GLSharedWidget::getHasBlendSubtract()
 {
 	return hasBlendSubtract;
 }
 
-bool GLSharedWidget::getHasBlendExt() const
+bool GLSharedWidget::getHasBlendExt()
 {
 	return hasBlendExt;
 }

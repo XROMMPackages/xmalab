@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright � 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -283,7 +283,12 @@ void RigidBodyDialog::reloadDummyPoints()
 
 void RigidBodyDialog::on_pushButton_setFromFile_clicked()
 {
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open rigid body references"), Settings::getInstance()->getLastUsedDirectory(), ("CSV Files (*.csv)"));
+	QString fileName = QFileDialog::getOpenFileName(this, 
+		tr("Open rigid body references"), 
+		Settings::getInstance()->getLastUsedDirectory(), 
+		("CSV Files (*.csv)"),
+		nullptr,
+		QFileDialog::DontUseNativeDialog);
 
 	if (fileName.isNull() == false)
 	{
@@ -340,14 +345,17 @@ void RigidBodyDialog::on_pushButton_setFromFrame_clicked()
 
 void RigidBodyDialog::on_pushButtonExport_clicked()
 {
-	QString fileName = QFileDialog::getSaveFileName(this,tr("Rigid Body references as"), 
-		Settings::getInstance()->getLastUsedDirectory() + OS_SEP + m_body->getDescription(), tr("CSV (*.csv)"));
+	QString fileName = QFileDialog::getSaveFileName(this,
+		tr("Rigid Body references as"), 
+		Settings::getInstance()->getLastUsedDirectory() + OS_SEP + m_body->getDescription(), 
+		tr("CSV (*.csv)"),
+		nullptr,
+		QFileDialog::DontUseNativeDialog);
 
 	if (fileName.isNull() == false)
 	{
 		Settings::getInstance()->setLastUsedDirectory(fileName);
 		m_body->saveOptimized(fileName, true);
-
 	}
 }
 
@@ -533,7 +541,13 @@ void RigidBodyDialog::on_checkbox_DrawMesh_clicked()
 
 void RigidBodyDialog::on_toolButton_Mesh_clicked()
 {
-	QString filename = QFileDialog::getOpenFileName(this, tr("Open meshfile file"), Settings::getInstance()->getLastUsedDirectory(), ("OBJ Files (*.obj)"));
+	QString filename = QFileDialog::getOpenFileName(this, 
+		tr("Open meshfile file"), 
+		Settings::getInstance()->getLastUsedDirectory(), 
+		("OBJ Files (*.obj)"),
+		nullptr,
+		QFileDialog::DontUseNativeDialog);
+
 	if (!filename.isEmpty())
 	{
 		if (!m_body->addMeshModel(filename)){

@@ -36,7 +36,6 @@
 #include <QApplication>
 #include <QFileOpenEvent>
 #include <QPushButton>
-#include <QStyleFactory>
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
@@ -113,10 +112,7 @@ int main(int argc, char** argv)
 {
 	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 	MApplication app(argc, argv);
-
-	// Set Fusion style by default for cross-platform theming
-	app.setStyle(QStyleFactory::create("Fusion"));
-
+	
 #ifdef _DEBUG
 	cv::setBreakOnError(true);
 #endif

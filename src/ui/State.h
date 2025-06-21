@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright � 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -126,72 +126,72 @@ namespace xma
 		void changeCalibrationVisPoints(calibrationVisPoints_state newCalibrationVisPoints, bool force = false);
 		void changeCalibrationVisText(calibrationVisText_state newCalibrationVisText, bool force = false);
 
-		work_state getWorkspace() const
+		work_state getWorkspace()
 		{
 			return workspace;
 		}
 
-		ui_state getDisplay() const
+		ui_state getDisplay()
 		{
 			return display;
 		}
 
-		int getActiveCamera() const
+		int getActiveCamera()
 		{
 			return activeCamera;
 		}
 
-		int getActiveFrameCalibration() const
+		int getActiveFrameCalibration()
 		{
 			return activeFrameCalibration;
 		}
 
-		int getActiveTrial() const
+		int getActiveTrial()
 		{
 			return activeTrial;
 		}
 
-		int getActiveFrameTrial() const
+		int getActiveFrameTrial()
 		{
 			return activeFrameTrial;
 		}
 
-		undistortion_state getUndistortion() const
+		undistortion_state getUndistortion()
 		{
 			return undistortion;
 		}
 
-		undistortionVisPoints_state getUndistortionVisPoints() const
+		undistortionVisPoints_state getUndistortionVisPoints()
 		{
 			return undistortionVisPoints;
 		}
 
-		undistortionVisImage_state getUndistortionVisImage() const
+		undistortionVisImage_state getUndistortionVisImage()
 		{
 			return undistortionVisImage;
 		}
 
-		undistortionMouseMode_state getUndistortionMouseMode() const
+		undistortionMouseMode_state getUndistortionMouseMode()
 		{
 			return undistortionMouseMode;
 		}
 
-		calibrationVisPoints_state getCalibrationVisPoints() const
+		calibrationVisPoints_state getCalibrationVisPoints()
 		{
 			return calibrationVisPoints;
 		}
 
-		calibrationVisImage_state getCalibrationVisImage() const
+		calibrationVisImage_state getCalibrationVisImage()
 		{
 			return calibrationVisImage;
 		}
 
-		calibrationVisText_state getCalibrationVisText() const
+		calibrationVisText_state getCalibrationVisText()
 		{
 			return calibrationVisText;
 		}
 
-		bool getDisableDraw() const
+		bool getDisableDraw()
 		{
 			return disableDraw;
 		}

@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright � 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -76,33 +76,33 @@ NewProjectDialog::~NewProjectDialog()
 	cameras.clear();
 }
 
-void NewProjectDialog::addCalibrationImage(int id_camera, const QString& filename)
+void NewProjectDialog::addCalibrationImage(int id_camera, QString filename)
 {
-	while (id_camera >= static_cast<int>(this->cameras.size()))
+	while (id_camera >= (int)cameras.size())
 	{
-		this->on_toolButtonCameraPlus_clicked();
+		on_toolButtonCameraPlus_clicked();
 	}
 
-	this->cameras[id_camera]->addCalibrationImage(filename);
+	cameras[id_camera]->addCalibrationImage(filename);
 }
 
-void NewProjectDialog::addGridImage(int id_camera, const QString& filename)
+void NewProjectDialog::addGridImage(int id_camera, QString filename)
 {
-	while (id_camera >= static_cast<int>(this->cameras.size()))
+	while (id_camera >= (int)cameras.size())
 	{
-		this->on_toolButtonCameraPlus_clicked();
+		on_toolButtonCameraPlus_clicked();
 	}
-	this->cameras[id_camera]->addUndistortionImage(filename);
+	cameras[id_camera]->addUndistortionImage(filename);
 }
 
-void NewProjectDialog::setCalibrationCubeCSV(const QString& filename)
+void NewProjectDialog::setCalibrationCubeCSV(QString filename)
 {
-	this->diag->lineEditFrameSpecifications->setText(filename);
+	diag->lineEditFrameSpecifications->setText(filename);
 }
 
-void NewProjectDialog::setCalibrationCubeREF(const QString& filename)
+void NewProjectDialog::setCalibrationCubeREF(QString filename)
 {
-	this->diag->lineEditReferencePoints->setText(filename);
+	diag->lineEditReferencePoints->setText(filename);
 }
 
 void NewProjectDialog::setupBasedOnMissingParameters()
@@ -278,7 +278,11 @@ void NewProjectDialog::on_radioButtonCube_clicked()
 void NewProjectDialog::on_toolButtonFrameSpecifications_clicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this,
-	                                                tr("Open frame specification of calibration object"), Settings::getInstance()->getLastUsedDirectory(), tr("Framespec File (*.csv)"));
+	                                                tr("Open frame specification of calibration object"), 
+                                                  Settings::getInstance()->getLastUsedDirectory(), 
+                                                  tr("Framespec File (*.csv)"),
+                                                  nullptr,
+                                                  QFileDialog::DontUseNativeDialog);
 	if (fileName.isNull() == false)
 	{
 		Settings::getInstance()->setLastUsedDirectory(fileName);
@@ -289,7 +293,11 @@ void NewProjectDialog::on_toolButtonFrameSpecifications_clicked()
 void NewProjectDialog::on_toolButtonReferencePoints_clicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this,
-	                                                tr("Open reference points file of calibration object"), Settings::getInstance()->getLastUsedDirectory(), tr("Reference File (*.ref)"));
+	                                                tr("Open reference points file of calibration object"), 
+                                                  Settings::getInstance()->getLastUsedDirectory(), 
+                                                  tr("Reference File (*.ref)"),
+                                                  nullptr,
+                                                  QFileDialog::DontUseNativeDialog);
 	if (fileName.isNull() == false)
 	{
 		Settings::getInstance()->setLastUsedDirectory(fileName);

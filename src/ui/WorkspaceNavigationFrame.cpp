@@ -51,7 +51,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QFileDialog>
-#include <algorithm>
+#include <algorithm> // For std::sort
 
 #ifdef WIN32
 #define OS_SEP "\\"

@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright � 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED �AS IS�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -211,30 +211,30 @@ bool ImportExportPointsDialog::importCSV()
 
 bool ImportExportPointsDialog::importXMA()
 {
-	bool ok = true;
-	if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() > 0 || Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() > 0)
-	{
-		ok = ConfirmationDialog::getInstance()->showConfirmationDialog("All markers and Rigid bodies will be deleted before import. Are you sure you want to proceed?");
-	}
-	if (ok)
-	{
-		if (!diag->lineEditMarkersXMA->text().isEmpty())
-		{
-			QStringList trialnames = ProjectFileIO::getInstance()->readTrials(diag->lineEditMarkersXMA->text());
+    bool ok = true;
+    if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size() > 0 || Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies().size() > 0)
+    {
+        ok = ConfirmationDialog::getInstance()->showConfirmationDialog("All markers and Rigid bodies will be deleted before import. Are you sure you want to proceed?");
+    }
+    if (ok)
+    {
+        if (!diag->lineEditMarkersXMA->text().isEmpty())
+        {
+            QStringList trialnames = ProjectFileIO::getInstance()->readTrials(diag->lineEditMarkersXMA->text());
 
-			QString item = QInputDialog::getItem(this, tr("Choose trial to import"),
-			                                     tr("Trial:"), trialnames, 0, false, &ok);
+            QString item = QInputDialog::getItem(this, tr("Choose trial to import"),
+                                                 tr("Trial:"), trialnames, 0, false, &ok);
 
-			if (ok && !item.isEmpty())
-			{
-				ProjectFileIO::getInstance()->loadMarker(diag->lineEditMarkersXMA->text(), item, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
+            if (ok && !item.isEmpty())
+            {
+                ProjectFileIO::getInstance()->loadMarker(diag->lineEditMarkersXMA->text(), item, Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]);
 
-				PlotWindow::getInstance()->updateMarkers(false);
-			}
-			return true;
-		}
-	}
-	return false;
+                PlotWindow::getInstance()->updateMarkers(false);
+            }
+            return true;
+        }
+    }
+    return false;
 }
 
 

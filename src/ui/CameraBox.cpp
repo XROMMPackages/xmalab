@@ -50,27 +50,27 @@ CameraBox::~CameraBox()
 	delete widget;
 }
 
-bool CameraBox::hasUndistortion() const
+const bool CameraBox::hasUndistortion()
 {
 	return widget->radioButtonXRay->isChecked() && widget->checkBoxUndistortionGrid->isChecked();
 }
 
-QString CameraBox::getUndistortionGridFileName() const
+const QString CameraBox::getUndistortionGridFileName()
 {
 	return widget->lineEditUndistortionGrid->text();
 }
 
-QString CameraBox::getCameraName() const
+const QString CameraBox::getCameraName()
 {
 	return widget->groupBox_Camera->title();
 }
 
-void CameraBox::setCameraName(const QString& name)
+void CameraBox::setCameraName(QString name)
 {
 	widget->groupBox_Camera->setTitle(name);
 }
 
-bool CameraBox::isLightCamera() const
+bool CameraBox::isLightCamera()
 {
 	return widget->radioButtonLightCamera->isChecked();
 }
@@ -80,7 +80,7 @@ void CameraBox::setIsLightCamera()
 	widget->radioButtonLightCamera->click();
 }
 
-bool CameraBox::isflipped() const
+bool CameraBox::isflipped()
 {
 	return widget->checkBoxFlip->isChecked();
 }
@@ -106,7 +106,7 @@ QString commonPrefix(QStringList fileNames)
 	return QString(fileNames.at(0).left(count + 1));
 }
 
-bool CameraBox::isComplete() const
+bool CameraBox::isComplete()
 {
 	//No Images set
 	if (imageFileNames.size() == 0)
@@ -133,7 +133,7 @@ void CameraBox::addCalibrationImage(QString filename)
 	imageFileNames << filename;
 	imageFileNames.sort();
 
-	if (!imageFileNames.isEmpty() && !imageFileNames[0].isEmpty())
+	if (imageFileNames.size() > 0 && imageFileNames[0].isNull() == false)
 	{
 		widget->lineEditImages->setText(commonPrefix(imageFileNames));
 		widget->labelNbImages->setText("(" + QString::number(imageFileNames.size()) + ")");
@@ -142,7 +142,7 @@ void CameraBox::addCalibrationImage(QString filename)
 
 void CameraBox::addUndistortionImage(QString filename)
 {
-	if (!filename.isEmpty())
+	if (filename.isNull() == false)
 	{
 		widget->lineEditUndistortionGrid->setText(filename);
 	}
@@ -151,10 +151,14 @@ void CameraBox::addUndistortionImage(QString filename)
 void CameraBox::on_toolButtonImages_clicked()
 {
 	imageFileNames = QFileDialog::getOpenFileNames(this,
-	                                               tr("Open Calibration Images or video"), Settings::getInstance()->getLastUsedDirectory(), tr("Image Files (*.png *.jpg *.jpeg *.bmp *.tif *.avi *.cine)"));
+	                                               tr("Open Calibration Images or video"), 
+                                                 Settings::getInstance()->getLastUsedDirectory(), 
+                                                 tr("Image Files (*.png *.jpg *.jpeg *.bmp *.tif *.avi *.cine)"),
+                                                 nullptr,
+                                                 QFileDialog::DontUseNativeDialog);
 
 	imageFileNames.sort();
-	if (!imageFileNames.isEmpty() && !imageFileNames[0].isEmpty())
+	if (imageFileNames.size() > 0 && imageFileNames[0].isNull() == false)
 	{
 		widget->lineEditImages->setText(commonPrefix(imageFileNames));
 		widget->labelNbImages->setText("(" + QString::number(imageFileNames.size()) + ")");
@@ -165,11 +169,16 @@ void CameraBox::on_toolButtonImages_clicked()
 void CameraBox::on_toolButtonUndistortionGrid_clicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this,
-	                                                tr("Open undistortion grid"), Settings::getInstance()->getLastUsedDirectory(), ("Image Files (*.png *.jpg *.jpeg *.bmp *.tif)"));
-	if (!fileName.isEmpty())
+		tr("Open undistortion grid image"), 
+		Settings::getInstance()->getLastUsedDirectory(),
+		tr("Image Files (*.png *.jpg *.jpeg *.bmp *.tif)"),
+		nullptr,
+		QFileDialog::DontUseNativeDialog);
+
+	if (fileName.isNull() == false)
 	{
-		Settings::getInstance()->setLastUsedDirectory(fileName);
 		widget->lineEditUndistortionGrid->setText(fileName);
+		Settings::getInstance()->setLastUsedDirectory(fileName);
 	}
 }
 
