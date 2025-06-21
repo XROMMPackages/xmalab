@@ -88,10 +88,14 @@ namespace xma
 		void drawStatus(int idx);
 		void drawEvents(int idx);
 		Ui::PlotWindow* dock;
-
 		QCPItemLine* frameMarker;
 		QCPItemLine* frameMarkerExtra;
 		QCPItemRect* selectionMarker;
+		
+		// Error bars for QCustomPlot 2.1.1
+		QCPErrorBars* errorBars0;
+		QCPErrorBars* errorBars1;
+		
 		std::vector<QVector<double> > extraData;
 		std::vector<double> extraPos;
 
