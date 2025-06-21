@@ -96,34 +96,37 @@ void MarkerTracking::trackMarker_thread()
 #ifdef WRITEIMAGES
 	cv::imwrite("Tra_Target.png", ROI_to);
 #endif
-
 	/// Create the result matrix
 	int result_cols = ROI_to.cols - templ.cols + 1;
 	int result_rows = ROI_to.rows - templ.rows + 1;
 
 	cv::Mat result;
-	result.create(result_cols, result_rows, CV_32FC1);
+	result.create(result_rows, result_cols, CV_32FC1);
 
 	/// Do the Matching and Normalize
-
 	matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
 	normalize(result, result, 0, (100 - maxPenalty), cv::NORM_MINMAX, -1, cv::Mat());
 
 #ifdef WRITEIMAGES
 	cv::imwrite("Tra_Result.png", result);
-#endif
-	cv::Mat springforce;
+#endif	cv::Mat springforce;
 	springforce.create(result_cols, result_rows, CV_32FC1);
 	double halfcol = 0.5 * result_cols;
+	double halfrow = 0.5 * result_rows;
 	double sigma = halfcol * 3;
-	for (int i = 0; i < result_cols; i++)
+	double inv_2sigma_sq = 1.0 / (2.0 * sigma * sigma);
+	
+	// Use direct pointer access for better performance
+	float* springforce_ptr = springforce.ptr<float>();
+	for (int i = 0; i < result_rows; i++)
 	{
+		double di = halfrow - i;
+		double di_sq = di * di;
 		for (int j = 0; j < result_cols; j++)
 		{
-			double val = exp(((halfcol - i) * (halfcol - i)) / (2 * sigma * sigma) +
-				((halfcol - j) * (halfcol - j)) / (2 * sigma * sigma)
-			);
-			springforce.at<float>(i, j) = val;
+			double dj = halfcol - j;
+			double val = exp((di_sq + dj * dj) * inv_2sigma_sq);
+			springforce_ptr[i * result_cols + j] = static_cast<float>(val);
 		}
 	}
 	normalize(springforce, springforce, 0, maxPenalty, cv::NORM_MINMAX, -1, cv::Mat());
