@@ -66,14 +66,19 @@ WorkspaceNavigationFrame* WorkspaceNavigationFrame::instance = NULL;
 WorkspaceNavigationFrame::WorkspaceNavigationFrame(QWidget* parent) :
 	QFrame(parent),
 	frame(new Ui::WorkspaceNavigationFrame)
-{
-	frame->setupUi(this);
+{	frame->setupUi(this);
 	setTrialVisible(false);
 	updating = false;
-
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(State::getInstance(), SIGNAL(displayChanged(ui_state)), this, SLOT(displayChanged(ui_state)));
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
+		// Explicit connections for UI elements (Qt 6 compatibility)
+	connect(frame->comboBoxWorkspace, SIGNAL(currentTextChanged(QString)), this, SLOT(on_comboBoxWorkspace_currentIndexChanged(QString)));
+	connect(frame->comboBoxTrial, SIGNAL(currentIndexChanged(int)), this, SLOT(on_comboBoxTrial_currentIndexChanged(int)));
+	connect(frame->comboBoxViewspace, SIGNAL(currentTextChanged(QString)), this, SLOT(on_comboBoxViewspace_currentIndexChanged(QString)));
+	connect(frame->toolButtonAddTrial, SIGNAL(clicked()), this, SLOT(on_toolButtonAddTrial_clicked()));
+	connect(frame->toolButtonTrialSettings, SIGNAL(clicked()), this, SLOT(on_toolButtonTrialSettings_clicked()));
+	connect(frame->toolButtonCameraSettings, SIGNAL(clicked()), this, SLOT(on_toolButtonCameraSettings_clicked()));
 }
 
 WorkspaceNavigationFrame::~WorkspaceNavigationFrame()
