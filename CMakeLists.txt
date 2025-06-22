@@ -176,6 +176,23 @@ ADD_EXECUTABLE(${PROJECT_NAME} ${GUI_TYPE}
 		src/ui/calibrationtool_resources.rc
 )
 
+if (MSVC AND CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        /O2         # Max speed
+        /GL         # Whole program optimization
+        /Oi         # Use intrinsics
+        /Ot         # Favor speed over size
+        /Oy         # Omit frame pointers
+        /Gy         # Function-level linking
+    )
+    target_link_options(${PROJECT_NAME} PRIVATE
+        /LTCG       # Link-time code generation
+        /OPT:REF    # Eliminate unused functions/data
+        /OPT:ICF    # Fold identical functions
+    )
+endif()
+
+
 link_directories(${MY_LIBRARY_DIR})
 
 IF(APPLE)
