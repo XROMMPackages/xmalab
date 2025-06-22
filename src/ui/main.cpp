@@ -38,6 +38,10 @@
 #include <QPushButton>
 #include <QStyleFactory>
 
+#ifdef Q_OS_MACOS
+#include <QOperatingSystemVersion>
+#endif
+
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
@@ -117,6 +121,13 @@ int main(int argc, char** argv)
 	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 	
+#ifdef Q_OS_MACOS
+	// Disable native dialogs on macOS Sequoia (15.0) and later due to compatibility issues
+	auto osVersion = QOperatingSystemVersion::current();
+	if (osVersion >= QOperatingSystemVersion::MacOSSequoia) {
+		QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
+	}
+#endif
 	MApplication app(argc, argv);
 
 	// Set Fusion style by default for cross-platform theming

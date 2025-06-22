@@ -111,10 +111,12 @@ MainWindow* MainWindow::instance = NULL;
 MainWindow::MainWindow(QWidget* parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
-{
-	if (!instance) instance = this;
+{	if (!instance) instance = this;
 
 	ui->setupUi(this);
+
+	// Set up theme menu and apply saved theme early, before other UI initialization
+	createThemeMenu();
 
 	ui->actionConsole->setVisible(false);
 	ui->actionXROMM_VR->setVisible(false);
@@ -276,13 +278,9 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	if (Settings::getInstance()->getQStringSetting("WelcomeDialog") < PROJECT_VERSION)
 	{
-		WelcomeDialog* diag = new WelcomeDialog(this);
-		diag->show();
+		WelcomeDialog* diag = new WelcomeDialog(this);		diag->show();
 		diag->setAttribute(Qt::WA_DeleteOnClose);
 	}
-
-	// Add Theme menu to View menu
-	createThemeMenu();
 }
 
 MainWindow::~MainWindow()
