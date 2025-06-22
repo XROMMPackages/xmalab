@@ -513,6 +513,11 @@ void GLCameraView::renderText(double x, double y, double z, const QString &str, 
 		&textPosX, &textPosY, &textPosZ))
 		return;
 
+	// Handle high DPI displays: convert from device coordinates to widget coordinates
+	qreal devicePixelRatio = this->devicePixelRatio();
+	textPosX /= devicePixelRatio;
+	textPosY /= devicePixelRatio;
+	
 	textPosY = height - textPosY; // y is inverted
 
 	QPainter painter(this);
