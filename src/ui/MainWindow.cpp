@@ -2419,13 +2419,13 @@ void MainWindow::applyTheme(const QString& themeName) {
 
 void MainWindow::onThemeLight() {
     applyTheme("light");
-    Settings::getInstance()->set("Theme", "light");
+    Settings::getInstance()->set("Theme", QString("light"));
 }
 void MainWindow::onThemeDark() {
     applyTheme("dark");
-    Settings::getInstance()->set("Theme", "dark");
+    Settings::getInstance()->set("Theme", QString("dark"));
 }
 void MainWindow::onThemeSystem() {
     applyTheme("system");
-    Settings::getInstance()->set("Theme", "system");
+    Settings::getInstance()->set("Theme", QString("system"));
 }
