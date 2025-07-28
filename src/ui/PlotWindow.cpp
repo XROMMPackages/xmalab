@@ -74,7 +74,7 @@ PlotWindow::PlotWindow(QWidget* parent) : QDockWidget(parent), dock(new Ui::Plot
 
 	connect(dock->plotWidget, SIGNAL(afterReplot()), this, SLOT(updateExtraPlot()));
 
-	//dock->plotWidget->installEventFilter(this);	installEventFilterToChildren(this);
+	dock->plotWidget->installEventFilter(this);	installEventFilterToChildren(this);
 	selectionMarker = new QCPItemRect(dock->plotWidget);
 	selectionMarker->setPen(QPen(QColor(255, 255, 0, 50)));
 	selectionMarker->setBrush(QBrush(QColor(255, 255, 0, 150)));

@@ -31,6 +31,8 @@
 #include "ui/State.h"
 #include "external/QCustomPlot/qcustomplot.h"
 #include "ui/PointsDockWidget.h"
+#include <algorithm> // for std::clamp
+#include <cmath>     // for std::lround
 
 class QComboBox;
 class QLabel;
@@ -76,6 +78,9 @@ namespace xma
 
 		bool isFrameAboveError(Marker * marker, int frame);
 		bool isFrameAboveError(RigidBody* body, int frame);
+
+		// Helper to convert plot x coordinate to frame index (Qt6 safe)
+		int getFrameFromPlotX(double x) const;
 
 	protected:
 		bool eventFilter(QObject* target, QEvent* event) override;
