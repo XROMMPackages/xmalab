@@ -2403,6 +2403,12 @@ void MainWindow::applyTheme(const QString& themeName) {
         palette.setColor(QPalette::Link, QColor(42, 130, 218));
         palette.setColor(QPalette::Highlight, QColor(42, 130, 218));
         palette.setColor(QPalette::HighlightedText, Qt::black);
+		palette.setColor(QPalette::Disabled, QPalette::Text, QColor(128, 128, 128)); // or a lighter gray for dark backgrounds
+		palette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(128, 128, 128));
+		palette.setColor(QPalette::Disabled, QPalette::Text, QColor(180, 180, 180));
+		palette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(180, 180, 180));
+		palette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(180, 180, 180));
+		palette.setColor(QPalette::Disabled, QPalette::Light, QColor(53, 53, 53));
         qApp->setPalette(palette);
     } else if (themeName == "light") {
         palette = QStyleFactory::create("Fusion")->standardPalette();
