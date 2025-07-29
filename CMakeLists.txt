@@ -22,10 +22,10 @@ if(NOT CMAKE_BUILD_TYPE)
 	SET(CMAKE_BUILD_TYPE Release)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 IF(NOT CMAKE_BUILD_TYPE MATCHES "^[Dd][Ee][Bb][Uu][Gg]")
-    ADD_DEFINITIONS(-DQT_NO_DEBUG_OUTPUT)
-    SET(CMAKE_BUILD_RELEASE TRUE)
+	ADD_DEFINITIONS(-DQT_NO_DEBUG_OUTPUT)
+	SET(CMAKE_BUILD_RELEASE TRUE)
 else()
-    SET(CMAKE_BUILD_RELEASE FALSE)
+	SET(CMAKE_BUILD_RELEASE FALSE)
 ENDIF()
 MESSAGE(STATUS "Building ${PROJECT_NAME} in ${CMAKE_BUILD_TYPE} mode")
 
@@ -44,7 +44,7 @@ ENDIF()
 
 #Add definitions for Apple
 IF(CMAKE_COMPILER_IS_GNUCXX OR APPLE)
-    ADD_DEFINITIONS( -Wno-deprecated-register)
+	ADD_DEFINITIONS( -Wno-deprecated-register)
 ENDIF()
 IF (APPLE)
 	ADD_DEFINITIONS(-D__APPLE__)
@@ -57,45 +57,34 @@ cmake_policy(SET CMP0074 NEW)
 set(MY_INCLUDE_DIR "" CACHE PATH "Optional: path to extra include directories (leave blank if using package manager)")
 set(MY_LIBRARY_DIR "" CACHE PATH "Optional: path to extra library directories (leave blank if using package manager)")
 
+
 # Dynamically detect QuaZip paths for portability
 find_path(QUAZIP_INCLUDE_DIR quazip PATHS ${CMAKE_INSTALL_PREFIX}/include NO_DEFAULT_PATH)
-find_library(QUAZIP_LIBRARIES quazip1-qt6 PATHS ${CMAKE_INSTALL_PREFIX}/lib NO_DEFAULT_PATH)
+find_library(QUAZIP_LIBRARIES NAMES quazip1-qt6 quazip PATHS ${CMAKE_INSTALL_PREFIX}/lib NO_DEFAULT_PATH)
 
 # Ensure variables are set
 if(NOT QUAZIP_INCLUDE_DIR)
-    message(FATAL_ERROR "Quazip include directory not found. Please set CMAKE_INSTALL_PREFIX or QUAZIP_INCLUDE_DIR manually.")
+	message(FATAL_ERROR "Quazip include directory not found. Please set CMAKE_INSTALL_PREFIX or QUAZIP_INCLUDE_DIR manually.")
 endif()
 
 if(NOT QUAZIP_LIBRARIES)
-    message(FATAL_ERROR "Quazip library not found. Please set CMAKE_INSTALL_PREFIX or QUAZIP_LIBRARIES manually.")
+	message(FATAL_ERROR "Quazip library not found. Please set CMAKE_INSTALL_PREFIX or QUAZIP_LIBRARIES manually.")
 endif()
 
-# Include QuaZip headers and link library directly
+# Include QuaZip headers
 include_directories(${QUAZIP_INCLUDE_DIR})
-link_directories(${QUAZIP_LIBRARIES})
 
-# Add the correct QuaZip library directory and name
-link_directories("D:/vcpkg/installed/x64-windows/lib")
-set(QUAZIP_LIBRARIES "quazip1-qt6.lib")
-
-# Set GLEW_USE_STATIC_LIBS to TRUE and add vcpkg static path
+# Set GLEW_USE_STATIC_LIBS to TRUE for static linking if needed
 set(GLEW_USE_STATIC_LIBS TRUE)
-set(CMAKE_PREFIX_PATH "D:/vcpkg/installed/x64-windows-static" ${CMAKE_PREFIX_PATH})
-set(GLEW_INCLUDE_DIR "D:/vcpkg/installed/x64-windows-static/include")
-set(GLEW_LIBRARY "D:/vcpkg/installed/x64-windows-static/lib/glew32s.lib")
 
 #ADD OPENCV 
-FIND_PACKAGE( OpenCV REQUIRED )
-FIND_PACKAGE( OpenGL )
-FIND_PACKAGE( GLEW REQUIRED )
-SET(GLEW_USE_STATIC_LIBS FALSE)
-FIND_PACKAGE( Levmar REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(OpenGL)
+find_package(GLEW REQUIRED)
+find_package(Levmar REQUIRED)
 
-# Set paths for QuaZip and Levmar
-SET(QUAZIP_INCLUDE_DIR "${CMAKE_PREFIX_PATH}/include/quazip" CACHE PATH "Path to QuaZip include directory")
-# Update QUAZIP_LIBRARIES to point to the specific library file
-SET(QUAZIP_LIBRARIES "${CMAKE_PREFIX_PATH}/lib/quazip1-qt6.lib" CACHE FILEPATH "Path to QuaZip library file")
-SET(LEVMAR_INCLUDE_DIR "${CMAKE_PREFIX_PATH}/include/levmar" CACHE PATH "Path to Levmar include directory")
+# Set paths for Levmar (portable)
+set(LEVMAR_INCLUDE_DIR "${CMAKE_PREFIX_PATH}/include/levmar" CACHE PATH "Path to Levmar include directory")
 
 #ADD QT4 SUPPORT
 FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGL OpenGLWidgets Concurrent PrintSupport)
@@ -123,7 +112,7 @@ IF (APPLE)
 		COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources
 		COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/MacOS
 		COMMAND cp ${CMAKE_SOURCE_DIR}/src/ui/resource-files/icons/${MACOSX_BUNDLE_ICON_FILE}
-            ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources/${MACOSX_BUNDLE_ICON_FILE})
+			${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources/${MACOSX_BUNDLE_ICON_FILE})
 ENDIF (APPLE)
 
 #Set Definitions
@@ -153,8 +142,7 @@ INCLUDE_DIRECTORIES(
 #Get Files from Subdirectory
 ADD_SUBDIRECTORY(src)
 
-# Add vcpkg static lib directory to linker search path
-link_directories("D:/vcpkg/installed/x64-windows-static/lib")
+
 
 #Create QT4 UI related tasks
 SET(XMALab_RESOURCE_FILES
@@ -171,25 +159,25 @@ QT_ADD_RESOURCES(XMALab_RESOURCES_RCC ${XMALab_RESOURCES})
 #Build and link
 ADD_EXECUTABLE(${PROJECT_NAME} ${GUI_TYPE}
 		${XMALAB_SOURCES} 
-    	${XMALab_RESOURCES_RCC}
+		${XMALab_RESOURCES_RCC}
 		${XMALab_FORMS_HEADERS_GEN}
 		src/ui/calibrationtool_resources.rc
 )
 
 if (MSVC AND CMAKE_BUILD_TYPE STREQUAL "Release")
-    target_compile_options(${PROJECT_NAME} PRIVATE
-        /O2         # Max speed
-        /GL         # Whole program optimization
-        /Oi         # Use intrinsics
-        /Ot         # Favor speed over size
-        /Oy         # Omit frame pointers
-        /Gy         # Function-level linking
-    )
-    target_link_options(${PROJECT_NAME} PRIVATE
-        /LTCG       # Link-time code generation
-        /OPT:REF    # Eliminate unused functions/data
-        /OPT:ICF    # Fold identical functions
-    )
+	target_compile_options(${PROJECT_NAME} PRIVATE
+		/O2         # Max speed
+		/GL         # Whole program optimization
+		/Oi         # Use intrinsics
+		/Ot         # Favor speed over size
+		/Oy         # Omit frame pointers
+		/Gy         # Function-level linking
+	)
+	target_link_options(${PROJECT_NAME} PRIVATE
+		/LTCG       # Link-time code generation
+		/OPT:REF    # Eliminate unused functions/data
+		/OPT:ICF    # Fold identical functions
+	)
 endif()
 
 
@@ -199,18 +187,18 @@ IF(APPLE)
   ADD_DEPENDENCIES(${PROJECT_NAME} osx_bundle_dirs )
 ENDIF (APPLE)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-		glew32s
-		quazip1-qt6
-		levmar
-		Qt6::Core
-		Qt6::Widgets
-		Qt6::OpenGL
-		Qt6::OpenGLWidgets
-		Qt6::Concurrent
-		Qt6::Gui
-		Qt6::PrintSupport
-		${OpenCV_LIBS} 
-		${OPENGL_LIBRARIES} 
+	${GLEW_LIBRARIES}
+	${QUAZIP_LIBRARIES}
+	${LEVMAR_LIBRARY}
+	Qt6::Core
+	Qt6::Widgets
+	Qt6::OpenGL
+	Qt6::OpenGLWidgets
+	Qt6::Concurrent
+	Qt6::Gui
+	Qt6::PrintSupport
+	${OpenCV_LIBS}
+	${OPENGL_LIBRARIES}
 )
 
 # Create groups for VS
