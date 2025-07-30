@@ -4,13 +4,12 @@ XMALab integrates distortion correction, calibration, marker tracking, rigid bod
 components of the MATLAB X-ray Project workflow. For marker-based XROMM, XMALab generates animation matrices suitable for animating bones in Autodesk Maya. XMALab also includes tools, such as checkerboard calibration, for motion analysis with standard (non-Xray) video.
 ## Download the latest binary release #
 ### Latest releases are under [releases](https://github.com/XROMMPackages/xmalab/releases), on the right
-### Version 2.1.3p [for MacOS Apple Silicon](https://github.com/XROMMPackages/xmalab/releases/download/v2.1.3p/XMALab2.1.3p_MacOS15.4_workaround.dmg) (Fixes file picker bug). Please make a copy of your XMALab file before working on it with this version
-### Version 2.1.0 :  [Windows](https://github.com/XROMMPackages/xmalab/releases/download/v2.1.3p/XMALab_Setup-2.1.0.msi) and [MacOS (intel)](https://github.com/XROMMPackages/xmalab/releases/download/v2.1.0/XMALab_2.1.0.dmg)
+### Version 2.2.2 for Windows x64 and MacOS Apple Silicon (ARM64) are available
 
 ### Visit the [XMALab Github Wiki](https://github.com/XROMMPackages/xmalab/wiki) for User Manual and Version History
 ### Join the [XMALab Google Group](https://groups.google.com/a/brown.edu/forum/?hl=en#!forum/xmalab) to be notified of future releases and pose questions to the group.
 ### XMALab Tutorial with example data on [xmaportal.org/sandbox/](http://xmaportal.org/sandbox/larequest.php?request=explorePublicStudy&StudyID=49&instit=SANDBOX1)
-### Instructions on how to build the source code can be found [here](https://github.com/XROMMPackages/xmalab/wiki/Instructions%20for%20developers)
+### Instructions on how to build the source code can be found [here](https://github.com/XROMMPackages/xmalab/wiki/Build-instructions-for-developers-(--v2.2.0))
 
 XMALab development is supported by the US National Science Foundation through an Advances in Biological Informatics grant to PI Elizabeth Brainerd and 
 CoPIs Stephen Gatesy and David Baier.
