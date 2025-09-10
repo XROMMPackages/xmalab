@@ -447,6 +447,95 @@ void MainWindow::clearSplitters()
 	}
 }
 
+void MainWindow::applyTheme(const QString& themeName) {
+    if (themeName == "dark") {
+        // Force dark mode by using the system's actual dark palette
+        qApp->setStyle(QStyleFactory::create("Fusion"));
+        
+        // Get the current system palette
+        QPalette systemPalette = QPalette();
+        
+        // Check if system is already in dark mode
+        if (systemPalette.color(QPalette::Window).lightness() < 128) {
+            // System is in dark mode - use its exact palette
+            qApp->setPalette(systemPalette);
+        } else {
+            // System is in light mode, but we want to force dark mode
+            // We need to simulate what the system dark palette would look like
+            // Save current style, temporarily switch to get system colors
+            QString currentStyle = qApp->style()->objectName();
+            
+            // Create a temporary palette to get system-like dark colors
+            QPalette darkPalette;
+            
+            // Use more system-native dark colors (closer to Windows dark theme)
+            darkPalette.setColor(QPalette::Window, QColor(32, 32, 32));          // Windows dark theme window color
+            darkPalette.setColor(QPalette::WindowText, QColor(255, 255, 255));   // White text
+            darkPalette.setColor(QPalette::Base, QColor(45, 45, 45));            // Input field background
+            darkPalette.setColor(QPalette::AlternateBase, QColor(60, 60, 60));   // Alternate row color
+            darkPalette.setColor(QPalette::ToolTipBase, QColor(42, 42, 42));     // Tooltip background
+            darkPalette.setColor(QPalette::ToolTipText, QColor(255, 255, 255));  // Tooltip text
+            darkPalette.setColor(QPalette::Text, QColor(255, 255, 255));         // General text
+            darkPalette.setColor(QPalette::Button, QColor(45, 45, 45));          // Button background
+            darkPalette.setColor(QPalette::ButtonText, QColor(255, 255, 255));   // Button text
+            darkPalette.setColor(QPalette::BrightText, QColor(255, 0, 0));       // Bright text (errors)
+            darkPalette.setColor(QPalette::Link, QColor(0, 120, 215));           // Windows accent blue
+            darkPalette.setColor(QPalette::Highlight, QColor(0, 120, 215));      // Selection highlight
+            darkPalette.setColor(QPalette::HighlightedText, QColor(255, 255, 255)); // Selected text
+            
+            // Disabled colors
+            darkPalette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(127, 127, 127));
+            darkPalette.setColor(QPalette::Disabled, QPalette::Text, QColor(127, 127, 127));
+            darkPalette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(127, 127, 127));
+            darkPalette.setColor(QPalette::Disabled, QPalette::HighlightedText, QColor(127, 127, 127));
+
+			// Neutralize leftover light-mode highlight causing white "halo"
+			darkPalette.setColor(QPalette::Light, QColor(60, 60, 60));
+			darkPalette.setColor(QPalette::Midlight, QColor(55, 55, 55));
+			darkPalette.setColor(QPalette::Mid, QColor(48, 48, 48));
+			darkPalette.setColor(QPalette::Dark, QColor(25, 25, 25));
+			darkPalette.setColor(QPalette::Shadow, QColor(15, 15, 15));
+
+            qApp->setPalette(darkPalette);
+        }
+    } else if (themeName == "light") {
+        // Force light mode - create a completely fresh light palette
+        qApp->setStyle(QStyleFactory::create("Fusion"));
+        
+        // Create a brand new light palette from scratch, not based on system
+        QPalette lightPalette;
+        lightPalette.setColor(QPalette::Window, QColor(240, 240, 240));
+        lightPalette.setColor(QPalette::WindowText, Qt::black);
+        lightPalette.setColor(QPalette::Base, Qt::white);
+        lightPalette.setColor(QPalette::AlternateBase, QColor(245, 245, 245));
+        lightPalette.setColor(QPalette::ToolTipBase, QColor(255, 255, 220));
+        lightPalette.setColor(QPalette::ToolTipText, Qt::black);
+        lightPalette.setColor(QPalette::Text, Qt::black);
+        lightPalette.setColor(QPalette::Button, QColor(240, 240, 240));
+        lightPalette.setColor(QPalette::ButtonText, Qt::black);
+        lightPalette.setColor(QPalette::BrightText, Qt::red);
+        lightPalette.setColor(QPalette::Link, QColor(0, 0, 255));
+        lightPalette.setColor(QPalette::Highlight, QColor(0, 120, 215));
+        lightPalette.setColor(QPalette::HighlightedText, Qt::white);
+        lightPalette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(120, 120, 120));
+        lightPalette.setColor(QPalette::Disabled, QPalette::Text, QColor(120, 120, 120));
+        lightPalette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(120, 120, 120));
+		lightPalette.setColor(QPalette::Disabled, QPalette::HighlightedText, QColor(120, 120, 120));
+		// Normalize 3D/shadow roles for forced light mode (system is dark)
+		lightPalette.setColor(QPalette::Light, QColor(255, 255, 255));   // top highlight
+		lightPalette.setColor(QPalette::Midlight, QColor(248, 248, 248));   // subtle inner highlight
+		lightPalette.setColor(QPalette::Mid, QColor(220, 220, 220));   // mid tone for grooves
+		lightPalette.setColor(QPalette::Dark, QColor(160, 160, 160));   // lower edge
+		lightPalette.setColor(QPalette::Shadow, QColor(110, 110, 110));   // deepest shadow
+        
+        qApp->setPalette(lightPalette);
+    } else { // system
+        // Use system default - let Qt automatically follow the OS theme
+        qApp->setStyle(QStyleFactory::create("Fusion"));
+        qApp->setPalette(QPalette());
+    }
+}
+
 void MainWindow::relayoutCameras()
 {
 	clearSplitters();
@@ -1411,7 +1500,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 				ui->actionPlot->setEnabled(false);
 				ui->actionEvents->setEnabled(false);
 				ui->actionDetectionSettings->setEnabled(false);
-				ui->action3D_world_view->setEnabled(false);
+			 ui->action3D_world_view->setEnabled(false);
 
 				
 				PointsDockWidget::getInstance()->hide();
@@ -1424,14 +1513,14 @@ void MainWindow::workspaceChanged(work_state workspace)
 			}
 			ui->actionPrecisionInfo->setEnabled(true);
 			ui->actionExport2D_Points->setEnabled(true);
-			ui->actionReprojection_Errors->setEnabled(true);
-			ui->actionExportEvents->setEnabled(true);
-			ui->actionExport3D_Points->setEnabled(true);
-			ui->actionRigidBodyTransformations->setEnabled(true);
-			ui->actionMarkertoMarkerDistances->setEnabled(true);
-			ui->actionImport2D_Points->setEnabled(true);
-			ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(true);
-			ui->actionXROMM_VR->setEnabled(true);
+		 ui->actionReprojection_Errors->setEnabled(true);
+		 ui->actionExportEvents->setEnabled(true);
+		 ui->actionExport3D_Points->setEnabled(true);
+		 ui->actionRigidBodyTransformations->setEnabled(true);
+		 ui->actionMarkertoMarkerDistances->setEnabled(true);
+		 ui->actionImport2D_Points->setEnabled(true);
+		 ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(true);
+		 ui->actionXROMM_VR->setEnabled(true);
 		}
 		else
 		{
@@ -1454,15 +1543,15 @@ void MainWindow::workspaceChanged(work_state workspace)
 				ui->pushButtonDefaultTrial->setVisible(false);
 			}
 			ui->actionPrecisionInfo->setEnabled(false);
-			ui->actionExport2D_Points->setEnabled(false);
-			ui->actionReprojection_Errors->setEnabled(false);
-			ui->actionExportEvents->setEnabled(false);
-			ui->actionExport3D_Points->setEnabled(false);
-			ui->actionRigidBodyTransformations->setEnabled(false);
-			ui->actionMarkertoMarkerDistances->setEnabled(false);
-			ui->actionImport2D_Points->setEnabled(false);
-			ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
-			ui->actionXROMM_VR->setEnabled(false);
+		 ui->actionExport2D_Points->setEnabled(false);
+		 ui->actionReprojection_Errors->setEnabled(false);
+		 ui->actionExportEvents->setEnabled(false);
+		 ui->actionExport3D_Points->setEnabled(false);
+		 ui->actionRigidBodyTransformations->setEnabled(false);
+		 ui->actionMarkertoMarkerDistances->setEnabled(false);
+		 ui->actionImport2D_Points->setEnabled(false);
+		 ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
+		 ui->actionXROMM_VR->setEnabled(false);
 
 			ui->actionDetailed_View->setEnabled(false);
 			ui->actionDisplay_Options->setEnabled(false);
@@ -2005,19 +2094,19 @@ void MainWindow::on_actionAll_Trials_for_External_triggered(bool checked)
 		for (auto &tr : Project::getInstance()->getTrials())
 		{
 			QString trial_path = outputPath + OS_SEP + tr->getName() + OS_SEP;
-			QDir().mkpath(trial_path);
-			
+			QDir().mkdir(trial_path);
+
 			for (int i = 0; i < project->getCameras().size(); i++){
 				QString cam_path = trial_path + OS_SEP + "Camera " + QString::number(i) + OS_SEP;
-				QDir().mkpath(cam_path);
+				QDir().mkdir(cam_path);
 
-				QDir().mkpath(cam_path + OS_SEP + "calib" + OS_SEP);
+				QDir().mkdir(cam_path + OS_SEP + "calib" + OS_SEP);
 				Project::getInstance()->exportMayaCamVersion2(cam_path + OS_SEP + "calib" + OS_SEP, -1, i);
-				QDir().mkpath(cam_path + OS_SEP + "images" + OS_SEP);
+				QDir().mkdir(cam_path + OS_SEP + "images" + OS_SEP);
 				tr->saveTrialImages(cam_path + OS_SEP + "images" + OS_SEP, 1, tr->getVideoStreams()[i]->getNbImages(), "tif", i);
-				QDir().mkpath(cam_path + OS_SEP + "markers" + OS_SEP);
+				QDir().mkdir(cam_path + OS_SEP + "markers" + OS_SEP);
 				tr->save2dPoints(cam_path + OS_SEP + "markers" + OS_SEP, false, false, false, false, false, false, i);
-				QDir().mkpath(cam_path + OS_SEP + "reprojection_errors" + OS_SEP);
+				QDir().mkdir(cam_path + OS_SEP + "reprojection_errors" + OS_SEP);
 				tr->saveReprojectionErrors(cam_path + OS_SEP + "reprojection_errors" + OS_SEP);
 			}
 		}
@@ -2194,7 +2283,7 @@ void MainWindow::on_pushButtonLoad_Project_clicked()
 	loadProject();
 }
 
-void  MainWindow::on_pushButtonLoad_Project_with_different_Calbration_clicked() {
+void MainWindow::on_pushButtonLoad_Project_with_different_Calbration_clicked() {
 	loadProjectWithDifferentCalibration();
 }
 
@@ -2383,43 +2472,6 @@ void MainWindow::createThemeMenu() {
     } else { // "system" or any other value
         actionThemeSystem->setChecked(true);
         applyTheme("system");
-    }
-}
-
-void MainWindow::applyTheme(const QString& themeName) {
-    QPalette palette;
-    if (themeName == "dark") {
-        palette = QStyleFactory::create("Fusion")->standardPalette();
-        palette.setColor(QPalette::Window, QColor(53,53,53));
-        palette.setColor(QPalette::WindowText, Qt::white);
-        palette.setColor(QPalette::Base, QColor(42,42,42));
-        palette.setColor(QPalette::AlternateBase, QColor(66,66,66));
-        palette.setColor(QPalette::ToolTipBase, Qt::white);
-        palette.setColor(QPalette::ToolTipText, Qt::white);
-        palette.setColor(QPalette::Text, Qt::white);
-        palette.setColor(QPalette::Button, QColor(53,53,53));
-        palette.setColor(QPalette::ButtonText, Qt::white);
-        palette.setColor(QPalette::BrightText, Qt::red);
-        palette.setColor(QPalette::Link, QColor(42, 130, 218));
-        palette.setColor(QPalette::Highlight, QColor(42, 130, 218));
-        palette.setColor(QPalette::HighlightedText, Qt::black);
-		palette.setColor(QPalette::Disabled, QPalette::Text, QColor(128, 128, 128)); // or a lighter gray for dark backgrounds
-		palette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(128, 128, 128));
-		palette.setColor(QPalette::Disabled, QPalette::Text, QColor(180, 180, 180));
-		palette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(180, 180, 180));
-		palette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(180, 180, 180));
-		palette.setColor(QPalette::Disabled, QPalette::Light, QColor(53, 53, 53));
-        qApp->setPalette(palette);
-    } else if (themeName == "light") {
-        palette = QStyleFactory::create("Fusion")->standardPalette();
-        qApp->setPalette(palette);
-    } else { // system
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-        qApp->setPalette(QPalette()); // Let Qt use system palette
-#else
-        palette = QStyleFactory::create("Fusion")->standardPalette();
-        qApp->setPalette(palette);
-#endif
     }
 }
 
