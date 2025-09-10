@@ -6,4 +6,3 @@ build*/*
 deployment/VS2013/xmalab_installer_generator/Release/*
 deployment/VS2013/xmalab_installer_generator/Debug/*
 deployment/MAC/XMALab.app/*
-deployment/MAC/xmalab.json
