@@ -104,6 +104,21 @@
 
 using namespace xma;
 
+// Helper to ensure save filenames include the expected extension on platforms
+// where non-native dialogs do not auto-append (e.g., macOS with AA_DontUseNativeDialogs)
+static QString ensureExtension(const QString& selectedPath, const QStringList& allowedExtensionsWithDot, const QString& defaultExtensionWithDot)
+{
+	if (selectedPath.isEmpty()) return selectedPath;
+	QString lowerPath = selectedPath.toLower();
+	for (const auto &ext : allowedExtensionsWithDot)
+	{
+		QString lowExt = ext.toLower();
+		if (!lowExt.isEmpty() && lowerPath.endsWith(lowExt))
+			return selectedPath; // Already has an allowed extension
+	}
+	return selectedPath + defaultExtensionWithDot; // Append default
+}
+
 
 MainWindow* MainWindow::instance = NULL;
 
@@ -111,7 +126,7 @@ MainWindow* MainWindow::instance = NULL;
 MainWindow::MainWindow(QWidget* parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
-{	if (!instance) instance = this;
+{ if (!instance) instance = this;
 
 	ui->setupUi(this);
 
@@ -973,7 +988,7 @@ void MainWindow::closeProject()
 
 	ui->actionPlot->setEnabled(false);
 	ui->actionEvents->setEnabled(false);
-	ui->actionDetectionSettings->setEnabled(false);
+ ui->actionDetectionSettings->setEnabled(false);
 	ui->action3D_world_view->setEnabled(false);
 	ui->actionDetailed_View->setEnabled(false);
 	ui->actionDisplay_Options->setEnabled(false);
@@ -1023,12 +1038,15 @@ void MainWindow::saveProjectAs(bool subset)
 	if (WizardDockWidget::getInstance()->checkForPendingChanges())
 	{
 		QString fileName = QFileDialog::getSaveFileName(this,
-		                                                tr("Save dataset as"), project->getProjectFilename().isEmpty() ? Settings::getInstance()->getLastUsedDirectory() : project->getProjectFilename(), tr("Dataset (*.xma *.zip)"));
+														tr("Save dataset as"), project->getProjectFilename().isEmpty() ? Settings::getInstance()->getLastUsedDirectory() : project->getProjectFilename(), tr("Dataset (*.xma *.zip)"));
 
 		ConsoleDockWidget::getInstance()->prepareSave();
 
 		if (fileName.isNull() == false)
 		{
+			// Ensure default extension (.xma) if none provided
+			fileName = ensureExtension(fileName, QStringList() << ".xma" << ".zip", ".xma");
+
 			Project::getInstance()->set_date_created();
 			Settings::getInstance()->setLastUsedDirectory(fileName);
 			Settings::getInstance()->addToRecentFiles(fileName);
@@ -1206,7 +1224,7 @@ void MainWindow::checkTrialImagePaths()
 							QString oldfolder = filename.replace(fileinfo.fileName(), "");
 							Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder + OS_SEP, oldfolder);
 							Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
-						} 
+						}
 					}
 					else
 					{
@@ -1556,9 +1574,9 @@ void MainWindow::workspaceChanged(work_state workspace)
 			ui->actionDetailed_View->setEnabled(false);
 			ui->actionDisplay_Options->setEnabled(false);
 			ui->actionPlot->setEnabled(false);
-			ui->actionEvents->setEnabled(false);
-			ui->actionDetectionSettings->setEnabled(false);
-			ui->actionShow_3D_View->setEnabled(false);
+		 ui->actionEvents->setEnabled(false);
+		 ui->actionDetectionSettings->setEnabled(false);
+		 ui->actionShow_3D_View->setEnabled(false);
 
 			PointsDockWidget::getInstance()->hide();
 			DetailViewDockWidget::getInstance()->hide();
@@ -1718,7 +1736,7 @@ void MainWindow::on_actionExportAll_triggered(bool checked)
 	if (Project::getInstance()->isCalibrated())
 	{
 		QString outputPath = QFileDialog::getExistingDirectory(this,
-		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+															   tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
@@ -1793,6 +1811,7 @@ void MainWindow::save3DPoints(std::vector<int> markers)
 
 				if (fileName.isNull() == false)
 				{
+					fileName = ensureExtension(fileName, QStringList() << ".csv", ".csv");
 					saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(markers, fileName
 						, Settings::getInstance()->getBoolSetting("Export3DMulti")
 						, Settings::getInstance()->getBoolSetting("Export3DHeader"),
@@ -1833,30 +1852,31 @@ void MainWindow::on_actionExport2D_Points_triggered(bool checked)
 			if (outputPath.isNull() == false)
 			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(outputPath + OS_SEP
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DMulti")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DDistorted")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DCount1")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DYUp")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DHeader")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
+																				 ,Settings::getInstance()->getBoolSetting("Export2DMulti")
+																				 ,Settings::getInstance()->getBoolSetting("Export2DDistorted")
+																				 ,Settings::getInstance()->getBoolSetting("Export2DCount1")
+																				 ,Settings::getInstance()->getBoolSetting("Export2DYUp")
+																				 ,Settings::getInstance()->getBoolSetting("Export2DHeader")
+																				 ,Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
 				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 			}
 		}
 		else if (Settings::getInstance()->getBoolSetting("Export2DMulti"))
 		{
 			QString fileName = QFileDialog::getSaveFileName(this,
-			                                                tr("Save 2D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+															tr("Save 2D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
 
 
 			if (fileName.isNull() == false)
 			{
+				fileName = ensureExtension(fileName, QStringList() << ".csv", ".csv");
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(fileName
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DMulti")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DDistorted")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DCount1")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DYUp")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DHeader")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
+																			 ,Settings::getInstance()->getBoolSetting("Export2DMulti")
+																			 ,Settings::getInstance()->getBoolSetting("Export2DDistorted")
+																			 ,Settings::getInstance()->getBoolSetting("Export2DCount1")
+																			 ,Settings::getInstance()->getBoolSetting("Export2DYUp")
+																			 ,Settings::getInstance()->getBoolSetting("Export2DHeader")
+																			 ,Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
 				Settings::getInstance()->setLastUsedDirectory(fileName);
 			}
 		}
@@ -1930,6 +1950,7 @@ void MainWindow::saveRigidBodies(std::vector<int> bodies)
 
 				if (fileName.isNull() == false)
 				{
+					fileName = ensureExtension(fileName, QStringList() << ".csv", ".csv");
 					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(bodies, fileName
 						, Settings::getInstance()->getBoolSetting("ExportTransMulti")
 						, Settings::getInstance()->getBoolSetting("ExportTransHeader")
@@ -1967,6 +1988,7 @@ void MainWindow::on_actionMarkertoMarkerDistances_triggered(bool checked)
 
 		if (fileName.isNull() == false)
 		{
+			fileName = ensureExtension(fileName, QStringList() << ".csv", ".csv");
 			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveMarkerToMarkerDistances(fileName,fromTo->getFrom() - 1, fromTo->getTo());
 		}
 	}
@@ -1988,6 +2010,7 @@ void MainWindow::on_actionPrecisionInfo_triggered(bool checked)
 
 		if (fileName.isNull() == false)
 		{
+			fileName = ensureExtension(fileName, QStringList() << ".csv", ".csv");
 			if (State::getInstance()->getActiveTrial() >=0)
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->savePrecisionInfo(fileName, fromTo->getFrom() - 1, fromTo->getTo());
 		}
@@ -2017,7 +2040,7 @@ void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(boo
 	if (ok)
 	{
 		QString outputPath = QFileDialog::getExistingDirectory(this,
-		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+											       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
@@ -2037,7 +2060,7 @@ void MainWindow::on_actionMayaCams_triggered(bool checked)
 			? -1 : Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getReferenceCalibrationImage();
 
 		QString outputPath = QFileDialog::getExistingDirectory(this,
-		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+												   tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
@@ -2059,7 +2082,7 @@ void MainWindow::on_actionMayaCams_2_0_triggered(bool checked)
 			? -1 : Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getReferenceCalibrationImage();
 
 		QString outputPath = QFileDialog::getExistingDirectory(this,
-		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+												   tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
@@ -2124,7 +2147,7 @@ void MainWindow::on_actionImport2D_Points_triggered(bool checked)
 	if (diag->result())
 	{
 		QStringList fileNames = QFileDialog::getOpenFileNames(this,
-		                                                      tr("Open csv files for 2D points"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+															  tr("Open csv files for 2D points"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
 
 		if (!fileNames.isEmpty())
 		{
@@ -2132,12 +2155,12 @@ void MainWindow::on_actionImport2D_Points_triggered(bool checked)
 			for (int i = 0; i < fileNames.size(); i++)
 			{
 				loadPoints += Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->load2dPoints(fileNames.at(i)
-				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DDistorted")
-				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DCount1")
-				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DYUp")
-				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DHeader")
-				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DOffsetCols")
-																													   , Settings::getInstance()->getBoolSetting("ImportStatusSet"));
+																				       ,Settings::getInstance()->getBoolSetting("Import2DDistorted")
+																				       ,Settings::getInstance()->getBoolSetting("Import2DCount1")
+																				       ,Settings::getInstance()->getBoolSetting("Import2DYUp")
+																				       ,Settings::getInstance()->getBoolSetting("Import2DHeader")
+																				       ,Settings::getInstance()->getBoolSetting("Import2DOffsetCols")
+																					   , Settings::getInstance()->getBoolSetting("ImportStatusSet"));
 			}
 			ProgressDialog::getInstance()->closeProgressbar();
 			Settings::getInstance()->setLastUsedDirectory(fileNames.at(0));
@@ -2153,7 +2176,7 @@ void MainWindow::on_actionImport2D_Points_triggered(bool checked)
 void MainWindow::on_actionImportTrial_triggered(bool checked)
 {
 	QString fileName = QFileDialog::getOpenFileName(this,
-	                                                tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xma  *.zip)"));
+													tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xma  *.zip)"));
 
 	if (fileName.isNull() == false)
 	{
