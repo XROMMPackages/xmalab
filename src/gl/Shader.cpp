@@ -28,10 +28,13 @@
 
 #include "gl/Shader.h"
 #include <iostream>
+#include <string>
+#include <vector>
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
+#include <QOpenGLContext>
 #else
 #ifdef _WIN32
 #include <windows.h>
@@ -42,22 +45,46 @@
 
 using namespace xma;
 
+static void printShaderLog(GLuint shader, const char* stage, const char* name)
+{
+	GLint logLen = 0;
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
+	if (logLen > 1) {
+		std::vector<char> buf(static_cast<size_t>(logLen));
+		GLsizei outLen = 0;
+		glGetShaderInfoLog(shader, logLen, &outLen, buf.data());
+		std::cerr << "[Shader] " << stage << " log for '" << (name ? name : "?") << "':\n" << buf.data() << std::endl;
+	}
+}
+
+static void printProgramLog(GLuint program, const char* name)
+{
+	GLint logLen = 0;
+	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLen);
+	if (logLen > 1) {
+		std::vector<char> buf(static_cast<size_t>(logLen));
+		GLsizei outLen = 0;
+		glGetProgramInfoLog(program, logLen, &outLen, buf.data());
+		std::cerr << "[Shader] Link log for program '" << (name ? name : "?") << "':\n" << buf.data() << std::endl;
+	}
+}
+
 Shader::Shader() : m_programID(0), m_shader(0), m_vertexShader(0), m_fragmentShader(0)
 {
 	/*m_shader = "Distortion";
 	m_vertexShader = "varying vec2 texture_coordinate; \n"
 			"void main()\n"
 			"{\n"
-			"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; \n"
-			"	texture_coordinate = vec2(gl_MultiTexCoord0); \n"
+			"\tgl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; \n"
+			"\ttexture_coordinate = vec2(gl_MultiTexCoord0); \n"
 			"}\n";
 	m_fragmentShader = "varying vec2 texture_coordinate;\n"
 			"uniform sampler2D displacement;\n"
 			"uniform sampler2D texture;\n"
 			"void main()\n"
 			"{\n"
-			"		vec4 disp_coords = texture2D(displacement,texture_coordinate);\n"
-			"		gl_FragColor = texture2D(texture, disp_coords.xy);\n"
+			"\t\tvec4 disp_coords = texture2D(displacement,texture_coordinate);\n"
+			"\t\tgl_FragColor = texture2D(texture, disp_coords.xy);\n"
 			"}\n";*/
 }
 
@@ -65,10 +92,16 @@ Shader::~Shader()
 {
 	if (m_programID)
 	{
+#ifdef __APPLE__
+		// Avoid macOS driver crashes when no context is current
+		if (QOpenGLContext::currentContext()) {
+			glDeleteProgram(m_programID);
+		}
+#else
 		glDeleteProgram(m_programID);
+#endif
 		m_programID = 0;
 	}
-
 }
 
 void Shader::bindProgram()
@@ -113,6 +146,7 @@ unsigned int Shader::compileShader()
 	if (shaderCompiled != GL_TRUE)
 	{
 		std::cerr << "Error compiling vertex shader " << m_shader << std::endl;
+		printShaderLog(vertexShader, "vertex", m_shader);
 		glDeleteProgram(programID);
 		glDeleteShader(vertexShader);
 		return 0;
@@ -130,6 +164,7 @@ unsigned int Shader::compileShader()
 	if (shaderCompiled != GL_TRUE)
 	{
 		std::cerr << "Error compiling fragment shader " << m_shader << std::endl;
+		printShaderLog(fragmentShader, "fragment", m_shader);
 		glDeleteProgram(programID);
 		glDeleteShader(fragmentShader);
 		return 0;
@@ -145,7 +180,8 @@ unsigned int Shader::compileShader()
 	if (success != GL_TRUE)
 	{
 		std::cerr << "Error linking program " << m_shader << std::endl;
-		glDeleteProgram(success);
+		printProgramLog(programID, m_shader);
+		glDeleteProgram(programID); // FIX: delete correct programID
 		return 0;
 	}
 

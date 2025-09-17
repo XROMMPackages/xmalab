@@ -33,11 +33,15 @@
 #include <QtConcurrent/QtConcurrent>
 
 #include <iostream>
+#include <new>
+#include <vector>
+#include <algorithm>
 
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
+#include <QOpenGLContext>
 #else
 #ifdef _WIN32
 #include <windows.h>
@@ -48,6 +52,8 @@
 
 using namespace xma;
 
+static QBasicMutex s_distortionMutex;
+
 int DistortionShader::nbInstances = 0;
 bool DistortionShader::m_distortionComplete = false;
 
@@ -57,8 +63,8 @@ DistortionShader::DistortionShader(Camera * camera) : QObject(), FrameBuffer(cam
 	m_vertexShader = "varying vec2 texture_coordinate; \n"
 			"void main()\n"
 			"{\n"
-			"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; \n"
-			"	texture_coordinate = vec2(gl_MultiTexCoord0); \n"
+			"\tgl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; \n"
+			"\ttexture_coordinate = vec2(gl_MultiTexCoord0); \n"
 			"}\n";
 	m_fragmentShader = "varying vec2 texture_coordinate;\n"
 		"uniform float transparency;\n"
@@ -67,15 +73,15 @@ DistortionShader::DistortionShader(Camera * camera) : QObject(), FrameBuffer(cam
 		"uniform sampler2D depth_tex;\n"
 		"void main()\n"
 		"{\n"
-			"		vec4 coords4 = texture2D(texture_coords, texture_coordinate.xy);\n"
-			"		vec2 coords2;\n"
-			"		coords2.x = (coords4.x*255.0 + coords4.y*255.0/256.0)/256.0;\n"
-			"		coords2.y = (coords4.z*255.0 + coords4.w*255.0/256.0)/256.0;\n"
-			"		vec4 color = texture2D(texture, coords2.xy);\n"
-			"		float d = texture2D(depth_tex, coords2.xy).x;\n"
-			"		color.a =  (d < 1.0 ) ? transparency : 0.0 ;\n"
-			"		gl_FragColor = color; \n"
-			"}\n";
+			"\t\tvec4 coords4 = texture2D(texture_coords, texture_coordinate.xy);\n"
+			"\t\tvec2 coords2;\n"
+			"\t\tcoords2.x = (coords4.x*255.0 + coords4.y*255.0/256.0)/256.0;\n"
+			"\t\tcoords2.y = (coords4.z*255.0 + coords4.w*255.0/256.0)/256.0;\n"
+			"\t\tvec4 color = texture2D(texture, coords2.xy);\n"
+			"\t\tfloat d = texture2D(depth_tex, coords2.xy).x;\n"
+			"\t\tcolor.a =  (d < 1.0 ) ? transparency : 0.0 ;\n"
+			"\t\tgl_FragColor = color; \n"
+		"}\n";
 	stopped = false;
 }
 
@@ -91,14 +97,23 @@ DistortionShader::~DistortionShader()
 	stopped = true;
 	if (m_tex)
 	{
+#ifdef __APPLE__
+		if (QOpenGLContext::currentContext()) {
+			glDeleteTextures(1, &m_tex);
+		}
+#else
 		glDeleteTextures(1, &m_tex);
+#endif
 		m_tex = 0;
 	}
 
 	if (m_coords) delete[] m_coords;
 	m_coords = NULL;
 
-	m_distortionComplete = false;
+	{
+		QMutexLocker lock(&s_distortionMutex);
+		m_distortionComplete = false;
+	}
 }
 
 void DistortionShader::draw(unsigned texture_id, unsigned depth_texture_id, float transparency)
@@ -106,23 +121,27 @@ void DistortionShader::draw(unsigned texture_id, unsigned depth_texture_id, floa
 	if (!m_distortionComplete && !m_distortionRunning && (m_camera->hasUndistortion() || m_camera->hasModelDistortion()))
 	{
 		m_distortionRunning = true;
-		nbInstances++;
+		{
+			QMutexLocker lock(&s_distortionMutex);
+			nbInstances++;
+		}
 
-		m_FutureWatcher = new QFutureWatcher<void>();
+		m_FutureWatcher = new QFutureWatcher<void>(this);
 		connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(loadComplete()));
 
-		QFuture<void> future = QtConcurrent::run(&DistortionShader::setDistortionMap, this);		
+		QFuture<void> future = QtConcurrent::run(&DistortionShader::setDistortionMap, this);
 		m_FutureWatcher->setFuture(future);
-		
 	}
 
-	
 	if (m_tex == 0 && m_distortionComplete && m_coords)
 	{
 		intializeTexture();
 	}
 
 	if (m_tex){
+#ifdef __APPLE__
+		if (!QOpenGLContext::currentContext()) return;
+#endif
 		bindProgram();
 		GLint loc = glGetUniformLocation(m_programID, "transparency");
 		glUniform1f(loc, transparency);
@@ -190,7 +209,26 @@ void DistortionShader::draw(unsigned texture_id, unsigned depth_texture_id, floa
 
 void DistortionShader::setDistortionMap()
 {
-	m_coords = new unsigned char[getWidth() * getHeight() * 4];
+	// Safe allocation for potentially huge images
+	size_t w = static_cast<size_t>(getWidth());
+	size_t h = static_cast<size_t>(getHeight());
+	if (w == 0 || h == 0 || w > SIZE_MAX / 4 / h) {
+		QMutexLocker lock(&s_distortionMutex);
+		nbInstances = (nbInstances > 0 ? nbInstances - 1 : 0);
+		m_distortionComplete = (nbInstances == 0);
+		return;
+	}
+
+	try {
+		m_coords = new unsigned char[w * h * 4];
+	}
+	catch (const std::bad_alloc&) {
+		std::cerr << "[DistortionShader] Failed to allocate distortion map for " << w << "x" << h << std::endl;
+		QMutexLocker lock(&s_distortionMutex);
+		nbInstances = (nbInstances > 0 ? nbInstances - 1 : 0);
+		m_distortionComplete = (nbInstances == 0);
+		return;
+	}
 
 	float x_dist, y_dist;
 	for (int y = 0; y < getHeight(); y++)
@@ -201,32 +239,21 @@ void DistortionShader::setDistortionMap()
 			
 			if (pt.x < 0 || pt.y < 0)
 			{
-				x_dist = (0.0);
-				y_dist = (0.0);
+				x_dist = (0.0f);
+				y_dist = (0.0f);
 			}
 			else
 			{
-				x_dist = ((pt.x + 0.5) / getWidth());
-				y_dist  = ((pt.y + 0.5) / getHeight());
+				x_dist = static_cast<float>(((pt.x + 0.5) / getWidth()));
+				y_dist  = static_cast<float>(((pt.y + 0.5) / getHeight()));
 			}
 
-			to2Char(x_dist, &m_coords[(y*getWidth() + x) * 4]);
-			to2Char(y_dist, &m_coords[(y*getWidth() + x) * 4 + 2]);
+			to2Char(x_dist, &m_coords[(static_cast<size_t>(y)*w + static_cast<size_t>(x)) * 4]);
+			to2Char(y_dist, &m_coords[(static_cast<size_t>(y)*w + static_cast<size_t>(x)) * 4 + 2]);
 
-			/*double t1, t2, t3, t4;
-			t1 = 1.0 / 255.0f * m_coords[(y*getWidth() + x) * 4];
-			t2 = 1.0 / 255.0f * m_coords[(y*getWidth() + x) * 4 + 1];
-			t3 = 1.0 / 255.0f * m_coords[(y*getWidth() + x) * 4 + 2];
-			t4 = 1.0 / 255.0f * m_coords[(y*getWidth() + x) * 4 + 3];
-
-
-			std::cerr << x_dist - (t1 * 255.0 + t2 * 255.0 / 256.0) / 256.0 << std::endl;
-			std::cerr << y_dist - (t3 * 255.0 + t4 * 255.0 / 256.0) / 256.0 << std::endl;
-
-			*/
 			if (stopped) {
-				nbInstances--;
-				
+				QMutexLocker lock(&s_distortionMutex);
+				nbInstances = (nbInstances > 0 ? nbInstances - 1 : 0);
 				return;
 			}
 		}
@@ -240,6 +267,9 @@ bool DistortionShader::canRender()
 
 void DistortionShader::intializeTexture()
 {
+#ifdef __APPLE__
+	if (!QOpenGLContext::currentContext()) return;
+#endif
 	glGenTextures(1, &m_tex);
 	glBindTexture(GL_TEXTURE_2D, m_tex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_coords);
@@ -255,11 +285,14 @@ void DistortionShader::intializeTexture()
 void DistortionShader::loadComplete()
 {
 	if (!stopped){
-		nbInstances--;
-
-		if (nbInstances == 0)
 		{
-			m_distortionComplete = true;
+			QMutexLocker lock(&s_distortionMutex);
+			nbInstances = (nbInstances > 0 ? nbInstances - 1 : 0);
+			if (nbInstances == 0)
+			{
+				m_distortionComplete = true;
+			}
 		}
+		m_distortionRunning = false;
 	}
 }
