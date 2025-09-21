@@ -165,8 +165,6 @@ MainWindow::MainWindow(QWidget* parent) :
 		setGeometry(50, 50, 1280, 1024);
 	}
 
-	mapper = new QSignalMapper(this);
-	connect(mapper, SIGNAL(mapped(QString)), this, SLOT(loadRecentFile(QString)));
 	updateRecentFiles();
 
 
@@ -304,7 +302,6 @@ MainWindow::~MainWindow()
 	delete GLSharedWidget::getInstance();
 	delete WizardDockWidget::getInstance();
 	delete WorldViewDockWidget::getInstance();
-	delete mapper;
 	instance = NULL;
 }
 

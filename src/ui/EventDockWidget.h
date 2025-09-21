@@ -72,8 +72,7 @@ namespace xma
 		
 		std::vector<event_entry> entries;
 
-		QSignalMapper* mapperColor;
-		QSignalMapper* mapperCheckBox;
+			   // QSignalMapper removed, using direct connections
 
 		int getIndex(QString name);
 		void clear();

@@ -70,9 +70,9 @@ namespace xma
 		void activeTrialChanged(int activeTrial);
 		void changeDenoiseTrialDataAfterDenoise();
 
-		void on_comboBoxWorkspace_currentIndexChanged(QString value);
+			   void on_comboBoxWorkspace_currentIndexChanged(int idx);
 		void on_comboBoxTrial_currentIndexChanged(int idx);
-		void on_comboBoxViewspace_currentIndexChanged(QString value);
+			   void on_comboBoxViewspace_currentIndexChanged(int idx);
 		void on_toolButtonAddTrial_clicked();
 		void on_toolButtonTrialSettings_clicked();
 		void on_toolButtonCameraSettings_clicked();

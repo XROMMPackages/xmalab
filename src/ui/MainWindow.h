@@ -101,7 +101,6 @@ namespace xma
 		QFutureWatcher<int>* m_FutureWatcher;
 		NewProjectDialog* newProjectdialog;
 
-		QSignalMapper* mapper;
 
 		QMenu* themeMenu = nullptr;
 		QAction* actionThemeLight = nullptr;
