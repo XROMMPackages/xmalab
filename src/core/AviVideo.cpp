@@ -36,78 +36,80 @@ using namespace xma;
 
 AviVideo::AviVideo(QStringList _filenames) : VideoStream(_filenames)
 {
-	lastFrame = -1;
-	reloadFile();
+    lastFrame = -1;
+    cap = std::make_unique<cv::VideoCapture>(filenames.at(0).toStdString());
+    reloadFile();
 }
 
 AviVideo::~AviVideo()
 {
+    if (cap && cap->isOpened())
+        cap->release();
 }
 
 void AviVideo::setActiveFrame(int _activeFrame)
 {
-	if (lastFrame == _activeFrame)
-		return;
+    if (lastFrame == _activeFrame)
+        return;
 
-	lastFrame = _activeFrame;
-	cv::VideoCapture cap(filenames.at(0).toStdString());
-	if (cap.isOpened() && _activeFrame >= 0 && _activeFrame < nbImages)
-	{
-		cap.set(cv::CAP_PROP_POS_FRAMES, _activeFrame);
+    lastFrame = _activeFrame;
+    if (!cap || !cap->isOpened())
+        return;
+    if (_activeFrame >= 0 && _activeFrame < nbImages)
+    {
+        cap->set(cv::CAP_PROP_POS_FRAMES, _activeFrame);
 
-		cv::Mat frame;
-		cap.read(frame);
-		if (frame.channels() > 1)
-		{
-			if (isFlipped)
-				cv::flip(frame, frame, 1);
-			image->setImage(frame, true);
-		}
-		else
-		{
-			if (isFlipped)
-				cv::flip(frame, frame, 1);
-			image->setImage(frame);
-		}
-		frame.release();
-	}
-	cap.release();
+        cv::Mat frame;
+        cap->read(frame);
+        if (frame.channels() > 1)
+        {
+            if (isFlipped)
+                cv::flip(frame, frame, 1);
+            image->setImage(frame, true);
+        }
+        else
+        {
+            if (isFlipped)
+                cv::flip(frame, frame, 1);
+            image->setImage(frame);
+        }
+        frame.release();
+    }
 }
-
 
 QString AviVideo::getFrameName(int frameNumber)
 {
-	QFileInfo info(filenames.at(0));
-	return info.fileName() + " Frame " + QString::number(frameNumber + 1);
+    QFileInfo info(filenames.at(0));
+    return info.fileName() + " Frame " + QString::number(frameNumber + 1);
 }
 
 void AviVideo::reloadFile()
 {
-	cv::VideoCapture cap(filenames.at(0).toStdString()); // open the default camera
+    if (cap && cap->isOpened())
+        cap->release();
+    cap = std::make_unique<cv::VideoCapture>(filenames.at(0).toStdString());
 
-	if (cap.isOpened())
-	{
-		double frnb(cap.get(cv::CAP_PROP_FRAME_COUNT));
-		nbImages = (int)(frnb + 0.45);
-		fps = cap.get(cv::CAP_PROP_FPS);
+    if (cap->isOpened())
+    {
+        double frnb(cap->get(cv::CAP_PROP_FRAME_COUNT));
+        nbImages = (int)(frnb + 0.45);
+        fps = cap->get(cv::CAP_PROP_FPS);
 
-		cv::Mat frame;
-		cap.read(frame);
-		if (frame.channels() > 1)
-		{
-			if (isFlipped)
-				cv::flip(frame, frame, 1);
-			image->setImage(frame, true);
-		}
-		else
-		{
-			if (isFlipped)
-				cv::flip(frame, frame, 1);
-			image->setImage(frame);
-		}
-		frame.release();
-	}
-
-	cap.release();
+        cv::Mat frame;
+        cap->read(frame);
+        if (frame.channels() > 1)
+        {
+            if (isFlipped)
+                cv::flip(frame, frame, 1);
+            image->setImage(frame, true);
+        }
+        else
+        {
+            if (isFlipped)
+                cv::flip(frame, frame, 1);
+            image->setImage(frame);
+        }
+        frame.release();
+    }
 }
 

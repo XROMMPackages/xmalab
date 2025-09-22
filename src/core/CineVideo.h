@@ -29,6 +29,8 @@
 
 #include <QString>
 #include <core/VideoStream.h>
+#include <fstream>
+#include <memory>
 
 #define MAXLENDESCRIPTION_OLD 121
 
@@ -61,6 +63,7 @@ namespace xma
 	private:
 		//IMAGE POSITIONS
 		std::vector<unsigned long long> image_addresses;
+		std::unique_ptr<std::ifstream> fileStream; // persistent file stream
 
 		void unpackImageData(char* packed, unsigned char* unpacked);
 

@@ -28,6 +28,8 @@
 #define AVIVIDEO_H_
 
 #include <core/VideoStream.h>
+#include <memory>
+#include <opencv2/highgui.hpp>
 
 namespace xma
 {
@@ -42,6 +44,7 @@ namespace xma
 		void reloadFile() override;
 	private:
 		int lastFrame;
+		std::unique_ptr<cv::VideoCapture> cap;
 	};
 }
 
