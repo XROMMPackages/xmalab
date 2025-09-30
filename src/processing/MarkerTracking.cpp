@@ -40,36 +40,12 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
-#ifdef HAVE_OPENCV_CUDALEGACY
-#include <opencv2/cudaarithm.hpp>
-#include <opencv2/cudawarping.hpp>
-#include <opencv2/cudalegacy.hpp>
-#endif
 
 //#define WRITEIMAGES 0
 
 using namespace xma;
 
 int MarkerTracking::nbInstances = 0;
-
-// Helper: Check for CUDA availability (cached)
-static bool isCudaAvailable()
-{
-#ifdef HAVE_OPENCV_CUDALEGACY
-    static int cudaChecked = -1;
-    if (cudaChecked < 0) {
-        try {
-            cudaChecked = (cv::cuda::getCudaEnabledDeviceCount() > 0) ? 1 : 0;
-        }
-        catch (...) {
-            cudaChecked = 0;
-        }
-    }
-    return cudaChecked == 1;
-#else
-    return false;
-#endif
-}
 
 MarkerTracking::MarkerTracking(int camera, int trial, int frame_from, int frame_to, int marker, bool forward) : QObject(),
 m_camera(camera), m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to), m_marker(marker), m_forward(forward)
@@ -129,29 +105,8 @@ void MarkerTracking::trackMarker_thread()
     cv::Mat result;
     result.create(result_rows, result_cols, CV_32FC1);
 
-    // --- CUDA path ---
-    if (isCudaAvailable()) {
-#ifdef HAVE_OPENCV_CUDALEGACY
-        try {
-            cv::cuda::GpuMat d_ROI_to, d_templ, d_result;
-            d_ROI_to.upload(ROI_to);
-            d_templ.upload(templ);
-            cv::cuda::matchTemplate(d_ROI_to, d_templ, d_result, cv::TM_CCORR_NORMED);
-            d_result.download(result);
-        }
-        catch (const cv::Exception& e) {
-            // On any CUDA error fallback to CPU implementation
-            cv::matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
-        }
-#else
-        // If headers not available, fall back to CPU
-        cv::matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
-#endif
-    }
-    else {
-        // --- CPU path ---
-        cv::matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
-    }
+    // --- Only CPU path remains ---
+    cv::matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
 
     normalize(result, result, 0, (100 - maxPenalty), cv::NORM_MINMAX, -1, cv::Mat());
 
