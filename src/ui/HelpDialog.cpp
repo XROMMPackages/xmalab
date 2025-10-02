@@ -7,7 +7,7 @@
 ///\author Benjamin Knorlein
 ///\date 11/04/2016
 ///
-/// Dynamically adapts shortcut key “caps” to the active theme.
+/// Dynamically adapts shortcut key "caps" to the active theme.
 /// Rules:
 ///   Theme == "dark" -> dark key caps
 ///   Theme == "light" -> white key caps

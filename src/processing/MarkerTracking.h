@@ -77,6 +77,10 @@ namespace xma
 		int maxPenalty;
 
 		cv::Mat templ;
+		cv::UMat templ_umat;
+		cv::UMat roi_buffer;
+		cv::UMat result_buffer;
+		cv::UMat springforce_buffer;
 	};
 }
 #endif // MARKERTRACKING_H

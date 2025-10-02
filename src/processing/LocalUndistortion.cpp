@@ -41,6 +41,7 @@
 
 #include <QtCore>
 #include <QtConcurrent/QtConcurrent>
+#include <opencv2/core/ocl.hpp>
 #include <stdlib.h>
 #include <math.h>
 
@@ -261,99 +262,81 @@ int LocalUndistortion::computeLWM(cv::Mat& detectedPts, cv::Mat& controlPts, cv:
 	B.create(cv::Size(6, detectedPts.rows),CV_64F);
 	radii.create(cv::Size(1, detectedPts.rows),CV_64F);
 
-	cv::Mat X;
-	X.create(cv::Size(nbNeighbours, 6),CV_64F);
-	cv::Mat ucp;
-	ucp.create(cv::Size(nbNeighbours, 1),CV_64F);
-	cv::Mat vcp;
-	vcp.create(cv::Size(nbNeighbours, 1),CV_64F);
-	cv::Mat tmpXY;
-	std::vector<cv::Mat> tmpXY_splitted(2); // Pre-allocate with size
-
-	cv::Mat X_inv;
-	cv::Mat all_pts_Matx2;
-	cv::Mat all_pts_Maty2;
-	cv::Mat all_pts_Matx2y2;
-	cv::Mat all_pts_MatEuclideanDistance;
-	cv::Mat all_pts_Idx;
-	double xcp, ycp;
 	double maxRadius = 0;
 
-	// Pre-allocate matrices to avoid repeated allocation
-	tmpXY.create(controlPts.size(), CV_64FC2);
-	all_pts_Matx2.create(controlPts.rows, 1, CV_64F);
-	all_pts_Maty2.create(controlPts.rows, 1, CV_64F);
-	all_pts_Matx2y2.create(controlPts.rows, 1, CV_64F);
-	all_pts_MatEuclideanDistance.create(controlPts.rows, 1, CV_64F);
-	all_pts_Idx.create(controlPts.rows, 1, CV_32S);
+	// Parallelize the control point loop
+	cv::parallel_for_(cv::Range(0, controlPts.rows), [&](const cv::Range& range)
+	{
+		// Thread-local working matrices
+		cv::Mat X(6, nbNeighbours, CV_64F);
+		cv::Mat ucp(1, nbNeighbours, CV_64F);
+		cv::Mat vcp(1, nbNeighbours, CV_64F);
+		cv::Mat tmpXY(controlPts.size(), CV_64FC2);
+		std::vector<cv::Mat> tmpXY_splitted(2);
+		cv::Mat X_inv;
+		cv::Mat all_pts_Matx2(controlPts.rows, 1, CV_64F);
+		cv::Mat all_pts_Maty2(controlPts.rows, 1, CV_64F);
+		cv::Mat all_pts_Matx2y2(controlPts.rows, 1, CV_64F);
+		cv::Mat all_pts_MatEuclideanDistance(controlPts.rows, 1, CV_64F);
+		cv::Mat all_pts_Idx(controlPts.rows, 1, CV_32S);
 
+		for (int i = range.start; i < range.end; i++)
+		{
+			//find closest point
+			{
+				//substract pt
+				const double curr_x = controlPts.at<double>(i, 0);
+				const double curr_y = controlPts.at<double>(i, 1);
+				tmpXY = controlPts - cv::Scalar(curr_x, curr_y);
+
+				//split channels to 2 matrices
+				cv::split(tmpXY, tmpXY_splitted);
+				
+				//compute norm of rows - optimized
+				cv::multiply(tmpXY_splitted[0], tmpXY_splitted[0], all_pts_Matx2);
+				cv::multiply(tmpXY_splitted[1], tmpXY_splitted[1], all_pts_Maty2);
+				cv::add(all_pts_Matx2, all_pts_Maty2, all_pts_Matx2y2);
+				cv::sqrt(all_pts_Matx2y2, all_pts_MatEuclideanDistance);
+
+				//sortIndices to find closest
+				cv::sortIdx(all_pts_MatEuclideanDistance, all_pts_Idx, cv::SORT_EVERY_COLUMN + cv::SORT_ASCENDING);
+			}
+			
+			//set radius of influence
+			const double current_radius = all_pts_MatEuclideanDistance.at<double>(all_pts_Idx.at<int>(nbNeighbours - 1));
+			radii.at<double>(i) = current_radius;
+			
+			//set up matrix eqn for polynomial of order=2
+			//set ucp,vcp and X
+			for (int j = 0; j < nbNeighbours; j++)
+			{
+				const int idx = all_pts_Idx.at<int>(j);
+				const double xcp = controlPts.at<double>(idx, 0);
+				const double ycp = controlPts.at<double>(idx, 1);
+
+				X.at<double>(0, j) = 1.0;
+				X.at<double>(1, j) = xcp;
+				X.at<double>(2, j) = ycp;
+				X.at<double>(3, j) = xcp * ycp;
+				X.at<double>(4, j) = xcp * xcp;
+				X.at<double>(5, j) = ycp * ycp;
+
+				ucp.at<double>(j) = detectedPts.at<double>(idx, 0);
+				vcp.at<double>(j) = detectedPts.at<double>(idx, 1);
+			}
+
+			cv::invert(X, X_inv, cv::DECOMP_SVD);
+			A.row(i) = ucp * X_inv;
+			B.row(i) = vcp * X_inv;
+		}
+	});
+
+	// Find max radius after parallel loop
 	for (int i = 0; i < controlPts.rows; i++)
 	{
-		//find closest point
-		{
-			//substract pt
-			const double curr_x = controlPts.at<double>(i, 0);
-			const double curr_y = controlPts.at<double>(i, 1);
-			tmpXY = controlPts - cv::Scalar(curr_x, curr_y);
-
-			//split channels to 2 matrices
-			cv::split(tmpXY, tmpXY_splitted);
-			
-			//compute norm of rows - optimized
-			cv::multiply(tmpXY_splitted[0], tmpXY_splitted[0], all_pts_Matx2);
-			cv::multiply(tmpXY_splitted[1], tmpXY_splitted[1], all_pts_Maty2);
-			cv::add(all_pts_Matx2, all_pts_Maty2, all_pts_Matx2y2);
-			cv::sqrt(all_pts_Matx2y2, all_pts_MatEuclideanDistance);
-
-			//sortIndices to find closest
-			cv::sortIdx(all_pts_MatEuclideanDistance, all_pts_Idx, cv::SORT_EVERY_COLUMN + cv::SORT_ASCENDING);
-		}
-		
-		//set radius of influence
-		const double current_radius = all_pts_MatEuclideanDistance.at<double>(all_pts_Idx.at<int>(nbNeighbours - 1));
-		radii.at<double>(i) = current_radius;
-		if (maxRadius < current_radius) maxRadius = current_radius;
-		
-		//set up matrix eqn for polynomial of order=2
-		//set ucp,vcp and X
-		for (int j = 0; j < nbNeighbours; j++)
-		{
-			const int idx = all_pts_Idx.at<int>(j);
-			xcp = controlPts.at<double>(idx, 0);
-			ycp = controlPts.at<double>(idx, 1);
-
-			X.at<double>(0, j) = 1.0;
-			X.at<double>(1, j) = xcp;
-			X.at<double>(2, j) = ycp;
-			X.at<double>(3, j) = xcp * ycp;
-			X.at<double>(4, j) = xcp * xcp;
-			X.at<double>(5, j) = ycp * ycp;
-
-			ucp.at<double>(j) = detectedPts.at<double>(idx, 0);
-			vcp.at<double>(j) = detectedPts.at<double>(idx, 1);
-		}
-
-		cv::invert(X, X_inv, cv::DECOMP_SVD);
-		A.row(i) = ucp * X_inv;
-		B.row(i) = vcp * X_inv;
+		if (radii.at<double>(i) > maxRadius)
+			maxRadius = radii.at<double>(i);
 	}
-	X.release();
-	ucp.release();
-	vcp.release();
-	tmpXY.release();
-
-	// Matrices are pre-allocated, so release them properly
-	for (auto& mat : tmpXY_splitted)
-	{
-		mat.release();
-	}
-	tmpXY_splitted.clear();
-	X_inv.release();
-	all_pts_Matx2.release();
-	all_pts_Maty2.release();
-	all_pts_Matx2y2.release();
-	all_pts_MatEuclideanDistance.release();
-	all_pts_Idx.release();
 
 	return static_cast<int>(std::ceil(maxRadius));
 }
@@ -421,110 +404,107 @@ void LocalUndistortion::createLookupTable(cv::Mat& controlPts, cv::Mat& A, cv::M
 		yi = controlPts.at<double>(i, 1) / gridSize;
 		grid_pts[xi][yi].push_back(i);
 	}
-	//variables needed
-	double dx, dy, dist_to_cp_sq, Ri, Ri2, Ri3; // Use squared distance to avoid sqrt when possible
-	double u, v, w;
-	int i;
-	double xy, x2, y2, xg, yg;
-	double u_numerator;
-	double v_numerator;
-	double denominator;
 
 	// Pre-calculate grid size factors to avoid repeated division
 	const double inv_gridSize = 1.0 / gridSize;
 	const double gridWidth = ceil(((double)m_width) / gridSize);
 	const double gridHeight = ceil(((double)m_height) / gridSize);
 
-	// Pre-allocate pointers for faster matrix access
-	float* outMat_x_ptr = outMat_x.ptr<float>(0);
-	float* outMat_y_ptr = outMat_y.ptr<float>(0);
-
-	//for all pixel in output image compute the coordinates in the original image
-	//we take the shift of the center already into account
-
-	for (int y_out = 0, processedpixel = 0; y_out < m_height; y_out++)
+	// Precompute squared radii to avoid repeated multiplication in inner loop
+	std::vector<double> radii_squared(controlPts.rows);
+	for (int i = 0; i < controlPts.rows; i++)
 	{
-		// Cache y_out calculations
-		const double y_out_d = static_cast<double>(y_out);
-		const double y2_cached = y_out_d * y_out_d;
-		
-		for (int x_out = 0; x_out < m_width; x_out++, processedpixel++)
+		const double radius_i = radii.at<double>(i);
+		radii_squared[i] = radius_i * radius_i;
+	}
+
+	// Parallelize the pixel loop
+	cv::parallel_for_(cv::Range(0, m_height), [&](const cv::Range& range)
+	{
+		for (int y_out = range.start; y_out < range.end; y_out++)
 		{
-			/* precalculate factors */
-			const double x_out_d = static_cast<double>(x_out);
-			xy = x_out_d * y_out_d;
-			x2 = x_out_d * x_out_d;
-			y2 = y2_cached; // Use cached value
-
-			//compute the UV coordinates with all points
-			u_numerator = 0.0;
-			v_numerator = 0.0;
-			denominator = 0.0;			// Optimize grid bounds calculation - but keep original loop variable types for exact compatibility
-			const double xg_min = (std::max)(floor(x_out_d * inv_gridSize) - 1, 0.0);
-			const double xg_max = (std::min)(ceil(x_out_d * inv_gridSize) + 1, gridWidth);
-			const double yg_min = (std::max)(floor(y_out_d * inv_gridSize) - 1, 0.0);
-			const double yg_max = (std::min)(ceil(y_out_d * inv_gridSize) + 1, gridHeight);
-
-			for (double xg = xg_min; xg < xg_max; xg++)
+			// Cache y_out calculations
+			const double y_out_d = static_cast<double>(y_out);
+			const double y2_cached = y_out_d * y_out_d;
+			
+			float* outMat_x_row = outMat_x.ptr<float>(y_out);
+			float* outMat_y_row = outMat_y.ptr<float>(y_out);
+			
+			for (int x_out = 0; x_out < m_width; x_out++)
 			{
-				for (double yg = yg_min; yg < yg_max; yg++)
+				/* precalculate factors */
+				const double x_out_d = static_cast<double>(x_out);
+				const double xy = x_out_d * y_out_d;
+				const double x2 = x_out_d * x_out_d;
+				const double y2 = y2_cached; // Use cached value
+
+				//compute the UV coordinates with all points
+				double u_numerator = 0.0;
+				double v_numerator = 0.0;
+				double denominator = 0.0;
+
+				// Optimize grid bounds calculation
+				const double xg_min = (std::max)(floor(x_out_d * inv_gridSize) - 1, 0.0);
+				const double xg_max = (std::min)(ceil(x_out_d * inv_gridSize) + 1, gridWidth);
+				const double yg_min = (std::max)(floor(y_out_d * inv_gridSize) - 1, 0.0);
+				const double yg_max = (std::min)(ceil(y_out_d * inv_gridSize) + 1, gridHeight);
+
+				for (double xg = xg_min; xg < xg_max; xg++)
 				{
-					const std::vector<int>& grid_cell = grid_pts[static_cast<int>(xg)][static_cast<int>(yg)];
-					for (size_t p = 0; p < grid_cell.size(); p++)
+					for (double yg = yg_min; yg < yg_max; yg++)
 					{
-						i = grid_cell[p];
-						//without ptrs
-						dx = x_out_d - controlPts.at<double>(i, 0);
-						dy = y_out_d - controlPts.at<double>(i, 1);
-
-						dist_to_cp_sq = dx * dx + dy * dy;
-						const double radius_i = radii.at<double>(i);
-						
-						// Use squared comparison to avoid sqrt
-						if (dist_to_cp_sq < radius_i * radius_i)
+						const std::vector<int>& grid_cell = grid_pts[static_cast<int>(xg)][static_cast<int>(yg)];
+						for (size_t p = 0; p < grid_cell.size(); p++)
 						{
-							const double dist_to_cp = sqrt(dist_to_cp_sq);
-							Ri = dist_to_cp / radius_i;
-							Ri2 = Ri * Ri;
-							Ri3 = Ri * Ri2;
-							w = 1.0 - 3.0 * Ri2 + 2.0 * Ri3; /* weight for ControlPoint i */
+							const int i = grid_cell[p];
+							const double dx = x_out_d - controlPts.at<double>(i, 0);
+							const double dy = y_out_d - controlPts.at<double>(i, 1);
 
-							//without ptrs - use cached values
-							u = A.at<double>(i, 0) + A.at<double>(i, 1) * x_out_d + A.at<double>(i, 2) * y_out_d +
-								A.at<double>(i, 3) * xy + A.at<double>(i, 4) * x2 + A.at<double>(i, 5) * y2;
+							const double dist_to_cp_sq = dx * dx + dy * dy;
+							
+							// Use precomputed squared radius
+							if (dist_to_cp_sq < radii_squared[i])
+							{
+								const double dist_to_cp = sqrt(dist_to_cp_sq);
+								const double radius_i = radii.at<double>(i);
+								const double Ri = dist_to_cp / radius_i;
+								const double Ri2 = Ri * Ri;
+								const double Ri3 = Ri * Ri2;
+								const double w = 1.0 - 3.0 * Ri2 + 2.0 * Ri3; /* weight for ControlPoint i */
 
-							v = B.at<double>(i, 0) + B.at<double>(i, 1) * x_out_d + B.at<double>(i, 2) * y_out_d +
-								B.at<double>(i, 3) * xy + B.at<double>(i, 4) * x2 + B.at<double>(i, 5) * y2;
+								//without ptrs - use cached values
+								const double u = A.at<double>(i, 0) + A.at<double>(i, 1) * x_out_d + A.at<double>(i, 2) * y_out_d +
+									A.at<double>(i, 3) * xy + A.at<double>(i, 4) * x2 + A.at<double>(i, 5) * y2;
 
-							u_numerator += w * u;
-							v_numerator += w * v;
-							denominator += w;
+								const double v = B.at<double>(i, 0) + B.at<double>(i, 1) * x_out_d + B.at<double>(i, 2) * y_out_d +
+									B.at<double>(i, 3) * xy + B.at<double>(i, 4) * x2 + B.at<double>(i, 5) * y2;
+
+								u_numerator += w * u;
+								v_numerator += w * v;
+								denominator += w;
+							}
 						}
 					}
 				}
-			}
 
-			if (denominator != 0.0)
-			{
-				//set uv and apply shift
-				//qDebug("pt %i %i to %lf %lf",x_out,y_out,u_numerator/denominator + center_detectedPts.x,v_numerator/denominator + center_detectedPts.y );
-				//without ptrs
-
-				outMat_x_ptr[processedpixel] = static_cast<float>(u_numerator / denominator);
-				outMat_y_ptr[processedpixel] = static_cast<float>(v_numerator / denominator);
-			}
-			else
-			{
-				/*
-				 * no control points influence this (x,y)
-				 * issue warning, and set warning flag to warn user that there
-				 * are one or more such points
-				 */
-
-				outMat_x_ptr[processedpixel] = -1.0f;				outMat_y_ptr[processedpixel] = -1.0f;
+				if (denominator != 0.0)
+				{
+					outMat_x_row[x_out] = static_cast<float>(u_numerator / denominator);
+					outMat_y_row[x_out] = static_cast<float>(v_numerator / denominator);
+				}
+				else
+				{
+					/*
+					 * no control points influence this (x,y)
+					 * issue warning, and set warning flag to warn user that there
+					 * are one or more such points
+					 */
+					outMat_x_row[x_out] = -1.0f;
+					outMat_y_row[x_out] = -1.0f;
+				}
 			}
 		}
-	}
+	});
 
 	//vector for holding points in a grid
 	for (int x = 0; x < gwidth; x ++)

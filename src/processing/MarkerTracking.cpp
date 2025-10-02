@@ -39,11 +39,83 @@
 #include <QtConcurrent/QtConcurrent>
 #include <opencv2/highgui.hpp>
 #include <opencv2/core.hpp>
+#include <opencv2/core/ocl.hpp>
 #include <opencv2/imgproc.hpp>
+#include <map>
+#include <mutex>
 
 //#define WRITEIMAGES 0
 
 using namespace xma;
+
+namespace
+{
+    void ensureOpenClInitialized()
+    {
+        static std::once_flag once;
+        std::call_once(once, []()
+        {
+            if (cv::ocl::haveOpenCL())
+            {
+                cv::ocl::setUseOpenCL(true);
+            }
+            else
+            {
+                cv::ocl::setUseOpenCL(false);
+            }
+        });
+    }
+
+    struct PenaltyCacheEntry
+    {
+        cv::Mat mat;
+        cv::UMat umat;
+    };
+
+    const PenaltyCacheEntry& getNormalizedPenaltySurface(int rows, int cols)
+    {
+        static std::mutex cacheMutex;
+        static std::map<std::pair<int, int>, PenaltyCacheEntry> cache;
+
+        std::lock_guard<std::mutex> lock(cacheMutex);
+        const auto key = std::make_pair(rows, cols);
+        auto it = cache.find(key);
+        if (it != cache.end())
+        {
+            return it->second;
+        }
+
+        auto [insertIt, inserted] = cache.emplace(std::piecewise_construct,
+            std::forward_as_tuple(key),
+            std::forward_as_tuple());
+
+        PenaltyCacheEntry& entry = insertIt->second;
+        entry.mat.create(rows, cols, CV_32FC1);
+
+        double halfcol = 0.5 * cols;
+        double halfrow = 0.5 * rows;
+        double sigma = halfcol * 3;
+        double inv_2sigma_sq = 1.0 / (2.0 * sigma * sigma);
+
+        float* data = entry.mat.ptr<float>();
+        for (int i = 0; i < rows; ++i)
+        {
+            double di = halfrow - i;
+            double di_sq = di * di;
+            for (int j = 0; j < cols; ++j)
+            {
+                double dj = halfcol - j;
+                double val = exp((di_sq + dj * dj) * inv_2sigma_sq);
+                data[i * cols + j] = static_cast<float>(val);
+            }
+        }
+
+        cv::normalize(entry.mat, entry.mat, 0.0f, 1.0f, cv::NORM_MINMAX);
+        entry.mat.copyTo(entry.umat);
+
+        return entry;
+    }
+}
 
 int MarkerTracking::nbInstances = 0;
 
@@ -51,6 +123,7 @@ MarkerTracking::MarkerTracking(int camera, int trial, int frame_from, int frame_
 m_camera(camera), m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to), m_marker(marker), m_forward(forward)
 {
     nbInstances++;
+    ensureOpenClInitialized();
     x_from = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame_from].x;
     y_from = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame_from].y;
     searchArea = 30;
@@ -58,6 +131,7 @@ m_camera(camera), m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to)
     size = (size < 5) ? 5 : size;
 
     Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[m_camera]->getImage()->getSubImage(templ, size + 3, x_from, y_from);
+    templ_umat = templ.getUMat(cv::ACCESS_READ);
     maxPenalty = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMaxPenalty();
 #ifdef WRITEIMAGES
     cv::imwrite("Tra_Template.png", templ);
@@ -80,6 +154,7 @@ void MarkerTracking::trackMarker()
 
 void MarkerTracking::trackMarker_thread()
 {
+    ensureOpenClInitialized();
     cv::Mat ROI_to;
     int used_size = size + searchArea + 3;
 
@@ -102,74 +177,109 @@ void MarkerTracking::trackMarker_thread()
     int result_cols = ROI_to.cols - templ.cols + 1;
     int result_rows = ROI_to.rows - templ.rows + 1;
 
-    cv::Mat result;
-    result.create(result_rows, result_cols, CV_32FC1);
-
-    // --- Only CPU path remains ---
-    cv::matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
-
-    normalize(result, result, 0, (100 - maxPenalty), cv::NORM_MINMAX, -1, cv::Mat());
-
-#ifdef WRITEIMAGES
-    cv::imwrite("Tra_Result.png", result);
-#endif
-
-    cv::Mat springforce;
-    springforce.create(result_cols, result_rows, CV_32FC1);
-    double halfcol = 0.5 * result_cols;
-    double halfrow = 0.5 * result_rows;
-    double sigma = halfcol * 3;
-    double inv_2sigma_sq = 1.0 / (2.0 * sigma * sigma);
-
-    // Use direct pointer access for better performance
-    float* springforce_ptr = springforce.ptr<float>();
-    for (int i = 0; i < result_rows; i++)
+    if (result_cols <= 0 || result_rows <= 0)
     {
-        double di = halfrow - i;
-        double di_sq = di * di;
-        for (int j = 0; j < result_cols; j++)
-        {
-            double dj = halfcol - j;
-            double val = exp((di_sq + dj * dj) * inv_2sigma_sq);
-            springforce_ptr[i * result_cols + j] = static_cast<float>(val);
-        }
+        ROI_to.release();
+        return;
     }
-    normalize(springforce, springforce, 0, maxPenalty, cv::NORM_MINMAX, -1, cv::Mat());
+
+    const auto& penaltyEntry = getNormalizedPenaltySurface(result_rows, result_cols);
+
+    if (cv::ocl::useOpenCL() && !templ_umat.empty())
+    {
+        roi_buffer = ROI_to.getUMat(cv::ACCESS_READ);
+        result_buffer.create(result_rows, result_cols, CV_32FC1);
+        springforce_buffer.create(result_rows, result_cols, CV_32FC1);
+
+        cv::matchTemplate(roi_buffer, templ_umat, result_buffer, cv::TM_CCORR_NORMED);
+        cv::normalize(result_buffer, result_buffer, 0, (100 - maxPenalty), cv::NORM_MINMAX);
 
 #ifdef WRITEIMAGES
-    cv::imwrite("Tra_Penalty.png", springforce);
+        cv::Mat dbgResult = result_buffer.getMat(cv::ACCESS_READ);
+        cv::imwrite("Tra_Result.png", dbgResult);
 #endif
 
-    result = result - springforce;
+        cv::multiply(penaltyEntry.umat, cv::Scalar(static_cast<float>(maxPenalty)), springforce_buffer);
 
 #ifdef WRITEIMAGES
-    cv::imwrite("Tra_PenResult.png", result);
+        cv::Mat dbgPenalty = springforce_buffer.getMat(cv::ACCESS_READ);
+        cv::imwrite("Tra_Penalty.png", dbgPenalty);
 #endif
 
-    /// Localizing the best match with minMaxLoc
+        cv::subtract(result_buffer, springforce_buffer, result_buffer);
+
+#ifdef WRITEIMAGES
+        cv::Mat dbgPenResult = result_buffer.getMat(cv::ACCESS_READ);
+        cv::imwrite("Tra_PenResult.png", dbgPenResult);
+#endif
+
     double minVal;
     double maxVal;
     cv::Point minLoc;
     cv::Point maxLoc;
-    cv::Point matchLoc;
+    cv::minMaxLoc(result_buffer, &minVal, &maxVal, &minLoc, &maxLoc);
+
+        cv::Point matchLoc = maxLoc;
+        x_to = matchLoc.x + off_x + size + 3;
+        y_to = matchLoc.y + off_y + size + 3;
+
+#ifdef WRITEIMAGES
+        fprintf(stderr, "Tracked %lf %lf\n", x_to, y_to);
+        fprintf(stderr, "Val %lf\n", maxVal);
+        fprintf(stderr, "Tracked (local) %d %d\n", matchLoc.x, matchLoc.y);
+        fprintf(stderr, "Stop Track Marker : Camera %d Pos %lf %lf\n", m_camera, x_to, y_to);
+#endif
+    }
+    else
+    {
+        cv::Mat result;
+        result.create(result_rows, result_cols, CV_32FC1);
+
+        cv::matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
+    normalize(result, result, 0, (100 - maxPenalty), cv::NORM_MINMAX, -1, cv::Mat());
+
+#ifdef WRITEIMAGES
+        cv::imwrite("Tra_Result.png", result);
+#endif
+
+    cv::Mat springforce;
+    cv::multiply(penaltyEntry.mat, cv::Scalar(static_cast<float>(maxPenalty)), springforce);
+
+#ifdef WRITEIMAGES
+        cv::imwrite("Tra_Penalty.png", springforce);
+#endif
+
+        result = result - springforce;
+
+#ifdef WRITEIMAGES
+        cv::imwrite("Tra_PenResult.png", result);
+#endif
+
+        double minVal;
+        double maxVal;
+        cv::Point minLoc;
+        cv::Point maxLoc;
+        cv::Point matchLoc;
 
     minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, cv::Mat());
 
-    matchLoc = maxLoc;
+        matchLoc = maxLoc;
 
-    x_to = matchLoc.x + off_x + size + 3;
-    y_to = matchLoc.y + off_y + size + 3;
+        x_to = matchLoc.x + off_x + size + 3;
+        y_to = matchLoc.y + off_y + size + 3;
 
 #ifdef WRITEIMAGES
-    fprintf(stderr, "Tracked %lf %lf\n", x_to, y_to);
-    fprintf(stderr, "Val %lf\n", maxVal);
-    fprintf(stderr, "Tracked (local) %d %d\n", matchLoc.x, matchLoc.y);
-    fprintf(stderr, "Stop Track Marker : Camera %d Pos %lf %lf\n", m_camera, x_to, y_to);
+        fprintf(stderr, "Tracked %lf %lf\n", x_to, y_to);
+        fprintf(stderr, "Val %lf\n", maxVal);
+        fprintf(stderr, "Tracked (local) %d %d\n", matchLoc.x, matchLoc.y);
+        fprintf(stderr, "Stop Track Marker : Camera %d Pos %lf %lf\n", m_camera, x_to, y_to);
 #endif
 
+        result.release();
+        springforce.release();
+    }
 
     ROI_to.release();
-    result.release();
 }
 
 void MarkerTracking::trackMarker_threadFinished()
