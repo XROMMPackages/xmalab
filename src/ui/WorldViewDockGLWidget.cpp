@@ -45,6 +45,7 @@
 #include <QApplication>
 #include <QMouseEvent>
 #include "GLSharedWidget.h"
+#include <QPainter>
 
 #ifndef _PI
 #define _PI 3.141592653
@@ -57,7 +58,11 @@ GLfloat LightDiffuse[] = {0.5f, 0.5f, 0.5f, 1.0f}; // Diffuse Light Values
 GLfloat LightPosition[] = {0.0f, 10.0f, 0.0f, 1.0f}; // Light Position
 
 WorldViewDockGLWidget::WorldViewDockGLWidget(QWidget* parent)
+#ifdef Q_OS_MACOS
+    : QWidget(parent), useCustomTimeline(false), frame(0)
+#else
 	: QOpenGLWidget(parent), useCustomTimeline(false), frame(0)
+#endif
 {
 	eyedistance = 500.0;
 	azimuth = 45.0;
@@ -68,7 +73,9 @@ WorldViewDockGLWidget::WorldViewDockGLWidget(QWidget* parent)
 	h = 50;
 	setMinimumSize(50, 50);
 	setAutoFillBackground(false);
+#ifndef Q_OS_MACOS
 	opengl_initialised = false;
+#endif
 }
 
 void WorldViewDockGLWidget::setFrame(int value)
@@ -88,7 +95,9 @@ void WorldViewDockGLWidget::setFocalPlaneDistance(float distance)
 
 WorldViewDockGLWidget::~WorldViewDockGLWidget()
 {
+#ifndef Q_OS_MACOS
 	if (opengl_initialised)gluDeleteQuadric(sphere_quadric);
+#endif
 }
 
 void WorldViewDockGLWidget::setUseCustomTimeline(bool value)
@@ -131,102 +140,97 @@ void WorldViewDockGLWidget::wheelEvent(QWheelEvent* e)
 	update();
 }
 
+#ifndef Q_OS_MACOS
 void WorldViewDockGLWidget::initializeGL()
 {
-	glShadeModel(GL_SMOOTH); // Enable Smooth Shading
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
-	glClearDepth(1.0f); // Depth Buffer Setup
-	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
-	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective Calculations
+	glShadeModel(GL_SMOOTH);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearDepth(1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-	glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient); // Setup The Ambient Light
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse); // Setup The Diffuse Light
-	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition); // Position The Light
+	glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse);
+	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
 	glEnable(GL_LIGHT1);
 	glEnable(GL_LIGHTING);
 
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT,GL_AMBIENT_AND_DIFFUSE);
 }
+#endif
 
-void WorldViewDockGLWidget::resizeGL(int _w, int _h)
+void WorldViewDockGLWidget::resizeEvent(QResizeEvent* /*event*/)
 {
-	w = _w;
-	h = _h;
-
-	// Handle high DPI displays by using device pixel ratio
+    w = width();
+    h = height();
+#ifndef Q_OS_MACOS
 	qreal devicePixelRatio = this->devicePixelRatio();
 	glViewport(0, 0, w * devicePixelRatio, h * devicePixelRatio);
+#endif
 }
 
-void WorldViewDockGLWidget::paintGL()
+void WorldViewDockGLWidget::paintEvent(QPaintEvent* /*event*/)
 {
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(25.0, (double(w)) / h, 1.0, 100000.0);
-
-	double e_z = eyedistance * cos(polar * _PI / 180.0) * sin(azimuth * _PI / 180.0);
-	double e_x = eyedistance * sin(polar * _PI / 180.0) * sin(azimuth * _PI / 180.0);
-	double e_y = eyedistance * cos(azimuth * _PI / 180.0);
-
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	gluLookAt(e_x, e_y, e_z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	glRotated(-90.0, 1.0, 0.0, 0.0);
-	glRotated(180.0, 0.0, 0.0, 1.0);
-
-	glDisable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glLineWidth(2.5);
-	glColor3f(1.0, 0.0, 0.0);
-	glBegin(GL_LINES);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(100.0, 0, 0);
-	glEnd();
-
-	glColor3f(0.0, 1.0, 0.0);
-	glBegin(GL_LINES);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(0, 100.0, 0);
-	glEnd();
-
-	glColor3f(0.0, 0.0, 1.0);
-	glBegin(GL_LINES);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(0, 0, 100.0);
-	glEnd();
-
-	//////////DRAW
-	if (this->isVisible())
-	{
-		if (State::getInstance()->getWorkspace() == CALIBRATION)
-		{
-			drawCalibrationCube();
-			drawCameras();
-		}
-		else if (State::getInstance()->getWorkspace() == DIGITIZATION)
-		{
-			if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 &&
-				State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
-			{
-				Trial* trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
-				if (trial->getStartFrame() - 1 <= State::getInstance()->getActiveFrameTrial()
-					&& trial->getEndFrame() - 1 >= State::getInstance()->getActiveFrameTrial())
-				{
-					drawCameras();
-					drawMarkers(trial, frame);
-					drawRigidBodies(trial, frame);
-				}
-			}
-		}
-	}
-	glFlush();
+#ifdef Q_OS_MACOS
+	QPainter p(this);
+	p.fillRect(rect(), QColor(20,20,20));
+	p.setPen(Qt::white);
+	p.drawText(rect(), Qt::AlignCenter, QStringLiteral("WorldView disabled on macOS (stub)"));
+#else
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(25.0, (double(w)) / h, 1.0, 100000.0);
+    double e_z = eyedistance * cos(polar * _PI / 180.0) * sin(azimuth * _PI / 180.0);
+    double e_x = eyedistance * sin(polar * _PI / 180.0) * sin(azimuth * _PI / 180.0);
+    double e_y = eyedistance * cos(azimuth * _PI / 180.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(e_x, e_y, e_z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    glRotated(-90.0, 1.0, 0.0, 0.0);
+    glRotated(180.0, 0.0, 0.0, 1.0);
+    glDisable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glLineWidth(2.5);
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(100.0, 0, 0);
+    glEnd();
+    glColor3f(0.0, 1.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(0, 100.0, 0);
+    glEnd();
+    glColor3f(0.0, 0.0, 1.0);
+    glBegin(GL_LINES);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(0, 0, 100.0);
+    glEnd();
+    if (this->isVisible()) {
+        if (State::getInstance()->getWorkspace() == CALIBRATION) {
+            drawCalibrationCube();
+            drawCameras();
+        } else if (State::getInstance()->getWorkspace() == DIGITIZATION) {
+            if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 &&
+                State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size()) {
+                Trial* trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
+                if (trial->getStartFrame() - 1 <= State::getInstance()->getActiveFrameTrial()
+                    && trial->getEndFrame() - 1 >= State::getInstance()->getActiveFrameTrial()) {
+                    drawCameras();
+                    drawMarkers(trial, frame);
+                    drawRigidBodies(trial, frame);
+                }
+            }
+        }
+    }
+    glFlush();
+#endif
 }
 
+#ifndef Q_OS_MACOS
 void WorldViewDockGLWidget::drawCameras()
 {
 	for (unsigned int cam = 0; cam < Project::getInstance()->getCameras().size(); cam++)
@@ -466,4 +470,5 @@ void WorldViewDockGLWidget::drawCalibrationCube()
 		}
 	}
 }
+#endif // !Q_OS_MACOS
 

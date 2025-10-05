@@ -28,6 +28,9 @@
 #define WorldViewDockGLWidget_H_
 
 #include <QtOpenGLWidgets/QOpenGLWidget>
+#ifdef Q_OS_MACOS
+#include <QWidget>
+#endif
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
@@ -44,6 +47,40 @@ namespace xma
 {
 	class Trial;
 
+#ifdef Q_OS_MACOS
+	class WorldViewDockGLWidget : public QWidget
+	{
+		Q_OBJECT
+	public:
+		explicit WorldViewDockGLWidget(QWidget* parent = nullptr);
+		~WorldViewDockGLWidget() override;
+
+		void setUseCustomTimeline(bool value);
+		void setFrame(int value);
+
+	public slots:
+		void animate();
+		void setFocalPlaneDistance(float distance);
+
+	protected:
+		void paintEvent(QPaintEvent* event) override;
+		void resizeEvent(QResizeEvent* event) override;
+		void mouseMoveEvent(QMouseEvent* e) override;
+		void mousePressEvent(QMouseEvent* e) override;
+		void wheelEvent(QWheelEvent* event) override;
+
+	private:
+		int w, h;
+		double eyedistance;
+		double azimuth;
+		double polar;
+		double prev_azi;
+		double prev_pol;
+		double focal_plane_distance;
+		int frame;
+		bool useCustomTimeline;
+	};
+#else
 	class WorldViewDockGLWidget : public QOpenGLWidget
 	{
 		Q_OBJECT
@@ -76,7 +113,7 @@ namespace xma
 		double prev_azi;
 		double prev_pol;
 		double focal_plane_distance;
-		
+        
 		int frame;
 		bool useCustomTimeline;
 
@@ -89,6 +126,7 @@ namespace xma
 		GLUquadricObj* sphere_quadric;
 		bool opengl_initialised;
 	};
+#endif
 }
 
 

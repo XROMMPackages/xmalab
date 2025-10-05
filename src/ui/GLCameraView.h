@@ -26,101 +26,148 @@
 
 #ifndef GLWIDGET_H_
 #define GLWIDGET_H_
-
 #include <QOpenGLWidget>
+#ifdef Q_OS_MACOS
+#include <QWidget>
+#endif
 
 namespace xma
 {
-	class Camera;
-	class FrameBuffer;
-	class DistortionShader;
-	class BlendShader;
-	class GLCameraView : public QOpenGLWidget
-	{
-		Q_OBJECT
+    class Camera;
+    class FrameBuffer;
+    class DistortionShader;
+    class BlendShader;
 
-	public:
-		explicit GLCameraView(QWidget* parent = nullptr);
-		~GLCameraView() override;
+#ifdef Q_OS_MACOS
+    // macOS stub to avoid OpenGL usage at startup; preserves public API
+    class GLCameraView : public QWidget
+    {
+        Q_OBJECT
 
-		void setCamera(Camera* _camera);
+    public:
+        explicit GLCameraView(QWidget* parent = nullptr);
+        ~GLCameraView() override;
 
-		void setMinimumWidthGL(bool set);
-		void setAutoZoom(bool on);
-		void setZoom(int value);
+        void setCamera(Camera* _camera);
+        void setMinimumWidthGL(bool set);
+        void setAutoZoom(bool on);
+        void setZoom(int value);
 
-		void setDetailedView();
+        void setDetailedView();
 
-		void setScale(double value);
-		void setBias(double value);
-		void setTransparency(double value);
-		void setRenderTransparentModels(bool value);
-		void centerViewToPoint(bool resetZoom = false);
-		void UseStatusColors(bool value);
+        void setScale(double value);
+        void setBias(double value);
+        void setTransparency(double value);
+        void setRenderTransparentModels(bool value);
+        void centerViewToPoint(bool resetZoom = false);
+        void UseStatusColors(bool value);
 
-	protected:
-		void paintGL() override;
-		void initializeGL() override;
-		void resizeGL(int w, int h) override;
+    protected:
+        void paintEvent(QPaintEvent* event) override;
+        void resizeEvent(QResizeEvent* event) override;
+        void mouseMoveEvent(QMouseEvent* e) override;
+        void mousePressEvent(QMouseEvent* e) override;
+        void wheelEvent(QWheelEvent* event) override;
+        void mouseDoubleClickEvent(QMouseEvent* event) override;
 
-		void mouseMoveEvent(QMouseEvent* e) override;
-		void mousePressEvent(QMouseEvent* e) override;
-		void wheelEvent(QWheelEvent* event) override;
-		void mouseDoubleClickEvent(QMouseEvent* event) override;
+    void setZoomToFit();
+    void setZoomTo100();
 
-		void setZoomToFit();
-		void setZoomTo100();
+    private:
+        Camera* camera;
+    signals:
+        void autozoomChanged(bool on);
+        void zoomChanged(int zoom);
+        void transparencyChanged(double zoom);
+    };
+#else
+    // Original OpenGL-backed implementation on non-macOS
+    class GLCameraView : public QOpenGLWidget
+    {
+        Q_OBJECT
+
+    public:
+        explicit GLCameraView(QWidget* parent = nullptr);
+        ~GLCameraView() override;
+
+        void setCamera(Camera* _camera);
+
+        void setMinimumWidthGL(bool set);
+        void setAutoZoom(bool on);
+        void setZoom(int value);
+
+        void setDetailedView();
+
+        void setScale(double value);
+        void setBias(double value);
+        void setTransparency(double value);
+        void setRenderTransparentModels(bool value);
+        void centerViewToPoint(bool resetZoom = false);
+        void UseStatusColors(bool value);
+
+    protected:
+        void paintGL() override;
+        void initializeGL() override;
+        void resizeGL(int w, int h) override;
+
+        void mouseMoveEvent(QMouseEvent* e) override;
+        void mousePressEvent(QMouseEvent* e) override;
+        void wheelEvent(QWheelEvent* event) override;
+        void mouseDoubleClickEvent(QMouseEvent* event) override;
+
+        void setZoomToFit();
+        void setZoomTo100();
 
 
-	private:
-		bool detailedView;
-		Camera* camera;
-		void clampXY();
+    private:
+        bool detailedView;
+        Camera* camera;
+        void clampXY();
 
-		int window_width, window_height;
-		int camera_width, camera_height;
-		double x_offset, y_offset;
-		double prev_x, prev_y;
+        int window_width, window_height;
+        int camera_width, camera_height;
+        double x_offset, y_offset;
+        double prev_x, prev_y;
 
-		double zoomRatio;
-		bool autozoom;
-		bool showStatusColors;
+        double zoomRatio;
+        bool autozoom;
+        bool showStatusColors;
 
-		void setZoomRatio(double newZoomRation, bool autozoom = false);
+        void setZoomRatio(double newZoomRation, bool autozoom = false);
 
-		void renderTextCentered(QString string);
-		inline bool projectTextPos(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble proj[16], const GLint viewport[4], GLdouble * winx, GLdouble * winy, GLdouble * winz);
-		inline void transformTextPos(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
-		void renderText(double x, double y, double z, const QString &str, QColor fontColor, const QFont & font = QFont());
-		void renderPointText(bool calibration);
-		void drawTexture();
-		void drawQuad();
+        void renderTextCentered(QString string);
+        inline bool projectTextPos(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble proj[16], const GLint viewport[4], GLdouble * winx, GLdouble * winy, GLdouble * winz);
+        inline void transformTextPos(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
+        void renderText(double x, double y, double z, const QString &str, QColor fontColor, const QFont & font = QFont());
+        void renderPointText(bool calibration);
+        void drawTexture();
+        void drawQuad();
 
-		double x_test, y_test;
-		double bias;
-		double scale;
-		double transparency;
-		bool renderTransparentModels; 
+        double x_test, y_test;
+        double bias;
+        double scale;
+        double transparency;
+        bool renderTransparentModels; 
 
-		BlendShader* blendShader;
-		DistortionShader * distortionShader;
-		FrameBuffer * rigidbodyBufferUndistorted;
-		bool doDistortion;
-		bool renderMeshes;
-	public:
-		signals :
+        BlendShader* blendShader;
+        DistortionShader * distortionShader;
+        FrameBuffer * rigidbodyBufferUndistorted;
+        bool doDistortion;
+        bool renderMeshes;
+    public:
+    signals:
+        void autozoomChanged(bool on);
+        void zoomChanged(int zoom);
+        void transparencyChanged(double zoom);
 
-		void autozoomChanged(bool on);
-		void zoomChanged(int zoom);
-		void transparencyChanged(double zoom);
-
-	private:
-		GLfloat LightAmbient[4];
-		GLfloat LightDiffuse[4];
-		GLfloat LightPosition_front[4];
-		GLfloat LightPosition_back[4];
-	};
+    private:
+        GLfloat LightAmbient[4];
+        GLfloat LightDiffuse[4];
+        GLfloat LightPosition_front[4];
+        GLfloat LightPosition_back[4];
+    };
+#endif
 }
 
-#endif /* PROGRESSDIALOG_H_ */
+#endif /* GLWIDGET_H_ */
 

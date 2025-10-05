@@ -28,9 +28,30 @@
 #define GLSHAREDWIDGET_H
 
 #include <QtOpenGLWidgets/QOpenGLWidget>
+#ifdef Q_OS_MACOS
+#include <QWidget>
+#endif
 
 namespace xma
 {
+#ifdef Q_OS_MACOS
+	class GLSharedWidget : public QWidget
+	{
+		Q_OBJECT
+	public:
+		~GLSharedWidget() override;
+		static GLSharedWidget* getInstance();
+		double getVersion() const;
+		QString getInfo() const;
+	public slots:
+		bool getHasBlendExt() const;
+		bool getHasBlendSubtract() const;
+	protected:
+		explicit GLSharedWidget(QWidget* parent = nullptr);
+	private:
+		static GLSharedWidget* instance;
+	};
+#else
 	class GLSharedWidget : public QOpenGLWidget
 	{
 		Q_OBJECT
@@ -65,6 +86,7 @@ namespace xma
 		QString gl_EXTENSIONS;
 
 	};
+#endif
 }
 
 

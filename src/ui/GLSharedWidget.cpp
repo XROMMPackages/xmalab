@@ -27,7 +27,9 @@
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#ifndef Q_OS_MACOS
 #include "GL/glew.h"
+#endif
 
 #include "ui/GLSharedWidget.h"
 
@@ -39,6 +41,12 @@ using namespace xma;
 GLSharedWidget* GLSharedWidget::instance = NULL;
 
 GLSharedWidget::GLSharedWidget(QWidget* parent)
+#ifdef Q_OS_MACOS
+    : QWidget(parent)
+{
+    setAutoFillBackground(false);
+}
+#else
 	: QOpenGLWidget(parent), version(0.0f)
 {
 	setAutoFillBackground(false);
@@ -46,6 +54,7 @@ GLSharedWidget::GLSharedWidget(QWidget* parent)
 	initializeGL();
 	hide();
 }
+#endif
 
 GLSharedWidget::~GLSharedWidget()
 {
@@ -73,21 +82,29 @@ GLSharedWidget* GLSharedWidget::getInstance()
 
 double GLSharedWidget::getVersion() const
 {
+#ifdef Q_OS_MACOS
+	return 0.0;
+#else
 	return version;
+#endif
 }
 
 QString GLSharedWidget::getInfo() const
 {
+#ifdef Q_OS_MACOS
+	return QStringLiteral("GL info unavailable (stub)");
+#else
 	return gl_VENDOR + "\n" + gl_RENDERER + "\n" + gl_VERSION + "\n" + gl_SHADING_LANGUAGE_VERSION + "\n" + gl_EXTENSIONS;
+#endif
 }
 
 
+#ifndef Q_OS_MACOS
 void GLSharedWidget::initializeGL()
 {
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
-		/* Problem: glewInit failed, something is seriously wrong. */
 		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
 	}
 
@@ -103,14 +120,23 @@ void GLSharedWidget::initializeGL()
 	hasBlendSubtract = glewGetExtension("GL_EXT_blend_subtract");
 	hasBlendExt = glewGetExtension("GL_EXT_blend_minmax");
 }
+#endif
 
 bool GLSharedWidget::getHasBlendSubtract() const
 {
+#ifdef Q_OS_MACOS
+	return false;
+#else
 	return hasBlendSubtract;
+#endif
 }
 
 bool GLSharedWidget::getHasBlendExt() const
 {
+#ifdef Q_OS_MACOS
+	return false;
+#else
 	return hasBlendExt;
+#endif
 }
 

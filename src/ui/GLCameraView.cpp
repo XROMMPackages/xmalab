@@ -28,7 +28,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#ifndef Q_OS_MACOS
 #include <GL/glew.h>
+#endif
 #include "gl/MultisampleFrameBuffer.h"
 #include "gl/DistortionShader.h"
 #include "gl/BlendShader.h"
@@ -62,8 +64,8 @@
 #include "MainWindow.h"
 
 #ifdef __APPLE__
-	#include <OpenGL/gl.h>
-	#include <OpenGL/glu.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
 #else
 #ifdef _WIN32
 #include <windows.h>
@@ -76,27 +78,34 @@
 using namespace xma;
 
 GLCameraView::GLCameraView(QWidget* parent)
+#ifdef Q_OS_MACOS
+    : QWidget(parent)
+#else
 	: QOpenGLWidget(parent)
+#endif
 {
-	camera = NULL;
-	window_width = 50;
-	window_height = 50;
-	setMinimumSize(50, 50);
-	setAutoFillBackground(false);
-	x_offset = 0;
-	y_offset = 0;
-	this->setCursor(QCursor(Qt::CrossCursor));
-	setZoomRatio(1.0, true);
-	detailedView = false;
-	bias = 0.0;
-	scale = 1.0;
-	transparency = 0.5;
-	renderTransparentModels = true;
-	showStatusColors = false;
-	distortionShader = 0;
-	blendShader = NULL; 
-	rigidbodyBufferUndistorted = NULL;
+    camera = NULL;
+    setMinimumSize(50, 50);
+    setAutoFillBackground(false);
+    this->setCursor(QCursor(Qt::CrossCursor));
+#ifndef Q_OS_MACOS
+    window_width = 50;
+    window_height = 50;
+    x_offset = 0;
+    y_offset = 0;
+    setZoomRatio(1.0, true);
+    detailedView = false;
+    bias = 0.0;
+    scale = 1.0;
+    transparency = 0.5;
+    renderTransparentModels = true;
+    showStatusColors = false;
+    distortionShader = 0;
+    blendShader = NULL; 
+    rigidbodyBufferUndistorted = NULL;
+#endif
 
+#ifndef Q_OS_MACOS
 	LightAmbient[0] = LightAmbient[1] = LightAmbient[2] = 0.1f;
 	LightAmbient[3] = 1.0f;
 
@@ -108,50 +117,85 @@ GLCameraView::GLCameraView(QWidget* parent)
 
 	LightPosition_back[0] = LightPosition_back[1] = LightPosition_back[3] = 0.0f;
 	LightPosition_back[2] = -1.0f;
+#endif
 }
 
 GLCameraView::~GLCameraView()
 {
-	if (blendShader)
-		delete blendShader;
+#ifndef Q_OS_MACOS
+    if (blendShader)
+        delete blendShader;
 
-	if (rigidbodyBufferUndistorted)
-		delete rigidbodyBufferUndistorted;
+    if (rigidbodyBufferUndistorted)
+        delete rigidbodyBufferUndistorted;
 
-	if (distortionShader)
-		delete distortionShader;
+    if (distortionShader)
+        delete distortionShader;
+#endif
 }
 
 void GLCameraView::setCamera(Camera* _camera)
 {
-	camera = _camera;
-
-	camera_width = camera->getWidth();
-	camera_height = camera->getHeight();
-
-	if (!detailedView){
-		if (rigidbodyBufferUndistorted)
-			delete rigidbodyBufferUndistorted;
-
-			rigidbodyBufferUndistorted = new FrameBuffer(camera_width, camera_height);
-
-		if (distortionShader)
-			delete distortionShader;
-		distortionShader = new DistortionShader(camera);
-
-		if (blendShader)
-			delete blendShader;
-		blendShader = new BlendShader(); 
-	}
+    camera = _camera;
+#ifndef Q_OS_MACOS
+    camera_width = camera->getWidth();
+    camera_height = camera->getHeight();
+    if (!detailedView){
+        if (rigidbodyBufferUndistorted)
+            delete rigidbodyBufferUndistorted;
+        rigidbodyBufferUndistorted = new FrameBuffer(camera_width, camera_height);
+        if (distortionShader)
+            delete distortionShader;
+        distortionShader = new DistortionShader(camera);
+        if (blendShader)
+            delete blendShader;
+        blendShader = new BlendShader(); 
+    }
+#endif
 }
 
+#ifdef Q_OS_MACOS
+// macOS stubbed painting to avoid OpenGL path during startup
+void GLCameraView::paintEvent(QPaintEvent* /*event*/)
+{
+	QPainter p(this);
+	p.fillRect(rect(), QColor(24,24,24));
+	p.setPen(Qt::white);
+	p.drawText(rect(), Qt::AlignCenter, QStringLiteral("GLCameraView disabled on macOS (stub)"));
+}
 
+void GLCameraView::resizeEvent(QResizeEvent* /*event*/)
+{
+}
+
+// macOS stub implementations for API parity (no-ops)
+void GLCameraView::setMinimumWidthGL(bool) {}
+void GLCameraView::setAutoZoom(bool) {}
+void GLCameraView::setZoom(int) {}
+void GLCameraView::setDetailedView() {}
+void GLCameraView::setScale(double) {}
+void GLCameraView::setBias(double) {}
+void GLCameraView::setTransparency(double) {}
+void GLCameraView::setRenderTransparentModels(bool) {}
+void GLCameraView::centerViewToPoint(bool) {}
+void GLCameraView::UseStatusColors(bool) {}
+void GLCameraView::setZoomToFit() {}
+void GLCameraView::setZoomTo100() {}
+void GLCameraView::mouseMoveEvent(QMouseEvent*) {}
+void GLCameraView::mousePressEvent(QMouseEvent*) {}
+void GLCameraView::wheelEvent(QWheelEvent*) {}
+void GLCameraView::mouseDoubleClickEvent(QMouseEvent*) {}
+
+// input handlers are implemented below with platform branches
+#else // !Q_OS_MACOS
+
+// Non-macOS implementation only
 void GLCameraView::clampXY()
 {
 	qreal devicePixelRatio = this->devicePixelRatio();
 	double effectiveWidth = window_width * devicePixelRatio;
 	double effectiveHeight = window_height * devicePixelRatio;
-	
+    
 	if (camera_width < effectiveWidth * zoomRatio)
 	{
 		if (x_offset < -0.5 * (zoomRatio * effectiveWidth)) x_offset = -0.5 * (zoomRatio * effectiveWidth);
@@ -402,6 +446,7 @@ void GLCameraView::setTransparency(double value)
 	if (transparency > 1.0)  transparency = 1.0;
 
 	update();
+	update();
 }
 
 void GLCameraView::setRenderTransparentModels(bool value)
@@ -421,6 +466,7 @@ void GLCameraView::setZoomToFit()
 	x_offset = -0.5 * (zoomRatio * effectiveWidth);
 	y_offset = -0.5 * (zoomRatio * effectiveHeight);
 
+	update();
 	update();
 }
 
@@ -452,6 +498,7 @@ void GLCameraView::resizeGL(int _w, int _h)
 	// Handle high DPI displays by using device pixel ratio
 	qreal devicePixelRatio = this->devicePixelRatio();
 	glViewport(0, 0, window_width * devicePixelRatio, window_height * devicePixelRatio);
+	if (autozoom)setZoomToFit();
 	if (autozoom)setZoomToFit();
 }
 
@@ -524,6 +571,7 @@ void GLCameraView::renderText(double x, double y, double z, const QString &str, 
 	painter.setPen(fontColor);
 	painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 	painter.drawText(textPosX, textPosY, str); // z = pointT4.z + distOverOp / 4
+	painter.end();
 	painter.end();
 }
 
@@ -618,6 +666,7 @@ void GLCameraView::renderPointText(bool calibration)
 	x.clear();
 	y.clear();
 	text.clear();
+	text.clear();
 }
 
 void GLCameraView::drawTexture()
@@ -656,6 +705,7 @@ void GLCameraView::drawTexture()
 	}
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void GLCameraView::drawQuad()
@@ -669,6 +719,7 @@ void GLCameraView::drawQuad()
 	glVertex2f(camera_width - 0.5, camera_height - 0.5);
 	glTexCoord2f(1, 0);
 	glVertex2f(camera_width - 0.5, -0.5);
+	glEnd();
 	glEnd();
 }
 
@@ -991,4 +1042,6 @@ void GLCameraView::setZoomRatio(double newZoomRation, bool newAutozoom)
 		emit autozoomChanged(autozoom);
 	}
 }
+
+#endif // !Q_OS_MACOS
 
