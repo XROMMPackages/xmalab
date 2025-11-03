@@ -452,16 +452,22 @@ void Project::recountFrames()
 
 void Project::loadTextures()
 {
+#ifdef XMA_USE_PAINTER
+    // In painter mode, we do not create or bind any OpenGL textures.
+    // Images are fetched on demand as cv::Mat/QImage in the painter path.
+    return;
+#else
 	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
 	{
 		(*it)->loadTextures();
 		QApplication::processEvents();
 	}
-
+#endif
 }
 
 void Project::reloadTextures()
 {
+	// Always reset trial images (used by painter path too)
 	for (auto tr : getTrials())
 	{
 		for (auto vid : tr->getVideoStreams())
@@ -469,11 +475,14 @@ void Project::reloadTextures()
 			vid->getImage()->resetImage();
 		}
 	}
+
+#ifndef XMA_USE_PAINTER
 	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
 	{
 		(*it)->reloadTextures();
 		QApplication::processEvents();
 	}
+#endif
 }
 
 void Project::exportDLT(QString foldername)

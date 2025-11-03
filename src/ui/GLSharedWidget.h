@@ -27,14 +27,15 @@
 #ifndef GLSHAREDWIDGET_H
 #define GLSHAREDWIDGET_H
 
+#ifndef XMA_USE_PAINTER
 #include <QtOpenGLWidgets/QOpenGLWidget>
-#ifdef Q_OS_MACOS
+#else
 #include <QWidget>
 #endif
 
 namespace xma
 {
-#ifdef Q_OS_MACOS
+#ifdef XMA_USE_PAINTER
 	class GLSharedWidget : public QWidget
 	{
 		Q_OBJECT

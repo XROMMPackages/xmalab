@@ -122,8 +122,18 @@ IF("${PROJECT_BETA_VERSION}" GREATER 0)
 	ADD_DEFINITIONS(-DPROJECT_BETA_VERSION=\"${PROJECT_BETA_VERSION}\")
 ENDIF()
 
+# Rendering options
+option(XMA_USE_PAINTER "Use QPainter-only rendering for camera views (no OpenGL in views)" ON)
+option(XMA_HIDE_WORLD_VIEW "Hide/disable the 3D world view dock" ON)
+
 ADD_DEFINITIONS(-DQCUSTOMPLOT_USE_OPENGL)
 ADD_DEFINITIONS(-DGLEW_STATIC)
+if (XMA_USE_PAINTER)
+	add_definitions(-DXMA_USE_PAINTER)
+endif()
+if (XMA_HIDE_WORLD_VIEW)
+	add_definitions(-DXMA_HIDE_WORLD_VIEW)
+endif()
 
 #Set Includes and CMAKE_CURRENT_SOURCE_DIR
 SET(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)

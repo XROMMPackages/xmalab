@@ -26,8 +26,9 @@
 
 #ifndef GLWIDGET_H_
 #define GLWIDGET_H_
+#ifndef XMA_USE_PAINTER
 #include <QOpenGLWidget>
-#ifdef Q_OS_MACOS
+#else
 #include <QWidget>
 #endif
 
@@ -38,8 +39,8 @@ namespace xma
     class DistortionShader;
     class BlendShader;
 
-#ifdef Q_OS_MACOS
-    // macOS stub to avoid OpenGL usage at startup; preserves public API
+#ifdef XMA_USE_PAINTER
+    // Painter-based implementation (no OpenGL)
     class GLCameraView : public QWidget
     {
         Q_OBJECT
@@ -74,7 +75,30 @@ namespace xma
     void setZoomTo100();
 
     private:
+        bool detailedView;
         Camera* camera;
+        void clampXY();
+
+        int window_width, window_height;
+        int camera_width, camera_height;
+        double x_offset, y_offset;
+        double prev_x, prev_y;
+
+        double zoomRatio;
+        bool autozoom;
+        bool showStatusColors;
+
+        void setZoomRatio(double newZoomRation, bool autozoom = false);
+
+        void renderPointText(bool calibration);
+        void drawUndistortionOverlays();
+        void drawDigitizationOverlays();
+        void drawCalibrationOverlays();
+
+        double bias;
+        double scale;
+        double transparency;
+        bool renderTransparentModels; 
     signals:
         void autozoomChanged(bool on);
         void zoomChanged(int zoom);

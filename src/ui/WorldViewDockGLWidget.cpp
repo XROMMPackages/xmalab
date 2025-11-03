@@ -58,8 +58,8 @@ GLfloat LightDiffuse[] = {0.5f, 0.5f, 0.5f, 1.0f}; // Diffuse Light Values
 GLfloat LightPosition[] = {0.0f, 10.0f, 0.0f, 1.0f}; // Light Position
 
 WorldViewDockGLWidget::WorldViewDockGLWidget(QWidget* parent)
-#ifdef Q_OS_MACOS
-    : QWidget(parent), useCustomTimeline(false), frame(0)
+#ifdef XMA_USE_PAINTER
+	: QWidget(parent), useCustomTimeline(false), frame(0)
 #else
 	: QOpenGLWidget(parent), useCustomTimeline(false), frame(0)
 #endif
@@ -140,7 +140,7 @@ void WorldViewDockGLWidget::wheelEvent(QWheelEvent* e)
 	update();
 }
 
-#ifndef Q_OS_MACOS
+#ifndef XMA_USE_PAINTER
 void WorldViewDockGLWidget::initializeGL()
 {
 	glShadeModel(GL_SMOOTH);
@@ -230,7 +230,7 @@ void WorldViewDockGLWidget::paintEvent(QPaintEvent* /*event*/)
 #endif
 }
 
-#ifndef Q_OS_MACOS
+#ifndef XMA_USE_PAINTER
 void WorldViewDockGLWidget::drawCameras()
 {
 	for (unsigned int cam = 0; cam < Project::getInstance()->getCameras().size(); cam++)
@@ -470,5 +470,5 @@ void WorldViewDockGLWidget::drawCalibrationCube()
 		}
 	}
 }
-#endif // !Q_OS_MACOS
+#endif // !XMA_USE_PAINTER
 

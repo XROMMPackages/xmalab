@@ -153,6 +153,10 @@ namespace xma
 		void drawData(int type);
 		void bindTexture(int type);
 
+		// Painter-only: fetch the image to display for a given visualization type (0-6)
+		// 0: distorted, 1: undistorted, 2-6: computed tmp images
+		Image* getDisplayImage(int type);
+
 		std::vector<bool>& getInlier()
 		{
 			return points_grid_inlier;

@@ -341,10 +341,15 @@ void Trial::bindTextures()
 {
 	if (isDefault)
 		return;
+#ifdef XMA_USE_PAINTER
+	// Painter mode does not use GL textures
+	return;
+#else
 	for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
 	{
 		(*video)->bindTexture();
 	}
+#endif
 }
 
 void Trial::save(QString path)

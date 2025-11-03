@@ -805,6 +805,28 @@ void UndistortionObject::bindTexture(int type)
 	}
 }
 
+Image* UndistortionObject::getDisplayImage(int type)
+{
+	switch (type)
+	{
+	case 0:
+	default:
+		return image;
+	case 1:
+		return undistortedImage;
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6:
+		if (tmpImageType != type)
+		{
+			computeTmpImage(type);
+		}
+		return tmpImage;
+	}
+}
+
 QString UndistortionObject::getFilename()
 {
 	QFileInfo info(imageFileName);

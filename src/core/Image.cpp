@@ -225,6 +225,31 @@ void Image::resetImage()
 
 void Image::loadTexture()
 {
+	#ifdef XMA_USE_PAINTER
+	    // Painter mode: no OpenGL textures. Ensure display mats are up-to-date only.
+	    if (colorImage_set != COLOR_ORIGINAL || (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && State::getInstance()->getWorkspace() == DIGITIZATION && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll")))
+	    {
+	        image_color_disp.create(image.rows, image.cols, CV_8UC(3));
+	        cv::Mat* tex_image = &image_color_disp;
+	        if (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && State::getInstance()->getWorkspace() == DIGITIZATION && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll") && State::getInstance()->getWorkspace() == DIGITIZATION)
+	        {
+	            if (!image.empty()){
+	                cv::Mat img_gamma = FilterImage().run(image);
+	                cv::cvtColor(img_gamma, image_color_disp, cv::COLOR_GRAY2RGB);
+	            }
+	        }
+	        else if (colorImage_set == GRAY)
+	        {
+	            if (!image.empty()) 
+	                cv::cvtColor(image, image_color_disp, cv::COLOR_GRAY2RGB);
+	        }
+	        if (colorImage_set == GRAY)
+	            image_color.release();
+	    }
+	    textureLoaded = false;
+	    image_reset = false;
+	    return;
+	#endif
 	cv::Mat  * tex_image = &image_color;
 	if (!textureLoaded || image_reset)
 	{
@@ -276,12 +301,21 @@ void Image::loadTexture()
 
 void Image::bindTexture()
 {
+	#ifdef XMA_USE_PAINTER
+	    // No-op in painter mode
+	    return;
+	#endif
 	loadTexture();
 	glBindTexture(GL_TEXTURE_2D, texture);
 }
 
 void Image::deleteTexture()
 {
+	#ifdef XMA_USE_PAINTER
+	    // No GL textures to delete in painter mode
+	    textureLoaded = false;
+	    return;
+	#endif
 	if (textureLoaded)
 	{
 		//GLSharedWidget::getInstance()->makeCurrent();

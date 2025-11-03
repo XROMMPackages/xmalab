@@ -27,8 +27,9 @@
 #ifndef WorldViewDockGLWidget_H_
 #define WorldViewDockGLWidget_H_
 
+#ifndef XMA_USE_PAINTER
 #include <QtOpenGLWidgets/QOpenGLWidget>
-#ifdef Q_OS_MACOS
+#else
 #include <QWidget>
 #endif
 
@@ -47,7 +48,7 @@ namespace xma
 {
 	class Trial;
 
-#ifdef Q_OS_MACOS
+#ifdef XMA_USE_PAINTER
 	class WorldViewDockGLWidget : public QWidget
 	{
 		Q_OBJECT

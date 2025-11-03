@@ -28,7 +28,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#ifndef Q_OS_MACOS
+#ifndef XMA_USE_PAINTER
 #include <GL/glew.h>
 #endif
 #include "gl/MultisampleFrameBuffer.h"
@@ -63,6 +63,7 @@
 #include <math.h>
 #include "MainWindow.h"
 
+#ifndef XMA_USE_PAINTER
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
@@ -73,13 +74,14 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #endif
+#endif
 
 
 using namespace xma;
 
 GLCameraView::GLCameraView(QWidget* parent)
-#ifdef Q_OS_MACOS
-    : QWidget(parent)
+#ifdef XMA_USE_PAINTER
+	: QWidget(parent)
 #else
 	: QOpenGLWidget(parent)
 #endif
@@ -88,7 +90,7 @@ GLCameraView::GLCameraView(QWidget* parent)
     setMinimumSize(50, 50);
     setAutoFillBackground(false);
     this->setCursor(QCursor(Qt::CrossCursor));
-#ifndef Q_OS_MACOS
+#ifndef XMA_USE_PAINTER
     window_width = 50;
     window_height = 50;
     x_offset = 0;
@@ -103,9 +105,21 @@ GLCameraView::GLCameraView(QWidget* parent)
     distortionShader = 0;
     blendShader = NULL; 
     rigidbodyBufferUndistorted = NULL;
+#else
+	window_width = 50;
+	window_height = 50;
+	x_offset = 0;
+	y_offset = 0;
+	setZoomRatio(1.0, true);
+	detailedView = false;
+	bias = 0.0;
+	scale = 1.0;
+	transparency = 0.5;
+	renderTransparentModels = true;
+	showStatusColors = false;
 #endif
 
-#ifndef Q_OS_MACOS
+#ifndef XMA_USE_PAINTER
 	LightAmbient[0] = LightAmbient[1] = LightAmbient[2] = 0.1f;
 	LightAmbient[3] = 1.0f;
 
@@ -122,7 +136,7 @@ GLCameraView::GLCameraView(QWidget* parent)
 
 GLCameraView::~GLCameraView()
 {
-#ifndef Q_OS_MACOS
+#ifndef XMA_USE_PAINTER
     if (blendShader)
         delete blendShader;
 
@@ -137,7 +151,7 @@ GLCameraView::~GLCameraView()
 void GLCameraView::setCamera(Camera* _camera)
 {
     camera = _camera;
-#ifndef Q_OS_MACOS
+#ifndef XMA_USE_PAINTER
     camera_width = camera->getWidth();
     camera_height = camera->getHeight();
     if (!detailedView){
@@ -151,43 +165,423 @@ void GLCameraView::setCamera(Camera* _camera)
             delete blendShader;
         blendShader = new BlendShader(); 
     }
+#else
+	camera_width = camera->getWidth();
+	camera_height = camera->getHeight();
 #endif
 }
 
-#ifdef Q_OS_MACOS
-// macOS stubbed painting to avoid OpenGL path during startup
-void GLCameraView::paintEvent(QPaintEvent* /*event*/)
+#ifdef XMA_USE_PAINTER
+// Painter-based implementation
+static inline QImage matToQImageCopy(const cv::Mat& mat)
+{
+	if (mat.empty()) return QImage();
+	if (mat.type() == CV_8UC1) {
+		QImage img(mat.cols, mat.rows, QImage::Format_Grayscale8);
+		for (int y = 0; y < mat.rows; ++y) {
+			memcpy(img.scanLine(y), mat.ptr(y), mat.cols);
+		}
+		return img;
+	} else if (mat.type() == CV_8UC3) {
+		QImage img(mat.data, mat.cols, mat.rows, static_cast<int>(mat.step), QImage::Format_RGB888);
+		return img.rgbSwapped().copy();
+	} else if (mat.type() == CV_8UC4) {
+		QImage img(mat.data, mat.cols, mat.rows, static_cast<int>(mat.step), QImage::Format_ARGB32);
+		return img.copy();
+	}
+	// Fallback copy via conversion
+	cv::Mat tmp;
+	if (mat.channels() == 3) {
+		cv::cvtColor(mat, tmp, cv::COLOR_BGR2RGB);
+		QImage img(tmp.data, tmp.cols, tmp.rows, static_cast<int>(tmp.step), QImage::Format_RGB888);
+		return img.copy();
+	}
+	return QImage();
+}
+
+void GLCameraView::paintEvent(QPaintEvent*)
 {
 	QPainter p(this);
-	p.fillRect(rect(), QColor(24,24,24));
-	p.setPen(Qt::white);
-	p.drawText(rect(), Qt::AlignCenter, QStringLiteral("GLCameraView disabled on macOS (stub)"));
+	p.fillRect(rect(), QColor(0,0,0));
+
+	if (!camera) {
+		p.setPen(Qt::white);
+		p.drawText(rect(), Qt::AlignCenter, QStringLiteral("No camera"));
+		return;
+	}
+
+	// Select source image
+	xma::Image* src = nullptr;
+	bool color = false;
+	if (State::getInstance()->getWorkspace() == UNDISTORTION) {
+		if (camera->hasUndistortion()) {
+			int t = State::getInstance()->getUndistortionVisImage();
+			src = camera->getUndistortionObject()->getDisplayImage(t);
+			color = (t != 0);
+		}
+	} else if (State::getInstance()->getWorkspace() == CALIBRATION && Project::getInstance()->getCalibration() == INTERNAL) {
+		bool dist = (State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
+		src = camera->getCalibrationSequence()->getImage(State::getInstance()->getActiveFrameCalibration(), dist);
+	} else if (State::getInstance()->getWorkspace() == DIGITIZATION) {
+		if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0) {
+			if (!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault()) {
+				src = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getVideoStreams()[camera->getID()]->getImage();
+			}
+		}
+	}
+
+	QImage img;
+	if (src) {
+		cv::Mat m;
+		src->getImage(m, color);
+		img = matToQImageCopy(m);
+	}
+
+	// Auto-fit if needed
+	if (autozoom) {
+		setZoomToFit();
+	}
+
+	// Draw image with zoom/pan
+	if (!img.isNull()) {
+		qreal dpr = this->devicePixelRatio();
+		double sx = window_width * 0.5 + x_offset / zoomRatio;
+		double sy = window_height * 0.5 + y_offset / zoomRatio;
+		QRectF target(sx / dpr, sy / dpr, (double)img.width() / zoomRatio / dpr, (double)img.height() / zoomRatio / dpr);
+		p.drawImage(target, img);
+
+		// Set a transform so overlays can be drawn in image coordinates
+		QTransform T;
+		T.translate(sx / dpr, sy / dpr);
+		T.scale(1.0 / (zoomRatio * dpr), 1.0 / (zoomRatio * dpr));
+		p.setTransform(T);
+
+		// Overlays
+		if (State::getInstance()->getWorkspace() == UNDISTORTION) {
+			drawUndistortionOverlays();
+		} else if (State::getInstance()->getWorkspace() == CALIBRATION) {
+			drawCalibrationOverlays();
+		} else if (State::getInstance()->getWorkspace() == DIGITIZATION) {
+			drawDigitizationOverlays();
+		}
+	} else {
+		p.setPen(Qt::white);
+		p.drawText(rect(), Qt::AlignCenter, QStringLiteral("No image"));
+	}
 }
 
-void GLCameraView::resizeEvent(QResizeEvent* /*event*/)
+void GLCameraView::drawUndistortionOverlays()
 {
+	if (!camera || !camera->hasUndistortion()) return;
+	QPainter p(this);
+	p.setRenderHint(QPainter::Antialiasing);
+	// Use the current painter transform set by paintEvent
+	int visPts = State::getInstance()->getUndistortionVisPoints();
+	auto uo = camera->getUndistortionObject();
+
+	if (visPts == 1) {
+		// detected points (red)
+		std::vector<cv::Point2d> pts;
+		uo->getDetectedPoints(pts);
+		QPen pen(QColor(255,0,0));
+		p.setPen(pen);
+		for (auto &pt : pts) {
+			p.drawLine(QPointF(pt.x - 2, pt.y), QPointF(pt.x + 2, pt.y));
+			p.drawLine(QPointF(pt.x, pt.y - 2), QPointF(pt.x, pt.y + 2));
+		}
+	} else if (visPts == 2 || visPts == 3 || visPts == 4) {
+		std::vector<cv::Point2d> d, r, u;
+		std::vector<bool> inlier;
+		uo->getGridPoints(d, r, inlier);
+		const std::vector<cv::Point2d> &pts = (visPts == 2 ? d : (visPts == 3 ? u : r));
+		for (size_t i = 0; i < pts.size(); ++i) {
+			QColor c = (i < inlier.size() && inlier[i]) ? QColor(0, 204, 0) : QColor(204, 0, 0);
+			p.setPen(QPen(c));
+			const auto &pt = pts[i];
+			p.drawLine(QPointF(pt.x - 2, pt.y), QPointF(pt.x + 2, pt.y));
+			p.drawLine(QPointF(pt.x, pt.y - 2), QPointF(pt.x, pt.y + 2));
+		}
+	}
+
+	if (camera->getUndistortionObject()->isCenterSet()) {
+		auto c = camera->getUndistortionObject()->getCenter();
+		p.setPen(QPen(QColor(0,0,255)));
+		p.drawLine(QPointF(c.x - 5, c.y - 5), QPointF(c.x + 5, c.y + 5));
+		p.drawLine(QPointF(c.x + 5, c.y - 5), QPointF(c.x - 5, c.y + 5));
+	}
 }
 
-// macOS stub implementations for API parity (no-ops)
-void GLCameraView::setMinimumWidthGL(bool) {}
-void GLCameraView::setAutoZoom(bool) {}
-void GLCameraView::setZoom(int) {}
-void GLCameraView::setDetailedView() {}
-void GLCameraView::setScale(double) {}
-void GLCameraView::setBias(double) {}
-void GLCameraView::setTransparency(double) {}
-void GLCameraView::setRenderTransparentModels(bool) {}
-void GLCameraView::centerViewToPoint(bool) {}
-void GLCameraView::UseStatusColors(bool) {}
-void GLCameraView::setZoomToFit() {}
-void GLCameraView::setZoomTo100() {}
-void GLCameraView::mouseMoveEvent(QMouseEvent*) {}
-void GLCameraView::mousePressEvent(QMouseEvent*) {}
-void GLCameraView::wheelEvent(QWheelEvent*) {}
-void GLCameraView::mouseDoubleClickEvent(QMouseEvent*) {}
+void GLCameraView::drawCalibrationOverlays()
+{
+	if (!camera) return;
+	if (!(State::getInstance()->getWorkspace() == CALIBRATION && Project::getInstance()->getCalibration() == INTERNAL)) return;
 
-// input handlers are implemented below with platform branches
-#else // !Q_OS_MACOS
+	int frame = State::getInstance()->getActiveFrameCalibration();
+	int textMode = State::getInstance()->getCalibrationVisText();
+	bool distorted = (State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
+	if (textMode <= 0) return;
+
+	std::vector<double> xs, ys; std::vector<QString> texts; std::vector<bool> inlier;
+	camera->getCalibrationImages()[frame]->getDrawTextData(textMode, distorted, xs, ys, texts, inlier);
+
+	QPainter p(this);
+	p.setRenderHint(QPainter::Antialiasing);
+	QFont f = this->font(); f.setPointSize(12); p.setFont(f);
+
+	for (size_t i = 0; i < texts.size() && i < xs.size() && i < ys.size(); ++i) {
+		QColor color = (i < inlier.size() && inlier[i]) ? QColor(0, 255, 0) : QColor(255, 0, 0);
+		p.setPen(color);
+		p.drawText(QPointF(xs[i] + 3, ys[i]), texts[i]);
+	}
+}
+
+void GLCameraView::drawDigitizationOverlays()
+{
+	// Minimal stub for now; full digitization overlays can be ported later
+}
+
+void GLCameraView::resizeEvent(QResizeEvent*)
+{
+	window_width = width();
+	window_height = height();
+	if (autozoom) setZoomToFit();
+}
+
+void GLCameraView::setMinimumWidthGL(bool set)
+{
+	if (set && camera) {
+		double ratio = static_cast<double>(camera->getWidth()) / camera->getHeight();
+		qreal dpr = this->devicePixelRatio();
+		this->setMinimumWidth(static_cast<int>(ratio * this->size().height() / dpr));
+	} else {
+		this->setMinimumWidth(0);
+	}
+}
+
+void GLCameraView::setAutoZoom(bool on)
+{
+	if (on) {
+		setZoomRatio(zoomRatio, true);
+		setZoomToFit();
+	} else {
+		setZoomRatio(zoomRatio, false);
+	}
+}
+
+void GLCameraView::setZoom(int value)
+{
+	setZoomRatio(100.0 / value, autozoom);
+	update();
+}
+
+void GLCameraView::setDetailedView()
+{
+	detailedView = true;
+	setZoomRatio(0.2, false);
+}
+
+void GLCameraView::setScale(double value) { scale = value; update(); }
+void GLCameraView::setBias(double value) { bias = value; update(); }
+void GLCameraView::setTransparency(double value)
+{
+	transparency = value; if (transparency < 0.0) transparency = 0.0; if (transparency > 1.0) transparency = 1.0; update();
+}
+void GLCameraView::setRenderTransparentModels(bool value) { renderTransparentModels = value; update(); }
+
+void GLCameraView::setZoomToFit()
+{
+	if (!camera) return;
+	qreal dpr = this->devicePixelRatio();
+	double effectiveWidth = window_width * dpr;
+	double effectiveHeight = window_height * dpr;
+	setZoomRatio(((double)camera_width) / effectiveWidth > ((double)camera_height) / effectiveHeight ? ((double)camera_width) / effectiveWidth : ((double)camera_height) / effectiveHeight, autozoom);
+	x_offset = -0.5 * (zoomRatio * effectiveWidth);
+	y_offset = -0.5 * (zoomRatio * effectiveHeight);
+	update();
+}
+
+void GLCameraView::setZoomTo100() { setZoomRatio(1.0, autozoom); update(); }
+
+void GLCameraView::clampXY()
+{
+	qreal dpr = this->devicePixelRatio();
+	double effectiveWidth = window_width * dpr;
+	double effectiveHeight = window_height * dpr;
+
+	if (camera_width < effectiveWidth * zoomRatio) {
+		if (x_offset < -0.5 * (zoomRatio * effectiveWidth)) x_offset = -0.5 * (zoomRatio * effectiveWidth);
+		if (x_offset > -camera_width + 0.5 * (zoomRatio * effectiveWidth)) x_offset = -camera_width + 0.5 * (zoomRatio * effectiveWidth);
+	} else {
+		if (x_offset > -0.5 * (zoomRatio * effectiveWidth)) x_offset = -0.5 * (zoomRatio * effectiveWidth);
+		if (x_offset < -camera_width + 0.5 * (zoomRatio * effectiveWidth)) x_offset = -camera_width + 0.5 * (zoomRatio * effectiveWidth);
+	}
+
+	if (camera_height < effectiveHeight * zoomRatio) {
+		if (y_offset < -0.5 * (zoomRatio * effectiveHeight)) y_offset = -0.5 * (zoomRatio * effectiveHeight);
+		if (y_offset > -camera_height + 0.5 * (zoomRatio * effectiveHeight)) y_offset = -camera_height + 0.5 * (zoomRatio * effectiveHeight);
+	} else {
+		if (y_offset > -0.5 * (zoomRatio * effectiveHeight)) y_offset = -0.5 * (zoomRatio * effectiveHeight);
+		if (y_offset < -camera_height + 0.5 * (zoomRatio * effectiveHeight)) y_offset = -camera_height + 0.5 * (zoomRatio * effectiveHeight);
+	}
+}
+
+void GLCameraView::mouseMoveEvent(QMouseEvent* e)
+{
+	if (e->buttons() & Qt::RightButton) {
+		qreal dpr = this->devicePixelRatio();
+		x_offset -= (prev_x - zoomRatio * e->pos().x() * dpr);
+		y_offset -= (prev_y - zoomRatio * e->pos().y() * dpr);
+		prev_y = zoomRatio * e->pos().y() * dpr;
+		prev_x = zoomRatio * e->pos().x() * dpr;
+		clampXY();
+		update();
+	}
+}
+
+void GLCameraView::mouseDoubleClickEvent(QMouseEvent* e)
+{
+	State::getInstance()->changeActiveCamera(this->camera->getID());
+	if (e->buttons() & Qt::LeftButton) {
+		if (State::getInstance()->getWorkspace() == CALIBRATION
+			&& camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() == 1)
+		{
+			qreal dpr = this->devicePixelRatio();
+			double x = zoomRatio * (e->pos().x() * dpr) - ((window_width * dpr) * zoomRatio * 0.5 + x_offset);
+			double y = zoomRatio * (e->pos().y() * dpr) - ((window_height * dpr) * zoomRatio * 0.5 + y_offset);
+			camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->toggleInlier(x, y, State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
+			update();
+		}
+	}
+}
+
+void GLCameraView::mousePressEvent(QMouseEvent* e)
+{
+	State::getInstance()->changeActiveCamera(this->camera->getID());
+	qreal dpr = this->devicePixelRatio();
+	if (e->buttons() & Qt::RightButton) {
+		prev_y = zoomRatio * e->pos().y() * dpr;
+		prev_x = zoomRatio * e->pos().x() * dpr;
+	} else if (e->buttons() & Qt::LeftButton) {
+		double x = zoomRatio * (e->pos().x() * dpr) - ((window_width * dpr) * zoomRatio * 0.5 + x_offset) - 0.5;
+		double y = zoomRatio * (e->pos().y() * dpr) - ((window_height * dpr) * zoomRatio * 0.5 + y_offset) - 0.5;
+		if (State::getInstance()->getWorkspace() == UNDISTORTION) {
+			if (camera->hasUndistortion()) {
+				int clickmode = State::getInstance()->getUndistortionMouseMode();
+				if (clickmode == 1) {
+					int vismode = State::getInstance()->getUndistortionVisPoints();
+					if (vismode == 2 || vismode == 3 || vismode == 4) {
+						camera->getUndistortionObject()->toggleOutlier(vismode, x, y);
+					} else {
+						ErrorDialog::getInstance()->showErrorDialog("You either have to display the grid points (distorted or undistorted) or the reference points to toggle outlier");
+					}
+				} else if (clickmode == 2) {
+					int vismode = State::getInstance()->getUndistortionVisImage();
+					if (vismode == 0) {
+						camera->getUndistortionObject()->setCenter(x, y);
+					} else {
+						ErrorDialog::getInstance()->showErrorDialog("You have to display the distorted image to set the center");
+					}
+				}
+			}
+		} else if (State::getInstance()->getWorkspace() == CALIBRATION) {
+			if (e->modifiers().testFlag(Qt::AltModifier)) {
+				int method = Settings::getInstance()->getIntSetting("DetectionMethodForCalibration");
+				if (method > 0) {
+					if (method == 5) { method = 6; }
+					else { method = method - 1; }
+					cv::Point out = MarkerDetection::detectionPoint(camera->getCalibrationSequence()->getImage(State::getInstance()->getActiveFrameCalibration(), true), method, cv::Point2d(x, y), 40, 5);
+					x = out.x; y = out.y;
+				}
+			}
+
+			if (WizardDockWidget::getInstance()->manualCalibrationRunning()) {
+				WizardDockWidget::getInstance()->addCalibrationReference(x, y);
+			} else {
+				if (camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() != 1) {
+					WizardDockWidget::getInstance()->addCalibrationReference(x, y);
+				} else {
+					if (e->modifiers().testFlag(Qt::ControlModifier)) {
+						camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->setPointManual(x, y, State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
+					}
+				}
+			}
+		} else if (State::getInstance()->getWorkspace() == DIGITIZATION) {
+			if (e->modifiers().testFlag(Qt::ControlModifier) && !detailedView) {
+				WizardDockWidget::getInstance()->addDigitizationPoint(camera->getID(), x, y);
+			} else if (e->modifiers().testFlag(Qt::ShiftModifier)) {
+				WizardDockWidget::getInstance()->selectDigitizationPoint(camera->getID(), x, y);
+			} else {
+				WizardDockWidget::getInstance()->moveDigitizationPoint(camera->getID(), x, y, detailedView);
+			}
+			if (!detailedView) DetailViewDockWidget::getInstance()->centerViews();
+			WizardDockWidget::getInstance()->updateDialog();
+		}
+		MainWindow::getInstance()->redrawGL();
+	}
+}
+
+void GLCameraView::wheelEvent(QWheelEvent* e)
+{
+	if (!detailedView || !Settings::getInstance()->getBoolSetting("CenterDetailView")) {
+		if (e->modifiers().testFlag(Qt::ControlModifier)) {
+			if (State::getInstance()->getWorkspace() == DIGITIZATION) {
+				setTransparency(transparency + 1.0 / 2400.0 * e->angleDelta().y());
+				emit transparencyChanged(transparency);
+			}
+		} else {
+			State::getInstance()->changeActiveCamera(this->camera->getID());
+			double zoom_prev = zoomRatio;
+			setZoomRatio(zoomRatio * 1 - e->angleDelta().y() / 1000.0, false);
+			QPoint coordinatesGlobal = e->globalPosition().toPoint();
+			QPoint coordinates = this->mapFromGlobal(coordinatesGlobal);
+			qreal dpr = this->devicePixelRatio();
+			y_offset += (zoom_prev - zoomRatio) * (0.5 * window_height * dpr - coordinates.y() * dpr);
+			x_offset += (zoom_prev - zoomRatio) * (0.5 * window_width * dpr - coordinates.x() * dpr);
+			update();
+		}
+	}
+}
+
+void GLCameraView::centerViewToPoint(bool resetZoom)
+{
+	if (State::getInstance()->getWorkspace() == DIGITIZATION) {
+		if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0) {
+			Marker* activeMarker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
+			if (activeMarker != NULL) {
+				double x, y;
+				if (activeMarker->getStatus2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()] > 0) {
+					x = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].x;
+					y = activeMarker->getPoints2D()[camera->getID()][State::getInstance()->getActiveFrameTrial()].y;
+					x_offset = -x;
+					y_offset = -y;
+				} else if (activeMarker->getMarkerPrediction(camera->getID(), State::getInstance()->getActiveFrameTrial(), x, y, true)) {
+					x_offset = -x; y_offset = -y;
+				} else if (activeMarker->getMarkerPrediction(camera->getID(), State::getInstance()->getActiveFrameTrial(), x, y, false)) {
+					x_offset = -x; y_offset = -y;
+				}
+			}
+		}
+		if (resetZoom) setZoomRatio(0.2, false);
+	}
+}
+
+void GLCameraView::UseStatusColors(bool value) { showStatusColors = value; }
+
+void GLCameraView::setZoomRatio(double newZoomRation, bool newAutozoom)
+{
+	newZoomRation = (newZoomRation > 100.0 / 999.0) ? newZoomRation : 100.0 / 999.0;
+	if (zoomRatio != newZoomRation) {
+		zoomRatio = newZoomRation;
+		int newZoom = floor(100.0 / zoomRatio + 0.5);
+		emit zoomChanged(newZoom);
+	}
+	if (autozoom != newAutozoom) {
+		autozoom = newAutozoom;
+		emit autozoomChanged(autozoom);
+	}
+}
+
+#else // !XMA_USE_PAINTER
 
 // Non-macOS implementation only
 void GLCameraView::clampXY()
@@ -1043,5 +1437,5 @@ void GLCameraView::setZoomRatio(double newZoomRation, bool newAutozoom)
 	}
 }
 
-#endif // !Q_OS_MACOS
+#endif // !XMA_USE_PAINTER
 

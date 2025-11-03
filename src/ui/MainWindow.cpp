@@ -213,7 +213,9 @@ MainWindow::MainWindow(QWidget* parent) :
 	resizeTimer.setSingleShot(true);
 	connect(&resizeTimer, SIGNAL(timeout()), SLOT(resizeDone()));
 
+#ifndef XMA_HIDE_WORLD_VIEW
 	addDockWidget(Qt::LeftDockWidgetArea, WorldViewDockWidget::getInstance());
+#endif
 
 	WizardDockWidget::getInstance();
 	ProgressDialog::getInstance();
@@ -229,7 +231,9 @@ MainWindow::MainWindow(QWidget* parent) :
 	{
 		WizardDockWidget::getInstance()->setFloating(true);
 		ProgressDialog::getInstance()->setFloating(false);
+#ifndef XMA_HIDE_WORLD_VIEW
 		WorldViewDockWidget::getInstance()->setFloating(true);
+#endif
 		ConsoleDockWidget::getInstance()->setFloating(true);
 		DetailViewDockWidget::getInstance()->setFloating(false);
 		DisplayOptionsDockWidget::getInstance()->setFloating(false);
@@ -245,7 +249,9 @@ MainWindow::MainWindow(QWidget* parent) :
 	{
 		ConsoleDockWidget::getInstance()->hide();
 	}
+#ifndef XMA_HIDE_WORLD_VIEW
 	WorldViewDockWidget::getInstance()->hide();
+#endif
 	ProgressDialog::getInstance()->hide();
 	PointsDockWidget::getInstance()->hide();
 	DetailViewDockWidget::getInstance()->hide();
@@ -1280,7 +1286,9 @@ void MainWindow::redrawGL()
 		DetailViewDockWidget::getInstance()->draw();
 		PlotWindow::getInstance()->draw();
 		PointsDockWidget::getInstance()->updateColor();
-		if (WorldViewDockWidget::getInstance())WorldViewDockWidget::getInstance()->draw();
+		#ifndef XMA_HIDE_WORLD_VIEW
+		if (WorldViewDockWidget::getInstance()) WorldViewDockWidget::getInstance()->draw();
+		#endif
 	}
 }
 
@@ -1388,7 +1396,9 @@ void MainWindow::workspaceChanged(work_state workspace)
 		DisplayOptionsDockWidget::getInstance()->hide();
 		PlotWindow::getInstance()->hide();
 		EventDockWidget::getInstance()->hide();
+		#ifndef XMA_HIDE_WORLD_VIEW
 		WorldViewDockWidget::getInstance()->hide();
+		#endif
 	}
 	else if (workspace == CALIBRATION)
 	{
@@ -1421,7 +1431,11 @@ void MainWindow::workspaceChanged(work_state workspace)
 		ui->actionDetectionSettings->setEnabled(false);
 		ui->actionDetailed_View->setEnabled(false);
 		ui->actionDisplay_Options->setEnabled(false);
+		#ifndef XMA_HIDE_WORLD_VIEW
 		ui->action3D_world_view->setEnabled(true);
+		#else
+		ui->action3D_world_view->setEnabled(false);
+		#endif
 
 		PointsDockWidget::getInstance()->hide();
 		DetailViewDockWidget::getInstance()->hide();
@@ -1429,6 +1443,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		DetectionSettings::getInstance()->hide();
 		PlotWindow::getInstance()->hide();
 		EventDockWidget::getInstance()->hide();
+		#ifndef XMA_HIDE_WORLD_VIEW
 		if (Settings::getInstance()->getBoolSetting("Show3DView"))
 		{
 			WorldViewDockWidget::getInstance()->show();
@@ -1437,6 +1452,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 		{
 			WorldViewDockWidget::getInstance()->hide();
 		}
+		#endif
 	}
 	else if (workspace == DIGITIZATION)
 	{
@@ -1456,7 +1472,11 @@ void MainWindow::workspaceChanged(work_state workspace)
 				ui->actionPlot->setEnabled(true);
 				ui->actionEvents->setEnabled(true);
 				ui->actionDetectionSettings->setEnabled(true);
+				#ifndef XMA_HIDE_WORLD_VIEW
 				ui->action3D_world_view->setEnabled(true);
+				#else
+				ui->action3D_world_view->setEnabled(false);
+				#endif
 
 				PointsDockWidget::getInstance()->show();
 
@@ -1469,6 +1489,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 					PlotWindow::getInstance()->hide();
 				}
 
+				#ifndef XMA_HIDE_WORLD_VIEW
 				if (Settings::getInstance()->getBoolSetting("Show3DView"))
 				{
 					WorldViewDockWidget::getInstance()->show();
@@ -1477,6 +1498,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 				{
 					WorldViewDockWidget::getInstance()->hide();
 				}
+				#endif
 
 				if (Settings::getInstance()->getBoolSetting("ShowDetailView"))
 				{
@@ -1524,7 +1546,9 @@ void MainWindow::workspaceChanged(work_state workspace)
 				PlotWindow::getInstance()->hide();
 				EventDockWidget::getInstance()->hide();
 				DetectionSettings::getInstance()->hide();
+				#ifndef XMA_HIDE_WORLD_VIEW
 				WorldViewDockWidget::getInstance()->hide();
+				#endif
 			}
 			ui->actionPrecisionInfo->setEnabled(true);
 			ui->actionExport2D_Points->setEnabled(true);

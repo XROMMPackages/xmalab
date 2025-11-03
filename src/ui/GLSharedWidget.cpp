@@ -27,7 +27,7 @@
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #endif
-#ifndef Q_OS_MACOS
+#ifndef XMA_USE_PAINTER
 #include "GL/glew.h"
 #endif
 
@@ -41,7 +41,7 @@ using namespace xma;
 GLSharedWidget* GLSharedWidget::instance = NULL;
 
 GLSharedWidget::GLSharedWidget(QWidget* parent)
-#ifdef Q_OS_MACOS
+#ifdef XMA_USE_PAINTER
     : QWidget(parent)
 {
     setAutoFillBackground(false);
@@ -82,7 +82,7 @@ GLSharedWidget* GLSharedWidget::getInstance()
 
 double GLSharedWidget::getVersion() const
 {
-#ifdef Q_OS_MACOS
+#ifdef XMA_USE_PAINTER
 	return 0.0;
 #else
 	return version;
@@ -91,15 +91,14 @@ double GLSharedWidget::getVersion() const
 
 QString GLSharedWidget::getInfo() const
 {
-#ifdef Q_OS_MACOS
+#ifdef XMA_USE_PAINTER
 	return QStringLiteral("GL info unavailable (stub)");
 #else
 	return gl_VENDOR + "\n" + gl_RENDERER + "\n" + gl_VERSION + "\n" + gl_SHADING_LANGUAGE_VERSION + "\n" + gl_EXTENSIONS;
 #endif
 }
 
-
-#ifndef Q_OS_MACOS
+#ifndef XMA_USE_PAINTER
 void GLSharedWidget::initializeGL()
 {
 	GLenum err = glewInit();
@@ -124,7 +123,7 @@ void GLSharedWidget::initializeGL()
 
 bool GLSharedWidget::getHasBlendSubtract() const
 {
-#ifdef Q_OS_MACOS
+#ifdef XMA_USE_PAINTER
 	return false;
 #else
 	return hasBlendSubtract;
@@ -133,7 +132,7 @@ bool GLSharedWidget::getHasBlendSubtract() const
 
 bool GLSharedWidget::getHasBlendExt() const
 {
-#ifdef Q_OS_MACOS
+#ifdef XMA_USE_PAINTER
 	return false;
 #else
 	return hasBlendExt;
