@@ -46,6 +46,8 @@
 #include "core/Settings.h"
 
 #include <QMouseEvent>
+#include <QEvent>
+#include <QComboBox>
 #include <QInputDialog>
 #include <QToolButton>
 
@@ -81,6 +83,31 @@ PointsDockWidget* PointsDockWidget::getInstance()
 		MainWindow::getInstance()->addDockWidget(Qt::LeftDockWidgetArea, instance);
 	}
 	return instance;
+}
+
+bool PointsDockWidget::eventFilter(QObject* target, QEvent* event)
+{
+	// Workaround for macOS popup stacking/input issue: ensure QComboBox opens on click
+	// Some mouse presses appear to be swallowed by other filters or native-child quirks.
+	// By intercepting here (app-level filter) we proactively show the popup and consume the event.
+	if (event->type() == QEvent::MouseButtonPress)
+	{
+		if (auto mouseEvent = static_cast<QMouseEvent*>(event); mouseEvent->button() == Qt::LeftButton)
+		{
+			QComboBox* combo = nullptr;
+			for (QObject* obj = target; obj && !combo; obj = obj->parent())
+			{
+				combo = qobject_cast<QComboBox*>(obj);
+			}
+			if (combo)
+			{
+				combo->setFocus(Qt::MouseFocusReason);
+				combo->showPopup();
+				return true; // consume to avoid other filters interfering
+			}
+		}
+	}
+	return QDockWidget::eventFilter(target, event);
 }
 
 void PointsDockWidget::reset()

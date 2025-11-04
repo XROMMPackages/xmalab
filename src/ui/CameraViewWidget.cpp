@@ -76,6 +76,8 @@ m_visible(true)
 	widget->spinBoxZoom->installEventFilter(this);
 	widget->toolButtonFitZoom->installEventFilter(this);
 	widget->frameInfo->installEventFilter(this);
+	widget->imageTitleLabel->installEventFilter(this);
+	widget->frame->installEventFilter(this);
 	widget->glCameraView->installEventFilter(this);
 
 	calibrationFrame->installEventFilter(this);
@@ -251,10 +253,12 @@ void CameraViewWidget::activeFrameCalibrationChanged(int activeFrame)
 
 bool CameraViewWidget::eventFilter(QObject* obj, QEvent* event)
 {
-	// Only treat presses inside the actual image view as "activate camera".
-	// Forwarding activation on any child click (like comboboxes) can interfere with popup opening on macOS.
-	if (event->type() == QEvent::MouseButtonPress && obj == widget->glCameraView) {
-		State::getInstance()->changeActiveCamera(camera->getID());
+	if (event->type() == QEvent::MouseButtonPress)
+	{
+		if (obj == widget->glCameraView || obj == widget->imageTitleLabel || obj == widget->frame)
+		{
+			State::getInstance()->changeActiveCamera(camera->getID());
+		}
 	}
 
 	if (obj == this)

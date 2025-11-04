@@ -34,6 +34,7 @@
 #include <opencv2/opencv.hpp>
 
 class QTreeWidgetItem;
+class QPainter;
 
 namespace Ui
 {
@@ -57,6 +58,8 @@ namespace xma
 		void loadCalibrationSettings();
 		bool manualCalibrationRunning();
 		void addCalibrationReference(double x, double y);
+		// Painter overlay for selected reference points (red crosses)
+		void draw(QPainter* p);
 		void draw();
 
 		void runCalibrationCameraAllFrames();

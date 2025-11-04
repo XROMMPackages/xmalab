@@ -267,6 +267,8 @@ void GLCameraView::paintEvent(QPaintEvent*)
 			drawUndistortionOverlays(p);
 		} else if (State::getInstance()->getWorkspace() == CALIBRATION) {
 			drawCalibrationOverlays(p);
+			// Draw calibration wizard reference crosses (pre-calibration clicks)
+			WizardDockWidget::getInstance()->draw(&p);
 		} else if (State::getInstance()->getWorkspace() == DIGITIZATION) {
 			drawDigitizationOverlays(p);
 		}
@@ -526,7 +528,16 @@ void GLCameraView::mouseDoubleClickEvent(QMouseEvent* e)
 
 void GLCameraView::mousePressEvent(QMouseEvent* e)
 {
+	if (!camera) {
+		return;
+	}
+	const bool wasActive = (State::getInstance()->getActiveCamera() == camera->getID());
 	State::getInstance()->changeActiveCamera(this->camera->getID());
+	if (!wasActive && e->button() == Qt::LeftButton)
+	{
+		MainWindow::getInstance()->redrawGL();
+		return;
+	}
 	qreal dpr = this->devicePixelRatio();
 	if (e->buttons() & Qt::RightButton) {
 		prev_y = zoomRatio * e->pos().y() * dpr;
@@ -718,7 +729,16 @@ void GLCameraView::mouseDoubleClickEvent(QMouseEvent* e)
 
 void GLCameraView::mousePressEvent(QMouseEvent* e)
 {
+	if (!camera) {
+		return;
+	}
+	const bool wasActive = (State::getInstance()->getActiveCamera() == camera->getID());
 	State::getInstance()->changeActiveCamera(this->camera->getID());
+	if (!wasActive && e->button() == Qt::LeftButton)
+	{
+		MainWindow::getInstance()->redrawGL();
+		return;
+	}
 	qreal devicePixelRatio = this->devicePixelRatio();
 	
 	if (e->buttons() & Qt::RightButton)

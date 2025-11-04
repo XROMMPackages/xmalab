@@ -63,6 +63,8 @@ namespace xma
 		static PointsDockWidget* instance;
 
 	protected:
+        // Global event filter (installed on qApp) to ensure UI interactions like QComboBox popups work on macOS
+        bool eventFilter(QObject* target, QEvent* event) override;
 	public slots:
 
 		void on_treeWidgetPoints_currentItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);

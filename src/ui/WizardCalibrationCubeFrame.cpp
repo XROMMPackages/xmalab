@@ -49,6 +49,7 @@
 #include "processing/MultiCameraCalibration.h"
 
 #include <QInputDialog>
+#include <QPainter>
 
 #ifdef __APPLE__
 	#include <OpenGL/gl.h>
@@ -293,6 +294,23 @@ void WizardCalibrationCubeFrame::draw()
 			glVertex2f(selectedReferencePoints[i].x - 5, selectedReferencePoints[i].y + 5);
 		}
 		glEnd();
+	}
+}
+
+void WizardCalibrationCubeFrame::draw(QPainter* p)
+{
+	if (!p) return;
+	QPen pen(QColor(255, 0, 0));
+	p->setPen(pen);
+	for (int i = 0; i < 4; ++i)
+	{
+		if (selectedReferencePoints[i].x > -1 && selectedReferencePoints[i].y > -1)
+		{
+			const double x = selectedReferencePoints[i].x;
+			const double y = selectedReferencePoints[i].y;
+			p->drawLine(QPointF(x - 5, y - 5), QPointF(x + 5, y + 5));
+			p->drawLine(QPointF(x + 5, y - 5), QPointF(x - 5, y + 5));
+		}
 	}
 }
 

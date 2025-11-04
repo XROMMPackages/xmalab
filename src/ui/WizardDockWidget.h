@@ -54,6 +54,8 @@ namespace xma
 		static WizardDockWidget* getInstance();
 		bool manualCalibrationRunning();
 		void addCalibrationReference(double x, double y);
+		// Painter-based overlay drawing for calibration references (macOS/painter path)
+		void draw(QPainter* p);
 		void addDigitizationPoint(int camera, double x, double y);
 		void selectDigitizationPoint(int camera, double x, double y);
 		void moveDigitizationPoint(int camera, double x, double y, bool noDetection);

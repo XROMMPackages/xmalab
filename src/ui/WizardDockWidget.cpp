@@ -137,6 +137,17 @@ void WizardDockWidget::draw()
 	}
 }
 
+// Painter-based drawing for calibration references
+void WizardDockWidget::draw(QPainter* p)
+{
+	if (!p) return;
+	if (State::getInstance()->getWorkspace() == CALIBRATION)
+	{
+		// Delegate to the calibration frame if it provides a painter path
+		calibrationFrame->draw(p);
+	}
+}
+
 void WizardDockWidget::updateDialog()
 {
 	if (State::getInstance()->getWorkspace() == CALIBRATION)
