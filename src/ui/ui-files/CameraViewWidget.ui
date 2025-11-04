@@ -151,8 +151,8 @@
      </layout>
     </widget>
    </item>
-   <item row="3" column="0" colspan="2">
-    <widget class="xma::GLCameraView" name="glCameraView" native="true">
+  <item row="3" column="0" colspan="2">
+   <widget class="xma::GLCameraView" name="glCameraView">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>

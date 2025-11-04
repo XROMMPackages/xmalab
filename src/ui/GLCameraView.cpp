@@ -203,6 +203,10 @@ void GLCameraView::paintEvent(QPaintEvent*)
 {
 	QPainter p(this);
 	p.fillRect(rect(), QColor(0,0,0));
+	p.setRenderHint(QPainter::Antialiasing, true);
+	p.setRenderHint(QPainter::TextAntialiasing, true);
+	// keep pixels crisp for images
+	p.setRenderHint(QPainter::SmoothPixmapTransform, false);
 
 	if (!camera) {
 		p.setPen(Qt::white);
@@ -242,27 +246,29 @@ void GLCameraView::paintEvent(QPaintEvent*)
 		setZoomToFit();
 	}
 
-	// Draw image with zoom/pan
+	// Draw image with zoom/pan using a single painter transform that overlays can reuse
 	if (!img.isNull()) {
-		qreal dpr = this->devicePixelRatio();
-		double sx = window_width * 0.5 + x_offset / zoomRatio;
-		double sy = window_height * 0.5 + y_offset / zoomRatio;
-		QRectF target(sx / dpr, sy / dpr, (double)img.width() / zoomRatio / dpr, (double)img.height() / zoomRatio / dpr);
-		p.drawImage(target, img);
+		const qreal dpr = this->devicePixelRatio();
+		// Translate by half the widget size (logical coords), plus offset scaled to logical via 1/zoom
+		const double sx = window_width * 0.5 + x_offset / zoomRatio;
+		const double sy = window_height * 0.5 + y_offset / zoomRatio;
 
-		// Set a transform so overlays can be drawn in image coordinates
+		// Build transform from image space (pixels) -> widget logical coords
 		QTransform T;
-		T.translate(sx / dpr, sy / dpr);
+		T.translate(sx, sy);
 		T.scale(1.0 / (zoomRatio * dpr), 1.0 / (zoomRatio * dpr));
-		p.setTransform(T);
+		p.setTransform(T, false);
 
-		// Overlays
+		// With the transform set, draw the image at its image-space origin
+		p.drawImage(QPointF(0.0, 0.0), img);
+
+		// Overlays (draw in image coordinates; they inherit the same transform)
 		if (State::getInstance()->getWorkspace() == UNDISTORTION) {
-			drawUndistortionOverlays();
+			drawUndistortionOverlays(p);
 		} else if (State::getInstance()->getWorkspace() == CALIBRATION) {
-			drawCalibrationOverlays();
+			drawCalibrationOverlays(p);
 		} else if (State::getInstance()->getWorkspace() == DIGITIZATION) {
-			drawDigitizationOverlays();
+			drawDigitizationOverlays(p);
 		}
 	} else {
 		p.setPen(Qt::white);
@@ -270,12 +276,12 @@ void GLCameraView::paintEvent(QPaintEvent*)
 	}
 }
 
-void GLCameraView::drawUndistortionOverlays()
+void GLCameraView::drawUndistortionOverlays(QPainter& p)
 {
 	if (!camera || !camera->hasUndistortion()) return;
-	QPainter p(this);
-	p.setRenderHint(QPainter::Antialiasing);
-	// Use the current painter transform set by paintEvent
+	p.setRenderHint(QPainter::Antialiasing, true);
+
+	// Draw in image space (transform already set by paintEvent)
 	int visPts = State::getInstance()->getUndistortionVisPoints();
 	auto uo = camera->getUndistortionObject();
 
@@ -293,6 +299,11 @@ void GLCameraView::drawUndistortionOverlays()
 		std::vector<cv::Point2d> d, r, u;
 		std::vector<bool> inlier;
 		uo->getGridPoints(d, r, inlier);
+		if (visPts == 3) {
+			// Build undistorted points from distorted grid if not directly exposed
+			u.reserve(d.size());
+			for (const auto& pd : d) u.push_back(uo->transformPoint(pd, true));
+		}
 		const std::vector<cv::Point2d> &pts = (visPts == 2 ? d : (visPts == 3 ? u : r));
 		for (size_t i = 0; i < pts.size(); ++i) {
 			QColor c = (i < inlier.size() && inlier[i]) ? QColor(0, 204, 0) : QColor(204, 0, 0);
@@ -311,7 +322,7 @@ void GLCameraView::drawUndistortionOverlays()
 	}
 }
 
-void GLCameraView::drawCalibrationOverlays()
+void GLCameraView::drawCalibrationOverlays(QPainter& p)
 {
 	if (!camera) return;
 	if (!(State::getInstance()->getWorkspace() == CALIBRATION && Project::getInstance()->getCalibration() == INTERNAL)) return;
@@ -319,23 +330,82 @@ void GLCameraView::drawCalibrationOverlays()
 	int frame = State::getInstance()->getActiveFrameCalibration();
 	int textMode = State::getInstance()->getCalibrationVisText();
 	bool distorted = (State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
-	if (textMode <= 0) return;
+	// First: draw the point overlays (crosses), mirroring CalibrationImage::draw(int)
+	int ptsMode = State::getInstance()->getCalibrationVisPoints();
+	auto calibImg = camera->getCalibrationImages()[frame];
+	p.setRenderHint(QPainter::Antialiasing, true);
 
-	std::vector<double> xs, ys; std::vector<QString> texts; std::vector<bool> inlier;
-	camera->getCalibrationImages()[frame]->getDrawTextData(textMode, distorted, xs, ys, texts, inlier);
+	auto drawCross = [&](double x, double y, const QColor& c, int halfSize) {
+		p.setPen(QPen(c));
+		p.drawLine(QPointF(x - halfSize, y), QPointF(x + halfSize, y));
+		p.drawLine(QPointF(x, y - halfSize), QPointF(x, y + halfSize));
+	};
 
-	QPainter p(this);
-	p.setRenderHint(QPainter::Antialiasing);
-	QFont f = this->font(); f.setPointSize(12); p.setFont(f);
+	switch (ptsMode) {
+		case 1: { // detectedPoints_ALL (small red crosses)
+			const auto& all = calibImg->getDetectedPointsAll();
+			for (const auto& pt : all) {
+				drawCross(pt.x, pt.y, QColor(255, 0, 0), 2);
+			}
+			break;
+		}
+		case 2: { // detectedPoints (color by inlier)
+			const auto& pts = calibImg->getDetectedPoints();
+			const auto& in = calibImg->getInliers();
+			for (size_t i = 0; i < pts.size() && i < in.size(); ++i) {
+				QColor c;
+				if (in[i] == 1) c = QColor(0, 204, 0);
+				else if (in[i] == 0) c = QColor(204, 0, 0);
+				else c = QColor(0, 0, 255); // -1 or others
+				drawCross(pts[i].x, pts[i].y, c, 5);
+			}
+			break;
+		}
+		case 3: // projectedPoints (distorted)
+		case 5: { // projectedPointsUndistorted
+			std::vector<double> xs, ys; std::vector<QString> dummy; std::vector<bool> inlierBool;
+			bool wantDistorted = (ptsMode == 3);
+			calibImg->getDrawTextData(/*type*/1, wantDistorted, xs, ys, dummy, inlierBool);
+			const auto& in = calibImg->getInliers();
+			for (size_t i = 0; i < xs.size() && i < ys.size() && i < in.size(); ++i) {
+				QColor c;
+				if (in[i] == 1) c = QColor(0, 204, 0);
+				else if (in[i] == 0) c = QColor(204, 0, 0);
+				else c = QColor(0, 0, 255);
+				drawCross(xs[i], ys[i], c, 5);
+			}
+			break;
+		}
+		case 4: { // detectedPointsUndistorted
+			const auto& pts = calibImg->getDetectedPointsUndistorted();
+			const auto& in = calibImg->getInliers();
+			for (size_t i = 0; i < pts.size() && i < in.size(); ++i) {
+				QColor c;
+				if (in[i] == 1) c = QColor(0, 204, 0);
+				else if (in[i] == 0) c = QColor(204, 0, 0);
+				else c = QColor(0, 0, 255);
+				drawCross(pts[i].x, pts[i].y, c, 5);
+			}
+			break;
+		}
+		default:
+			break;
+	}
 
-	for (size_t i = 0; i < texts.size() && i < xs.size() && i < ys.size(); ++i) {
-		QColor color = (i < inlier.size() && inlier[i]) ? QColor(0, 255, 0) : QColor(255, 0, 0);
-		p.setPen(color);
-		p.drawText(QPointF(xs[i] + 3, ys[i]), texts[i]);
+	// Then: draw any requested text overlays
+	if (textMode > 0) {
+		std::vector<double> xs, ys; std::vector<QString> texts; std::vector<bool> inlier;
+		calibImg->getDrawTextData(textMode, distorted, xs, ys, texts, inlier);
+		QFont f = this->font(); f.setPointSize(12); p.setFont(f);
+		for (size_t i = 0; i < texts.size() && i < xs.size() && i < ys.size(); ++i) {
+			QColor color = (i < inlier.size() && inlier[i]) ? QColor(0, 255, 0) : QColor(255, 0, 0);
+			p.setPen(color);
+			p.drawText(QPointF(xs[i] + 3, ys[i]), texts[i]);
+		}
 	}
 }
 
-void GLCameraView::drawDigitizationOverlays()
+void GLCameraView::drawDigitizationOverlays(QPainter& /*p*/)
 {
 	// Minimal stub for now; full digitization overlays can be ported later
 }

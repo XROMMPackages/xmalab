@@ -47,6 +47,8 @@ m_visible(true)
 	camera = _camera;
 
 	widget->setupUi(this);
+	// Ensure the camera view is not a native child window (prevents popup stacking issues on macOS)
+	widget->glCameraView->setAttribute(Qt::WA_NativeWindow, false);
 	widget->frame_calibration->setCamera(camera);
 	widget->frame_calibration->hide();
 	cameraName = camera->getName();
@@ -249,7 +251,11 @@ void CameraViewWidget::activeFrameCalibrationChanged(int activeFrame)
 
 bool CameraViewWidget::eventFilter(QObject* obj, QEvent* event)
 {
-	if (event->type() == QEvent::MouseButtonPress) State::getInstance()->changeActiveCamera(camera->getID());
+	// Only treat presses inside the actual image view as "activate camera".
+	// Forwarding activation on any child click (like comboboxes) can interfere with popup opening on macOS.
+	if (event->type() == QEvent::MouseButtonPress && obj == widget->glCameraView) {
+		State::getInstance()->changeActiveCamera(camera->getID());
+	}
 
 	if (obj == this)
 	{

@@ -91,9 +91,10 @@ namespace xma
         void setZoomRatio(double newZoomRation, bool autozoom = false);
 
         void renderPointText(bool calibration);
-        void drawUndistortionOverlays();
-        void drawDigitizationOverlays();
-        void drawCalibrationOverlays();
+        // Overlays draw in image coordinates using the painter's current transform
+        void drawUndistortionOverlays(QPainter& p);
+        void drawDigitizationOverlays(QPainter& p);
+        void drawCalibrationOverlays(QPainter& p);
 
         double bias;
         double scale;
