@@ -3,9 +3,9 @@
 # --- Configuration ---
 APP_BUNDLE_PATH="./XMALab.app"
 EXECUTABLE_NAME="XMALab"
-SYSTEM_SEARCH_PATHS=("/Users/peterfalkingham/Qt/6.9.1/macos" "/opt/homebrew" "/usr/local")
-DMG_NAME="XMALab2.2.1_MacOS_applesilicon.dmg" # Incremented version
-VOLUME_NAME="XMALab 2.2.1"
+SYSTEM_SEARCH_PATHS=("/opt/homebrew" "/usr/local")
+DMG_NAME="XMALab2.1.3p_MacOS15.4_workaround.dmg" # Incremented version
+VOLUME_NAME="XMALab 2.1.3p"
 # --- End Configuration ---
 
 # --- Safety Checks & Setup ---
@@ -298,8 +298,6 @@ codesign --deep --force --sign - "$APP_BUNDLE_PATH"
 echo "Code signing complete."
 
 read -p "Do you want to create a DMG now? (y/N) " -n 1 -r; echo
-
-#I've no idea why the following is more complicated than just appdmg...
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "Creating DMG disk image..."
     TEMP_DMG_DIR=$(mktemp -d -t dmg-build-XXXXXX)
