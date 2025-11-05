@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -222,18 +222,22 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 				}
 				for (unsigned int k = 0; k < (*trial_it)->getMarkers().size(); k++)
 				{
-					(*trial_it)->getMarkers()[k]->save(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv",
-					                                                              path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status2d.csv",
-					                                                              path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
-					(*trial_it)->getMarkers()[k]->save3DPoints(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points3d.csv",
-					                                                                      path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status3d.csv");
-					(*trial_it)->getMarkers()[k]->saveInterpolation(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "interpolation.csv");
+					QString markerFilename = QString("Marker%1points2d.csv").arg(k, 3, 10, QChar('0'));
+					QString statusFilename = QString("Marker%1status2d.csv").arg(k, 3, 10, QChar('0'));
+					QString sizeFilename = QString("Marker%1size.csv").arg(k, 3, 10, QChar('0'));
+					QString points3DFilename = QString("Marker%1points3d.csv").arg(k, 3, 10, QChar('0'));
+					QString status3DFilename = QString("Marker%1status3d.csv").arg(k, 3, 10, QChar('0'));
 
-
+					(*trial_it)->getMarkers()[k]->save(path + OS_SEP + "data" + OS_SEP + markerFilename,
+					                                   path + OS_SEP + "data" + OS_SEP + statusFilename,
+					                                   path + OS_SEP + "data" + OS_SEP + sizeFilename);
+					(*trial_it)->getMarkers()[k]->save3DPoints(path + OS_SEP + "data" + OS_SEP + points3DFilename,
+					                                           path + OS_SEP + "data" + OS_SEP + status3DFilename);
+					(*trial_it)->getMarkers()[k]->saveInterpolation(path + OS_SEP + "data" + OS_SEP + QString("Marker%1interpolation.csv").arg(k, 3, 10, QChar('0')));
 
 					if ((*trial_it)->getMarkers()[k]->Reference3DPointSet())
 					{
-						(*trial_it)->getMarkers()[k]->saveReference3DPoint(path + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "reference3Dpoint.csv");
+						(*trial_it)->getMarkers()[k]->saveReference3DPoint(path + OS_SEP + "data" + OS_SEP + QString("Marker%1reference3Dpoint.csv").arg(k, 3, 10, QChar('0')));
 					}
 				}
 				for (unsigned int k = 0; k < (*trial_it)->getRigidBodies().size(); k++)
@@ -241,20 +245,20 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 					if ((*trial_it)->getRigidBodies()[k]->isReferencesSet() == 2)
 					{
 						(*trial_it)->getRigidBodies()[k]->save(
-							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferenceNames.csv",
-							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d.csv");
+							path + OS_SEP + "data" + OS_SEP + QString("RigidBody%1ReferenceNames.csv").arg(k, 3, 10, QChar('0')),
+							path + OS_SEP + "data" + OS_SEP + QString("RigidBody%1ReferencePoints3d.csv").arg(k, 3, 10, QChar('0')));
 					}
 					if ((*trial_it)->getRigidBodies()[k]->getHasOptimizedCoordinates())
 					{
 						(*trial_it)->getRigidBodies()[k]->saveOptimized(
-							path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d_optimized.csv");
+							path + OS_SEP + "data" + OS_SEP + QString("RigidBody%1ReferencePoints3d_optimized.csv").arg(k, 3, 10, QChar('0')));
 					}
 					for (unsigned int p = 0; p < (*trial_it)->getRigidBodies()[k]->getDummyNames().size(); p++)
 					{
 						(*trial_it)->getRigidBodies()[k]->saveDummy(p,
-						                                            path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences.csv",
-																	path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences2.csv",
-						                                            path + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointCoordinates.csv");
+						                                            path + OS_SEP + "data" + OS_SEP + QString("RigidBody%1DummyMarker%2PointReferences.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')),
+						                                            path + OS_SEP + "data" + OS_SEP + QString("RigidBody%1DummyMarker%2PointReferences2.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')),
+						                                            path + OS_SEP + "data" + OS_SEP + QString("RigidBody%1DummyMarker%2PointCoordinates.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')));
 					}
 				}
 			}
@@ -1201,7 +1205,7 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 			QDateTime utc = local.toUTC();
 			utc.setTimeSpec(Qt::LocalTime);
 			int utcOffset = utc.secsTo(local);
-			local.setUtcOffset(utcOffset);
+			local.setOffsetFromUtc(utcOffset);
 			xmlWriter.writeCharacters(local.toString(Qt::ISODate));
 			xmlWriter.writeEndElement();
 
@@ -1651,15 +1655,15 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 
 					if ((*trial_it)->getMarkers()[k]->Reference3DPointSet())
 					{
-						xmlWriter.writeAttribute("Reference3DPoint", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "reference3Dpoint.csv");
+						xmlWriter.writeAttribute("Reference3DPoint", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1reference3Dpoint.csv").arg(k, 3, 10, QChar('0')));
 					}
 
-					xmlWriter.writeAttribute("FilenamePoints2D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points2d.csv");
-					xmlWriter.writeAttribute("FilenameStatus2D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status2d.csv");
-					xmlWriter.writeAttribute("FilenameSize", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "size.csv");
-					xmlWriter.writeAttribute("FilenamePoints3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "points3d.csv");
-					xmlWriter.writeAttribute("FilenameStatus3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "status3d.csv");
-					xmlWriter.writeAttribute("FilenameInterpolation", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "Marker" + QString().sprintf("%03d", k) + "interpolation.csv");
+					xmlWriter.writeAttribute("FilenamePoints2D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1points2d.csv").arg(k, 3, 10, QChar('0')));
+					xmlWriter.writeAttribute("FilenameStatus2D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1status2d.csv").arg(k, 3, 10, QChar('0')));
+					xmlWriter.writeAttribute("FilenameSize", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1size.csv").arg(k, 3, 10, QChar('0')));
+					xmlWriter.writeAttribute("FilenamePoints3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1points3d.csv").arg(k, 3, 10, QChar('0')));
+					xmlWriter.writeAttribute("FilenameStatus3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1status3d.csv").arg(k, 3, 10, QChar('0')));
+					xmlWriter.writeAttribute("FilenameInterpolation", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1interpolation.csv").arg(k, 3, 10, QChar('0')));
 					xmlWriter.writeEndElement();
 				}
 
@@ -1670,12 +1674,12 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 					xmlWriter.writeAttribute("ID", QString::number(k));
 					if ((*trial_it)->getRigidBodies()[k]->isReferencesSet() == 2)
 					{
-						xmlWriter.writeAttribute("ReferenceNames", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferenceNames.csv");
-						xmlWriter.writeAttribute("ReferencePoints3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d.csv");
+						xmlWriter.writeAttribute("ReferenceNames", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("RigidBody%1ReferenceNames.csv").arg(k, 3, 10, QChar('0')));
+						xmlWriter.writeAttribute("ReferencePoints3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("RigidBody%1ReferencePoints3d.csv").arg(k, 3, 10, QChar('0')));
 					}
 					if ((*trial_it)->getRigidBodies()[k]->getHasOptimizedCoordinates())
 					{
-						xmlWriter.writeAttribute("ReferencePoints3DOptimized", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "ReferencePoints3d_optimized.csv");
+						xmlWriter.writeAttribute("ReferencePoints3DOptimized", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("RigidBody%1ReferencePoints3d_optimized.csv").arg(k, 3, 10, QChar('0')));
 					}
 					xmlWriter.writeAttribute("Visible", QString::number((*trial_it)->getRigidBodies()[k]->getVisible()));
 					xmlWriter.writeAttribute("Color", (*trial_it)->getRigidBodies()[k]->getColor().name());
@@ -1691,9 +1695,9 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 					{
 						xmlWriter.writeStartElement("DummyMarker");
 						xmlWriter.writeAttribute("Name", (*trial_it)->getRigidBodies()[k]->getDummyNames()[p]);
-						xmlWriter.writeAttribute("PointReferences", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences.csv");
-						xmlWriter.writeAttribute("PointReferences2", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointReferences2.csv");
-						xmlWriter.writeAttribute("PointCoordinates", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + "RigidBody" + QString().sprintf("%03d", k) + "DummyMarker" + QString().sprintf("%03d", p) + "PointCoordinates.csv");
+						xmlWriter.writeAttribute("PointReferences", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("RigidBody%1DummyMarker%2PointReferences.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')));
+						xmlWriter.writeAttribute("PointReferences2", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("RigidBody%1DummyMarker%2PointReferences2.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')));
+						xmlWriter.writeAttribute("PointCoordinates", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("RigidBody%1DummyMarker%2PointCoordinates.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')));
 						xmlWriter.writeEndElement();
 					}
 

@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -42,10 +42,6 @@ using namespace xma;
 
 Shortcuts* Shortcuts::instance = NULL;
 
-Shortcuts::Shortcuts()
-{
-}
-
 Shortcuts::~Shortcuts()
 {
 	instance = NULL;
@@ -68,25 +64,25 @@ void Shortcuts::bindApplicationShortcuts()
 	shortcut = new QShortcut(QKeySequence(Qt::Key_Escape), SequenceNavigationFrame::getInstance(), SLOT(on_toolButtonStop_clicked()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_2), this, SLOT(trackSelectedForw()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ControlModifier | Qt::AltModifier | Qt::Key_2)), this, SLOT(trackSelectedForw()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_2), this, SLOT(trackSelectedNext()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ControlModifier | Qt::Key_2)), this, SLOT(trackSelectedNext()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_2), this, SLOT(trackPointForw()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::AltModifier | Qt::Key_2)), this, SLOT(trackPointForw()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_2), this, SLOT(trackPointNext()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_1), this, SLOT(trackSelectedBack()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ControlModifier | Qt::AltModifier | Qt::Key_1)), this, SLOT(trackSelectedBack()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_1), this, SLOT(trackSelectedPrev()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ControlModifier | Qt::Key_1)), this, SLOT(trackSelectedPrev()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_1), this, SLOT(trackPointBack()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::AltModifier | Qt::Key_1)), this, SLOT(trackPointBack()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_1), this, SLOT(trackPointPrev()));
@@ -95,7 +91,7 @@ void Shortcuts::bindApplicationShortcuts()
 	shortcut = new QShortcut(QKeySequence(Qt::Key_3), WizardDockWidget::getInstance(), SLOT(goToLastTrackedFrame()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_3), WizardDockWidget::getInstance(), SLOT(goToFirstTrackedFrame()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ControlModifier | Qt::Key_3)), WizardDockWidget::getInstance(), SLOT(goToFirstTrackedFrame()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_Q), SequenceNavigationFrame::getInstance(), SLOT(on_toolButtonPrev_clicked()));
@@ -110,16 +106,16 @@ void Shortcuts::bindApplicationShortcuts()
 	shortcut = new QShortcut(QKeySequence(Qt::Key_6), SequenceNavigationFrame::getInstance(), SLOT(moveNFramesForward()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_5), SequenceNavigationFrame::getInstance(), SLOT(setAndMoveNFramesBackward()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ControlModifier | Qt::Key_5)), SequenceNavigationFrame::getInstance(), SLOT(setAndMoveNFramesBackward()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_6), SequenceNavigationFrame::getInstance(), SLOT(setAndMoveNFramesForward()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ControlModifier | Qt::Key_6)), SequenceNavigationFrame::getInstance(), SLOT(setAndMoveNFramesForward()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_7), SequenceNavigationFrame::getInstance(), SLOT(moveFrameToMissingForward()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_7), SequenceNavigationFrame::getInstance(), SLOT(moveFrameToMissingBackward()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ControlModifier | Qt::Key_7)), SequenceNavigationFrame::getInstance(), SLOT(moveFrameToMissingBackward()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_C), MainWindow::getInstance(), SLOT(centerViews()));
@@ -128,28 +124,28 @@ void Shortcuts::bindApplicationShortcuts()
 	shortcut = new QShortcut(QKeySequence(Qt::Key_I), WizardDockWidget::getInstance(), SLOT(interpolateActive()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I), WizardDockWidget::getInstance(), SLOT(interpolateAll()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ShiftModifier | Qt::Key_I)), WizardDockWidget::getInstance(), SLOT(interpolateAll()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 	
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_I), PlotWindow::getInstance(), SLOT(setInterpolation()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ControlModifier | Qt::Key_I)), PlotWindow::getInstance(), SLOT(setInterpolation()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 	
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_U), PlotWindow::getInstance(), SLOT(setUntrackable()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ControlModifier | Qt::Key_U)), PlotWindow::getInstance(), SLOT(setUntrackable()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_A), PointsDockWidget::getInstance(), SLOT(selectAllPoints()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ControlModifier | Qt::Key_A)), PointsDockWidget::getInstance(), SLOT(selectAllPoints()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_4), PlotWindow::getInstance(), SLOT(goToNextAboveError()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_4), PlotWindow::getInstance(), SLOT(goToPrevAboveError()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ControlModifier | Qt::Key_4)), PlotWindow::getInstance(), SLOT(goToPrevAboveError()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_Delete), PlotWindow::getInstance(), SLOT(deleteAllAboveError()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ShiftModifier | Qt::Key_Delete)), PlotWindow::getInstance(), SLOT(deleteAllAboveError()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_Backspace), PlotWindow::getInstance(), SLOT(deleteAllAboveError()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ShiftModifier | Qt::Key_Backspace)), PlotWindow::getInstance(), SLOT(deleteAllAboveError()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_H), DisplayOptionsDockWidget::getInstance(), SLOT(toggleHideAll()));
@@ -158,7 +154,7 @@ void Shortcuts::bindApplicationShortcuts()
 	shortcut = new QShortcut(QKeySequence(Qt::Key_O), PlotWindow::getInstance(), SLOT(setEventOn()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 
-	shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_O), PlotWindow::getInstance(), SLOT(setEventOff()));
+	shortcut = new QShortcut(QKeySequence(int(Qt::ControlModifier | Qt::Key_O)), PlotWindow::getInstance(), SLOT(setEventOff()));
 	shortcut->setContext(Qt::ApplicationShortcut);
 }
 

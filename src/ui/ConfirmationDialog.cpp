@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -58,7 +58,9 @@ ConfirmationDialog* ConfirmationDialog::getInstance()
 	return instance;
 }
 
-bool ConfirmationDialog::showConfirmationDialog(QString message, bool NoButton)
+namespace xma {
+
+bool ConfirmationDialog::showConfirmationDialog(const QString& message, bool NoButton)
 {
 	if (NoButton) {
 		diag->pushButton_Cancel->setText("No");
@@ -70,17 +72,11 @@ bool ConfirmationDialog::showConfirmationDialog(QString message, bool NoButton)
 		diag->pushButton_OK->setText("OK");
 	}
 	diag->message->setText(message);
-	this->exec();
-
-	if (result())
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	int dialogResult = this->exec();
+	return (dialogResult == QDialog::Accepted);
 }
+
+} // namespace xma
 
 void ConfirmationDialog::on_pushButton_OK_clicked()
 {

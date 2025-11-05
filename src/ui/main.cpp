@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -36,6 +36,11 @@
 #include <QApplication>
 #include <QFileOpenEvent>
 #include <QPushButton>
+#include <QStyleFactory>
+
+#ifdef Q_OS_MACOS
+#include <QOperatingSystemVersion>
+#endif
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
@@ -111,8 +116,23 @@ public:
 int main(int argc, char** argv)
 {
 	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
-	MApplication app(argc, argv);
 	
+	// Enable proper high DPI scaling for modern displays
+	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+	
+#ifdef Q_OS_MACOS
+	// Disable native dialogs on macOS Sequoia (15.0) and later due to compatibility issues
+	auto osVersion = QOperatingSystemVersion::current();
+	if (osVersion >= QOperatingSystemVersion::MacOSSequoia) {
+		QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
+	}
+#endif
+	MApplication app(argc, argv);
+
+	// Set Fusion style by default for cross-platform theming
+	app.setStyle(QStyleFactory::create("Fusion"));
+
 #ifdef _DEBUG
 	cv::setBreakOnError(true);
 #endif

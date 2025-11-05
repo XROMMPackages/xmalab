@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -47,12 +47,12 @@ namespace xma
 		Q_OBJECT
 
 	public:
-		virtual ~ConsoleDockWidget();
+		~ConsoleDockWidget() override;
 		static ConsoleDockWidget* getInstance();
 
-		void writeLog(QString message, unsigned int level = 0);
-		void save(QString file);
-		void load(QString file);
+		void writeLog(const QString& message, unsigned int level = 0);
+		void save(const QString& file);
+		void load(const QString& file);
 		void clear();
 		void afterLoad();
 		void prepareSave();
@@ -62,7 +62,7 @@ namespace xma
 	private:
 		Ui::ConsoleDockWidget* dock;
 		static ConsoleDockWidget* instance;
-		ConsoleDockWidget(QWidget* parent = 0);
+		explicit ConsoleDockWidget(QWidget* parent = nullptr);
 		QMutex mutex;
 
 		char errorBuffer[BUFFERSIZE];

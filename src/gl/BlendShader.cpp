@@ -1,5 +1,5 @@
-﻿//  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  ----------------------------------
+//  XMALab -- Copyright Â(c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED â€œAS ISâ€�, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -32,6 +32,7 @@
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
+#include <QOpenGLContext>
 #else
 #ifdef _WIN32
 #include <windows.h>
@@ -48,8 +49,8 @@ BlendShader::BlendShader() : Shader()
 	m_vertexShader = "varying vec2 texture_coordinate; \n"
 			"void main()\n"
 			"{\n"
-			"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; \n"
-			"	texture_coordinate = vec2(gl_MultiTexCoord0); \n"
+			"\tgl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; \n"
+			"\ttexture_coordinate = vec2(gl_MultiTexCoord0); \n"
 			"}\n";
 	m_fragmentShader = "varying vec2 texture_coordinate;\n"
 		"uniform float transparency;\n"
@@ -58,12 +59,12 @@ BlendShader::BlendShader() : Shader()
 		"uniform sampler2D depth_tex;\n"
 		"void main()\n"
 		"{\n"
-		"		vec4 color = texture2D(texture, texture_coordinate.xy);\n"
-		"		if (useDepthTrans > 0.5){\n"
-		"			float d = texture2D(depth_tex, texture_coordinate.xy).x;\n"
-		"			color.a =  (d < 1.0 ) ? transparency : 0.0 ;\n"
-		"		}\n"
-		"		gl_FragColor = color; \n"
+		"\t\tvec4 color = texture2D(texture, texture_coordinate.xy);\n"
+		"\t\tif (useDepthTrans > 0.5){\n"
+		"\t\t\tfloat d = texture2D(depth_tex, texture_coordinate.xy).x;\n"
+		"\t\t\tcolor.a =  (d < 1.0 ) ? transparency : 0.0 ;\n"
+		"\t\t}\n"
+		"\t\tgl_FragColor = color; \n"
 		"}\n";
 }
 
@@ -74,6 +75,9 @@ BlendShader::~BlendShader()
 
 void BlendShader::draw(unsigned int width, unsigned int height, float transparency, unsigned texture_id, unsigned int depth_texture_id, bool useDepthTrans)
 {
+#ifdef __APPLE__
+	if (!QOpenGLContext::currentContext()) return;
+#endif
 	bindProgram();
 
 	GLint loc = glGetUniformLocation(m_programID, "transparency");

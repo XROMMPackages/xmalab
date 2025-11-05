@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -56,10 +56,10 @@ namespace xma
 		Q_OBJECT
 
 	public:
-		virtual ~EventDockWidget();
+		~EventDockWidget() override;
 		static EventDockWidget* getInstance();
 
-		void addEvent(QString name, QColor color,bool draw);
+		void addEvent(const QString& name, const QColor& color, bool draw);
 		void deleteEvent(int idx);
 
 	protected:
@@ -68,12 +68,11 @@ namespace xma
 	private:
 		Ui::EventDockWidget* dock;
 		static EventDockWidget* instance;
-		EventDockWidget(QWidget* parent = 0);
+		explicit EventDockWidget(QWidget* parent = nullptr);
 		
 		std::vector<event_entry> entries;
 
-		QSignalMapper* mapperColor;
-		QSignalMapper* mapperCheckBox;
+			   // QSignalMapper removed, using direct connections
 
 		int getIndex(QString name);
 		void clear();
@@ -85,8 +84,8 @@ namespace xma
 		void on_pushButtonDelete_clicked();
 		void on_pushButtonSet_clicked();
 		void on_pushButtonUnset_clicked();
-		void changeColor(QString name);
-		void checkbox_clicked(QString name);
+		void changeColor(const QString& name);
+		void checkbox_clicked(const QString& name);
 
 		void workspaceChanged(work_state workspace);
 		void activeTrialChanged(int);

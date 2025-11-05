@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -114,7 +114,7 @@ void CubeCalibration::computePoseAndCam()
 	m_FutureWatcher = new QFutureWatcher<void>();
 	connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( computePoseAndCam_threadFinished() ));
 
-	QFuture<void> future = QtConcurrent::run(this, &CubeCalibration::computePoseAndCam_thread);
+	QFuture<void> future = QtConcurrent::run(&CubeCalibration::computePoseAndCam_thread, this);
 	m_FutureWatcher->setFuture(future);
 
 	ProgressDialog::getInstance()->showProgressbar(0, 0, "Compute Camera internal parameters and pose");
@@ -172,7 +172,7 @@ void CubeCalibration::computePose()
 	m_FutureWatcher = new QFutureWatcher<void>();
 	connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( computePose_threadFinished() ));
 
-	QFuture<void> future = QtConcurrent::run(this, &CubeCalibration::computePose_thread);
+	QFuture<void> future = QtConcurrent::run(&CubeCalibration::computePose_thread, this);
 	m_FutureWatcher->setFuture(future);
 	ProgressDialog::getInstance()->showProgressbar(0, 0, "Compute Camera pose");
 }
@@ -225,7 +225,7 @@ void CubeCalibration::setPose(cv::Mat trans)
 	m_FutureWatcher = new QFutureWatcher<void>();
 	connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( computePose_threadFinished() ));
 
-	QFuture<void> future = QtConcurrent::run(this, &CubeCalibration::setPose_thread);
+	QFuture<void> future = QtConcurrent::run(&CubeCalibration::setPose_thread, this);
 	m_FutureWatcher->setFuture(future);
 	ProgressDialog::getInstance()->showProgressbar(0, 0, "Set Camera pose from other frame ");
 }

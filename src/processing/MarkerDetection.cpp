@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -95,7 +95,7 @@ void MarkerDetection::detectMarker()
 	m_FutureWatcher = new QFutureWatcher<void>();
 	connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(detectMarker_threadFinished()));
 
-	QFuture<void> future = QtConcurrent::run(this, &MarkerDetection::detectMarker_thread);
+	QFuture<void> future = QtConcurrent::run(&MarkerDetection::detectMarker_thread, this);
 	m_FutureWatcher->setFuture(future);
 }
 
@@ -316,18 +316,20 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		int iteration = 100;
 		double epislon = 0.001;
 		cv::cornerSubPix(subimage, corners, cv::Size(half_win_size, half_win_size), cv::Size(-1, -1), cv::TermCriteria(cv::TermCriteria::MAX_ITER | cv::TermCriteria::EPS, iteration, epislon));
-
-		double dist_min = searchArea * searchArea;
-		double dist;
+		double dist_min_sq = searchArea * searchArea;
+		double dist_sq;
+		const double search_center = searchArea + 1;
 		for (int i = 0; i < corner_count; i ++)
 		{
-			dist = cv::sqrt((corners[i].x - (searchArea + 1)) * (corners[i].x - (searchArea + 1)) + (corners[i].y - (searchArea + 1)) * (corners[i].y - (searchArea + 1)));
-			if (dist < dist_min)
+			double dx = corners[i].x - search_center;
+			double dy = corners[i].y - search_center;
+			dist_sq = dx * dx + dy * dy;
+			if (dist_sq < dist_min_sq)
 			{
 				point_out.x = off_x + corners[i].x;
 				point_out.y = off_y + corners[i].y;
 				tmp_size = half_win_size * 2 + 1;
-				dist_min = dist;
+				dist_min_sq = dist_sq;
 			}
 		}
 	}
@@ -370,18 +372,20 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 		std::vector<cv::KeyPoint> keypoints;
 
 		detector->detect(subimage, keypoints);
-
-		double dist_min = searchArea * searchArea;
-		double dist;
+		double dist_min_sq = searchArea * searchArea;
+		double dist_sq;
+		const double search_center = searchArea + 1;
 		for (unsigned int i = 0; i < keypoints.size(); i++)
 		{
-			dist = cv::sqrt((keypoints[i].pt.x - (searchArea + 1)) * (keypoints[i].pt.x - (searchArea + 1)) + (keypoints[i].pt.y - (searchArea + 1)) * (keypoints[i].pt.y - (searchArea + 1)));
-			if (dist < dist_min)
+			double dx = keypoints[i].pt.x - search_center;
+			double dy = keypoints[i].pt.y - search_center;
+			dist_sq = dx * dx + dy * dy;
+			if (dist_sq < dist_min_sq)
 			{
 				point_out.x = off_x + keypoints[i].pt.x;
 				point_out.y = off_y + keypoints[i].pt.y;
 				tmp_size = keypoints[i].size;
-				dist_min = dist;
+				dist_min_sq = dist_sq;
 			}
 		}
 		keypoints.clear();
@@ -475,36 +479,42 @@ bool MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_o
 		B.create(subimage.cols * subimage.rows, 1, CV_64F);
 		cv::Mat p;
 		p.create(15, 1, CV_64F);
-
 		int count = 0;
 		double tmpx, tmpy, tmpw;
+		double inv_radius_sq_maskmult = -1.0 / (radius * radius * maskmult);
+		
+		// Use direct pointer access for better performance
+		double* A_ptr = A.ptr<double>();
+		double* B_ptr = B.ptr<double>();
+		const uchar* subimage_ptr = subimage.ptr<uchar>();
+		
 		for (int j = 0; j < subimage.cols; j++)
 		{
 			for (int i = 0; i < subimage.rows; i++)
 			{
 				tmpx = off_x - x + j;
 				tmpy = off_y - y + i;
-				tmpw = exp(-(tmpx * tmpx + tmpy * tmpy) / (radius * radius * maskmult));
+				tmpw = exp((tmpx * tmpx + tmpy * tmpy) * inv_radius_sq_maskmult);
 				if (darkMarker)
 				{
-					B.at<double>(count, 0) = tmpw * (255 - subimage.at<uchar>(i, j));
+					B_ptr[count] = tmpw * (255 - subimage_ptr[i * subimage.cols + j]);
 				}
 				else
 				{
-					B.at<double>(count, 0) = tmpw * (subimage.at<uchar>(i, j));
+					B_ptr[count] = tmpw * subimage_ptr[i * subimage.cols + j];
 				}
-				A.at<double>(count, 0) = tmpw;
+				A_ptr[count * 15] = tmpw;
 				int ocol = 1;
 				for (int order = 1; order <= 4; order++)
 				{
 					for (int ocol2 = ocol; ocol2 < ocol + order; ocol2++)
 					{
 						//std::cerr  << ocol2 << ": Add X to " << ocol2 - order << std::endl;
-						A.at<double>(count, ocol2) = tmpx * A.at<double>(count, ocol2 - order);
+						A_ptr[count * 15 + ocol2] = tmpx * A_ptr[count * 15 + ocol2 - order];
 					}
 					ocol = ocol + order;
 					//std::cerr << ocol << ": Add Y to " << ocol - order - 1 << std::endl;
-					A.at<double>(count, ocol) = tmpy * A.at<double>(count, ocol - order - 1);
+					A_ptr[count * 15 + ocol] = tmpy * A_ptr[count * 15 + ocol - order - 1];
 					ocol++;
 				}
 				count++;
@@ -512,12 +522,23 @@ bool MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_o
 		}
 
 		cv::solve(A, B, p, cv::DECOMP_QR);
-
 		cv::Mat quadric;
 		quadric.create(subimage.size(), CV_64F);
 
 		double val[6];
 		double val2;
+		
+		// Cache parameter values for faster access
+		double p0 = p.at<double>(0, 0);
+		double p1 = p.at<double>(1, 0);
+		double p2 = p.at<double>(2, 0);
+		double p3 = p.at<double>(3, 0);
+		double p4 = p.at<double>(4, 0);
+		double p5 = p.at<double>(5, 0);
+		
+		// Use direct pointer access for better performance
+		double* quadric_ptr = quadric.ptr<double>();
+		
 		for (int j = 0; j < subimage.cols; j++)
 		{
 			for (int i = 0; i < subimage.rows; i++)
@@ -538,12 +559,9 @@ bool MarkerDetection::refinePointPolynomialFit(cv::Point2d& pt, double& radius_o
 					ocol++;
 				}
 
-				val2 = 0;
-				for (int o = 0; o < 6; o++)
-				{
-					val2 += val[o] * p.at<double>(o, 0);
-				}
-				quadric.at<double>(i, j) = val2;
+				val2 = val[0] * p0 + val[1] * p1 + val[2] * p2 + 
+				       val[3] * p3 + val[4] * p4 + val[5] * p5;
+				quadric_ptr[i * subimage.cols + j] = val2;
 			}
 		}
 

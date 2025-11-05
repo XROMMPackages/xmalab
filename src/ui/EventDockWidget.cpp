@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -48,7 +48,7 @@
 
 using namespace xma;
 
-EventDockWidget* EventDockWidget::instance = NULL;
+EventDockWidget* EventDockWidget::instance = nullptr;
 
 EventDockWidget::EventDockWidget(QWidget* parent) :
 	QDockWidget(parent),
@@ -57,10 +57,7 @@ EventDockWidget::EventDockWidget(QWidget* parent) :
 	dock->setupUi(this);
 
 	Shortcuts::getInstance()->installEventFilterToChildren(this);
-	mapperColor = new QSignalMapper(this);
-	connect(mapperColor, SIGNAL(mapped(QString)), this, SLOT(changeColor(QString)));
-	mapperCheckBox = new QSignalMapper(this);
-	connect(mapperCheckBox, SIGNAL(mapped(QString)), this, SLOT(checkbox_clicked(QString)));
+	// Use direct connections with lambdas instead of QSignalMapper (Qt6)
 
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
@@ -70,9 +67,7 @@ EventDockWidget::EventDockWidget(QWidget* parent) :
 EventDockWidget::~EventDockWidget()
 {
 	delete dock;
-	delete mapperColor;
-	delete mapperCheckBox;
-	instance = NULL;
+	instance = nullptr;
 }
 
 
@@ -85,7 +80,7 @@ EventDockWidget* EventDockWidget::getInstance()
 	return instance;
 }
 
-void EventDockWidget::addEvent(QString name, QColor color, bool draw)
+void EventDockWidget::addEvent(const QString& name, const QColor& color, bool draw)
 {
 	event_entry entry;
 	entry.name = name;
@@ -100,11 +95,12 @@ void EventDockWidget::addEvent(QString name, QColor color, bool draw)
 	pix3.fill(QColor(entry.color));
 	entry.button->setIcon(pix3);
 
-	connect(entry.button, SIGNAL(clicked()), mapperColor, SLOT(map()));
-	mapperColor->setMapping(entry.button, entry.name);
-	
-	connect(entry.checkbox, SIGNAL(clicked()), mapperCheckBox, SLOT(map()));
-	mapperCheckBox->setMapping(entry.checkbox, entry.name);
+	   connect(entry.button, &QToolButton::clicked, this, [this, entry]() {
+		   changeColor(entry.name);
+	   });
+	   connect(entry.checkbox, &QCheckBox::clicked, this, [this, entry]() {
+		   checkbox_clicked(entry.name);
+	   });
 	
 	dock->gridLayout_3->addWidget(entry.checkbox, entries.size(), 0, 1, 1);
 	dock->gridLayout_3->addWidget(entry.button, entries.size(), 1, 1, 1);
@@ -116,8 +112,7 @@ void EventDockWidget::deleteEvent(int idx)
 	dock->gridLayout_3->removeWidget(entries[idx].button);
 	dock->gridLayout_3->removeWidget(entries[idx].checkbox);
 
-	mapperColor->removeMappings(entries[idx].button);
-	mapperCheckBox->removeMappings(entries[idx].checkbox);
+	// No need to remove mappings with lambdas
 
 	delete entries[idx].button;
 	delete entries[idx].checkbox;
@@ -224,7 +219,7 @@ void EventDockWidget::on_pushButtonSet_clicked()
 	PlotWindow::getInstance()->setEventOn();
 }
 
-void EventDockWidget::changeColor(QString name)
+void EventDockWidget::changeColor(const QString& name)
 {
 	int idx = getIndex(name);
 	if (idx == -1)
@@ -243,7 +238,7 @@ void EventDockWidget::changeColor(QString name)
 	}
 }
 
-void EventDockWidget::checkbox_clicked(QString name)
+void EventDockWidget::checkbox_clicked(const QString& name)
 {
 	int idx = getIndex(name);
 	if (idx == -1)

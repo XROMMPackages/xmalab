@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -157,7 +157,14 @@ void readAndAdvance(T* output, char* & ptr, int length)
 CineVideo::CineVideo(QStringList _filenames) : VideoStream(_filenames)
 {
 	lastFrame = -1;
+	fileStream = std::make_unique<std::ifstream>(filenames.at(0).toStdString(), std::ifstream::binary);
 	loadCineInfo();
+}
+
+CineVideo::~CineVideo()
+{
+	if (fileStream && fileStream->is_open())
+		fileStream->close();
 }
 
 void CineVideo::unpackImageData(char* packed, unsigned char* unpacked)
@@ -519,13 +526,6 @@ void CineVideo::loadCineInfo()
 		if (printHeader) SHOW(SoundDest);
 		readAndAdvance(FRPSteps, counter);
 		if (printHeader) SHOW(FRPSteps);
-		readAndAdvance(FRPImgNr, counter, 16);
-		if (printHeader)
-		{
-			SHOWNAME(FRPImgNr) ;
-			for (int i = 0; i < 16; i++) SHOWVALONLY(FRPImgNr[i]);
-			SHOWEND;
-		}
 		readAndAdvance(FRPRate, counter, 16);
 		if (printHeader)
 		{
@@ -683,35 +683,29 @@ void CineVideo::loadCineInfo()
 	}
 }
 
-CineVideo::~CineVideo()
-{
-}
-
-
-
 void CineVideo::setActiveFrame(int _activeFrame)
 {
 	if (lastFrame == _activeFrame)
 		return;
 
 	lastFrame = _activeFrame;
-
-	std::ifstream is(filenames.at(0).toStdString(), std::ifstream::binary);
-	if (_activeFrame < (int) ImageCount && _activeFrame < (int) image_addresses.size())
+	if (!fileStream || !fileStream->is_open())
+		return;
+	if (_activeFrame < (int)ImageCount && _activeFrame < (int)image_addresses.size())
 	{
-		is.seekg(image_addresses[_activeFrame]);
+		fileStream->clear();
+		fileStream->seekg(image_addresses[_activeFrame]);
 		DWORD annotationSize;
-		is.read((char*)&annotationSize, sizeof(DWORD));
-		is.seekg(image_addresses[_activeFrame] + annotationSize);
+		fileStream->read((char*)&annotationSize, sizeof(DWORD));
+		fileStream->seekg(image_addresses[_activeFrame] + annotationSize);
 		cv::Mat imageWithData;
 		char* imageData = new char[biSizeImage];
-		is.read(imageData, biSizeImage);
+		fileStream->read(imageData, biSizeImage);
 		if (biCompression == 256)
 		{
 			unsigned char* imageData_unpacked = new unsigned char[biWidth * biHeight];
 			unpackImageData(imageData, imageData_unpacked);
 			imageWithData = cv::Mat(biHeight, biWidth, CV_8U, imageData_unpacked).clone();
-
 			delete[] imageData_unpacked;
 		}
 		else{
@@ -733,17 +727,19 @@ void CineVideo::setActiveFrame(int _activeFrame)
 		image->setImage(imageWithData, false);
 		imageWithData.release();
 	}
-	is.close();
-}
-
-QString CineVideo::getFrameName(int frameNumber)
-{
-	QFileInfo info(filenames.at(0));
-	return info.fileName() + " Frame " + QString::number(frameNumber + 1);
 }
 
 void CineVideo::reloadFile()
 {
+	if (fileStream && fileStream->is_open())
+		fileStream->close();
+	fileStream = std::make_unique<std::ifstream>(filenames.at(0).toStdString(), std::ifstream::binary);
 	loadCineInfo();
+}
+
+QString CineVideo::getFrameName(int frameNumber)
+{
+    QFileInfo info(filenames.at(0));
+    return info.fileName() + " Frame " + QString::number(frameNumber + 1);
 }
 

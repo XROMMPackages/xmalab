@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -36,6 +36,7 @@
 #include "core/Settings.h"
 
 #include <QFileDialog>
+#include <algorithm> // for std::sort
 
 using namespace xma;
 
@@ -51,20 +52,22 @@ CameraBoxTrial::~CameraBoxTrial()
 	delete widget;
 }
 
-void CameraBoxTrial::setFilename(QString filename)
+void CameraBoxTrial::setFilename(const QString& filename)
 {
 	imageFileNames.clear();
 	if (filename.endsWith(".zip"))
 	{
-		QDir pdir(filename.replace(".zip",""));
+		QString zipBase = filename;
+		zipBase.chop(4); // Remove ".zip"
+		QDir pdir(zipBase);
 		QStringList imageFileNames_rel = pdir.entryList(QStringList() << "*.png" << "*.tif" << "*.bmp" << "*.jpeg" << "*.jpg", QDir::Files | QDir::NoSymLinks);
 		for (int i = 0; i < imageFileNames_rel.size(); ++i)
 		{
 			imageFileNames << QString("%1/%2").arg(pdir.absolutePath()).arg(imageFileNames_rel.at(i));
 		}
 
-		qSort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
-		widget->lineEdit->setText(filename.replace(".zip", ""));
+		std::sort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
+		widget->lineEdit->setText(zipBase);
 	}
 	else{	
 		imageFileNames << filename;
@@ -73,17 +76,17 @@ void CameraBoxTrial::setFilename(QString filename)
 	widget->label->setText("(" + QString::number(imageFileNames.size()) + ")");
 }
 
-void CameraBoxTrial::setCameraName(QString name)
+void CameraBoxTrial::setCameraName(const QString& name)
 {
 	widget->groupBox->setTitle(name);
 }
 
-const QString CameraBoxTrial::getCameraName()
+QString CameraBoxTrial::getCameraName() const
 {
 	return widget->groupBox->title();
 }
 
-QString CameraBoxTrial::commonPrefix(QStringList fileNames)
+QString CameraBoxTrial::commonPrefix(const QStringList& fileNames) const
 {
 	bool isValid = true;
 	int count = 0;
@@ -104,7 +107,7 @@ QString CameraBoxTrial::commonPrefix(QStringList fileNames)
 	return QString(fileNames.at(0).left(count + 1));
 }
 
-bool CameraBoxTrial::isComplete()
+bool CameraBoxTrial::isComplete() const
 {
 	//No Images set
 	if (imageFileNames.size() == 0)
@@ -131,7 +134,7 @@ void CameraBoxTrial::on_toolButtonImage_clicked()
 			imageFileNames << QString("%1/%2").arg(pdir.absolutePath()).arg(imageFileNames_rel.at(i));
 		}
 
-		qSort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
+		std::sort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
 		widget->lineEdit->setText(folder);
 		widget->label->setText("(" + QString::number(imageFileNames.size()) + ")");
 		Settings::getInstance()->setLastUsedDirectory(folder);
@@ -143,7 +146,7 @@ void CameraBoxTrial::on_toolButtonVideo_clicked()
 	imageFileNames = QFileDialog::getOpenFileNames(this,
 	                                               tr("Open video stream movie file or images"), Settings::getInstance()->getLastUsedDirectory(), tr("Image and Video Files (*.cine *.avi *.png *.jpg *.jpeg *.bmp *.tif)"));
 
-	qSort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
+	std::sort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
 
 	if (!imageFileNames.isEmpty())
 	{

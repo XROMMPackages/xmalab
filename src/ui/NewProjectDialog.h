@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -43,8 +43,8 @@ namespace xma
 		Q_OBJECT
 
 	public:
-		explicit NewProjectDialog(QWidget* parent = 0);
-		virtual ~NewProjectDialog();
+		explicit NewProjectDialog(QWidget* parent = nullptr);
+		~NewProjectDialog() override;
 
 		Ui::NewProjectDialog* diag;
 
@@ -53,10 +53,10 @@ namespace xma
 			return cameras;
 		}
 
-		void addCalibrationImage(int id_camera, QString filename);
-		void addGridImage(int id_camera, QString filename);
-		void setCalibrationCubeCSV(QString filename);
-		void setCalibrationCubeREF(QString filename);
+		void addCalibrationImage(int id_camera, const QString& filename);
+		void addGridImage(int id_camera, const QString& filename);
+		void setCalibrationCubeCSV(const QString& filename);
+		void setCalibrationCubeREF(const QString& filename);
 		void setupBasedOnMissingParameters();
 		//bool isCubeCalibrationObject();
 		//QString getFrameSpecificationsFileName();

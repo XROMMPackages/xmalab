@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -67,23 +67,22 @@ PlotWindow* PlotWindow::instance = NULL;
 PlotWindow::PlotWindow(QWidget* parent) : QDockWidget(parent), dock(new Ui::PlotWindow)
 {
 	dock->setupUi(this);
-
 	//setup Plot 1
 	//plotWidget = new QCustomPlot(this);
 	frameMarker = new QCPItemLine(dock->plotWidget);
-	dock->plotWidget->addItem(frameMarker);
 	frameMarkerExtra = new QCPItemLine(dock->plotWidgetExtra);
-	dock->plotWidgetExtra->addItem(frameMarkerExtra);
 
 	connect(dock->plotWidget, SIGNAL(afterReplot()), this, SLOT(updateExtraPlot()));
 
-	//dock->plotWidget->installEventFilter(this);
-	installEventFilterToChildren(this);
-
+	dock->plotWidget->installEventFilter(this);	installEventFilterToChildren(this);
 	selectionMarker = new QCPItemRect(dock->plotWidget);
-	dock->plotWidget->addItem(selectionMarker);
 	selectionMarker->setPen(QPen(QColor(255, 255, 0, 50)));
 	selectionMarker->setBrush(QBrush(QColor(255, 255, 0, 150)));
+	
+	// Initialize error bars for QCustomPlot 2.1.1
+	errorBars0 = nullptr;
+	errorBars1 = nullptr;
+	
 	startFrame = 0;
 	endFrame = 0;
 
@@ -1171,15 +1170,13 @@ void PlotWindow::resetRange(bool recreateStatus)
 			(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1) * posMultiplier + posOffset,
 			(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1) * posMultiplier + posOffset);
 
-		if (recreateStatus){
-			if (dock->checkBoxStatus->isChecked()){
+		if (recreateStatus){			if (dock->checkBoxStatus->isChecked()){
 				for (unsigned int c = 0; c < Project::getInstance()->getCameras().size(); c++)
 				{
 					std::vector<QCPItemRect *> rects;
 					for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
 					{
 						rects.push_back(new QCPItemRect(dock->plotWidget));
-						dock->plotWidget->addItem(rects.back());
 					}
 					marker_status.push_back(rects);
 				}
@@ -1187,7 +1184,6 @@ void PlotWindow::resetRange(bool recreateStatus)
 				for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
 				{
 					interpolation_status.push_back(new QCPItemRect(dock->plotWidget));
-					dock->plotWidget->addItem(interpolation_status.back());
 				}
 			}
 
@@ -1198,7 +1194,6 @@ void PlotWindow::resetRange(bool recreateStatus)
 					for (int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame(); f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); f++)
 					{
 						rects.push_back(new QCPItemRect(dock->plotWidget));
-						dock->plotWidget->addItem(rects.back());
 					}
 					events.push_back(rects);
 				}
@@ -2173,42 +2168,72 @@ void PlotWindow::plotRigidBodyError(int idx)
 				}
 
 				if (countFiltered > 1)FilteredSD = sqrt(FilteredSD / (countFiltered - 1));
-			}
-
-			// create graph and assign data to it:
+			}			// create graph and assign data to it:
 			if (drawFiltered && !drawUnfiltered)
 			{
-				dock->plotWidget->graph(0)->setDataValueError(pos, errorMeanFiltered, errorSDFiltered);
+				dock->plotWidget->graph(0)->setData(pos, errorMeanFiltered);
 				dock->plotWidget->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
 				dock->plotWidget->graph(0)->setPen(QPen(QColor(Qt::darkBlue)));
-				dock->plotWidget->graph(0)->setErrorType(QCPGraph::etValue);
-				dock->plotWidget->graph(0)->setErrorPen(QPen(QColor(Qt::blue)));
 				dock->plotWidget->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDot, 1));
+				
+				// Create error bars for QCustomPlot 2.1.1
+				if (errorBars0) {
+					dock->plotWidget->removePlottable(errorBars0);
+				}
+				errorBars0 = new QCPErrorBars(dock->plotWidget->xAxis, dock->plotWidget->yAxis);
+				errorBars0->setDataPlottable(dock->plotWidget->graph(0));
+				errorBars0->setErrorType(QCPErrorBars::etValueError);
+				errorBars0->setData(errorSDFiltered);
+				errorBars0->setPen(QPen(QColor(Qt::blue)));
 			}
 			else if (!drawFiltered && drawUnfiltered)
 			{
-				dock->plotWidget->graph(0)->setDataValueError(pos, errorMean, errorSD);
+				dock->plotWidget->graph(0)->setData(pos, errorMean);
 				dock->plotWidget->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
 				dock->plotWidget->graph(0)->setPen(QPen(QColor(Qt::darkRed)));
-				dock->plotWidget->graph(0)->setErrorType(QCPGraph::etValue);
-				dock->plotWidget->graph(0)->setErrorPen(QPen(QColor(Qt::red)));
 				dock->plotWidget->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDot, 1));
+				
+				// Create error bars for QCustomPlot 2.1.1
+				if (errorBars0) {
+					dock->plotWidget->removePlottable(errorBars0);
+				}
+				errorBars0 = new QCPErrorBars(dock->plotWidget->xAxis, dock->plotWidget->yAxis);
+				errorBars0->setDataPlottable(dock->plotWidget->graph(0));
+				errorBars0->setErrorType(QCPErrorBars::etValueError);
+				errorBars0->setData(errorSD);
+				errorBars0->setPen(QPen(QColor(Qt::red)));
 			}
 			else
 			{
-				dock->plotWidget->graph(0)->setDataValueError(pos, errorMeanFiltered, errorSDFiltered);
+				dock->plotWidget->graph(0)->setData(pos, errorMeanFiltered);
 				dock->plotWidget->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
 				dock->plotWidget->graph(0)->setPen(QPen(QColor(Qt::darkBlue)));
-				dock->plotWidget->graph(0)->setErrorType(QCPGraph::etValue);
-				dock->plotWidget->graph(0)->setErrorPen(QPen(QColor(Qt::blue)));
 				dock->plotWidget->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDot, 1));
 
-				dock->plotWidget->graph(1)->setDataValueError(pos, errorMean, errorSD);
+				// Create error bars for graph 0 (filtered)
+				if (errorBars0) {
+					dock->plotWidget->removePlottable(errorBars0);
+				}
+				errorBars0 = new QCPErrorBars(dock->plotWidget->xAxis, dock->plotWidget->yAxis);
+				errorBars0->setDataPlottable(dock->plotWidget->graph(0));
+				errorBars0->setErrorType(QCPErrorBars::etValueError);
+				errorBars0->setData(errorSDFiltered);
+				errorBars0->setPen(QPen(QColor(Qt::blue)));
+
+				dock->plotWidget->graph(1)->setData(pos, errorMean);
 				dock->plotWidget->graph(1)->setLineStyle(QCPGraph::lsStepCenter);
 				dock->plotWidget->graph(1)->setPen(QPen(QColor(Qt::darkRed)));
-				dock->plotWidget->graph(1)->setErrorType(QCPGraph::etValue);
-				dock->plotWidget->graph(1)->setErrorPen(QPen(QColor(Qt::red)));
 				dock->plotWidget->graph(1)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDot, 1));
+				
+				// Create error bars for graph 1 (unfiltered)
+				if (errorBars1) {
+					dock->plotWidget->removePlottable(errorBars1);
+				}
+				errorBars1 = new QCPErrorBars(dock->plotWidget->xAxis, dock->plotWidget->yAxis);
+				errorBars1->setDataPlottable(dock->plotWidget->graph(1));
+				errorBars1->setErrorType(QCPErrorBars::etValueError);
+				errorBars1->setData(errorSD);
+				errorBars1->setPen(QPen(QColor(Qt::red)));
 			}
 
 			// set axes ranges, so we see all data:

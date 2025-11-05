@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -81,6 +81,10 @@
 #include <QFileDialog>
 #include <QtCore>
 #include <QtConcurrent/QtConcurrent>
+#include <QMenu>
+#include <QAction>
+#include <QPalette>
+#include <QStyleFactory>
 
 #include <iostream>
 
@@ -100,6 +104,21 @@
 
 using namespace xma;
 
+// Helper to ensure save filenames include the expected extension on platforms
+// where non-native dialogs do not auto-append (e.g., macOS with AA_DontUseNativeDialogs)
+static QString ensureExtension(const QString& selectedPath, const QStringList& allowedExtensionsWithDot, const QString& defaultExtensionWithDot)
+{
+	if (selectedPath.isEmpty()) return selectedPath;
+	QString lowerPath = selectedPath.toLower();
+	for (const auto &ext : allowedExtensionsWithDot)
+	{
+		QString lowExt = ext.toLower();
+		if (!lowExt.isEmpty() && lowerPath.endsWith(lowExt))
+			return selectedPath; // Already has an allowed extension
+	}
+	return selectedPath + defaultExtensionWithDot; // Append default
+}
+
 
 MainWindow* MainWindow::instance = NULL;
 
@@ -107,10 +126,12 @@ MainWindow* MainWindow::instance = NULL;
 MainWindow::MainWindow(QWidget* parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
-{
-	if (!instance) instance = this;
+{ if (!instance) instance = this;
 
 	ui->setupUi(this);
+
+	// Set up theme menu and apply saved theme early, before other UI initialization
+	createThemeMenu();
 
 	ui->actionConsole->setVisible(false);
 	ui->actionXROMM_VR->setVisible(false);
@@ -144,8 +165,6 @@ MainWindow::MainWindow(QWidget* parent) :
 		setGeometry(50, 50, 1280, 1024);
 	}
 
-	mapper = new QSignalMapper(this);
-	connect(mapper, SIGNAL(mapped(QString)), this, SLOT(loadRecentFile(QString)));
 	updateRecentFiles();
 
 
@@ -272,12 +291,10 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	if (Settings::getInstance()->getQStringSetting("WelcomeDialog") < PROJECT_VERSION)
 	{
-		WelcomeDialog* diag = new WelcomeDialog(this);
-		diag->show();
+		WelcomeDialog* diag = new WelcomeDialog(this);		diag->show();
 		diag->setAttribute(Qt::WA_DeleteOnClose);
 	}
 }
-
 
 MainWindow::~MainWindow()
 {
@@ -285,7 +302,6 @@ MainWindow::~MainWindow()
 	delete GLSharedWidget::getInstance();
 	delete WizardDockWidget::getInstance();
 	delete WorldViewDockWidget::getInstance();
-	delete mapper;
 	instance = NULL;
 }
 
@@ -443,6 +459,95 @@ void MainWindow::clearSplitters()
 	}
 }
 
+void MainWindow::applyTheme(const QString& themeName) {
+    if (themeName == "dark") {
+        // Force dark mode by using the system's actual dark palette
+        qApp->setStyle(QStyleFactory::create("Fusion"));
+        
+        // Get the current system palette
+        QPalette systemPalette = QPalette();
+        
+        // Check if system is already in dark mode
+        if (systemPalette.color(QPalette::Window).lightness() < 128) {
+            // System is in dark mode - use its exact palette
+            qApp->setPalette(systemPalette);
+        } else {
+            // System is in light mode, but we want to force dark mode
+            // We need to simulate what the system dark palette would look like
+            // Save current style, temporarily switch to get system colors
+            QString currentStyle = qApp->style()->objectName();
+            
+            // Create a temporary palette to get system-like dark colors
+            QPalette darkPalette;
+            
+            // Use more system-native dark colors (closer to Windows dark theme)
+            darkPalette.setColor(QPalette::Window, QColor(32, 32, 32));          // Windows dark theme window color
+            darkPalette.setColor(QPalette::WindowText, QColor(255, 255, 255));   // White text
+            darkPalette.setColor(QPalette::Base, QColor(45, 45, 45));            // Input field background
+            darkPalette.setColor(QPalette::AlternateBase, QColor(60, 60, 60));   // Alternate row color
+            darkPalette.setColor(QPalette::ToolTipBase, QColor(42, 42, 42));     // Tooltip background
+            darkPalette.setColor(QPalette::ToolTipText, QColor(255, 255, 255));  // Tooltip text
+            darkPalette.setColor(QPalette::Text, QColor(255, 255, 255));         // General text
+            darkPalette.setColor(QPalette::Button, QColor(45, 45, 45));          // Button background
+            darkPalette.setColor(QPalette::ButtonText, QColor(255, 255, 255));   // Button text
+            darkPalette.setColor(QPalette::BrightText, QColor(255, 0, 0));       // Bright text (errors)
+            darkPalette.setColor(QPalette::Link, QColor(0, 120, 215));           // Windows accent blue
+            darkPalette.setColor(QPalette::Highlight, QColor(0, 120, 215));      // Selection highlight
+            darkPalette.setColor(QPalette::HighlightedText, QColor(255, 255, 255)); // Selected text
+            
+            // Disabled colors
+            darkPalette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(127, 127, 127));
+            darkPalette.setColor(QPalette::Disabled, QPalette::Text, QColor(127, 127, 127));
+            darkPalette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(127, 127, 127));
+            darkPalette.setColor(QPalette::Disabled, QPalette::HighlightedText, QColor(127, 127, 127));
+
+			// Neutralize leftover light-mode highlight causing white "halo"
+			darkPalette.setColor(QPalette::Light, QColor(60, 60, 60));
+			darkPalette.setColor(QPalette::Midlight, QColor(55, 55, 55));
+			darkPalette.setColor(QPalette::Mid, QColor(48, 48, 48));
+			darkPalette.setColor(QPalette::Dark, QColor(25, 25, 25));
+			darkPalette.setColor(QPalette::Shadow, QColor(15, 15, 15));
+
+            qApp->setPalette(darkPalette);
+        }
+    } else if (themeName == "light") {
+        // Force light mode - create a completely fresh light palette
+        qApp->setStyle(QStyleFactory::create("Fusion"));
+        
+        // Create a brand new light palette from scratch, not based on system
+        QPalette lightPalette;
+        lightPalette.setColor(QPalette::Window, QColor(240, 240, 240));
+        lightPalette.setColor(QPalette::WindowText, Qt::black);
+        lightPalette.setColor(QPalette::Base, Qt::white);
+        lightPalette.setColor(QPalette::AlternateBase, QColor(245, 245, 245));
+        lightPalette.setColor(QPalette::ToolTipBase, QColor(255, 255, 220));
+        lightPalette.setColor(QPalette::ToolTipText, Qt::black);
+        lightPalette.setColor(QPalette::Text, Qt::black);
+        lightPalette.setColor(QPalette::Button, QColor(240, 240, 240));
+        lightPalette.setColor(QPalette::ButtonText, Qt::black);
+        lightPalette.setColor(QPalette::BrightText, Qt::red);
+        lightPalette.setColor(QPalette::Link, QColor(0, 0, 255));
+        lightPalette.setColor(QPalette::Highlight, QColor(0, 120, 215));
+        lightPalette.setColor(QPalette::HighlightedText, Qt::white);
+        lightPalette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(120, 120, 120));
+        lightPalette.setColor(QPalette::Disabled, QPalette::Text, QColor(120, 120, 120));
+        lightPalette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(120, 120, 120));
+		lightPalette.setColor(QPalette::Disabled, QPalette::HighlightedText, QColor(120, 120, 120));
+		// Normalize 3D/shadow roles for forced light mode (system is dark)
+		lightPalette.setColor(QPalette::Light, QColor(255, 255, 255));   // top highlight
+		lightPalette.setColor(QPalette::Midlight, QColor(248, 248, 248));   // subtle inner highlight
+		lightPalette.setColor(QPalette::Mid, QColor(220, 220, 220));   // mid tone for grooves
+		lightPalette.setColor(QPalette::Dark, QColor(160, 160, 160));   // lower edge
+		lightPalette.setColor(QPalette::Shadow, QColor(110, 110, 110));   // deepest shadow
+        
+        qApp->setPalette(lightPalette);
+    } else { // system
+        // Use system default - let Qt automatically follow the OS theme
+        qApp->setStyle(QStyleFactory::create("Fusion"));
+        qApp->setPalette(QPalette());
+    }
+}
+
 void MainWindow::relayoutCameras()
 {
 	clearSplitters();
@@ -547,7 +652,10 @@ void MainWindow::newProject()
 		m_FutureWatcher = new QFutureWatcher<int>();
 		connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( newProjectFinished() ));
 
-		QFuture<int> future = QtConcurrent::run(newProjectdialog, &NewProjectDialog::createProject);
+		QFuture<int> future = QtConcurrent::run([this]() -> int {
+			newProjectdialog->createProject();
+			return 0; // Return a default value
+		});
 		m_FutureWatcher->setFuture(future);
 
 		ProgressDialog::getInstance()->showProgressbar(0, 0, "Create new dataset");
@@ -633,7 +741,10 @@ void MainWindow::newProjectFromXMALab(QString filename)
 		m_FutureWatcher = new QFutureWatcher<int>();
 		connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(newProjectFinished()));
 
-		QFuture<int> future = QtConcurrent::run(newProjectdialog, &NewProjectDialog::createProject);
+		QFuture<int> future = QtConcurrent::run([this]() -> int {
+			newProjectdialog->createProject();
+			return 0; // Return a default value
+		});
 		m_FutureWatcher->setFuture(future);
 
 		ProgressDialog::getInstance()->showProgressbar(0, 0, "Create new dataset");
@@ -692,7 +803,10 @@ void MainWindow::loadProject(QString fileName, QString fileName_extraCalib)
 	m_FutureWatcher = new QFutureWatcher<int>();
 	connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(loadProjectFinished()));
 
-	QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::loadProject, fileName, fileName_extraCalib);
+	QFuture<int> future = QtConcurrent::run([this, fileName, fileName_extraCalib]() -> int {
+		ProjectFileIO::getInstance()->loadProject(fileName, fileName_extraCalib);
+		return 0; // Return a default value
+	});
 	m_FutureWatcher->setFuture(future);
 
 	ProgressDialog::getInstance()->showProgressbar(0, 0, ("Load dataset " + fileName).toUtf8());
@@ -871,7 +985,7 @@ void MainWindow::closeProject()
 
 	ui->actionPlot->setEnabled(false);
 	ui->actionEvents->setEnabled(false);
-	ui->actionDetectionSettings->setEnabled(false);
+ ui->actionDetectionSettings->setEnabled(false);
 	ui->action3D_world_view->setEnabled(false);
 	ui->actionDetailed_View->setEnabled(false);
 	ui->actionDisplay_Options->setEnabled(false);
@@ -906,7 +1020,10 @@ void MainWindow::saveProject()
 		m_FutureWatcher = new QFutureWatcher<int>();
 		connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( saveProjectFinished() ));
 
-		QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, project->getProjectFilename(), project->getTrials(), false);
+		QFuture<int> future = QtConcurrent::run([this]() -> int {
+			ProjectFileIO::getInstance()->saveProject(this->project->getProjectFilename(), this->project->getTrials(), false);
+			return 0; // Return a default value
+		});
 		m_FutureWatcher->setFuture(future);
 
 		ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + project->getProjectFilename()).toUtf8());
@@ -918,12 +1035,15 @@ void MainWindow::saveProjectAs(bool subset)
 	if (WizardDockWidget::getInstance()->checkForPendingChanges())
 	{
 		QString fileName = QFileDialog::getSaveFileName(this,
-		                                                tr("Save dataset as"), project->getProjectFilename().isEmpty() ? Settings::getInstance()->getLastUsedDirectory() : project->getProjectFilename(), tr("Dataset (*.xma *.zip)"));
+														tr("Save dataset as"), project->getProjectFilename().isEmpty() ? Settings::getInstance()->getLastUsedDirectory() : project->getProjectFilename(), tr("Dataset (*.xma *.zip)"));
 
 		ConsoleDockWidget::getInstance()->prepareSave();
 
 		if (fileName.isNull() == false)
 		{
+			// Ensure default extension (.xma) if none provided
+			fileName = ensureExtension(fileName, QStringList() << ".xma" << ".zip", ".xma");
+
 			Project::getInstance()->set_date_created();
 			Settings::getInstance()->setLastUsedDirectory(fileName);
 			Settings::getInstance()->addToRecentFiles(fileName);
@@ -935,7 +1055,10 @@ void MainWindow::saveProjectAs(bool subset)
 				m_FutureWatcher = new QFutureWatcher<int>();
 				connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(saveProjectFinished()));
 
-				QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, fileName, project->getTrials(), false);
+				QFuture<int> future = QtConcurrent::run([this, fileName]() -> int {
+					ProjectFileIO::getInstance()->saveProject(fileName, this->project->getTrials(), false);
+					return 0; // Return a default value
+				});
 				m_FutureWatcher->setFuture(future);
 
 				ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + fileName).toUtf8());
@@ -951,7 +1074,10 @@ void MainWindow::saveProjectAs(bool subset)
 					m_FutureWatcher = new QFutureWatcher<int>();
 					connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(saveProjectFinished()));
 
-					QFuture<int> future = QtConcurrent::run(ProjectFileIO::getInstance(), &ProjectFileIO::saveProject, fileName, diag->getTrials(), true);
+					QFuture<int> future = QtConcurrent::run([fileName, diag]() -> int {
+						ProjectFileIO::getInstance()->saveProject(fileName, diag->getTrials(), true);
+						return 0; // Return a default value
+					});
 					m_FutureWatcher->setFuture(future);
 
 					ProgressDialog::getInstance()->showProgressbar(0, 0, ("Save dataset as " + fileName).toUtf8());
@@ -972,8 +1098,10 @@ void MainWindow::updateRecentFiles()
 	for (QStringList::const_iterator iter = recentFiles.constBegin(); iter != recentFiles.constEnd(); ++iter)
 	{
 		QAction * action = ui->menuRecent_Files->addAction(*iter);
-		connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
-		mapper->setMapping(action, *iter);
+		QString filename = *iter; // Capture the filename for the lambda
+		connect(action, &QAction::triggered, [this, filename]() {
+			loadRecentFile(filename);
+		});
 	}
 	
 	QLayoutItem* item;
@@ -987,8 +1115,10 @@ void MainWindow::updateRecentFiles()
 	for (QStringList::const_iterator iter = recentFiles.constBegin(); iter != recentFiles.constEnd(); ++iter)
 	{
 		QPushButton * button = new QPushButton(*iter, this);
-		connect(button, SIGNAL(clicked()), mapper, SLOT(map()));
-		mapper->setMapping(button, *iter);
+		QString filename = *iter; // Capture the filename for the lambda
+		connect(button, &QPushButton::clicked, [this, filename]() {
+			loadRecentFile(filename);
+		});
 		ui->gridLayout->addWidget(button, count, 0, 1, 1);
 		count++;
 	}
@@ -1091,7 +1221,7 @@ void MainWindow::checkTrialImagePaths()
 							QString oldfolder = filename.replace(fileinfo.fileName(), "");
 							Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder + OS_SEP, oldfolder);
 							Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
-						} 
+						}
 					}
 					else
 					{
@@ -1385,7 +1515,7 @@ void MainWindow::workspaceChanged(work_state workspace)
 				ui->actionPlot->setEnabled(false);
 				ui->actionEvents->setEnabled(false);
 				ui->actionDetectionSettings->setEnabled(false);
-				ui->action3D_world_view->setEnabled(false);
+			 ui->action3D_world_view->setEnabled(false);
 
 				
 				PointsDockWidget::getInstance()->hide();
@@ -1398,14 +1528,14 @@ void MainWindow::workspaceChanged(work_state workspace)
 			}
 			ui->actionPrecisionInfo->setEnabled(true);
 			ui->actionExport2D_Points->setEnabled(true);
-			ui->actionReprojection_Errors->setEnabled(true);
-			ui->actionExportEvents->setEnabled(true);
-			ui->actionExport3D_Points->setEnabled(true);
-			ui->actionRigidBodyTransformations->setEnabled(true);
-			ui->actionMarkertoMarkerDistances->setEnabled(true);
-			ui->actionImport2D_Points->setEnabled(true);
-			ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(true);
-			ui->actionXROMM_VR->setEnabled(true);
+		 ui->actionReprojection_Errors->setEnabled(true);
+		 ui->actionExportEvents->setEnabled(true);
+		 ui->actionExport3D_Points->setEnabled(true);
+		 ui->actionRigidBodyTransformations->setEnabled(true);
+		 ui->actionMarkertoMarkerDistances->setEnabled(true);
+		 ui->actionImport2D_Points->setEnabled(true);
+		 ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(true);
+		 ui->actionXROMM_VR->setEnabled(true);
 		}
 		else
 		{
@@ -1428,22 +1558,22 @@ void MainWindow::workspaceChanged(work_state workspace)
 				ui->pushButtonDefaultTrial->setVisible(false);
 			}
 			ui->actionPrecisionInfo->setEnabled(false);
-			ui->actionExport2D_Points->setEnabled(false);
-			ui->actionReprojection_Errors->setEnabled(false);
-			ui->actionExportEvents->setEnabled(false);
-			ui->actionExport3D_Points->setEnabled(false);
-			ui->actionRigidBodyTransformations->setEnabled(false);
-			ui->actionMarkertoMarkerDistances->setEnabled(false);
-			ui->actionImport2D_Points->setEnabled(false);
-			ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
-			ui->actionXROMM_VR->setEnabled(false);
+		 ui->actionExport2D_Points->setEnabled(false);
+		 ui->actionReprojection_Errors->setEnabled(false);
+		 ui->actionExportEvents->setEnabled(false);
+		 ui->actionExport3D_Points->setEnabled(false);
+		 ui->actionRigidBodyTransformations->setEnabled(false);
+		 ui->actionMarkertoMarkerDistances->setEnabled(false);
+		 ui->actionImport2D_Points->setEnabled(false);
+		 ui->actionExport_Undistorted_Trial_images_for_Maya->setEnabled(false);
+		 ui->actionXROMM_VR->setEnabled(false);
 
 			ui->actionDetailed_View->setEnabled(false);
 			ui->actionDisplay_Options->setEnabled(false);
 			ui->actionPlot->setEnabled(false);
-			ui->actionEvents->setEnabled(false);
-			ui->actionDetectionSettings->setEnabled(false);
-			ui->actionShow_3D_View->setEnabled(false);
+		 ui->actionEvents->setEnabled(false);
+		 ui->actionDetectionSettings->setEnabled(false);
+		 ui->actionShow_3D_View->setEnabled(false);
 
 			PointsDockWidget::getInstance()->hide();
 			DetailViewDockWidget::getInstance()->hide();
@@ -1603,7 +1733,7 @@ void MainWindow::on_actionExportAll_triggered(bool checked)
 	if (Project::getInstance()->isCalibrated())
 	{
 		QString outputPath = QFileDialog::getExistingDirectory(this,
-		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+															   tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
@@ -1678,6 +1808,7 @@ void MainWindow::save3DPoints(std::vector<int> markers)
 
 				if (fileName.isNull() == false)
 				{
+					fileName = ensureExtension(fileName, QStringList() << ".csv", ".csv");
 					saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(markers, fileName
 						, Settings::getInstance()->getBoolSetting("Export3DMulti")
 						, Settings::getInstance()->getBoolSetting("Export3DHeader"),
@@ -1718,30 +1849,31 @@ void MainWindow::on_actionExport2D_Points_triggered(bool checked)
 			if (outputPath.isNull() == false)
 			{
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(outputPath + OS_SEP
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DMulti")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DDistorted")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DCount1")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DYUp")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DHeader")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
+																				 ,Settings::getInstance()->getBoolSetting("Export2DMulti")
+																				 ,Settings::getInstance()->getBoolSetting("Export2DDistorted")
+																				 ,Settings::getInstance()->getBoolSetting("Export2DCount1")
+																				 ,Settings::getInstance()->getBoolSetting("Export2DYUp")
+																				 ,Settings::getInstance()->getBoolSetting("Export2DHeader")
+																				 ,Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
 				Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 			}
 		}
 		else if (Settings::getInstance()->getBoolSetting("Export2DMulti"))
 		{
 			QString fileName = QFileDialog::getSaveFileName(this,
-			                                                tr("Save 2D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+															tr("Save 2D points as"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
 
 
 			if (fileName.isNull() == false)
 			{
+				fileName = ensureExtension(fileName, QStringList() << ".csv", ".csv");
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(fileName
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DMulti")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DDistorted")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DCount1")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DYUp")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DHeader")
-				                                                                                         ,Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
+																			 ,Settings::getInstance()->getBoolSetting("Export2DMulti")
+																			 ,Settings::getInstance()->getBoolSetting("Export2DDistorted")
+																			 ,Settings::getInstance()->getBoolSetting("Export2DCount1")
+																			 ,Settings::getInstance()->getBoolSetting("Export2DYUp")
+																			 ,Settings::getInstance()->getBoolSetting("Export2DHeader")
+																			 ,Settings::getInstance()->getBoolSetting("Export2DOffsetCols"));
 				Settings::getInstance()->setLastUsedDirectory(fileName);
 			}
 		}
@@ -1815,6 +1947,7 @@ void MainWindow::saveRigidBodies(std::vector<int> bodies)
 
 				if (fileName.isNull() == false)
 				{
+					fileName = ensureExtension(fileName, QStringList() << ".csv", ".csv");
 					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(bodies, fileName
 						, Settings::getInstance()->getBoolSetting("ExportTransMulti")
 						, Settings::getInstance()->getBoolSetting("ExportTransHeader")
@@ -1852,6 +1985,7 @@ void MainWindow::on_actionMarkertoMarkerDistances_triggered(bool checked)
 
 		if (fileName.isNull() == false)
 		{
+			fileName = ensureExtension(fileName, QStringList() << ".csv", ".csv");
 			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveMarkerToMarkerDistances(fileName,fromTo->getFrom() - 1, fromTo->getTo());
 		}
 	}
@@ -1873,6 +2007,7 @@ void MainWindow::on_actionPrecisionInfo_triggered(bool checked)
 
 		if (fileName.isNull() == false)
 		{
+			fileName = ensureExtension(fileName, QStringList() << ".csv", ".csv");
 			if (State::getInstance()->getActiveTrial() >=0)
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->savePrecisionInfo(fileName, fromTo->getFrom() - 1, fromTo->getTo());
 		}
@@ -1902,7 +2037,7 @@ void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(boo
 	if (ok)
 	{
 		QString outputPath = QFileDialog::getExistingDirectory(this,
-		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+											       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
@@ -1922,7 +2057,7 @@ void MainWindow::on_actionMayaCams_triggered(bool checked)
 			? -1 : Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getReferenceCalibrationImage();
 
 		QString outputPath = QFileDialog::getExistingDirectory(this,
-		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+												   tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
@@ -1944,7 +2079,7 @@ void MainWindow::on_actionMayaCams_2_0_triggered(bool checked)
 			? -1 : Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getReferenceCalibrationImage();
 
 		QString outputPath = QFileDialog::getExistingDirectory(this,
-		                                                       tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
+												   tr("Save to Directory "), Settings::getInstance()->getLastUsedDirectory());
 
 		if (outputPath.isNull() == false)
 		{
@@ -1979,19 +2114,19 @@ void MainWindow::on_actionAll_Trials_for_External_triggered(bool checked)
 		for (auto &tr : Project::getInstance()->getTrials())
 		{
 			QString trial_path = outputPath + OS_SEP + tr->getName() + OS_SEP;
-			QDir().mkpath(trial_path);
-			
+			QDir().mkdir(trial_path);
+
 			for (int i = 0; i < project->getCameras().size(); i++){
 				QString cam_path = trial_path + OS_SEP + "Camera " + QString::number(i) + OS_SEP;
-				QDir().mkpath(cam_path);
+				QDir().mkdir(cam_path);
 
-				QDir().mkpath(cam_path + OS_SEP + "calib" + OS_SEP);
+				QDir().mkdir(cam_path + OS_SEP + "calib" + OS_SEP);
 				Project::getInstance()->exportMayaCamVersion2(cam_path + OS_SEP + "calib" + OS_SEP, -1, i);
-				QDir().mkpath(cam_path + OS_SEP + "images" + OS_SEP);
+				QDir().mkdir(cam_path + OS_SEP + "images" + OS_SEP);
 				tr->saveTrialImages(cam_path + OS_SEP + "images" + OS_SEP, 1, tr->getVideoStreams()[i]->getNbImages(), "tif", i);
-				QDir().mkpath(cam_path + OS_SEP + "markers" + OS_SEP);
+				QDir().mkdir(cam_path + OS_SEP + "markers" + OS_SEP);
 				tr->save2dPoints(cam_path + OS_SEP + "markers" + OS_SEP, false, false, false, false, false, false, i);
-				QDir().mkpath(cam_path + OS_SEP + "reprojection_errors" + OS_SEP);
+				QDir().mkdir(cam_path + OS_SEP + "reprojection_errors" + OS_SEP);
 				tr->saveReprojectionErrors(cam_path + OS_SEP + "reprojection_errors" + OS_SEP);
 			}
 		}
@@ -2009,7 +2144,7 @@ void MainWindow::on_actionImport2D_Points_triggered(bool checked)
 	if (diag->result())
 	{
 		QStringList fileNames = QFileDialog::getOpenFileNames(this,
-		                                                      tr("Open csv files for 2D points"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
+															  tr("Open csv files for 2D points"), Settings::getInstance()->getLastUsedDirectory(), tr("Comma seperated data (*.csv)"));
 
 		if (!fileNames.isEmpty())
 		{
@@ -2017,12 +2152,12 @@ void MainWindow::on_actionImport2D_Points_triggered(bool checked)
 			for (int i = 0; i < fileNames.size(); i++)
 			{
 				loadPoints += Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->load2dPoints(fileNames.at(i)
-				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DDistorted")
-				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DCount1")
-				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DYUp")
-				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DHeader")
-				                                                                                                       ,Settings::getInstance()->getBoolSetting("Import2DOffsetCols")
-																													   , Settings::getInstance()->getBoolSetting("ImportStatusSet"));
+																				       ,Settings::getInstance()->getBoolSetting("Import2DDistorted")
+																				       ,Settings::getInstance()->getBoolSetting("Import2DCount1")
+																				       ,Settings::getInstance()->getBoolSetting("Import2DYUp")
+																				       ,Settings::getInstance()->getBoolSetting("Import2DHeader")
+																				       ,Settings::getInstance()->getBoolSetting("Import2DOffsetCols")
+																					   , Settings::getInstance()->getBoolSetting("ImportStatusSet"));
 			}
 			ProgressDialog::getInstance()->closeProgressbar();
 			Settings::getInstance()->setLastUsedDirectory(fileNames.at(0));
@@ -2038,7 +2173,7 @@ void MainWindow::on_actionImport2D_Points_triggered(bool checked)
 void MainWindow::on_actionImportTrial_triggered(bool checked)
 {
 	QString fileName = QFileDialog::getOpenFileName(this,
-	                                                tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xma  *.zip)"));
+													tr("Select dataset"), Settings::getInstance()->getLastUsedDirectory(), tr("Dataset (*.xma  *.zip)"));
 
 	if (fileName.isNull() == false)
 	{
@@ -2168,7 +2303,7 @@ void MainWindow::on_pushButtonLoad_Project_clicked()
 	loadProject();
 }
 
-void  MainWindow::on_pushButtonLoad_Project_with_different_Calbration_clicked() {
+void MainWindow::on_pushButtonLoad_Project_with_different_Calbration_clicked() {
 	loadProjectWithDifferentCalibration();
 }
 
@@ -2324,4 +2459,51 @@ void MainWindow::on_actionXROMM_VR_triggered(bool checked)
 	{
 		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveVR(outputPath + OS_SEP);
 	}
+}
+
+void MainWindow::createThemeMenu() {
+    themeMenu = new QMenu(tr("Theme"), this);
+    actionThemeLight = new QAction(tr("Light"), this);
+    actionThemeDark = new QAction(tr("Dark"), this);
+    actionThemeSystem = new QAction(tr("Follow System"), this);
+    actionThemeLight->setCheckable(true);
+    actionThemeDark->setCheckable(true);
+    actionThemeSystem->setCheckable(true);
+    QActionGroup* group = new QActionGroup(this);
+    group->addAction(actionThemeLight);
+    group->addAction(actionThemeDark);
+    group->addAction(actionThemeSystem);
+    themeMenu->addAction(actionThemeLight);
+    themeMenu->addAction(actionThemeDark);
+    themeMenu->addAction(actionThemeSystem);
+    ui->menuView->addMenu(themeMenu);    
+	connect(actionThemeLight, &QAction::triggered, this, &MainWindow::onThemeLight);
+    connect(actionThemeDark, &QAction::triggered, this, &MainWindow::onThemeDark);
+    connect(actionThemeSystem, &QAction::triggered, this, &MainWindow::onThemeSystem);
+      // Load and apply saved theme preference
+    QString savedTheme = Settings::getInstance()->getQStringSetting("Theme");
+    
+    if (savedTheme == "light") {
+        actionThemeLight->setChecked(true);
+        applyTheme("light");
+    } else if (savedTheme == "dark") {
+        actionThemeDark->setChecked(true);
+        applyTheme("dark");
+    } else { // "system" or any other value
+        actionThemeSystem->setChecked(true);
+        applyTheme("system");
+    }
+}
+
+void MainWindow::onThemeLight() {
+    applyTheme("light");
+    Settings::getInstance()->set("Theme", QString("light"));
+}
+void MainWindow::onThemeDark() {
+    applyTheme("dark");
+    Settings::getInstance()->set("Theme", QString("dark"));
+}
+void MainWindow::onThemeSystem() {
+    applyTheme("system");
+    Settings::getInstance()->set("Theme", QString("system"));
 }

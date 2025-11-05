@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -92,32 +92,32 @@ void CameraViewWidget::updateCamera()
 	widget->glCameraView->setCamera(camera);
 }
 
-void CameraViewWidget::setImageName(QString name)
+void CameraViewWidget::setImageName(const QString& name)
 {
 	widget->imageTitleLabel->setText(cameraName + " - " + name);
 }
 
 void CameraViewWidget::setBias(double value)
 {
-	if (widget != NULL && widget->glCameraView != NULL) 
+	if (widget && widget->glCameraView)
 		widget->glCameraView->setBias(value);
 }
 
 void CameraViewWidget::setScale(double value)
 {
-	if (widget != NULL && widget->glCameraView != NULL) 
+	if (widget && widget->glCameraView)
 		widget->glCameraView->setScale(value);
 }
 
 void CameraViewWidget::setTransparency(double value)
 {
-	if (widget != NULL && widget->glCameraView != NULL)
+	if (widget && widget->glCameraView)
 		widget->glCameraView->setTransparency(value);
 }
 
 void CameraViewWidget::setRenderTransparentModels(bool value)
 {
-	if (widget != NULL && widget->glCameraView != NULL)
+	if (widget && widget->glCameraView)
 		widget->glCameraView->setRenderTransparentModels(value);
 }
 
@@ -127,7 +127,7 @@ void CameraViewWidget::centerViewToPoint()
 	if (m_visible)widget->glCameraView->update();
 }
 
-const bool& CameraViewWidget::isVisible()
+bool CameraViewWidget::isVisible() const
 {
 	return m_visible;
 }

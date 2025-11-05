@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -58,14 +58,14 @@ SequenceNavigationFrame::SequenceNavigationFrame(QWidget* parent) :
 	frame->spinBoxFrame->setMinimum(1);
 	frame->horizontalSlider->setValue(0);
 	frame->spinBoxFrame->setValue(1);
-	connect(State::getInstance(), SIGNAL(activeFrameCalibrationChanged(int)), this, SLOT(activeFrameChanged(int)));
-	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameChanged(int)));
-	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
-	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
+	connect(State::getInstance(), &State::activeFrameCalibrationChanged, this, &SequenceNavigationFrame::activeFrameChanged);
+	connect(State::getInstance(), &State::activeFrameTrialChanged, this, &SequenceNavigationFrame::activeFrameChanged);
+	connect(State::getInstance(), &State::workspaceChanged, this, &SequenceNavigationFrame::workspaceChanged);
+	connect(State::getInstance(), &State::activeTrialChanged, this, &SequenceNavigationFrame::activeTrialChanged);
 
 	play_tag = 0;
 	play_timer = new QTimer(this);
-	connect(play_timer, SIGNAL(timeout()), this, SLOT(play_update()));
+	connect(play_timer, &QTimer::timeout, this, &SequenceNavigationFrame::play_update);
 
 	updating = false;
 }

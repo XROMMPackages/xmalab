@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -28,7 +28,6 @@
 #define CAMERAVIEWWIDGET_H
 
 #include <QWidget>
-#include <QGLContext>
 #include <QString>
 #include "ui/State.h"
 
@@ -50,8 +49,8 @@ namespace xma
 		Q_OBJECT
 
 	public:
-		explicit CameraViewWidget(Camera* camera, QWidget* parent = 0);
-		virtual ~CameraViewWidget();
+		explicit CameraViewWidget(Camera* camera, QWidget* parent = nullptr);
+		~CameraViewWidget() override;
 
 		void updateCamera();
 		void setMinimumWidthGL(bool set);
@@ -59,7 +58,7 @@ namespace xma
 		void draw();
 		void updateInfo();
 
-		void setImageName(QString name);
+		void setImageName(const QString& name);
 
 		void setBias(double value);
 		void setScale(double value);
@@ -68,11 +67,11 @@ namespace xma
 
 		void centerViewToPoint();
 
-		const bool &isVisible();
+		bool isVisible() const;
 		void setIsVisible(bool value);
 
 	protected:
-		bool eventFilter(QObject* obj, QEvent* event);
+		bool eventFilter(QObject* obj, QEvent* event) override;
 
 	public slots :
 		void on_toolButtonFitZoom_clicked(bool checked);

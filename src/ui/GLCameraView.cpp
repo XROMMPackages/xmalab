@@ -1,5 +1,5 @@
 //  ----------------------------------
-//  XMALab -- Copyright © 2015, Brown University, Providence, RI.
+//  XMALab -- Copyright ï¿½ 2015, Brown University, Providence, RI.
 //  
 //  All Rights Reserved
 //   
@@ -12,7 +12,7 @@
 //  See license.txt for further information.
 //  
 //  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+//  PROVIDED -AS IS-, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
 //  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
 //  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
 //  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
@@ -148,26 +148,30 @@ void GLCameraView::setCamera(Camera* _camera)
 
 void GLCameraView::clampXY()
 {
-	if (camera_width < window_width * zoomRatio)
+	qreal devicePixelRatio = this->devicePixelRatio();
+	double effectiveWidth = window_width * devicePixelRatio;
+	double effectiveHeight = window_height * devicePixelRatio;
+	
+	if (camera_width < effectiveWidth * zoomRatio)
 	{
-		if (x_offset < -0.5 * (zoomRatio * window_width)) x_offset = -0.5 * (zoomRatio * window_width);
-		if (x_offset > -camera_width + 0.5 * (zoomRatio * window_width)) x_offset = -camera_width + 0.5 * (zoomRatio * window_width);
+		if (x_offset < -0.5 * (zoomRatio * effectiveWidth)) x_offset = -0.5 * (zoomRatio * effectiveWidth);
+		if (x_offset > -camera_width + 0.5 * (zoomRatio * effectiveWidth)) x_offset = -camera_width + 0.5 * (zoomRatio * effectiveWidth);
 	}
 	else
 	{
-		if (x_offset > -0.5 * (zoomRatio * window_width)) x_offset = -0.5 * (zoomRatio * window_width);
-		if (x_offset < -camera_width + 0.5 * (zoomRatio * window_width)) x_offset = -camera_width + 0.5 * (zoomRatio * window_width);
+		if (x_offset > -0.5 * (zoomRatio * effectiveWidth)) x_offset = -0.5 * (zoomRatio * effectiveWidth);
+		if (x_offset < -camera_width + 0.5 * (zoomRatio * effectiveWidth)) x_offset = -camera_width + 0.5 * (zoomRatio * effectiveWidth);
 	}
 
-	if (camera_height < window_height * zoomRatio)
+	if (camera_height < effectiveHeight * zoomRatio)
 	{
-		if (y_offset < -0.5 * (zoomRatio * window_height)) y_offset = -0.5 * (zoomRatio * window_height);
-		if (y_offset > -camera_height + 0.5 * (zoomRatio * window_height)) y_offset = -camera_height + 0.5 * (zoomRatio * window_height);
+		if (y_offset < -0.5 * (zoomRatio * effectiveHeight)) y_offset = -0.5 * (zoomRatio * effectiveHeight);
+		if (y_offset > -camera_height + 0.5 * (zoomRatio * effectiveHeight)) y_offset = -camera_height + 0.5 * (zoomRatio * effectiveHeight);
 	}
 	else
 	{
-		if (y_offset > -0.5 * (zoomRatio * window_height)) y_offset = -0.5 * (zoomRatio * window_height);
-		if (y_offset < -camera_height + 0.5 * (zoomRatio * window_height)) y_offset = -camera_height + 0.5 * (zoomRatio * window_height);
+		if (y_offset > -0.5 * (zoomRatio * effectiveHeight)) y_offset = -0.5 * (zoomRatio * effectiveHeight);
+		if (y_offset < -camera_height + 0.5 * (zoomRatio * effectiveHeight)) y_offset = -camera_height + 0.5 * (zoomRatio * effectiveHeight);
 	}
 }
 
@@ -175,11 +179,12 @@ void GLCameraView::mouseMoveEvent(QMouseEvent* e)
 {
 	if (e->buttons() & Qt::RightButton)
 	{
-		x_offset -= (prev_x - zoomRatio * e->pos().x());
-		y_offset -= (prev_y - zoomRatio * e->pos().y());
+		qreal devicePixelRatio = this->devicePixelRatio();
+		x_offset -= (prev_x - zoomRatio * e->pos().x() * devicePixelRatio);
+		y_offset -= (prev_y - zoomRatio * e->pos().y() * devicePixelRatio);
 
-		prev_y = zoomRatio * e->pos().y();
-		prev_x = zoomRatio * e->pos().x();
+		prev_y = zoomRatio * e->pos().y() * devicePixelRatio;
+		prev_x = zoomRatio * e->pos().x() * devicePixelRatio;
 
 		clampXY();
 		update();
@@ -194,8 +199,9 @@ void GLCameraView::mouseDoubleClickEvent(QMouseEvent* e)
 		if (State::getInstance()->getWorkspace() == CALIBRATION
 			&& camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() == 1)
 		{
-			double x = zoomRatio * (e->pos().x()) - ((window_width) * zoomRatio * 0.5 + x_offset);
-			double y = zoomRatio * (e->pos().y()) - ((window_height) * zoomRatio * 0.5 + y_offset);
+			qreal devicePixelRatio = this->devicePixelRatio();
+			double x = zoomRatio * (e->pos().x() * devicePixelRatio) - ((window_width * devicePixelRatio) * zoomRatio * 0.5 + x_offset);
+			double y = zoomRatio * (e->pos().y() * devicePixelRatio) - ((window_height * devicePixelRatio) * zoomRatio * 0.5 + y_offset);
 			camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->toggleInlier(x, y, State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE);
 			update();
 		}
@@ -205,15 +211,17 @@ void GLCameraView::mouseDoubleClickEvent(QMouseEvent* e)
 void GLCameraView::mousePressEvent(QMouseEvent* e)
 {
 	State::getInstance()->changeActiveCamera(this->camera->getID());
+	qreal devicePixelRatio = this->devicePixelRatio();
+	
 	if (e->buttons() & Qt::RightButton)
 	{
-		prev_y = zoomRatio * e->pos().y();
-		prev_x = zoomRatio * e->pos().x();
+		prev_y = zoomRatio * e->pos().y() * devicePixelRatio;
+		prev_x = zoomRatio * e->pos().x() * devicePixelRatio;
 	}
 	else if (e->buttons() & Qt::LeftButton)
 	{
-		double x = zoomRatio * (e->pos().x()) - ((window_width) * zoomRatio * 0.5 + x_offset) - 0.5;
-		double y = zoomRatio * (e->pos().y()) - ((window_height) * zoomRatio * 0.5 + y_offset) - 0.5;
+		double x = zoomRatio * (e->pos().x() * devicePixelRatio) - ((window_width * devicePixelRatio) * zoomRatio * 0.5 + x_offset) - 0.5;
+		double y = zoomRatio * (e->pos().y() * devicePixelRatio) - ((window_height * devicePixelRatio) * zoomRatio * 0.5 + y_offset) - 0.5;
 		if (State::getInstance()->getWorkspace() == UNDISTORTION)
 		{
 			if (camera->hasUndistortion())
@@ -318,7 +326,7 @@ void GLCameraView::wheelEvent(QWheelEvent* e)
 		if (e->modifiers().testFlag(Qt::ControlModifier))
 		{
 			if (State::getInstance()->getWorkspace() == DIGITIZATION){
-				setTransparency(transparency + 1.0 / 2400.0 * e->delta());
+				setTransparency(transparency + 1.0 / 2400.0 * e->angleDelta().y());
 				emit transparencyChanged(transparency);
 			}
 		}
@@ -326,13 +334,14 @@ void GLCameraView::wheelEvent(QWheelEvent* e)
 			State::getInstance()->changeActiveCamera(this->camera->getID());
 			double zoom_prev = zoomRatio;
 
-			setZoomRatio(zoomRatio * 1 - e->delta() / 1000.0, false);
+			setZoomRatio(zoomRatio * 1 - e->angleDelta().y() / 1000.0, false);
 
-			QPoint coordinatesGlobal = e->globalPos();
+			QPoint coordinatesGlobal = e->globalPosition().toPoint();
 			QPoint coordinates = this->mapFromGlobal(coordinatesGlobal);
+			qreal devicePixelRatio = this->devicePixelRatio();
 
-			y_offset += (zoom_prev - zoomRatio) * (0.5 * window_height - coordinates.y());
-			x_offset += (zoom_prev - zoomRatio) * (0.5 * window_width - coordinates.x());
+			y_offset += (zoom_prev - zoomRatio) * (0.5 * window_height * devicePixelRatio - coordinates.y() * devicePixelRatio);
+			x_offset += (zoom_prev - zoomRatio) * (0.5 * window_width * devicePixelRatio - coordinates.x() * devicePixelRatio);
 
 			update();
 		}
@@ -403,10 +412,14 @@ void GLCameraView::setRenderTransparentModels(bool value)
 
 void GLCameraView::setZoomToFit()
 {
-	setZoomRatio((((double) camera_width) / window_width > ((double) camera_height) / window_height) ? ((double) camera_width) / window_width : ((double) camera_height) / window_height, autozoom);
+	qreal devicePixelRatio = this->devicePixelRatio();
+	double effectiveWidth = window_width * devicePixelRatio;
+	double effectiveHeight = window_height * devicePixelRatio;
+	
+	setZoomRatio((((double) camera_width) / effectiveWidth > ((double) camera_height) / effectiveHeight) ? ((double) camera_width) / effectiveWidth : ((double) camera_height) / effectiveHeight, autozoom);
 
-	x_offset = -0.5 * (zoomRatio * window_width);
-	y_offset = -0.5 * (zoomRatio * window_height);
+	x_offset = -0.5 * (zoomRatio * effectiveWidth);
+	y_offset = -0.5 * (zoomRatio * effectiveHeight);
 
 	update();
 }
@@ -422,7 +435,8 @@ void GLCameraView::setMinimumWidthGL(bool set)
 	if (set)
 	{
 		double ratio = camera->getWidth() / camera->getHeight();
-		this->setMinimumWidth(ratio * this->size().height());
+		qreal devicePixelRatio = this->devicePixelRatio();
+		this->setMinimumWidth(ratio * this->size().height() / devicePixelRatio);
 	}
 	else
 	{
@@ -435,7 +449,9 @@ void GLCameraView::resizeGL(int _w, int _h)
 	window_width = _w;
 	window_height = _h;
 
-	glViewport(0, 0, window_width, window_height);
+	// Handle high DPI displays by using device pixel ratio
+	qreal devicePixelRatio = this->devicePixelRatio();
+	glViewport(0, 0, window_width * devicePixelRatio, window_height * devicePixelRatio);
 	if (autozoom)setZoomToFit();
 }
 
@@ -497,6 +513,11 @@ void GLCameraView::renderText(double x, double y, double z, const QString &str, 
 		&textPosX, &textPosY, &textPosZ))
 		return;
 
+	// Handle high DPI displays: convert from device coordinates to widget coordinates
+	qreal devicePixelRatio = this->devicePixelRatio();
+	textPosX /= devicePixelRatio;
+	textPosY /= devicePixelRatio;
+	
 	textPosY = height - textPosY; // y is inverted
 
 	QPainter painter(this);
@@ -510,7 +531,9 @@ void GLCameraView::renderTextCentered(QString string)
 {
 	setFont(QFont(this->font().family(), 24));
 	QFontMetrics fm(this->font());
-	renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, - zoomRatio * fm.height() * 0.5 - y_offset, 0.0, string, QColor(255, 0, 0));
+	renderText(-zoomRatio * fm.horizontalAdvance(string) * 0.5 - x_offset,
+               -zoomRatio * fm.height() * 0.5 - y_offset,
+               0.0, string, QColor(255, 0, 0));
 }
 
 void GLCameraView::renderPointText(bool calibration)
@@ -769,8 +792,8 @@ void GLCameraView::paintGL()
 			}
 		}
 	}
-
-	glViewport(0, 0, window_width, window_height);
+	qreal devicePixelRatio = this->devicePixelRatio();
+	glViewport(0, 0, window_width * devicePixelRatio, window_height * devicePixelRatio);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -781,10 +804,13 @@ void GLCameraView::paintGL()
 
 	if (detailedView && Settings::getInstance()->getBoolSetting("CenterDetailView")) centerViewToPoint();
 
-	glOrtho(-0.5 * (zoomRatio * window_width) - x_offset - 0.5,
-	        0.5 * (zoomRatio * window_width) - x_offset - 0.5,
-	        0.5 * (zoomRatio * window_height) - y_offset - 0.5,
-	        -0.5 * (zoomRatio * window_height) - y_offset - 0.5,
+	double effectiveWidth = window_width * devicePixelRatio;
+	double effectiveHeight = window_height * devicePixelRatio;
+	
+	glOrtho(-0.5 * (zoomRatio * effectiveWidth) - x_offset - 0.5,
+	        0.5 * (zoomRatio * effectiveWidth) - x_offset - 0.5,
+	        0.5 * (zoomRatio * effectiveHeight) - y_offset - 0.5,
+	        -0.5 * (zoomRatio * effectiveHeight) - y_offset - 0.5,
 	        -1000, 1000);
 
 	gluLookAt(0, 0, 1, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
@@ -798,10 +824,12 @@ void GLCameraView::paintGL()
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
 		if (Settings::getInstance()->getBoolSetting("TrialDrawFiltered") && (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getCutoffFrequency() <= 0 || Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRecordingSpeed() <= 0)){
-			setFont(QFont(this->font().family(), 12));
-			QFontMetrics fm(this->font());
-			QString string("Rendering of filtered data is enabled, but framrate and cutoff are not set correctly");
-			renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, -zoomRatio * (fm.height() - window_height)* 0.5 - y_offset, 0.0, string, QColor(255, 0, 0));
+		 setFont(QFont(this->font().family(), 12));
+		 QFontMetrics fm(this->font());
+		 QString string("Rendering of filtered data is enabled, but framrate and cutoff are not set correctly");
+		 renderText(-zoomRatio * fm.horizontalAdvance(string) * 0.5 - x_offset,
+           -zoomRatio * (fm.height() - window_height) * 0.5 - y_offset,
+           0.0, string, QColor(255, 0, 0));
 		}
 
 		if (renderMeshes){
@@ -813,7 +841,9 @@ void GLCameraView::paintGL()
 						setFont(QFont(this->font().family(), 12));
 						QFontMetrics fm(this->font());
 						QString string("Rigid body models are not distorted! XMALab is currently computing the distortion!");
-						renderText(-zoomRatio * fm.width(string) * 0.5 - x_offset, -zoomRatio * (fm.height() - window_height)* 0.5 - y_offset, 0.0, string, QColor(255, 0, 0));
+						renderText(-zoomRatio * fm.horizontalAdvance(string) * 0.5 - x_offset,
+           -zoomRatio * (fm.height() - window_height) * 0.5 - y_offset,
+           0.0, string, QColor(255, 0, 0));
 						blendShader->draw(camera_width, camera_height, transparency, rigidbodyBufferUndistorted->getTextureID(), rigidbodyBufferUndistorted->getDepthTextureID(), true);
 					}
 					else

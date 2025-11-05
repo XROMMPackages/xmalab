@@ -1,16 +1,16 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 4.0)
 
 PROJECT(XMALab)
 
 #Set Project version and project variables
-SET(PROJECT_BUILD_TIME "10/23/2021")
+SET(PROJECT_BUILD_TIME "30/09/2025")
 SET(PROJECT_VERSION_MAJOR "2")
-SET(PROJECT_VERSION_MINOR "1")
-SET(PROJECT_VERSION_PATCH "0")
+SET(PROJECT_VERSION_MINOR "2")
+SET(PROJECT_VERSION_PATCH "3")
 SET(PROJECT_VERSION_COUNT 50)
 SET(PROJECT_BETA_VERSION 0)
 SET(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
-SET(PROJECT_VENDOR "Brown University")
+SET(PROJECT_VENDOR "Peter Falkingham")
 SET(PROJECT_COPYRIGHT_YEAR "2014")
 SET(PROJECT_DOMAIN_FIRST "xromm")
 SET(PROJECT_DOMAIN_SECOND "org")
@@ -22,10 +22,10 @@ if(NOT CMAKE_BUILD_TYPE)
 	SET(CMAKE_BUILD_TYPE Release)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 IF(NOT CMAKE_BUILD_TYPE MATCHES "^[Dd][Ee][Bb][Uu][Gg]")
-    ADD_DEFINITIONS(-DQT_NO_DEBUG_OUTPUT)
-    SET(CMAKE_BUILD_RELEASE TRUE)
+	ADD_DEFINITIONS(-DQT_NO_DEBUG_OUTPUT)
+	SET(CMAKE_BUILD_RELEASE TRUE)
 else()
-    SET(CMAKE_BUILD_RELEASE FALSE)
+	SET(CMAKE_BUILD_RELEASE FALSE)
 ENDIF()
 MESSAGE(STATUS "Building ${PROJECT_NAME} in ${CMAKE_BUILD_TYPE} mode")
 
@@ -44,25 +44,51 @@ ENDIF()
 
 #Add definitions for Apple
 IF(CMAKE_COMPILER_IS_GNUCXX OR APPLE)
-    ADD_DEFINITIONS( -Wno-deprecated-register)
+	ADD_DEFINITIONS( -Wno-deprecated-register)
 ENDIF()
 IF (APPLE)
 	ADD_DEFINITIONS(-D__APPLE__)
 ENDIF (APPLE)
 
-#Add Quazip
-FIND_PACKAGE( QuaZip REQUIRED )
+# Set CMP0074 policy to NEW for proper handling of package root variables
+cmake_policy(SET CMP0074 NEW)
+
+# User-supplied paths for non-config-mode libraries
+set(MY_INCLUDE_DIR "" CACHE PATH "Optional: path to extra include directories (leave blank if using package manager)")
+set(MY_LIBRARY_DIR "" CACHE PATH "Optional: path to extra library directories (leave blank if using package manager)")
+
+
+# Dynamically detect QuaZip paths for portability
+find_path(QUAZIP_INCLUDE_DIR quazip PATHS ${CMAKE_INSTALL_PREFIX}/include NO_DEFAULT_PATH)
+find_library(QUAZIP_LIBRARIES NAMES quazip1-qt6 quazip PATHS ${CMAKE_INSTALL_PREFIX}/lib NO_DEFAULT_PATH)
+
+# Ensure variables are set
+if(NOT QUAZIP_INCLUDE_DIR)
+	message(FATAL_ERROR "Quazip include directory not found. Please set CMAKE_INSTALL_PREFIX or QUAZIP_INCLUDE_DIR manually.")
+endif()
+
+if(NOT QUAZIP_LIBRARIES)
+	message(FATAL_ERROR "Quazip library not found. Please set CMAKE_INSTALL_PREFIX or QUAZIP_LIBRARIES manually.")
+endif()
+
+# Include QuaZip headers
+include_directories(${QUAZIP_INCLUDE_DIR})
+
+# Set GLEW_USE_STATIC_LIBS to TRUE for static linking if needed
+set(GLEW_USE_STATIC_LIBS TRUE)
 
 #ADD OPENCV 
-FIND_PACKAGE( OpenCV REQUIRED )
-FIND_PACKAGE( OpenGL )
-FIND_PACKAGE( GLEW REQUIRED )
-SET(GLEW_USE_STATIC_LIBS FALSE)
-FIND_PACKAGE( Levmar REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(OpenGL)
+find_package(GLEW REQUIRED)
+find_package(Levmar REQUIRED)
+
+# Set paths for Levmar (portable)
+set(LEVMAR_INCLUDE_DIR "${CMAKE_PREFIX_PATH}/include/levmar" CACHE PATH "Path to Levmar include directory")
 
 #ADD QT4 SUPPORT
-FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Core GUI OpenGL Widgets PrintSupport)
-cmake_policy(SET CMP0020 OLD)
+FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGL OpenGLWidgets Concurrent PrintSupport)
+cmake_policy(SET CMP0020 NEW)
 #SET(QT_USE_QTOPENGL TRUE)
 SET(CMAKE_AUTOMOC ON)
 
@@ -86,7 +112,7 @@ IF (APPLE)
 		COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources
 		COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/MacOS
 		COMMAND cp ${CMAKE_SOURCE_DIR}/src/ui/resource-files/icons/${MACOSX_BUNDLE_ICON_FILE}
-            ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources/${MACOSX_BUNDLE_ICON_FILE})
+			${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources/${MACOSX_BUNDLE_ICON_FILE})
 ENDIF (APPLE)
 
 #Set Definitions
@@ -97,59 +123,88 @@ IF("${PROJECT_BETA_VERSION}" GREATER 0)
 ENDIF()
 
 ADD_DEFINITIONS(-DQCUSTOMPLOT_USE_OPENGL)
+ADD_DEFINITIONS(-DGLEW_STATIC)
 
 #Set Includes and CMAKE_CURRENT_SOURCE_DIR
 SET(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 INCLUDE_DIRECTORIES(
-	${CMAKE_CURRENT_BINARY_DIR} 
-	${CMAKE_CURRENT_SOURCE_DIR} 
-	${QUAZIP_INCLUDE_DIRS} 
-	${GLEW_INCLUDE_DIR} 
-	${OPENCV_INCLUDE_DIRS} 
-	${LEVMAR_INCLUDE_DIR} 
-	${Qt5Core_INCLUDE_DIRS}
-	${Qt5Widgets_INCLUDE_DIRS}
-	${Qt5OpenGL_INCLUDE_DIRS}
-	${Qt5GUI_INCLUDE_DIRS}
+	${CMAKE_CURRENT_BINARY_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}
+	${QUAZIP_INCLUDE_DIRS}
+	${GLEW_INCLUDE_DIR}
+	${OPENCV_INCLUDE_DIRS}
+	${LEVMAR_INCLUDE_DIR}
+	${MY_INCLUDE_DIR}  # Add this to pick up user-defined headers
+
+	# Qt include dirs are provided by the Qt6:: targets
 )
 
 #Get Files from Subdirectory
 ADD_SUBDIRECTORY(src)
+
+
 
 #Create QT4 UI related tasks
 SET(XMALab_RESOURCE_FILES
 		${CMAKE_CURRENT_BINARY_DIR}/qrc_calibrationtool_resources.cxx
 		src/ui//calibrationtool_resources.qrc
 )
-QT5_WRAP_UI(XMALab_FORMS_HEADERS_GEN ${XMALab_FORMS})
+QT_WRAP_UI(XMALab_FORMS_HEADERS_GEN ${XMALab_FORMS})
 SET(XMALab_RESOURCES
 		src/ui/calibrationtool_resources.qrc
 )
-QT5_ADD_RESOURCES(XMALab_RESOURCES_RCC ${XMALab_RESOURCES})
+QT_ADD_RESOURCES(XMALab_RESOURCES_RCC ${XMALab_RESOURCES})
 
 
 #Build and link
 ADD_EXECUTABLE(${PROJECT_NAME} ${GUI_TYPE}
 		${XMALAB_SOURCES} 
-    	${XMALab_RESOURCES_RCC}
+		${XMALab_RESOURCES_RCC}
 		${XMALab_FORMS_HEADERS_GEN}
 		src/ui/calibrationtool_resources.rc
 )
 
+if (MSVC)
+    if (CMAKE_BUILD_TYPE STREQUAL "Release")
+        target_compile_options(${PROJECT_NAME} PRIVATE
+            /O2         # Max speed
+            /GL         # Whole program optimization
+            /Oi         # Use intrinsics
+            /Ot         # Favor speed over size
+            /Oy         # Omit frame pointers
+            /Gy         # Function-level linking
+        )
+        target_link_options(${PROJECT_NAME} PRIVATE
+            /LTCG       # Link-time code generation
+            /OPT:REF    # Eliminate unused functions/data
+            /OPT:ICF    # Fold identical functions
+        )
+    else()
+        target_compile_options(${PROJECT_NAME} PRIVATE
+            /RTC1       # Runtime error checks
+        )
+    endif()
+endif()
+
+
+link_directories(${MY_LIBRARY_DIR})
+
 IF(APPLE)
   ADD_DEPENDENCIES(${PROJECT_NAME} osx_bundle_dirs )
 ENDIF (APPLE)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} 
-		${GLEW_LIBRARIES} 
-		${QUAZIP_LIBRARIES}
-		${LEVMAR_LIBRARY}
-		${Qt5Core_LIBRARIES}
-		${Qt5Widgets_LIBRARIES}
-		${Qt5OpenGL_LIBRARIES}
-		${Qt5GUI_LIBRARIES}
-		${Qt5PrintSupport_LIBRARIES}
-		${OpenCV_LIBS} 
-		${OPENGL_LIBRARIES} 
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}
+	${GLEW_LIBRARIES}
+	${QUAZIP_LIBRARIES}
+	${LEVMAR_LIBRARY}
+	Qt6::Core
+	Qt6::Widgets
+	Qt6::OpenGL
+	Qt6::OpenGLWidgets
+	Qt6::Concurrent
+	Qt6::Gui
+	Qt6::PrintSupport
+	${OpenCV_LIBS}
+	${OPENGL_LIBRARIES}
 )
 
 # Create groups for VS
