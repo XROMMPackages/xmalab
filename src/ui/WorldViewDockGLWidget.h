@@ -27,28 +27,14 @@
 #ifndef WorldViewDockGLWidget_H_
 #define WorldViewDockGLWidget_H_
 
-#ifndef XMA_USE_PAINTER
-#include <QtOpenGLWidgets/QOpenGLWidget>
-#else
 #include <QWidget>
-#endif
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
+QT_FORWARD_DECLARE_CLASS(QQuickWidget)
 
 namespace xma
 {
 	class Trial;
 
-#ifdef XMA_USE_PAINTER
 	class WorldViewDockGLWidget : public QWidget
 	{
 		Q_OBJECT
@@ -63,71 +49,13 @@ namespace xma
 		void animate();
 		void setFocalPlaneDistance(float distance);
 
-	protected:
-		void paintEvent(QPaintEvent* event) override;
-		void resizeEvent(QResizeEvent* event) override;
-		void mouseMoveEvent(QMouseEvent* e) override;
-		void mousePressEvent(QMouseEvent* e) override;
-		void wheelEvent(QWheelEvent* event) override;
-
 	private:
-		int w, h;
-		double eyedistance;
-		double azimuth;
-		double polar;
-		double prev_azi;
-		double prev_pol;
-		double focal_plane_distance;
-		int frame;
-		bool useCustomTimeline;
+		class ViewModel;
+		ViewModel* m_viewModel;
+		QQuickWidget* m_quickWidget;
+
+		void initializeQuickScene();
 	};
-#else
-	class WorldViewDockGLWidget : public QOpenGLWidget
-	{
-		Q_OBJECT
-
-	public:
-		explicit WorldViewDockGLWidget(QWidget* parent = nullptr);
-		~WorldViewDockGLWidget() override;
-
-		void setUseCustomTimeline(bool value);
-		void setFrame(int value);
-
-	public slots:
-		void animate();
-		void setFocalPlaneDistance(float distance);
-	protected:
-		void paintGL() override;
-		void initializeGL() override;
-		void resizeGL(int w, int h) override;
-
-		void mouseMoveEvent(QMouseEvent* e) override;
-		void mousePressEvent(QMouseEvent* e) override;
-		void wheelEvent(QWheelEvent* event) override;
-
-	private:
-		int w, h;
-
-		double eyedistance;
-		double azimuth;
-		double polar;
-		double prev_azi;
-		double prev_pol;
-		double focal_plane_distance;
-        
-		int frame;
-		bool useCustomTimeline;
-
-		void drawMarkers(Trial* trial, int frame);
-		void drawRigidBodies(Trial* trial, int frame);
-
-		void drawCalibrationCube();
-		void drawCameras();
-
-		GLUquadricObj* sphere_quadric;
-		bool opengl_initialised;
-	};
-#endif
 }
 
 

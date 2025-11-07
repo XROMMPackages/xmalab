@@ -1,474 +1,162 @@
 //  ----------------------------------
 //  XMALab -- Copyright (c) 2015, Brown University, Providence, RI.
-//  
+//
 //  All Rights Reserved
-//   
-//  Use of the XMALab software is provided under the terms of the GNU General Public License version 3 
-//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
-//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
-//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//
+//  Use of the XMALab software is provided under the terms of the GNU General Public License version 3
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in
+//  advertising or publicity pertaining to the use or distribution of the software without specific written
 //  prior permission from Brown University.
-//  
+//
 //  See license.txt for further information.
-//  
-//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
-//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
-//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
-//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
-//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS
+//  PROVIDED "AS IS", INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //  ----------------------------------
-//  
+//
 ///\file WorldViewDockGLWidget.cpp
-///\author Benjamin Knorlein
-///\date 11/20/2015
+///\author Benjamin Knorlein (original OpenGL implementation)
+///\author GitHub Copilot (Qt Quick integration)
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "ui/State.h"
 #include "ui/WorldViewDockGLWidget.h"
 
-#include "core/Project.h"
-#include "core/CalibrationImage.h"
-#include "core/Camera.h"
-#include "core/CalibrationObject.h"
-#include "core/UndistortionObject.h"
-#include "core/Image.h"
-#include "core/Trial.h"
-#include "core/Marker.h"
-#include "core/RigidBody.h"
-#include "core/CalibrationSequence.h"
+#include <QColor>
+#include <QQmlContext>
+#include <QQuickWidget>
+#include <QVBoxLayout>
+#include <QtGlobal>
 
-#include <QApplication>
-#include <QMouseEvent>
-#include "GLSharedWidget.h"
-#include <QPainter>
+#include "ui/State.h"
 
-#ifndef _PI
-#define _PI 3.141592653
-#endif
+namespace
+{
+constexpr const char* kWorldViewQmlUrl = "qrc:/qml/WorldViewScene.qml";
+}
+
+namespace xma
+{
+class WorldViewDockGLWidget::ViewModel : public QObject
+{
+	Q_OBJECT
+	Q_PROPERTY(int frame READ frame WRITE setFrame NOTIFY frameChanged)
+	Q_PROPERTY(bool useCustomTimeline READ useCustomTimeline WRITE setUseCustomTimeline NOTIFY useCustomTimelineChanged)
+	Q_PROPERTY(double focalPlaneDistance READ focalPlaneDistance WRITE setFocalPlaneDistance NOTIFY focalPlaneDistanceChanged)
+	Q_PROPERTY(int workspace READ workspace NOTIFY workspaceChanged)
+public:
+	explicit ViewModel(QObject* parent = nullptr)
+		: QObject(parent), m_frame(0), m_useCustomTimeline(false), m_focalPlaneDistance(200.0)
+	{
+		connect(State::getInstance(), &State::workspaceChanged, this, [this](work_state) {
+			emit workspaceChanged(workspace());
+		});
+	}
+
+	int frame() const { return m_frame; }
+	bool useCustomTimeline() const { return m_useCustomTimeline; }
+	double focalPlaneDistance() const { return m_focalPlaneDistance; }
+	int workspace() const { return static_cast<int>(State::getInstance()->getWorkspace()); }
+
+	void setFrame(int value)
+	{
+		if (m_frame == value)
+		{
+			emit frameChanged(m_frame);
+			return;
+		}
+		m_frame = value;
+		emit frameChanged(m_frame);
+	}
+
+	void setUseCustomTimeline(bool value)
+	{
+		if (m_useCustomTimeline == value)
+		{
+			return;
+		}
+		m_useCustomTimeline = value;
+		emit useCustomTimelineChanged(m_useCustomTimeline);
+	}
+
+	void setFocalPlaneDistance(double value)
+	{
+		if (qFuzzyCompare(1.0 + m_focalPlaneDistance, 1.0 + value))
+		{
+			return;
+		}
+		m_focalPlaneDistance = value;
+		emit focalPlaneDistanceChanged(m_focalPlaneDistance);
+	}
+
+signals:
+	void frameChanged(int frame);
+	void useCustomTimelineChanged(bool useCustomTimeline);
+	void focalPlaneDistanceChanged(double focalPlaneDistance);
+	void workspaceChanged(int workspace);
+
+private:
+	int m_frame;
+	bool m_useCustomTimeline;
+	double m_focalPlaneDistance;
+};
+} // namespace xma
 
 using namespace xma;
 
-GLfloat LightAmbient[] = {0.3f, 0.3f, 0.3f, 1.0f}; // Ambient Light Values
-GLfloat LightDiffuse[] = {0.5f, 0.5f, 0.5f, 1.0f}; // Diffuse Light Values
-GLfloat LightPosition[] = {0.0f, 10.0f, 0.0f, 1.0f}; // Light Position
-
 WorldViewDockGLWidget::WorldViewDockGLWidget(QWidget* parent)
-#ifdef XMA_USE_PAINTER
-	: QWidget(parent), useCustomTimeline(false), frame(0)
-#else
-	: QOpenGLWidget(parent), useCustomTimeline(false), frame(0)
-#endif
+	: QWidget(parent), m_viewModel(new ViewModel(this)), m_quickWidget(new QQuickWidget(this))
 {
-	eyedistance = 500.0;
-	azimuth = 45.0;
-	polar = -45.0;
-	focal_plane_distance = 200;
-	
-	w = 50;
-	h = 50;
 	setMinimumSize(50, 50);
-	setAutoFillBackground(false);
-#ifndef Q_OS_MACOS
-	opengl_initialised = false;
-#endif
+	setFocusPolicy(Qt::StrongFocus);
+
+	m_quickWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+	m_quickWidget->setClearColor(QColor(20, 20, 20));
+	m_quickWidget->setFocusPolicy(Qt::NoFocus);
+	m_quickWidget->rootContext()->setContextProperty(QStringLiteral("worldViewModel"), m_viewModel);
+
+	initializeQuickScene();
+
+	auto* layout = new QVBoxLayout(this);
+	layout->setContentsMargins(0, 0, 0, 0);
+	layout->addWidget(m_quickWidget);
 }
 
-void WorldViewDockGLWidget::setFrame(int value)
-{
-	frame = value;
-}
+WorldViewDockGLWidget::~WorldViewDockGLWidget() = default;
 
-void WorldViewDockGLWidget::animate()
+void WorldViewDockGLWidget::initializeQuickScene()
 {
-	//    repaint();
-}
-
-void WorldViewDockGLWidget::setFocalPlaneDistance(float distance)
-{
-	focal_plane_distance = distance;
-}
-
-WorldViewDockGLWidget::~WorldViewDockGLWidget()
-{
-#ifndef Q_OS_MACOS
-	if (opengl_initialised)gluDeleteQuadric(sphere_quadric);
-#endif
+	m_quickWidget->setSource(QUrl(QLatin1String(kWorldViewQmlUrl)));
 }
 
 void WorldViewDockGLWidget::setUseCustomTimeline(bool value)
 {
-	useCustomTimeline = value;
+	m_viewModel->setUseCustomTimeline(value);
 }
 
-void WorldViewDockGLWidget::mouseMoveEvent(QMouseEvent* e)
+void WorldViewDockGLWidget::setFrame(int value)
 {
-	if (e->buttons() & Qt::LeftButton)
-	{
-		azimuth -= prev_azi - e->pos().y();
-		polar -= prev_pol - e->pos().x();
-
-		azimuth = (azimuth > 180) ? 180.0 : azimuth;
-		azimuth = (azimuth < 0) ? 0.0 : azimuth;
-
-		while (polar > 360) polar = polar - 360.0;
-		while (polar < 0) polar = polar + 360.0;
-
-		prev_azi = e->pos().y();
-		prev_pol = e->pos().x();
-		update();
-	}
+	m_viewModel->setFrame(value);
 }
 
-
-void WorldViewDockGLWidget::mousePressEvent(QMouseEvent* e)
+void WorldViewDockGLWidget::animate()
 {
-	if (e->buttons() & Qt::LeftButton)
-	{
-		prev_azi = e->pos().y();
-		prev_pol = e->pos().x();
-	}
+	// Emit the frameChanged signal even when the frame number is unchanged so QML can refresh state.
+	m_viewModel->setFrame(m_viewModel->frame());
 }
 
-void WorldViewDockGLWidget::wheelEvent(QWheelEvent* e)
+void WorldViewDockGLWidget::setFocalPlaneDistance(float distance)
 {
-	eyedistance += e->angleDelta().y() / 12.0;
-	update();
+	m_viewModel->setFocalPlaneDistance(distance);
 }
 
-#ifndef XMA_USE_PAINTER
-void WorldViewDockGLWidget::initializeGL()
-{
-	glShadeModel(GL_SMOOTH);
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClearDepth(1.0f);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
-	glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse);
-	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
-	glEnable(GL_LIGHT1);
-	glEnable(GL_LIGHTING);
-
-	glEnable(GL_COLOR_MATERIAL);
-	glColorMaterial(GL_FRONT,GL_AMBIENT_AND_DIFFUSE);
-}
-#endif
-
-void WorldViewDockGLWidget::resizeEvent(QResizeEvent* /*event*/)
-{
-    w = width();
-    h = height();
-#ifndef Q_OS_MACOS
-	qreal devicePixelRatio = this->devicePixelRatio();
-	glViewport(0, 0, w * devicePixelRatio, h * devicePixelRatio);
-#endif
-}
-
-void WorldViewDockGLWidget::paintEvent(QPaintEvent* /*event*/)
-{
-#ifdef Q_OS_MACOS
-	QPainter p(this);
-	p.fillRect(rect(), QColor(20,20,20));
-	p.setPen(Qt::white);
-	p.drawText(rect(), Qt::AlignCenter, QStringLiteral("WorldView disabled on macOS (stub)"));
-#else
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(25.0, (double(w)) / h, 1.0, 100000.0);
-    double e_z = eyedistance * cos(polar * _PI / 180.0) * sin(azimuth * _PI / 180.0);
-    double e_x = eyedistance * sin(polar * _PI / 180.0) * sin(azimuth * _PI / 180.0);
-    double e_y = eyedistance * cos(azimuth * _PI / 180.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    gluLookAt(e_x, e_y, e_z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-    glRotated(-90.0, 1.0, 0.0, 0.0);
-    glRotated(180.0, 0.0, 0.0, 1.0);
-    glDisable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glLineWidth(2.5);
-    glColor3f(1.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex3f(0.0, 0.0, 0.0);
-    glVertex3f(100.0, 0, 0);
-    glEnd();
-    glColor3f(0.0, 1.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex3f(0.0, 0.0, 0.0);
-    glVertex3f(0, 100.0, 0);
-    glEnd();
-    glColor3f(0.0, 0.0, 1.0);
-    glBegin(GL_LINES);
-    glVertex3f(0.0, 0.0, 0.0);
-    glVertex3f(0, 0, 100.0);
-    glEnd();
-    if (this->isVisible()) {
-        if (State::getInstance()->getWorkspace() == CALIBRATION) {
-            drawCalibrationCube();
-            drawCameras();
-        } else if (State::getInstance()->getWorkspace() == DIGITIZATION) {
-            if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 &&
-                State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size()) {
-                Trial* trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
-                if (trial->getStartFrame() - 1 <= State::getInstance()->getActiveFrameTrial()
-                    && trial->getEndFrame() - 1 >= State::getInstance()->getActiveFrameTrial()) {
-                    drawCameras();
-                    drawMarkers(trial, frame);
-                    drawRigidBodies(trial, frame);
-                }
-            }
-        }
-    }
-    glFlush();
-#endif
-}
-
-#ifndef XMA_USE_PAINTER
-void WorldViewDockGLWidget::drawCameras()
-{
-	for (unsigned int cam = 0; cam < Project::getInstance()->getCameras().size(); cam++)
-	{
-		if (Project::getInstance()->getCameras()[cam]->isCalibrated()
-			&& (Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() > 0))
-		{
-			glPushMatrix();
-			double m[16];
-			//inversere Rotation = transposed rotation
-			//and opengl requires transposed, so we set R
-			cv::Mat transTmp;
-			cv::Mat rotTmp;
-			cv::Mat camTmp;
-			camTmp.create(3, 3, CV_64F);
-			rotTmp.create(3, 3, CV_64F);
-			transTmp.create(3, 1, CV_64F);
-
-			camTmp = Project::getInstance()->getCameras()[cam]->getCameraMatrix().clone();
-			transTmp = Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getTranslationVector();
-			cv::Rodrigues(Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getRotationVector(), rotTmp);
-
-			//adjust y - inversion
-			transTmp.at<double>(0, 0) = -transTmp.at<double>(0, 0);
-			transTmp.at<double>(2, 0) = -transTmp.at<double>(2, 0);
-			for (int i = 0; i < 3; i++)
-			{
-				rotTmp.at<double>(0, i) = -rotTmp.at<double>(0, i);
-				rotTmp.at<double>(2, i) = -rotTmp.at<double>(2, i);
-			}
-			camTmp.at<double>(1, 2) = (Project::getInstance()->getCameras()[cam]->getHeight() - 1) - camTmp.at<double>(1, 2);
-
-			for (unsigned int y = 0; y < 3; y++)
-			{
-				m[y * 4] = rotTmp.at<double>(y, 0);
-				m[y * 4 + 1] = rotTmp.at<double>(y, 1);
-				m[y * 4 + 2] = rotTmp.at<double>(y, 2);
-				m[y * 4 + 3] = 0.0;
-			}
-
-			//inverse translation = translation rotated with inverse rotation/transposed rotation
-			//R-1 * -t = R^tr * -t
-			m[12] = m[0] * -transTmp.at<double>(0, 0)
-				+ m[4] * -transTmp.at<double>(1, 0)
-				+ m[8] * -transTmp.at<double>(2, 0);
-			m[13] = m[1] * -transTmp.at<double>(0, 0)
-				+ m[5] * -transTmp.at<double>(1, 0)
-				+ m[9] * -transTmp.at<double>(2, 0);
-			m[14] = m[2] * -transTmp.at<double>(0, 0)
-				+ m[6] * -transTmp.at<double>(1, 0)
-				+ m[10] * -transTmp.at<double>(2, 0);
-			m[15] = 1.0;
-			glMultMatrixd(m);
-
-			//Draw CO
-			glColor3f(1.0, 0.0, 0.0);
-			glBegin(GL_LINES);
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(10.0, 0, 0);
-			glEnd();
-
-			glColor3f(0.0, 1.0, 0.0);
-			glBegin(GL_LINES);
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(0, 10.0, 0);
-			glEnd();
-
-			glColor3f(0.0, 0.0, 1.0);
-			glBegin(GL_LINES);
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(0, 0, 10.0);
-			glEnd();
-
-
-			//Draw Boundaries
-			double x_min = (0 - camTmp.at<double>(0, 2)) / camTmp.at<double>(0, 0);
-			double x_max = (Project::getInstance()->getCameras()[cam]->getWidth() - camTmp.at<double>(0, 2)) / camTmp.at<double>(0, 0);
-			double y_min = (0 - camTmp.at<double>(1, 2)) / camTmp.at<double>(1, 1);
-			double y_max = (Project::getInstance()->getCameras()[cam]->getHeight() - camTmp.at<double>(1, 2)) / camTmp.at<double>(1, 1);
-
-			double z = -focal_plane_distance;
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-			glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
-			glBegin(GL_LINES);
-			glVertex3f(0.0f, 0.0f, 0.0f);
-			glVertex3f(z * x_min, z * y_min, z);
-
-			glVertex3f(0.0f, 0.0f, 0.0f);
-			glVertex3f(z * x_min, z * y_max, z);
-
-			glVertex3f(0.0f, 0.0f, 0.0f);
-			glVertex3f(z * x_max, z * y_min, z);
-
-			glVertex3f(0.0f, 0.0f, 0.0f);
-			glVertex3f(z * x_max, z * y_max, z);
-			glEnd();
-
-			glBegin(GL_LINE_LOOP);
-			glVertex3f(z * x_min, z * y_min, z);
-			glVertex3f(z * x_min, z * y_max, z);
-			glVertex3f(z * x_max, z * y_max, z);
-			glVertex3f(z * x_max, z * y_min, z);
-			glEnd();
-			glDisable(GL_BLEND);
-
-			glEnable(GL_TEXTURE_2D);
-
-
-			if (State::getInstance()->getWorkspace() == CALIBRATION)
-			{
-				Project::getInstance()->getCameras()[cam]->getCalibrationSequence()->bindTexture(State::getInstance()->getActiveFrameCalibration(),State::getInstance()->getCalibrationVisImage());
-			}
-			else if (State::getInstance()->getWorkspace() == DIGITIZATION)
-			{
-				if (Project::getInstance()->getTrials().size() > 0 && State::getInstance()->getActiveTrial() >= 0 &&
-					State::getInstance()->getActiveTrial() < (int) Project::getInstance()->getTrials().size())
-				{
-					if (!Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault())
-						if (!useCustomTimeline)
-						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getVideoStreams()[cam]->getImage()->bindTexture();
-				}
-			}
-
-			glBegin(GL_QUADS);
-			glTexCoord2f(0.0f, 1.0f);
-			glVertex3f(z * x_min, z * y_min, z); // bottom left
-			glTexCoord2f(1.0f, 1.0f);
-			glVertex3f(z * x_max, z * y_min, z); // bottom right
-			glTexCoord2f(1.0f, 0.0f);
-			glVertex3f(z * x_max, z * y_max, z);// top right
-			glTexCoord2f(0.0f, 0.0f);
-			glVertex3f(z * x_min, z * y_max, z); // top left
-			glEnd();
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glDisable(GL_TEXTURE_2D);
-
-			glPopMatrix();
-
-			camTmp.release();
-			rotTmp.release();
-			transTmp.release();
-
-			glDisable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, 0);
-		}
-	}
-}
-
-void WorldViewDockGLWidget::drawMarkers(Trial* trial, int frame)
-{
-	if (!opengl_initialised)
-	{
-		sphere_quadric = gluNewQuadric(); // Create A Pointer To The Quadric Object ( NEW )
-		gluQuadricNormals(sphere_quadric, GLU_SMOOTH); // Create Smooth Normals ( NEW )
-		gluQuadricTexture(sphere_quadric, GL_TRUE); // Create Texture Coords ( NEW )
-	}
-
-	for (unsigned int i = 0; i < trial->getMarkers().size(); i++)
-	{
-		if (trial->getMarkers()[i]->getStatus3D()[frame] > 0){
-			glPushMatrix();
-			if (i == trial->getActiveMarkerIdx())
-			{
-				glColor3f(1.0, 0.0, 0.0);
-			}
-			else
-			{
-				glColor3f(0.0, 1.0, 0.0);
-			}
-
-			glTranslated(trial->getMarkers()[i]->getPoints3D()[frame].x,
-				trial->getMarkers()[i]->getPoints3D()[frame].y,
-				trial->getMarkers()[i]->getPoints3D()[frame].z);
-
-			gluSphere(sphere_quadric, 0.3f, 32, 32);
-
-			glPopMatrix();
-		}
-	}
-}
-
-void WorldViewDockGLWidget::drawRigidBodies(Trial* trial, int frame)
-{
-	for (unsigned int i = 0; i < trial->getRigidBodies().size(); i++)
-	{
-		trial->getRigidBodies()[i]->draw3D(frame);
-
-		if (trial->getRigidBodies()[i]->getDrawMeshModel())
-			trial->getRigidBodies()[i]->drawMesh(frame);
-	}
-}
-
-void WorldViewDockGLWidget::drawCalibrationCube()
-{
-	if (!opengl_initialised)
-	{
-		sphere_quadric = gluNewQuadric(); // Create A Pointer To The Quadric Object ( NEW )
-		gluQuadricNormals(sphere_quadric, GLU_SMOOTH); // Create Smooth Normals ( NEW )
-		gluQuadricTexture(sphere_quadric, GL_TRUE); // Create Texture Coords ( NEW )
-	}
-
-	if (CalibrationObject::getInstance()->isInitialised() && !CalibrationObject::getInstance()->isCheckerboard())
-	{
-		for (unsigned int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); i++)
-		{
-			glPushMatrix();
-			if (i == CalibrationObject::getInstance()->getReferenceIDs()[0])
-			{
-				glColor3f(1.0, 0.0, 0.0);
-			}
-			else if (i == CalibrationObject::getInstance()->getReferenceIDs()[1])
-			{
-				glColor3f(0.0, 1.0, 0.0);
-			}
-			else if (i == CalibrationObject::getInstance()->getReferenceIDs()[2])
-			{
-				glColor3f(0.0, 0.0, 1.0);
-			}
-			else if (i == CalibrationObject::getInstance()->getReferenceIDs()[3])
-			{
-				glColor3f(1.0, 1.0, 0.0);
-			}
-			else
-			{
-				glColor3f(1.0, 1.0, 1.0);
-			}
-
-			glTranslated(CalibrationObject::getInstance()->getFrameSpecifications()[i].x,
-			             CalibrationObject::getInstance()->getFrameSpecifications()[i].y,
-			             CalibrationObject::getInstance()->getFrameSpecifications()[i].z);
-
-			gluSphere(sphere_quadric, 0.3f, 32, 32);
-
-			glPopMatrix();
-		}
-	}
-}
-#endif // !XMA_USE_PAINTER
+#include "WorldViewDockGLWidget.moc"
 

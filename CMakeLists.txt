@@ -87,7 +87,7 @@ find_package(Levmar REQUIRED)
 set(LEVMAR_INCLUDE_DIR "${CMAKE_PREFIX_PATH}/include/levmar" CACHE PATH "Path to Levmar include directory")
 
 #ADD QT4 SUPPORT
-FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGL OpenGLWidgets Concurrent PrintSupport)
+FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Core Gui Widgets Quick QuickWidgets Quick3D Qml OpenGL OpenGLWidgets Concurrent PrintSupport)
 cmake_policy(SET CMP0020 NEW)
 #SET(QT_USE_QTOPENGL TRUE)
 SET(CMAKE_AUTOMOC ON)
@@ -124,7 +124,7 @@ ENDIF()
 
 # Rendering options
 option(XMA_USE_PAINTER "Use QPainter-only rendering for camera views (no OpenGL in views)" ON)
-option(XMA_HIDE_WORLD_VIEW "Hide/disable the 3D world view dock" ON)
+option(XMA_HIDE_WORLD_VIEW "Hide/disable the 3D world view dock" OFF)
 
 ADD_DEFINITIONS(-DQCUSTOMPLOT_USE_OPENGL)
 ADD_DEFINITIONS(-DGLEW_STATIC)
@@ -208,6 +208,10 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
 	${LEVMAR_LIBRARY}
 	Qt6::Core
 	Qt6::Widgets
+	Qt6::Quick
+	Qt6::QuickWidgets
+	Qt6::Quick3D
+	Qt6::Qml
 	Qt6::OpenGL
 	Qt6::OpenGLWidgets
 	Qt6::Concurrent

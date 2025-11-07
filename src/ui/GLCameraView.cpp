@@ -407,9 +407,274 @@ void GLCameraView::drawCalibrationOverlays(QPainter& p)
 	}
 }
 
-void GLCameraView::drawDigitizationOverlays(QPainter& /*p*/)
+void GLCameraView::drawDigitizationOverlays(QPainter& p)
 {
-	// Minimal stub for now; full digitization overlays can be ported later
+	if (!camera) return;
+	if (Settings::getInstance()->getBoolSetting("TrialDrawHideAll")) return;
+
+	const auto& trials = Project::getInstance()->getTrials();
+	const int trialIndex = State::getInstance()->getActiveTrial();
+	if (trialIndex < 0 || trialIndex >= static_cast<int>(trials.size())) return;
+	Trial* trial = trials[trialIndex];
+	if (!trial || trial->getIsDefault()) return;
+
+	const int cameraId = camera->getID();
+	const int frame = State::getInstance()->getActiveFrameTrial();
+	const auto& markers = trial->getMarkers();
+	const int activeMarkerIdx = trial->getActiveMarkerIdx();
+
+	const auto has2D = [&](Marker* marker) -> bool {
+		if (!marker) return false;
+		const auto& statusPerCamera = marker->getStatus2D();
+		if (cameraId >= static_cast<int>(statusPerCamera.size())) return false;
+		if (frame >= static_cast<int>(statusPerCamera[cameraId].size())) return false;
+		return statusPerCamera[cameraId][frame] > 0;
+	};
+
+	if (Settings::getInstance()->getBoolSetting("TrialDrawFiltered") &&
+	    (trial->getCutoffFrequency() <= 0.0 || trial->getRecordingSpeed() <= 0.0))
+	{
+		p.save();
+		QFont font = this->font();
+		font.setPointSize(12);
+		p.setFont(font);
+		p.setPen(QColor(255, 0, 0));
+		const QString message = QStringLiteral("Rendering of filtered data is enabled, but framerate and cutoff are not set correctly");
+		const QFontMetrics fm(font);
+		const qreal textWidth = fm.horizontalAdvance(message);
+		const qreal x = 0.5 * camera_width - 0.5 * textWidth;
+		const qreal y = fm.ascent() + 6.0;
+		p.drawText(QPointF(x, y), message);
+		p.restore();
+	}
+
+	const bool drawMarkers = Settings::getInstance()->getBoolSetting("TrialDrawMarkers");
+	const bool coloredCross = Settings::getInstance()->getBoolSetting("ShowColoredMarkerCross");
+	const bool advancedCrosshair = Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView");
+	const bool drawProjectedAll = Settings::getInstance()->getBoolSetting("DrawProjected2DpositionsForAllPoints");
+	const bool show3dPointDetail = Settings::getInstance()->getBoolSetting("Show3dPointDetailView");
+
+	if (drawMarkers)
+	{
+		p.save();
+		if (!detailedView)
+		{
+			for (int idx = 0; idx < static_cast<int>(markers.size()); ++idx)
+			{
+				Marker* marker = markers[idx];
+				if (!has2D(marker)) continue;
+				const cv::Point2d& pt = marker->getPoints2D()[cameraId][frame];
+				QColor color = (idx == activeMarkerIdx) ? QColor(255, 0, 0) : QColor(0, 255, 0);
+				if (coloredCross)
+				{
+					color = marker->getStatusColor(cameraId, frame);
+				}
+				p.setPen(QPen(color, 0));
+				p.drawLine(QPointF(pt.x - 5.0, pt.y), QPointF(pt.x + 5.0, pt.y));
+				p.drawLine(QPointF(pt.x, pt.y - 5.0), QPointF(pt.x, pt.y + 5.0));
+			}
+		}
+		else if (activeMarkerIdx >= 0 && activeMarkerIdx < static_cast<int>(markers.size()))
+		{
+			Marker* marker = markers[activeMarkerIdx];
+			if (has2D(marker))
+			{
+				const cv::Point2d& pt = marker->getPoints2D()[cameraId][frame];
+				p.setPen(QPen(QColor(255, 0, 0), 0));
+				p.drawLine(QPointF(pt.x - 12.0, pt.y), QPointF(pt.x + 12.0, pt.y));
+				p.drawLine(QPointF(pt.x, pt.y - 12.0), QPointF(pt.x, pt.y + 12.0));
+
+				if (advancedCrosshair)
+				{
+					for (int i = 0; i < 6; ++i)
+					{
+						p.drawLine(QPointF(pt.x - 1.0, pt.y + i * 2.0), QPointF(pt.x + 1.0, pt.y + i * 2.0));
+						p.drawLine(QPointF(pt.x - 1.0, pt.y - i * 2.0), QPointF(pt.x + 1.0, pt.y - i * 2.0));
+						p.drawLine(QPointF(pt.x + i * 2.0, pt.y - 1.0), QPointF(pt.x + i * 2.0, pt.y + 1.0));
+						p.drawLine(QPointF(pt.x - i * 2.0, pt.y - 1.0), QPointF(pt.x - i * 2.0, pt.y + 1.0));
+					}
+					double size = marker->getSize();
+					if (size > 0.0)
+					{
+						p.save();
+						p.setPen(QPen(QColor(255, 0, 0, 76)));
+						p.setBrush(Qt::NoBrush);
+						p.drawRect(QRectF(pt.x - size, pt.y - size, size * 2.0, size * 2.0));
+						p.restore();
+					}
+				}
+			}
+		}
+		p.restore();
+	}
+
+	const auto drawProjectedCross = [&](const cv::Point2d& pt, qreal size) {
+		p.drawLine(QPointF(pt.x - size, pt.y - size), QPointF(pt.x + size, pt.y + size));
+		p.drawLine(QPointF(pt.x + size, pt.y - size), QPointF(pt.x - size, pt.y + size));
+	};
+
+	if (activeMarkerIdx >= 0 && activeMarkerIdx < static_cast<int>(markers.size()))
+	{
+		Marker* marker = markers[activeMarkerIdx];
+		if (marker && frame < static_cast<int>(marker->getStatus3D().size()) && marker->getStatus3D()[frame] > 0)
+		{
+			const auto& projections = marker->getPoints2D_projected();
+			if (cameraId < static_cast<int>(projections.size()) &&
+			    frame < static_cast<int>(projections[cameraId].size()) &&
+			    (!detailedView || show3dPointDetail))
+			{
+				p.save();
+				p.setPen(QPen(QColor(0, 255, 255), 0));
+				drawProjectedCross(projections[cameraId][frame], 5.0);
+				p.restore();
+			}
+		}
+	}
+
+	if (!detailedView && drawProjectedAll)
+	{
+		p.save();
+		p.setPen(QPen(QColor(0, 255, 255), 0));
+		for (Marker* marker : markers)
+		{
+			if (!marker) continue;
+			if (frame >= static_cast<int>(marker->getStatus3D().size()) || marker->getStatus3D()[frame] <= 0) continue;
+			const auto& projections = marker->getPoints2D_projected();
+			if (cameraId >= static_cast<int>(projections.size()) || frame >= static_cast<int>(projections[cameraId].size())) continue;
+			drawProjectedCross(projections[cameraId][frame], 5.0);
+		}
+		p.restore();
+	}
+
+	if (!detailedView && Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyConstellation"))
+	{
+		p.save();
+		const bool wantFiltered = Settings::getInstance()->getBoolSetting("TrialDrawFiltered");
+		const auto& rigidBodies = trial->getRigidBodies();
+		for (RigidBody* rigidBody : rigidBodies)
+		{
+			if (!rigidBody) continue;
+			if (!rigidBody->getVisible()) continue;
+			const auto& poseComputed = rigidBody->getPoseComputed();
+			if (frame < 0 || frame >= static_cast<int>(poseComputed.size())) continue;
+			const auto& poseFiltered = rigidBody->getPoseFiltered();
+			const bool hasPoseComputed = poseComputed[frame] != 0;
+			const bool useFiltered = wantFiltered && frame < static_cast<int>(poseFiltered.size()) && poseFiltered[frame] != 0;
+			if (!hasPoseComputed && !useFiltered) continue;
+			if (rigidBody->isReferencesSet() <= 0) continue;
+
+			const QColor rbColor = rigidBody->getColor();
+			QPen solidPen(rbColor);
+			solidPen.setWidthF(0.0);
+			p.setPen(solidPen);
+
+			std::vector<cv::Point2d> projected = rigidBody->projectToImage(camera, frame, true, false, false, useFiltered);
+			if (projected.size() >= 2)
+			{
+				const QPointF centerPt(projected[0].x, projected[0].y);
+				for (size_t idx = 1; idx < projected.size(); ++idx)
+				{
+					const QPointF endPt(projected[idx].x, projected[idx].y);
+					p.drawLine(centerPt, endPt);
+				}
+			}
+
+			if (!rigidBody->getDummyNames().empty())
+			{
+				std::vector<cv::Point2d> dashed = rigidBody->projectToImage(camera, frame, true, true, false, useFiltered);
+				if (dashed.size() >= 2)
+				{
+					QPen dashPen(rbColor);
+					dashPen.setStyle(Qt::DashLine);
+					dashPen.setWidthF(0.0);
+					p.setPen(dashPen);
+					const QPointF centerPt(dashed[0].x, dashed[0].y);
+					for (size_t idx = 1; idx < dashed.size(); ++idx)
+					{
+						const QPointF endPt(dashed[idx].x, dashed[idx].y);
+						p.drawLine(centerPt, endPt);
+					}
+				}
+
+				std::vector<cv::Point2d> dummies = rigidBody->projectToImage(camera, frame, false, true, true, useFiltered);
+				if (!dummies.empty())
+				{
+					QPen crossPen(rbColor);
+					crossPen.setWidthF(0.0);
+					p.setPen(crossPen);
+					for (const auto& pt : dummies)
+					{
+						p.drawLine(QPointF(pt.x - 5.0, pt.y), QPointF(pt.x + 5.0, pt.y));
+						p.drawLine(QPointF(pt.x, pt.y - 5.0), QPointF(pt.x, pt.y + 5.0));
+					}
+				}
+			}
+		}
+		p.restore();
+	}
+
+	if (Settings::getInstance()->getBoolSetting("TrialDrawEpipolar") &&
+	    (!detailedView || Settings::getInstance()->getBoolSetting("ShowEpiLineDetailView")) &&
+	    activeMarkerIdx >= 0 && activeMarkerIdx < static_cast<int>(markers.size()))
+	{
+		Marker* marker = markers[activeMarkerIdx];
+		if (marker)
+		{
+			p.save();
+			p.setPen(QPen(QColor(0, 0, 255), 0));
+			for (unsigned int otherCam = 0; otherCam < Project::getInstance()->getCameras().size(); ++otherCam)
+			{
+				if (otherCam == static_cast<unsigned int>(cameraId)) continue;
+				const auto& statusPerCamera = marker->getStatus2D();
+				if (otherCam >= statusPerCamera.size()) continue;
+				if (frame >= static_cast<int>(statusPerCamera[otherCam].size())) continue;
+				if (statusPerCamera[otherCam][frame] <= 0) continue;
+				const std::vector<cv::Point2d> epiline = marker->getEpipolarLine(otherCam, cameraId, frame);
+				for (size_t i = 1; i < epiline.size(); ++i)
+				{
+					p.drawLine(QPointF(epiline[i - 1].x, epiline[i - 1].y),
+					          QPointF(epiline[i].x, epiline[i].y));
+				}
+			}
+			p.restore();
+		}
+	}
+
+	const bool shouldShowIds = Settings::getInstance()->getBoolSetting("TrialDrawMarkerIds") &&
+		(!detailedView || Settings::getInstance()->getBoolSetting("ShowIDsInDetail"));
+	if (shouldShowIds)
+	{
+		std::vector<double> xs;
+		std::vector<double> ys;
+		std::vector<QString> labels;
+		trial->getDrawTextData(cameraId, frame, xs, ys, labels);
+		p.save();
+		QFont font = this->font();
+		font.setPointSize(15);
+		p.setFont(font);
+		for (int i = 0; i < static_cast<int>(labels.size()) && i < static_cast<int>(markers.size()); ++i)
+		{
+			Marker* marker = markers[i];
+			if (!has2D(marker)) continue;
+			QColor color;
+			if (Settings::getInstance()->getBoolSetting("ShowColoredMarkerIDs"))
+			{
+				color = marker->getStatusColor(cameraId, frame);
+			}
+			else
+			{
+				color = (i == activeMarkerIdx) ? QColor(255, 0, 0) : QColor(0, 255, 0);
+			}
+			p.setPen(color);
+			p.drawText(QPointF(xs[i] + 3.0, ys[i]), labels[i]);
+		}
+		p.restore();
+	}
+
+	if (State::getInstance()->getActiveCamera() == cameraId)
+	{
+		WizardDockWidget::getInstance()->draw(&p);
+	}
 }
 
 void GLCameraView::resizeEvent(QResizeEvent*)
