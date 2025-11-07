@@ -91,6 +91,7 @@ Image::Image(QString _imageFileName, bool flip)
 	image_reset = false;
 	imageTMP.release();
 	texture = 0;
+	invalidateDisplayCache();
 }
 
 Image::Image(Image* _image)
@@ -123,6 +124,7 @@ Image::Image(Image* _image)
 	image_reset = false;
 
 	texture = 0;
+	invalidateDisplayCache();
 }
 
 
@@ -140,6 +142,43 @@ void Image::getImage(cv::Mat& _image, bool color)
 	}
 	else{
 		_image = image.clone();
+	}
+}
+
+void Image::getDisplayImage(cv::Mat& _image, bool color)
+{
+	_image.release();
+
+	if (!color)
+	{
+		if (visualFilterActive())
+		{
+			const cv::Mat& filtered = ensureFilteredImage();
+			if (!filtered.empty())
+			{
+				filtered.copyTo(_image);
+			}
+		}
+		else if (!image.empty())
+		{
+			image.copyTo(_image);
+		}
+		return;
+	}
+
+	if (colorImage_set == COLOR_ORIGINAL && !visualFilterActive())
+	{
+		if (!image_color.empty())
+		{
+			image_color.copyTo(_image);
+		}
+		return;
+	}
+
+	const cv::Mat& display = prepareDisplayImage();
+	if (!display.empty())
+	{
+		display.copyTo(_image);
 	}
 }
 
@@ -177,6 +216,7 @@ void Image::setImage(cv::Mat& _image, bool _color)
 	width = image.cols;
 	height = image.rows;
 	image_reset = true;
+	invalidateDisplayCache();
 }
 
 void Image::setImage(QString imageFileName, bool flip)
@@ -216,62 +256,118 @@ void Image::setImage(QString imageFileName, bool flip)
 		if (colorImage_set)cv::flip(image_color, image_color, 1);
 	}
 	image_reset = true;
+	invalidateDisplayCache();
 }
 
 void Image::resetImage()
 {
 	image_reset = true;
+	invalidateDisplayCache();
+}
+
+void Image::invalidateDisplayCache()
+{
+	filtered_valid = false;
+	displayDirty = true;
+	displayMode = DISPLAY_MODE_NONE;
+	image_filtered.release();
+	image_color_disp.release();
+}
+
+bool Image::visualFilterActive() const
+{
+	return Settings::getInstance()->getBoolSetting("VisualFilterEnabled") &&
+		State::getInstance()->getWorkspace() == DIGITIZATION &&
+		!Settings::getInstance()->getBoolSetting("TrialDrawHideAll");
+}
+
+const cv::Mat& Image::ensureFilteredImage()
+{
+	if (!filtered_valid)
+	{
+		if (image.empty())
+		{
+			image_filtered.release();
+		}
+		else
+		{
+			image_filtered = FilterImage().run(image);
+		}
+		filtered_valid = true;
+	}
+	return image_filtered;
+}
+
+const cv::Mat& Image::prepareDisplayImage()
+{
+	if (visualFilterActive())
+	{
+		if (displayDirty || displayMode != DISPLAY_MODE_FILTERED)
+		{
+			if (!image.empty())
+			{
+				const cv::Mat& filtered = ensureFilteredImage();
+				if (!filtered.empty())
+				{
+					cv::cvtColor(filtered, image_color_disp, cv::COLOR_GRAY2RGB);
+				}
+				else
+				{
+					image_color_disp.release();
+				}
+			}
+			else
+			{
+				image_color_disp.release();
+			}
+			displayDirty = false;
+			displayMode = DISPLAY_MODE_FILTERED;
+		}
+		return image_color_disp;
+	}
+
+	if (colorImage_set == GRAY || colorImage_set == COLOR_CONVERTED)
+	{
+		if (displayDirty || displayMode != DISPLAY_MODE_GRAY)
+		{
+			if (!image.empty())
+			{
+				cv::cvtColor(image, image_color_disp, cv::COLOR_GRAY2RGB);
+			}
+			else
+			{
+				image_color_disp.release();
+			}
+			displayDirty = false;
+			displayMode = DISPLAY_MODE_GRAY;
+		}
+		return image_color_disp;
+	}
+
+	displayMode = DISPLAY_MODE_NONE;
+	displayDirty = false;
+	return image_color;
 }
 
 void Image::loadTexture()
 {
+	const bool useDisplayImage = (colorImage_set != COLOR_ORIGINAL) || visualFilterActive();
+
 	#ifdef XMA_USE_PAINTER
-	    // Painter mode: no OpenGL textures. Ensure display mats are up-to-date only.
-	    if (colorImage_set != COLOR_ORIGINAL || (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && State::getInstance()->getWorkspace() == DIGITIZATION && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll")))
-	    {
-	        image_color_disp.create(image.rows, image.cols, CV_8UC(3));
-	        cv::Mat* tex_image = &image_color_disp;
-	        if (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && State::getInstance()->getWorkspace() == DIGITIZATION && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll") && State::getInstance()->getWorkspace() == DIGITIZATION)
-	        {
-	            if (!image.empty()){
-	                cv::Mat img_gamma = FilterImage().run(image);
-	                cv::cvtColor(img_gamma, image_color_disp, cv::COLOR_GRAY2RGB);
-	            }
-	        }
-	        else if (colorImage_set == GRAY)
-	        {
-	            if (!image.empty()) 
-	                cv::cvtColor(image, image_color_disp, cv::COLOR_GRAY2RGB);
-	        }
-	        if (colorImage_set == GRAY)
-	            image_color.release();
-	    }
-	    textureLoaded = false;
-	    image_reset = false;
-	    return;
+	prepareDisplayImage();
+	textureLoaded = false;
+	image_reset = false;
+	return;
 	#endif
-	cv::Mat  * tex_image = &image_color;
+
 	if (!textureLoaded || image_reset)
 	{
-		//if (!textureLoaded)((QGLContext*)(GLSharedWidget::getInstance()->getQGLContext()))->makeCurrent();
-
-		if (colorImage_set != COLOR_ORIGINAL || (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && State::getInstance()->getWorkspace() == DIGITIZATION && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll")))
+		const cv::Mat& source = useDisplayImage ? prepareDisplayImage() : image_color;
+		if (source.empty())
 		{
-			image_color_disp.create(image.rows, image.cols, CV_8UC(3));
-			tex_image = &image_color_disp;
-		}
-			
-		if (Settings::getInstance()->getBoolSetting("VisualFilterEnabled") && State::getInstance()->getWorkspace() == DIGITIZATION && !Settings::getInstance()->getBoolSetting("TrialDrawHideAll") && State::getInstance()->getWorkspace() == DIGITIZATION)
-		{
-			if (!image.empty()){
-				cv::Mat img_gamma = FilterImage().run(image);
-				cvtColor(img_gamma, image_color_disp, cv::COLOR_GRAY2RGB);
-			}
-		}
-		else if (colorImage_set == GRAY)
-		{
-			if (!image.empty()) 
-				cvtColor(image, image_color_disp, cv::COLOR_GRAY2RGB);
+			textureLoaded = false;
+			image_reset = false;
+			return;
 		}
 
 		glEnable(GL_TEXTURE_2D);
@@ -290,10 +386,12 @@ void Image::loadTexture()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.cols, image.rows,
-			0, GL_BGR, GL_UNSIGNED_BYTE, tex_image->ptr());
-		
+			0, GL_BGR, GL_UNSIGNED_BYTE, source.ptr());
+
 		if (colorImage_set == GRAY)
+		{
 			image_color.release();
+		}
 		textureLoaded = true;
 		image_reset = false;
 	}

@@ -73,6 +73,7 @@ namespace xma
 
 		void save(QString filename, bool flip, bool filter = false);
 		void getImage(cv::Mat& image, bool color = false);
+		void getDisplayImage(cv::Mat& image, bool color = true);
 		void getSubImage(cv::Mat& _image, int size, int off_x, int off_y);
 		void getSubImage(cv::Mat& _image, int size, double x, double y);
 		void setImage(cv::Mat& image, bool _color = false);
@@ -80,16 +81,30 @@ namespace xma
 		void resetImage();
 
 	private:
+		void invalidateDisplayCache();
+		bool visualFilterActive() const;
+		const cv::Mat& ensureFilteredImage();
+		const cv::Mat& prepareDisplayImage();
+
 		cv::Mat image;
 		int height, width;	
 		ColorMode colorImage_set;
 		cv::Mat image_color;
 		cv::Mat image_color_disp;
+		cv::Mat image_filtered;
 
 
 		bool textureLoaded;
 		bool image_reset;
 		GLuint texture;
+		bool filtered_valid;
+		bool displayDirty;
+		enum DisplayImageMode
+		{
+			DISPLAY_MODE_NONE = 0,
+			DISPLAY_MODE_GRAY,
+			DISPLAY_MODE_FILTERED
+		} displayMode;
 	};
 }
 

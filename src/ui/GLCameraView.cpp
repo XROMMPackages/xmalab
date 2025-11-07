@@ -237,7 +237,7 @@ void GLCameraView::paintEvent(QPaintEvent*)
 	QImage img;
 	if (src) {
 		cv::Mat m;
-		src->getImage(m, color);
+		src->getDisplayImage(m, color);
 		img = matToQImageCopy(m);
 	}
 
