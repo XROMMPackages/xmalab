@@ -25,7 +25,7 @@ Section "Install"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "InstallLocation" "$INSTDIR"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "DisplayIcon" "$INSTDIR\XMALab.exe"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "Publisher" "XROMM"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "DisplayVersion" "2.2.1"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "DisplayVersion" "2.3.0"
   ${Else}
     MessageBox MB_OK "This application requires a 64-bit version of Windows."
     Abort
