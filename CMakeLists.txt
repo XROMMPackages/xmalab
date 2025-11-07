@@ -125,6 +125,7 @@ ENDIF()
 # Rendering options
 option(XMA_USE_PAINTER "Use QPainter-only rendering for camera views (no OpenGL in views)" ON)
 option(XMA_HIDE_WORLD_VIEW "Hide/disable the 3D world view dock" OFF)
+option(XMA_ENABLE_QUICK3D_WORLD_VIEW "Enable experimental Qt Quick 3D world view" OFF)
 
 ADD_DEFINITIONS(-DQCUSTOMPLOT_USE_OPENGL)
 ADD_DEFINITIONS(-DGLEW_STATIC)
@@ -133,6 +134,9 @@ if (XMA_USE_PAINTER)
 endif()
 if (XMA_HIDE_WORLD_VIEW)
 	add_definitions(-DXMA_HIDE_WORLD_VIEW)
+endif()
+if (XMA_ENABLE_QUICK3D_WORLD_VIEW)
+	add_definitions(-DXMA_ENABLE_QUICK3D_WORLD_VIEW)
 endif()
 
 #Set Includes and CMAKE_CURRENT_SOURCE_DIR

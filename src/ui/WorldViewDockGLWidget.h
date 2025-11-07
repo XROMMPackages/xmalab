@@ -29,7 +29,7 @@
 
 #include <QWidget>
 
-QT_FORWARD_DECLARE_CLASS(QQuickWidget)
+QT_FORWARD_DECLARE_CLASS(QQuickView)
 
 namespace xma
 {
@@ -52,7 +52,8 @@ namespace xma
 	private:
 		class ViewModel;
 		ViewModel* m_viewModel;
-		QQuickWidget* m_quickWidget;
+		QQuickView* m_quickView;
+		QWidget* m_quickContainer;
 
 		void initializeQuickScene();
 	};

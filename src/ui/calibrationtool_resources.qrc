@@ -24,6 +24,6 @@
     <file>resource-files/icons/arrow_out_longer.png</file>
   </qresource>
   <qresource prefix="/qml">
-    <file>qml/WorldViewScene.qml</file>
+    <file alias="WorldViewScene.qml">qml/WorldViewScene.qml</file>
   </qresource>
 </RCC>
