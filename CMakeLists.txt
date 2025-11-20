@@ -50,6 +50,11 @@ IF (APPLE)
 	ADD_DEFINITIONS(-D__APPLE__)
 ENDIF (APPLE)
 
+# Add NOMINMAX for Windows to prevent min/max macro conflicts
+IF (WIN32)
+	ADD_DEFINITIONS(-DNOMINMAX)
+ENDIF (WIN32)
+
 # Set CMP0074 policy to NEW for proper handling of package root variables
 cmake_policy(SET CMP0074 NEW)
 

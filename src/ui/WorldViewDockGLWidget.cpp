@@ -26,6 +26,9 @@
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #endif
 
 #include "ui/WorldViewDockGLWidget.h"
@@ -145,7 +148,7 @@ static QVariantMap buildCameraEntry(xma::Camera* camera, int referenceIndex, Sce
 		referenceIndex = 0;
 	}
 
-	xma::CalibrationImage* calibrationImage = calibrationImages[referenceIndex];
+	xma::CalibrationImage* calibrationImage = calibrationImages[static_cast<size_t>(referenceIndex)];
 	if (!calibrationImage)
 	{
 		return QVariantMap();
