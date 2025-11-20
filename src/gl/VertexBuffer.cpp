@@ -43,7 +43,19 @@
 
 using namespace xma;
 
-VertexBuffer::VertexBuffer() : m_initialised(false), vboId(0), nboId(0), tboId(0), iboId(), m_dataReady(false), m_vertices(0), m_normals(0), m_texcoords(0), m_indices(0), m_numvertices(0)
+VertexBuffer::VertexBuffer() 
+	: m_initialised(false)
+	, m_vaoQt(nullptr)
+	, m_vboQt(nullptr)
+	, m_nboQt(nullptr)
+	, m_tboQt(nullptr)
+	, m_iboQt(nullptr)
+	, m_dataReady(false)
+	, m_vertices(0)
+	, m_normals(0)
+	, m_texcoords(0)
+	, m_indices(0)
+	, m_numvertices(0)
 {
 
 }
@@ -52,10 +64,11 @@ VertexBuffer::~VertexBuffer()
 {
 	if (m_initialised)
 	{
-		if(vboId != 0)glDeleteBuffers(1, &vboId);
-		if (nboId != 0)glDeleteBuffers(1, &nboId);
-		if (tboId != 0)glDeleteBuffers(1, &tboId);
-		if (iboId != 0)glDeleteBuffers(1, &iboId);
+		if (m_vaoQt) delete m_vaoQt;
+		if (m_vboQt) delete m_vboQt;
+		if (m_nboQt) delete m_nboQt;
+		if (m_tboQt) delete m_tboQt;
+		if (m_iboQt) delete m_iboQt;
 
 		m_initialised = false;
 	}
@@ -110,69 +123,152 @@ void VertexBuffer::render()
 	if (!m_initialised)
 	{
 		if (!m_dataReady) 
+		{
+			mutex.unlock();
 			return;
+		}
 
 		setupVBO();
 	}
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	if (nboId) glEnableClientState(GL_NORMAL_ARRAY);
-	if (tboId) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	////vertices
-	glBindBuffer(GL_ARRAY_BUFFER, vboId);
-	glVertexPointer(3, GL_FLOAT, 0, NULL);
+	// Legacy render support using the Qt buffers
+	// Note: This assumes a compatibility profile context if mixing with fixed function
+	if (m_vboQt) {
+		m_vboQt->bind();
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, NULL);
+	}
 	
-	////Normals
-	if (nboId){
-		glBindBuffer(GL_ARRAY_BUFFER, nboId);
+	if (m_nboQt){
+		m_nboQt->bind();
+		glEnableClientState(GL_NORMAL_ARRAY);
 		glNormalPointer(GL_FLOAT, 0, NULL);
 	}
-	//Texture
-	if (tboId){
-		glBindBuffer(GL_ARRAY_BUFFER, tboId);
+
+	if (m_tboQt){
+		m_tboQt->bind();
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, 0, NULL);
 	}
 
-	////Indices
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboId);
-	////Draw the mesh
-	glDrawElements(GL_TRIANGLES, m_numvertices, GL_UNSIGNED_INT, NULL);
+	if (m_iboQt) {
+		m_iboQt->bind();
+		glDrawElements(GL_TRIANGLES, m_numvertices, GL_UNSIGNED_INT, NULL);
+		m_iboQt->release();
+	} else {
+		glDrawArrays(GL_TRIANGLES, 0, m_numvertices);
+	}
 
-	//unload
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	if (m_tboQt) {
+		m_tboQt->release();
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
+	if (m_nboQt) {
+		m_nboQt->release();
+		glDisableClientState(GL_NORMAL_ARRAY);
+	}
+	if (m_vboQt) {
+		m_vboQt->release();
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+
 	mutex.unlock();
+}
+
+bool VertexBuffer::bindVAO()
+{
+	mutex.lock();
+	if (!m_initialised)
+	{
+		if (!m_dataReady) 
+		{
+			mutex.unlock();
+			return false;
+		}
+		setupVBO();
+	}
+	mutex.unlock();
+
+	if (m_vaoQt) {
+		m_vaoQt->bind();
+		return true;
+	}
+	return false;
+}
+
+void VertexBuffer::releaseVAO()
+{
+	if (m_vaoQt) {
+		m_vaoQt->release();
+	}
 }
 
 void VertexBuffer::setupVBO()
 {
 	if (!m_dataReady) return;
 
+	initializeOpenGLFunctions();
+
+	m_vaoQt = new QOpenGLVertexArrayObject();
+	if (!m_vaoQt->create()) {
+		std::cerr << "Error creating VAO" << std::endl;
+	}
+	m_vaoQt->bind();
+
 	if (m_vertices){
-		glGenBuffers(1, &vboId);
-		glBindBuffer(GL_ARRAY_BUFFER, vboId);
-		glBufferData(GL_ARRAY_BUFFER, 3 * m_numvertices * sizeof(float), m_vertices, GL_STATIC_DRAW);
+		m_vboQt = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+		m_vboQt->create();
+		m_vboQt->bind();
+		m_vboQt->allocate(m_vertices, 3 * m_numvertices * sizeof(float));
+		
+		// Enable attribute 0 (Vertex Position)
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+		m_vboQt->release();
 	}
 
 	if (m_normals){
-		glGenBuffers(1, &nboId);
-		glBindBuffer(GL_ARRAY_BUFFER, nboId);
-		glBufferData(GL_ARRAY_BUFFER, 3 * m_numvertices * sizeof(float), m_normals, GL_STATIC_DRAW);
+		m_nboQt = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+		m_nboQt->create();
+		m_nboQt->bind();
+		m_nboQt->allocate(m_normals, 3 * m_numvertices * sizeof(float));
+		
+		// Enable attribute 1 (Vertex Normal)
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+		m_nboQt->release();
 	}
 
 	if (m_texcoords){
-		glGenBuffers(1, &tboId);
-		glBindBuffer(GL_ARRAY_BUFFER, tboId);
-		glBufferData(GL_ARRAY_BUFFER, 2 * m_numvertices * sizeof(float), m_texcoords, GL_STATIC_DRAW);
+		m_tboQt = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+		m_tboQt->create();
+		m_tboQt->bind();
+		m_tboQt->allocate(m_texcoords, 2 * m_numvertices * sizeof(float));
+		
+		// Enable attribute 2 (Texture Coord)
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+		m_tboQt->release();
 	}
+
 	if (m_indices){
-		glGenBuffers(1, &iboId);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboId);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_numvertices * sizeof(GLuint), m_indices, GL_STATIC_DRAW);
+		m_iboQt = new QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
+		m_iboQt->create();
+		m_iboQt->bind();
+		m_iboQt->allocate(m_indices, m_numvertices * sizeof(GLuint));
+		// Index buffer is part of VAO state, so we don't release it while VAO is bound
+		// But for QOpenGLBuffer, we might need to be careful. 
+		// QOpenGLVertexArrayObject documentation says:
+		// "The index buffer is also part of the VAO state."
 	}
+
+	m_vaoQt->release();
+	
+	// Release IBO after VAO
+	if (m_iboQt) m_iboQt->release();
 
 	deleteData();
 
 	m_initialised = true;
 }
+

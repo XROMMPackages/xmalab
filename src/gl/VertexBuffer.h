@@ -27,11 +27,14 @@
 #ifndef VERTEXBUFFER_H_
 #define VERTEXBUFFER_H_
 #include <QtCore/QMutex>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
+#include <QOpenGLFunctions>
 
 namespace xma
 {
 
-	class VertexBuffer
+	class VertexBuffer : protected QOpenGLFunctions
 	{
 	public:
 		VertexBuffer();
@@ -40,16 +43,25 @@ namespace xma
 
 		void setData(unsigned int numvertices, float* vertices, float* normals, float * texcoords, unsigned int* indices);
 
+		// Legacy render (fixed function)
 		void render();
+
+		// Modern render support
+		bool bindVAO();
+		void releaseVAO();
+		unsigned int getNumVertices() const { return m_numvertices; }
 
 	private:
 		bool m_initialised;
 
 		void setupVBO();
-		unsigned int vboId;
-		unsigned int nboId;
-		unsigned int tboId;
-		unsigned int iboId;
+		
+		// Qt OpenGL wrappers
+		QOpenGLVertexArrayObject* m_vaoQt;
+		QOpenGLBuffer* m_vboQt;
+		QOpenGLBuffer* m_nboQt;
+		QOpenGLBuffer* m_tboQt;
+		QOpenGLBuffer* m_iboQt;
 
 		void deleteData();
 		bool m_dataReady;
@@ -64,4 +76,4 @@ namespace xma
 	};
 }
 
-#endif // FRAMEBUFFER_H_
+#endif // VERTEXBUFFER_H_

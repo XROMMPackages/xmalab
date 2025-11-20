@@ -26,11 +26,8 @@
 
 #ifndef GLWIDGET_H_
 #define GLWIDGET_H_
-#ifndef XMA_USE_PAINTER
 #include <QOpenGLWidget>
-#else
-#include <QWidget>
-#endif
+#include <QOpenGLFunctions>
 
 namespace xma
 {
@@ -38,10 +35,10 @@ namespace xma
     class FrameBuffer;
     class DistortionShader;
     class BlendShader;
+    class MeshShader;
 
-#ifdef XMA_USE_PAINTER
-    // Painter-based implementation (no OpenGL)
-    class GLCameraView : public QWidget
+    // Unified class definition
+    class GLCameraView : public QOpenGLWidget, protected QOpenGLFunctions
     {
         Q_OBJECT
 
@@ -65,6 +62,10 @@ namespace xma
 
     protected:
         void paintEvent(QPaintEvent* event) override;
+        void initializeGL() override;
+        void resizeGL(int w, int h) override;
+        void paintGL() override;
+
         void resizeEvent(QResizeEvent* event) override;
         void mouseMoveEvent(QMouseEvent* e) override;
         void mousePressEvent(QMouseEvent* e) override;
@@ -100,12 +101,15 @@ namespace xma
         double scale;
         double transparency;
         bool renderTransparentModels; 
+
+        MeshShader* meshShader;
+
     signals:
         void autozoomChanged(bool on);
         void zoomChanged(int zoom);
         void transparencyChanged(double zoom);
     };
-#else
+/* Legacy OpenGL implementation removed
     // Original OpenGL-backed implementation on non-macOS
     class GLCameraView : public QOpenGLWidget
     {
@@ -131,9 +135,10 @@ namespace xma
         void UseStatusColors(bool value);
 
     protected:
-        void paintGL() override;
+        void paintEvent(QPaintEvent* event) override;
         void initializeGL() override;
         void resizeGL(int w, int h) override;
+        void paintGL() override;
 
         void mouseMoveEvent(QMouseEvent* e) override;
         void mousePressEvent(QMouseEvent* e) override;
@@ -191,7 +196,7 @@ namespace xma
         GLfloat LightPosition_front[4];
         GLfloat LightPosition_back[4];
     };
-#endif
+*/
 }
 
 #endif /* GLWIDGET_H_ */

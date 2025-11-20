@@ -40,6 +40,8 @@ namespace xma
 	class Camera;
 	class Marker;
 	class RigidBodyObj;
+	class MeshShader;
+	class QMatrix4x4;
 
 
 	class RigidBody
@@ -147,6 +149,7 @@ namespace xma
 		bool getDrawMeshModel();
 		void setDrawMeshModel(bool value);
 		void drawMesh(int frame);
+		void renderGL(int frame, MeshShader* shader, const QMatrix4x4& viewProjection, bool filtered);
 		double getMeshScale();
 		void setMeshScale(double value);
 
@@ -218,5 +221,5 @@ namespace xma
 	};
 }
 
-#endif 
+#endif
 
