@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.16)
+CMAKE_MINIMUM_REQUIRED(VERSION 4.0)
 
 PROJECT(XMALab)
 
@@ -115,24 +115,59 @@ IF (APPLE)
 			${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources/${MACOSX_BUNDLE_ICON_FILE})
 ENDIF (APPLE)
 
+#Set Definitions
+ADD_DEFINITIONS(${QT_DEFINITIONS})
+ADD_DEFINITIONS(-DPROJECT_VERSION=\"${PROJECT_VERSION}\" -DPROJECT_BUILD_TIME=\"${PROJECT_BUILD_TIME}\")
+IF("${PROJECT_BETA_VERSION}" GREATER 0)
+	ADD_DEFINITIONS(-DPROJECT_BETA_VERSION=\"${PROJECT_BETA_VERSION}\")
+ENDIF()
+
 # Rendering options
 option(XMA_USE_PAINTER "Use QPainter-only rendering for camera views (no OpenGL in views)" ON)
 option(XMA_HIDE_WORLD_VIEW "Hide/disable the 3D world view dock" OFF)
-option(XMA_ENABLE_QUICK3D_WORLD_VIEW "Enable experimental Qt Quick 3D world view" ON)
+option(XMA_ENABLE_QUICK3D_WORLD_VIEW "Enable experimental Qt Quick 3D world view" OFF)
+
+ADD_DEFINITIONS(-DQCUSTOMPLOT_USE_OPENGL)
+ADD_DEFINITIONS(-DGLEW_STATIC)
+if (XMA_USE_PAINTER)
+	add_definitions(-DXMA_USE_PAINTER)
+endif()
+if (XMA_HIDE_WORLD_VIEW)
+	add_definitions(-DXMA_HIDE_WORLD_VIEW)
+endif()
+if (XMA_ENABLE_QUICK3D_WORLD_VIEW)
+	add_definitions(-DXMA_ENABLE_QUICK3D_WORLD_VIEW)
+endif()
 
 #Set Includes and CMAKE_CURRENT_SOURCE_DIR
-#SET(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src) # Removed hack
+SET(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+INCLUDE_DIRECTORIES(
+	${CMAKE_CURRENT_BINARY_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}
+	${QUAZIP_INCLUDE_DIRS}
+	${GLEW_INCLUDE_DIR}
+	${OPENCV_INCLUDE_DIRS}
+	${LEVMAR_INCLUDE_DIR}
+	${MY_INCLUDE_DIR}  # Add this to pick up user-defined headers
+
+	# Qt include dirs are provided by the Qt6:: targets
+)
+
 #Get Files from Subdirectory
 ADD_SUBDIRECTORY(src)
 
 
 
-#Create Qt UI related tasks
+#Create QT4 UI related tasks
 SET(XMALab_RESOURCE_FILES
+		${CMAKE_CURRENT_BINARY_DIR}/qrc_calibrationtool_resources.cxx
+		src/ui//calibrationtool_resources.qrc
+)
+QT_WRAP_UI(XMALab_FORMS_HEADERS_GEN ${XMALab_FORMS})
+SET(XMALab_RESOURCES
 		src/ui/calibrationtool_resources.qrc
 )
-qt6_wrap_ui(XMALab_FORMS_HEADERS_GEN ${XMALab_FORMS})
-qt6_add_resources(XMALab_RESOURCES_RCC ${XMALab_RESOURCE_FILES})
+QT_ADD_RESOURCES(XMALab_RESOURCES_RCC ${XMALab_RESOURCES})
 
 
 #Build and link
@@ -141,37 +176,6 @@ ADD_EXECUTABLE(${PROJECT_NAME} ${GUI_TYPE}
 		${XMALab_RESOURCES_RCC}
 		${XMALab_FORMS_HEADERS_GEN}
 		src/ui/calibrationtool_resources.rc
-)
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    PROJECT_VERSION="${PROJECT_VERSION}"
-    PROJECT_BUILD_TIME="${PROJECT_BUILD_TIME}"
-    QCUSTOMPLOT_USE_OPENGL
-    GLEW_STATIC
-)
-
-if(PROJECT_BETA_VERSION GREATER 0)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE PROJECT_BETA_VERSION="${PROJECT_BETA_VERSION}")
-endif()
-
-if (XMA_USE_PAINTER)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE XMA_USE_PAINTER)
-endif()
-if (XMA_HIDE_WORLD_VIEW)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE XMA_HIDE_WORLD_VIEW)
-endif()
-if (XMA_ENABLE_QUICK3D_WORLD_VIEW)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE XMA_ENABLE_QUICK3D_WORLD_VIEW)
-endif()
-
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${QUAZIP_INCLUDE_DIRS}
-    ${GLEW_INCLUDE_DIR}
-    ${OPENCV_INCLUDE_DIRS}
-    ${LEVMAR_INCLUDE_DIR}
-    ${MY_INCLUDE_DIR}
 )
 
 if (MSVC)
@@ -197,7 +201,7 @@ if (MSVC)
 endif()
 
 
-target_link_directories(${PROJECT_NAME} PRIVATE ${MY_LIBRARY_DIR})
+link_directories(${MY_LIBRARY_DIR})
 
 IF(APPLE)
   ADD_DEPENDENCIES(${PROJECT_NAME} osx_bundle_dirs )

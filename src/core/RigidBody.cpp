@@ -365,13 +365,6 @@ void RigidBody::drawMesh(int frame)
 	meshmodel->render(frame);
 }
 
-void RigidBody::renderGL(int frame, MeshShader* shader, const QMatrix4x4& viewProjection, bool filtered)
-{
-	if (meshmodel) {
-		meshmodel->renderGL(frame, shader, viewProjection, filtered);
-	}
-}
-
 double RigidBody::getMeshScale()
 {
 	return meshScale;
@@ -1077,7 +1070,7 @@ void RigidBody::computePose(int Frame)
 
 				vnl_tmp = Y[i];
 				for (int m = 0; m < 3; m++)yg[m] = yg[m] + vnl_tmp[m];
-			 y.push_back(vnl_tmp);
+				y.push_back(vnl_tmp);
 			}
 			// Compute the gravity center
 			for (int m = 0; m < 3; m++)xg[m] /= X.size();
@@ -1634,13 +1627,13 @@ void RigidBody::filterData(std::vector<int> idx)
 
 		for (unsigned int i = 0; i < idx.size(); i++)
 		{
-		 r1.push_back(rotationvectors[idx[i]][0]);
-		 r2.push_back(rotationvectors[idx[i]][1]);
-		 r3.push_back(rotationvectors[idx[i]][2]);
+			r1.push_back(rotationvectors[idx[i]][0]);
+			r2.push_back(rotationvectors[idx[i]][1]);
+			r3.push_back(rotationvectors[idx[i]][2]);
 
-		 t1.push_back(translationvectors[idx[i]][0]);
-		 t2.push_back(translationvectors[idx[i]][1]);
-		 t3.push_back(translationvectors[idx[i]][2]);
+			t1.push_back(translationvectors[idx[i]][0]);
+			t2.push_back(translationvectors[idx[i]][1]);
+			t3.push_back(translationvectors[idx[i]][2]);
 		}
 
 		std::vector<double> t1_out;
@@ -2457,7 +2450,7 @@ void RigidBody::setMissingPoints(int Frame)
 			std::vector<cv::Point2d> image_points = projectToImage(Project::getInstance()->getCameras()[c], Frame, false);
 			for (unsigned int i = 0; i < image_points.size(); i++)
 			{
-				//if (trial->getMarkers()[pointsIdx[i]]->getStatus2D()[c][Frame] <= PREDICTED_RIGIDBODY)
+				//if (trial->getMarkers()[pointsIdx[i]]->getStatus2D()[Frame][c] <= PREDICTED_RIGIDBODY)
 				{
 					//object->markers[pointsIdx[i]].pointsCam1[Frame].x = image_points[i].x;
 					//object->markers[pointsIdx[i]].pointsCam1[Frame].y = image_points[i].y;

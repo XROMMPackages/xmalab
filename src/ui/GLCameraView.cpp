@@ -28,11 +28,12 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#ifndef XMA_USE_PAINTER
 #include <GL/glew.h>
+#endif
 #include "gl/MultisampleFrameBuffer.h"
 #include "gl/DistortionShader.h"
 #include "gl/BlendShader.h"
-#include "gl/MeshShader.h"
 #include "ui/GLCameraView.h"
 #include "ui/State.h"
 #include "ui/ErrorDialog.h"
@@ -62,6 +63,7 @@
 #include <math.h>
 #include "MainWindow.h"
 
+#ifndef XMA_USE_PAINTER
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
@@ -72,19 +74,38 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #endif
+#endif
 
 
 using namespace xma;
 
 GLCameraView::GLCameraView(QWidget* parent)
+#ifdef XMA_USE_PAINTER
+	: QWidget(parent)
+#else
 	: QOpenGLWidget(parent)
-    , meshShader(nullptr)
+#endif
 {
     camera = NULL;
     setMinimumSize(50, 50);
     setAutoFillBackground(false);
     this->setCursor(QCursor(Qt::CrossCursor));
-
+#ifndef XMA_USE_PAINTER
+    window_width = 50;
+    window_height = 50;
+    x_offset = 0;
+    y_offset = 0;
+    setZoomRatio(1.0, true);
+    detailedView = false;
+    bias = 0.0;
+    scale = 1.0;
+    transparency = 0.5;
+    renderTransparentModels = true;
+    showStatusColors = false;
+    distortionShader = 0;
+    blendShader = NULL; 
+    rigidbodyBufferUndistorted = NULL;
+#else
 	window_width = 50;
 	window_height = 50;
 	x_offset = 0;
@@ -96,33 +117,61 @@ GLCameraView::GLCameraView(QWidget* parent)
 	transparency = 0.5;
 	renderTransparentModels = true;
 	showStatusColors = false;
+#endif
+
+#ifndef XMA_USE_PAINTER
+	LightAmbient[0] = LightAmbient[1] = LightAmbient[2] = 0.1f;
+	LightAmbient[3] = 1.0f;
+
+	LightDiffuse[0] = LightDiffuse[1] = LightDiffuse[2] = 0.7f;
+	LightDiffuse[3] = 1.0f;
+
+	LightPosition_front[0] = LightPosition_front[1] = LightPosition_front[3] = 0.0f;
+	LightPosition_front[2] = 1.0f;
+
+	LightPosition_back[0] = LightPosition_back[1] = LightPosition_back[3] = 0.0f;
+	LightPosition_back[2] = -1.0f;
+#endif
 }
 
 GLCameraView::~GLCameraView()
 {
-    if (meshShader) delete meshShader;
+#ifndef XMA_USE_PAINTER
+    if (blendShader)
+        delete blendShader;
+
+    if (rigidbodyBufferUndistorted)
+        delete rigidbodyBufferUndistorted;
+
+    if (distortionShader)
+        delete distortionShader;
+#endif
 }
 
 void GLCameraView::setCamera(Camera* _camera)
 {
     camera = _camera;
+#ifndef XMA_USE_PAINTER
+    camera_width = camera->getWidth();
+    camera_height = camera->getHeight();
+    if (!detailedView){
+        if (rigidbodyBufferUndistorted)
+            delete rigidbodyBufferUndistorted;
+        rigidbodyBufferUndistorted = new FrameBuffer(camera_width, camera_height);
+        if (distortionShader)
+            delete distortionShader;
+        distortionShader = new DistortionShader(camera);
+        if (blendShader)
+            delete blendShader;
+        blendShader = new BlendShader(); 
+    }
+#else
 	camera_width = camera->getWidth();
 	camera_height = camera->getHeight();
+#endif
 }
 
-void GLCameraView::initializeGL()
-{
-    initializeOpenGLFunctions();
-    
-    meshShader = new MeshShader();
-    if (!meshShader->init()) {
-        std::cerr << "Failed to initialize MeshShader" << std::endl;
-    }
-    
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glDisable(GL_DEPTH_TEST);
-}
-
+#ifdef XMA_USE_PAINTER
 // Painter-based implementation
 static inline QImage matToQImageCopy(const cv::Mat& mat)
 {
@@ -212,68 +261,6 @@ void GLCameraView::paintEvent(QPaintEvent*)
 
 		// With the transform set, draw the image at its image-space origin
 		p.drawImage(QPointF(0.0, 0.0), img);
-
-		// Native OpenGL Rendering (Meshes)
-		if (State::getInstance()->getWorkspace() == DIGITIZATION && meshShader) {
-			bool drawMeshes = Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyMeshmodels") && 
-							 !Settings::getInstance()->getBoolSetting("TrialDrawHideAll");
-			
-			if (drawMeshes) {
-				p.beginNativePainting();
-				
-				// Save GL state that QPainter might rely on? 
-				// QPainter::beginNativePainting() documentation says it resets state.
-				// We should restore it? endNativePainting() does that.
-				
-				glEnable(GL_DEPTH_TEST);
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				
-				// Viewport
-				const qreal dpr = this->devicePixelRatio();
-				glViewport(0, 0, width() * dpr, height() * dpr);
-				
-				// Projection: Logical Widget Coords -> NDC
-				QMatrix4x4 proj;
-				proj.ortho(0, width(), height(), 0, -1000, 1000); // Y-down to match QPainter
-				
-				// View: Image Space -> Logical Widget Coords
-				// Matches QPainter transform T
-				QMatrix4x4 view;
-				view.translate(sx, sy, 0);
-				view.scale(1.0 / (zoomRatio * dpr), 1.0 / (zoomRatio * dpr), 1.0);
-				
-				QMatrix4x4 vp = proj * view;
-				
-				meshShader->bind();
-				
-				// Draw Meshes
-				if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0) {
-					Trial* trial = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()];
-					if (!trial->getIsDefault()) {
-						int frame = State::getInstance()->getActiveFrameTrial();
-						bool filtered = Settings::getInstance()->getBoolSetting("TrialDrawFiltered");
-						
-						for (RigidBody* rb : trial->getRigidBodies()) {
-							if (rb && rb->getVisible() && rb->getDrawMeshModel() && rb->hasMeshModel()) {
-								// We need to access the RigidBodyObj to call renderGL
-								// RigidBody::drawMesh calls meshmodel->render.
-								// We need to expose meshmodel or add a renderGL method to RigidBody.
-								// I'll add renderGL to RigidBody.
-								rb->renderGL(frame, meshShader, vp, filtered);
-							}
-						}
-					}
-				}
-				
-				meshShader->release();
-				
-				glDisable(GL_DEPTH_TEST);
-				glDisable(GL_BLEND);
-				
-				p.endNativePainting();
-			}
-		}
 
 		// Overlays (draw in image coordinates; they inherit the same transform)
 		if (State::getInstance()->getWorkspace() == UNDISTORTION) {
@@ -1154,6 +1141,12 @@ void GLCameraView::wheelEvent(QWheelEvent* e)
 	}
 }
 
+void GLCameraView::initializeGL()
+{
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
+	glClearDepth(1.0f); // Depth Buffer Setup
+	glDisable(GL_DEPTH_TEST);
+}
 
 void GLCameraView::setAutoZoom(bool on)
 {
@@ -1520,11 +1513,6 @@ void GLCameraView::UseStatusColors(bool value)
 
 void GLCameraView::paintGL()
 {
-    // Legacy OpenGL rendering is replaced by paintEvent with QPainter + Native OpenGL
-}
-/*
-void GLCameraView::paintGL_legacy()
-{
 	doDistortion = false;
 	renderMeshes = false;
 
@@ -1787,7 +1775,6 @@ void GLCameraView::paintGL_legacy()
 
 	glFlush();
 }
-*/
 
 void GLCameraView::setZoomRatio(double newZoomRation, bool newAutozoom)
 {

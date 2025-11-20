@@ -47,7 +47,6 @@ namespace xma
 		QString getFilename();
 
 		void render(int frame);
-		void renderGL(int frame, class MeshShader* shader, const QMatrix4x4& vp, bool filtered);
 
 		bool vboSet();
 
