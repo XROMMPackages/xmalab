@@ -375,6 +375,16 @@ void RigidBody::setMeshScale(double value)
 	meshScale = value;
 }
 
+const std::vector<cv::Point3d>& RigidBody::getMeshTriangleVertices() const
+{
+	static const std::vector<cv::Point3d> kEmpty;
+	if (meshmodel)
+	{
+		return meshmodel->getTriangleVertices();
+	}
+	return kEmpty;
+}
+
 int RigidBody::getFirstTrackedFrame()
 {
 	for (int i = 0; i < poseComputed.size(); i++)

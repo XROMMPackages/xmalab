@@ -121,7 +121,7 @@ using namespace xma;
 		return u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
 	}
 
-VertexBuffer* GLMLoader::load(QString filename)
+VertexBuffer* GLMLoader::load(QString filename, std::vector<cv::Point3d>* triangleVertices)
 {
 	FILE*     file;
 
@@ -539,6 +539,21 @@ VertexBuffer* GLMLoader::load(QString filename)
 
 	VertexBuffer* buffer = new VertexBuffer();
 	buffer->setData(m_numvertices, m_vertices, m_normals, 0, m_indices);
+
+	if (triangleVertices)
+	{
+		size_t vertexCount = static_cast<size_t>(m_numvertices);
+		triangleVertices->clear();
+		triangleVertices->reserve(vertexCount);
+		for (size_t i = 0; i < vertexCount; ++i)
+		{
+			const size_t offset = i * 3;
+			triangleVertices->emplace_back(
+				m_vertices[offset + 0],
+				m_vertices[offset + 1],
+				m_vertices[offset + 2]);
+		}
+	}
 	free(m_vertices);
 	free(m_normals);
 	free(m_indices);

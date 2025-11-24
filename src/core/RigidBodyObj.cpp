@@ -49,7 +49,7 @@ using namespace xma;
 
 RigidBodyObj::RigidBodyObj(QString filename, RigidBody* body) : m_filename(filename), m_body(body), m_vbo(NULL)
 {
-	m_vbo = GLMLoader::load(m_filename);
+	m_vbo = GLMLoader::load(m_filename, &m_triangleVertices);
 }
 
 QString RigidBodyObj::getFilename()

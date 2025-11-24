@@ -34,6 +34,8 @@
 
 #include "gl/VertexBuffer.h"
 #include <QString>
+#include <vector>
+#include <opencv2/core.hpp>
 
 namespace xma
 {
@@ -42,7 +44,7 @@ namespace xma
 	{
 	public:
 
-		static VertexBuffer* load(QString filename);
+		static VertexBuffer* load(QString filename, std::vector<cv::Point3d>* triangleVertices = nullptr);
 	};
 }
 

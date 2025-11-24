@@ -149,6 +149,7 @@ namespace xma
 		void drawMesh(int frame);
 		double getMeshScale();
 		void setMeshScale(double value);
+		const std::vector<cv::Point3d>& getMeshTriangleVertices() const;
 
 		int getFirstTrackedFrame();
 		int getLastTrackedFrame();

@@ -31,6 +31,7 @@
 
 #include <QString>
 #include <vector>
+#include <opencv2/core.hpp>
 
 namespace xma
 {
@@ -50,10 +51,13 @@ namespace xma
 
 		bool vboSet();
 
+		const std::vector<cv::Point3d>& getTriangleVertices() const { return m_triangleVertices; }
+
 	private:
 		QString m_filename;
 		RigidBody * m_body;
 		VertexBuffer * m_vbo;
+		std::vector<cv::Point3d> m_triangleVertices;
 	};
 }
 

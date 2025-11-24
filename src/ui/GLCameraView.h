@@ -32,12 +32,21 @@
 #include <QWidget>
 #endif
 
+#include <vector>
+#include <QPointF>
+#include <QPolygonF>
+#include <QRectF>
+#include <QImage>
+#include <QColor>
+#include <QVector>
+
 namespace xma
 {
     class Camera;
     class FrameBuffer;
     class DistortionShader;
     class BlendShader;
+    class Trial;
 
 #ifdef XMA_USE_PAINTER
     // Painter-based implementation (no OpenGL)
@@ -95,11 +104,37 @@ namespace xma
         void drawUndistortionOverlays(QPainter& p);
         void drawDigitizationOverlays(QPainter& p);
         void drawCalibrationOverlays(QPainter& p);
+        void drawRigidBodyMeshes(QPainter& p);
+        void invalidateMeshCache();
+        bool meshCacheNeedsUpdate(xma::Trial* trial, int frame, bool filteredSetting) const;
+        bool rebuildMeshCache(xma::Trial* trial, int frame, bool filteredSetting);
+        bool ensureDistortionLookup();
+        QImage distortOverlayImage(const QImage& undistortedOverlay);
+        QRgb sampleOverlayBilinear(const QImage& src, qreal x, qreal y) const;
 
         double bias;
         double scale;
         double transparency;
         bool renderTransparentModels; 
+
+        struct PainterMeshTriangle
+        {
+            QPointF points[3];
+            double depth;
+            QColor color;
+        };
+        std::vector<PainterMeshTriangle> m_meshTriangles;
+
+        QImage m_meshCacheImage;
+        xma::Trial* m_meshCacheTrial;
+        int m_meshCacheFrame;
+        int m_meshCacheCameraId;
+        bool m_meshCacheFilteredSetting;
+        QSize m_meshCacheSize;
+
+        QVector<QPointF> m_distortionLookup;
+        int m_distortionLookupCameraId = -1;
+        QSize m_distortionLookupSize;
     signals:
         void autozoomChanged(bool on);
         void zoomChanged(int zoom);

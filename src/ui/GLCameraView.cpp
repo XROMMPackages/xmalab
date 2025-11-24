@@ -61,6 +61,8 @@
 
 #include <iostream> 
 #include <math.h>
+#include <cmath>
+#include <algorithm>
 #include "MainWindow.h"
 
 #ifndef XMA_USE_PAINTER
@@ -81,7 +83,12 @@ using namespace xma;
 
 GLCameraView::GLCameraView(QWidget* parent)
 #ifdef XMA_USE_PAINTER
-	: QWidget(parent)
+	: QWidget(parent),
+	  m_meshCacheTrial(nullptr),
+	  m_meshCacheFrame(-1),
+	  m_meshCacheCameraId(-1),
+	  m_meshCacheFilteredSetting(false),
+	  m_meshCacheSize(0, 0)
 #else
 	: QOpenGLWidget(parent)
 #endif
@@ -168,11 +175,17 @@ void GLCameraView::setCamera(Camera* _camera)
 #else
 	camera_width = camera->getWidth();
 	camera_height = camera->getHeight();
+	invalidateMeshCache();
 #endif
 }
 
 #ifdef XMA_USE_PAINTER
 // Painter-based implementation
+namespace
+{
+constexpr qreal kMeshOverlayOpacity = 0.35;
+}
+
 static inline QImage matToQImageCopy(const cv::Mat& mat)
 {
 	if (mat.empty()) return QImage();
@@ -417,6 +430,8 @@ void GLCameraView::drawDigitizationOverlays(QPainter& p)
 	if (trialIndex < 0 || trialIndex >= static_cast<int>(trials.size())) return;
 	Trial* trial = trials[trialIndex];
 	if (!trial || trial->getIsDefault()) return;
+
+	drawRigidBodyMeshes(p);
 
 	const int cameraId = camera->getID();
 	const int frame = State::getInstance()->getActiveFrameTrial();
@@ -675,6 +690,414 @@ void GLCameraView::drawDigitizationOverlays(QPainter& p)
 	{
 		WizardDockWidget::getInstance()->draw(&p);
 	}
+}
+
+void GLCameraView::invalidateMeshCache()
+{
+	m_meshCacheImage = QImage();
+	m_meshCacheTrial = nullptr;
+	m_meshCacheFrame = -1;
+	m_meshCacheCameraId = -1;
+	m_meshCacheFilteredSetting = false;
+	m_meshCacheSize = QSize();
+}
+
+bool GLCameraView::meshCacheNeedsUpdate(Trial* trial, int frame, bool filteredSetting) const
+{
+	if (!camera)
+	{
+		return true;
+	}
+	if (m_meshCacheImage.isNull())
+	{
+		return true;
+	}
+	return trial != m_meshCacheTrial ||
+		frame != m_meshCacheFrame ||
+		camera->getID() != m_meshCacheCameraId ||
+		filteredSetting != m_meshCacheFilteredSetting ||
+		camera_width != m_meshCacheSize.width() ||
+		camera_height != m_meshCacheSize.height();
+}
+
+bool GLCameraView::rebuildMeshCache(Trial* trial, int frame, bool filteredSetting)
+{
+	if (!camera || !trial || camera_width <= 0 || camera_height <= 0)
+	{
+		return false;
+	}
+
+	const int referenceCalibration = trial->getReferenceCalibrationImage();
+	const auto& calibImages = camera->getCalibrationImages();
+	if (referenceCalibration < 0 || referenceCalibration >= static_cast<int>(calibImages.size()))
+	{
+		return false;
+	}
+	CalibrationImage* calibrationImage = calibImages[referenceCalibration];
+	if (!calibrationImage || !calibrationImage->isCalibrated())
+	{
+		return false;
+	}
+
+	QImage overlayUndistorted(camera_width, camera_height, QImage::Format_ARGB32_Premultiplied);
+	overlayUndistorted.fill(Qt::transparent);
+
+	const QRectF imageRect(0.0, 0.0, static_cast<qreal>(camera_width), static_cast<qreal>(camera_height));
+	const auto& rigidBodies = trial->getRigidBodies();
+	m_meshTriangles.clear();
+	size_t estimatedTriangles = 0;
+	for (RigidBody* body : rigidBodies)
+	{
+		if (!body || !body->hasMeshModel())
+		{
+			continue;
+		}
+		estimatedTriangles += body->getMeshTriangleVertices().size() / 3;
+	}
+	m_meshTriangles.reserve(estimatedTriangles);
+
+	cv::Mat projectionMatrix = camera->getProjectionMatrix(referenceCalibration);
+	double P[3][4];
+	for (int r = 0; r < 3; ++r)
+	{
+		for (int c = 0; c < 4; ++c)
+		{
+			P[r][c] = projectionMatrix.at<double>(r, c);
+		}
+	}
+
+	for (RigidBody* body : rigidBodies)
+	{
+		if (!body || !body->getVisible()) continue;
+		if (!body->hasMeshModel() || !body->getDrawMeshModel()) continue;
+
+		const auto& poseComputed = body->getPoseComputed();
+		if (frame >= static_cast<int>(poseComputed.size())) continue;
+		const auto& poseFiltered = body->getPoseFiltered();
+		const bool hasComputedPose = poseComputed[frame] != 0;
+		const bool hasFilteredPose = filteredSetting && frame < static_cast<int>(poseFiltered.size()) && poseFiltered[frame] != 0;
+		if (!hasComputedPose && !hasFilteredPose) continue;
+		const bool useFilteredPose = hasFilteredPose;
+		const auto& rotationVectors = body->getRotationVector(useFilteredPose);
+		const auto& translationVectors = body->getTranslationVector(useFilteredPose);
+		if (frame >= static_cast<int>(rotationVectors.size()) || frame >= static_cast<int>(translationVectors.size())) continue;
+		const cv::Vec3d& rotationVector = rotationVectors[frame];
+		const cv::Vec3d& translationVector = translationVectors[frame];
+
+		cv::Mat rotationMatrix;
+		cv::Rodrigues(rotationVector, rotationMatrix);
+		cv::Mat rotationMatrixT = rotationMatrix.t();
+		const double r00 = rotationMatrixT.at<double>(0, 0);
+		const double r01 = rotationMatrixT.at<double>(0, 1);
+		const double r02 = rotationMatrixT.at<double>(0, 2);
+		const double r10 = rotationMatrixT.at<double>(1, 0);
+		const double r11 = rotationMatrixT.at<double>(1, 1);
+		const double r12 = rotationMatrixT.at<double>(1, 2);
+		const double r20 = rotationMatrixT.at<double>(2, 0);
+		const double r21 = rotationMatrixT.at<double>(2, 1);
+		const double r22 = rotationMatrixT.at<double>(2, 2);
+		const double tx = translationVector[0];
+		const double ty = translationVector[1];
+		const double tz = translationVector[2];
+
+		const auto& meshVertices = body->getMeshTriangleVertices();
+		if (meshVertices.empty()) continue;
+		const QColor bodyColor = body->getColor().isValid() ? body->getColor() : QColor(0x4C, 0xAF, 0x50);
+		const double meshScale = body->getMeshScale();
+
+		for (size_t triStart = 0; triStart + 2 < meshVertices.size(); triStart += 3)
+		{
+			QPointF projected[3];
+			double depthSum = 0.0;
+			bool triangleValid = true;
+			for (int corner = 0; corner < 3; ++corner)
+			{
+				cv::Point3d local = meshVertices[triStart + static_cast<size_t>(corner)];
+				if (meshScale != 1.0)
+				{
+					local.x *= meshScale;
+					local.y *= meshScale;
+					local.z *= meshScale;
+				}
+
+				double dx = local.x - tx;
+				double dy = local.y - ty;
+				double dz = local.z - tz;
+				double wx = r00 * dx + r01 * dy + r02 * dz;
+				double wy = r10 * dx + r11 * dy + r12 * dz;
+				double wz = r20 * dx + r21 * dy + r22 * dz;
+
+				double px = P[0][0] * wx + P[0][1] * wy + P[0][2] * wz + P[0][3];
+				double py = P[1][0] * wx + P[1][1] * wy + P[1][2] * wz + P[1][3];
+				double pz = P[2][0] * wx + P[2][1] * wy + P[2][2] * wz + P[2][3];
+				if (pz == 0.0)
+				{
+					triangleValid = false;
+					break;
+				}
+
+				cv::Point2d normalized(px / pz, py / pz);
+				projected[corner] = QPointF(normalized.x, normalized.y);
+				depthSum += pz;
+			}
+
+			if (!triangleValid)
+			{
+				continue;
+			}
+
+			qreal minX = projected[0].x();
+			qreal maxX = minX;
+			qreal minY = projected[0].y();
+			qreal maxY = minY;
+			for (int i = 1; i < 3; ++i)
+			{
+				minX = std::min(minX, projected[i].x());
+				maxX = std::max(maxX, projected[i].x());
+				minY = std::min(minY, projected[i].y());
+				maxY = std::max(maxY, projected[i].y());
+			}
+			if (maxX < imageRect.left() || minX > imageRect.right() ||
+				maxY < imageRect.top() || minY > imageRect.bottom())
+			{
+				continue;
+			}
+
+			PainterMeshTriangle tri;
+			tri.points[0] = projected[0];
+			tri.points[1] = projected[1];
+			tri.points[2] = projected[2];
+			tri.depth = depthSum / 3.0;
+			tri.color = bodyColor;
+			m_meshTriangles.push_back(tri);
+		}
+	}
+
+	{
+		QPainter overlayPainter(&overlayUndistorted);
+		overlayPainter.setRenderHint(QPainter::Antialiasing, false);
+		overlayPainter.setPen(Qt::NoPen);
+		QBrush brush(Qt::SolidPattern);
+		QPolygonF polygon;
+		polygon.reserve(3);
+
+		if (!m_meshTriangles.empty())
+		{
+			std::sort(m_meshTriangles.begin(), m_meshTriangles.end(), [](const PainterMeshTriangle& a, const PainterMeshTriangle& b) {
+				return a.depth > b.depth;
+			});
+
+			for (const PainterMeshTriangle& tri : m_meshTriangles)
+			{
+				polygon.clear();
+				polygon << tri.points[0] << tri.points[1] << tri.points[2];
+				QColor fill = tri.color;
+				fill.setAlphaF(kMeshOverlayOpacity);
+				brush.setColor(fill);
+				overlayPainter.setBrush(brush);
+				overlayPainter.drawPolygon(polygon);
+			}
+		}
+	}
+
+	m_meshCacheImage = distortOverlayImage(overlayUndistorted);
+	m_meshCacheTrial = trial;
+	m_meshCacheFrame = frame;
+	m_meshCacheCameraId = camera->getID();
+	m_meshCacheFilteredSetting = filteredSetting;
+	m_meshCacheSize = QSize(camera_width, camera_height);
+	return true;
+}
+
+bool GLCameraView::ensureDistortionLookup()
+{
+	if (!camera || camera_width <= 0 || camera_height <= 0)
+	{
+		m_distortionLookup.clear();
+		m_distortionLookupCameraId = -1;
+		m_distortionLookupSize = QSize();
+		return false;
+	}
+
+	const bool hasUndistortion = camera->hasUndistortion() && camera->getUndistortionObject() && camera->getUndistortionObject()->isComputed();
+	const bool hasModelDistortion = camera->hasModelDistortion();
+	if (!hasUndistortion && !hasModelDistortion)
+	{
+		m_distortionLookup.clear();
+		m_distortionLookupCameraId = camera->getID();
+		m_distortionLookupSize = QSize(camera_width, camera_height);
+		return false;
+	}
+
+	const QSize requiredSize(camera_width, camera_height);
+	if (m_distortionLookupCameraId == camera->getID() &&
+		m_distortionLookupSize == requiredSize &&
+		!m_distortionLookup.isEmpty())
+	{
+		return true;
+	}
+
+	m_distortionLookupCameraId = camera->getID();
+	m_distortionLookupSize = requiredSize;
+	m_distortionLookup.resize(static_cast<int>(requiredSize.width()) * requiredSize.height());
+
+	for (int y = 0; y < requiredSize.height(); ++y)
+	{
+		for (int x = 0; x < requiredSize.width(); ++x)
+		{
+			const cv::Point2d source = camera->undistortPoint(cv::Point2d(x, y), true, false, false);
+			m_distortionLookup[y * requiredSize.width() + x] = QPointF(source.x, source.y);
+		}
+	}
+	return true;
+}
+
+QRgb GLCameraView::sampleOverlayBilinear(const QImage& src, qreal x, qreal y) const
+{
+	if (src.isNull())
+	{
+		return 0;
+	}
+	if (x < 0.0 || y < 0.0)
+	{
+		return 0;
+	}
+	if (x > src.width() - 1 || y > src.height() - 1)
+	{
+		return 0;
+	}
+
+	const int x0 = static_cast<int>(std::floor(x));
+	const int y0 = static_cast<int>(std::floor(y));
+	const int x1 = std::min(x0 + 1, src.width() - 1);
+	const int y1 = std::min(y0 + 1, src.height() - 1);
+	const qreal fx = x - static_cast<qreal>(x0);
+	const qreal fy = y - static_cast<qreal>(y0);
+
+	const QRgb* row0 = reinterpret_cast<const QRgb*>(src.constScanLine(y0));
+	const QRgb* row1 = reinterpret_cast<const QRgb*>(src.constScanLine(y1));
+	const QRgb c00 = row0[x0];
+	const QRgb c10 = row0[x1];
+	const QRgb c01 = row1[x0];
+	const QRgb c11 = row1[x1];
+
+	const auto lerp = [](qreal a, qreal b, qreal t) {
+		return a + (b - a) * t;
+	};
+
+	const auto sampleComponent = [&](int shift) {
+		const qreal v00 = (c00 >> shift) & 0xFF;
+		const qreal v10 = (c10 >> shift) & 0xFF;
+		const qreal v01 = (c01 >> shift) & 0xFF;
+		const qreal v11 = (c11 >> shift) & 0xFF;
+		const qreal v0 = lerp(v00, v10, fx);
+		const qreal v1 = lerp(v01, v11, fx);
+		return static_cast<int>(lerp(v0, v1, fy) + 0.5);
+	};
+
+	const int r = sampleComponent(16);
+	const int g = sampleComponent(8);
+	const int b = sampleComponent(0);
+	const int a = sampleComponent(24);
+	return qRgba(r, g, b, a);
+}
+
+QImage GLCameraView::distortOverlayImage(const QImage& undistortedOverlay)
+{
+	if (undistortedOverlay.isNull())
+	{
+		return undistortedOverlay;
+	}
+	if (!ensureDistortionLookup())
+	{
+		return undistortedOverlay;
+	}
+
+	QImage warped(camera_width, camera_height, QImage::Format_ARGB32_Premultiplied);
+	warped.fill(Qt::transparent);
+	const int width = camera_width;
+	const int height = camera_height;
+	for (int y = 0; y < height; ++y)
+	{
+		QRgb* dstRow = reinterpret_cast<QRgb*>(warped.scanLine(y));
+		const QPointF* mapRow = m_distortionLookup.constData() + y * width;
+		for (int x = 0; x < width; ++x)
+		{
+			const QPointF& srcPt = mapRow[x];
+			if (!std::isfinite(srcPt.x()) || !std::isfinite(srcPt.y()))
+			{
+				dstRow[x] = 0;
+				continue;
+			}
+			dstRow[x] = sampleOverlayBilinear(undistortedOverlay, srcPt.x(), srcPt.y());
+		}
+	}
+	return warped;
+}
+
+void GLCameraView::drawRigidBodyMeshes(QPainter& p)
+{
+	if (!camera) return;
+	if (detailedView) return;
+	if (State::getInstance()->getWorkspace() != DIGITIZATION) return;
+	if (Settings::getInstance()->getBoolSetting("TrialDrawHideAll"))
+	{
+		invalidateMeshCache();
+		return;
+	}
+
+	Project* project = Project::getInstance();
+	if (!project || project->getCalibration() == NO_CALIBRATION || !camera->isCalibrated())
+	{
+		invalidateMeshCache();
+		return;
+	}
+
+	const auto& trials = project->getTrials();
+	const int trialIndex = State::getInstance()->getActiveTrial();
+	if (trialIndex < 0 || trialIndex >= static_cast<int>(trials.size()))
+	{
+		invalidateMeshCache();
+		return;
+	}
+	Trial* trial = trials[trialIndex];
+	if (!trial || trial->getIsDefault() || !trial->renderMeshes())
+	{
+		invalidateMeshCache();
+		return;
+	}
+	if (!Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyMeshmodels"))
+	{
+		invalidateMeshCache();
+		return;
+	}
+
+	const int frame = State::getInstance()->getActiveFrameTrial();
+	if (frame < 0 || frame >= trial->getNbImages())
+	{
+		invalidateMeshCache();
+		return;
+	}
+
+	const bool filteredSetting = Settings::getInstance()->getBoolSetting("TrialDrawFiltered");
+	if (meshCacheNeedsUpdate(trial, frame, filteredSetting))
+	{
+		if (!rebuildMeshCache(trial, frame, filteredSetting))
+		{
+			invalidateMeshCache();
+			return;
+		}
+	}
+
+	if (m_meshCacheImage.isNull())
+	{
+		return;
+	}
+
+	p.save();
+	p.setRenderHint(QPainter::Antialiasing, false);
+	p.drawImage(QPointF(0.0, 0.0), m_meshCacheImage);
+	p.restore();
 }
 
 void GLCameraView::resizeEvent(QResizeEvent*)
