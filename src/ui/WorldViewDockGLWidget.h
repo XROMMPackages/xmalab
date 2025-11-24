@@ -34,6 +34,7 @@ QT_FORWARD_DECLARE_CLASS(QQuickView)
 namespace xma
 {
 	class Trial;
+	class WorldViewSceneBridge;
 
 	class WorldViewDockGLWidget : public QWidget
 	{
@@ -50,8 +51,7 @@ namespace xma
 		void setFocalPlaneDistance(float distance);
 
 	private:
-		class ViewModel;
-		ViewModel* m_viewModel;
+		WorldViewSceneBridge* m_viewModel;
 		QQuickView* m_quickView;
 		QWidget* m_quickContainer;
 

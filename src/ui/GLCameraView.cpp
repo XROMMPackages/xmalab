@@ -58,6 +58,14 @@
 
 #include <QMouseEvent>
 #include <QPainter>
+#ifdef XMA_ENABLE_QRHI_RENDERING
+#include <QQmlContext>
+#include <QQuickView>
+#include <QQuickWindow>
+#include <QUrl>
+#include "ui/quick3d/CameraOverlaySceneBridge.h"
+#include "ui/quick3d/Quick3DRendererControl.h"
+#endif
 
 #include <iostream> 
 #include <math.h>
@@ -124,6 +132,11 @@ GLCameraView::GLCameraView(QWidget* parent)
 	transparency = 0.5;
 	renderTransparentModels = true;
 	showStatusColors = false;
+#if defined(XMA_USE_PAINTER) && defined(XMA_ENABLE_QRHI_RENDERING)
+	m_overlayBridge = nullptr;
+	m_overlayView = nullptr;
+	m_overlayContainer = nullptr;
+#endif
 #endif
 
 #ifndef XMA_USE_PAINTER
@@ -138,6 +151,10 @@ GLCameraView::GLCameraView(QWidget* parent)
 
 	LightPosition_back[0] = LightPosition_back[1] = LightPosition_back[3] = 0.0f;
 	LightPosition_back[2] = -1.0f;
+#endif
+
+#if defined(XMA_USE_PAINTER) && defined(XMA_ENABLE_QRHI_RENDERING)
+	initializeQuickOverlay();
 #endif
 }
 
@@ -176,6 +193,13 @@ void GLCameraView::setCamera(Camera* _camera)
 	camera_width = camera->getWidth();
 	camera_height = camera->getHeight();
 	invalidateMeshCache();
+#endif
+#if defined(XMA_USE_PAINTER) && defined(XMA_ENABLE_QRHI_RENDERING)
+	if (m_overlayBridge)
+	{
+		m_overlayBridge->setCameraId(camera ? camera->getID() : -1);
+		m_overlayBridge->refresh();
+	}
 #endif
 }
 
@@ -1002,6 +1026,56 @@ QRgb GLCameraView::sampleOverlayBilinear(const QImage& src, qreal x, qreal y) co
 	return qRgba(r, g, b, a);
 }
 
+#if defined(XMA_USE_PAINTER) && defined(XMA_ENABLE_QRHI_RENDERING)
+void GLCameraView::initializeQuickOverlay()
+{
+	if (m_overlayView)
+	{
+		return;
+	}
+
+	m_overlayBridge = new CameraOverlaySceneBridge(this);
+	m_overlayView = new QQuickView();
+	m_overlayView->setColor(Qt::transparent);
+	m_overlayView->setResizeMode(QQuickView::SizeRootObjectToView);
+	m_overlayView->rootContext()->setContextProperty(QStringLiteral("cameraOverlayModel"), m_overlayBridge);
+	m_overlayView->setSource(QUrl(QStringLiteral("qrc:/qml/CameraOverlayScene.qml")));
+	quick3d::RendererControl::configureSurface(m_overlayView);
+
+	m_overlayContainer = QWidget::createWindowContainer(m_overlayView, this);
+	m_overlayContainer->setAttribute(Qt::WA_TransparentForMouseEvents);
+	m_overlayContainer->setAttribute(Qt::WA_NoSystemBackground);
+	m_overlayContainer->setAttribute(Qt::WA_TranslucentBackground);
+	m_overlayContainer->setFocusPolicy(Qt::NoFocus);
+	m_overlayContainer->setVisible(false);
+	m_overlayContainer->raise();
+	updateQuickOverlayGeometry();
+	updateQuickOverlayVisibility();
+
+	connect(m_overlayBridge, &CameraOverlaySceneBridge::dataChanged, this, [this]() {
+		updateQuickOverlayVisibility();
+	});
+}
+
+void GLCameraView::updateQuickOverlayVisibility()
+{
+	if (!m_overlayContainer)
+		{
+			return;
+		}
+	m_overlayContainer->setVisible(m_overlayBridge && m_overlayBridge->hasSceneData());
+}
+
+void GLCameraView::updateQuickOverlayGeometry()
+{
+	if (!m_overlayContainer)
+	{
+		return;
+	}
+	m_overlayContainer->setGeometry(rect());
+}
+#endif
+
 QImage GLCameraView::distortOverlayImage(const QImage& undistortedOverlay)
 {
 	if (undistortedOverlay.isNull())
@@ -1105,6 +1179,9 @@ void GLCameraView::resizeEvent(QResizeEvent*)
 	window_width = width();
 	window_height = height();
 	if (autozoom) setZoomToFit();
+#if defined(XMA_USE_PAINTER) && defined(XMA_ENABLE_QRHI_RENDERING)
+	updateQuickOverlayGeometry();
+#endif
 }
 
 void GLCameraView::setMinimumWidthGL(bool set)

@@ -25,5 +25,6 @@
   </qresource>
   <qresource prefix="/qml">
     <file alias="WorldViewScene.qml">qml/WorldViewScene.qml</file>
+    <file alias="CameraOverlayScene.qml">qml/CameraOverlayScene.qml</file>
   </qresource>
 </RCC>

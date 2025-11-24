@@ -40,6 +40,10 @@
 #include <QColor>
 #include <QVector>
 
+#ifdef XMA_ENABLE_QRHI_RENDERING
+QT_FORWARD_DECLARE_CLASS(QQuickView)
+#endif
+
 namespace xma
 {
     class Camera;
@@ -47,6 +51,9 @@ namespace xma
     class DistortionShader;
     class BlendShader;
     class Trial;
+#ifdef XMA_ENABLE_QRHI_RENDERING
+    class CameraOverlaySceneBridge;
+#endif
 
 #ifdef XMA_USE_PAINTER
     // Painter-based implementation (no OpenGL)
@@ -112,6 +119,12 @@ namespace xma
         QImage distortOverlayImage(const QImage& undistortedOverlay);
         QRgb sampleOverlayBilinear(const QImage& src, qreal x, qreal y) const;
 
+    #ifdef XMA_ENABLE_QRHI_RENDERING
+        void initializeQuickOverlay();
+        void updateQuickOverlayGeometry();
+            void updateQuickOverlayVisibility();
+    #endif
+
         double bias;
         double scale;
         double transparency;
@@ -135,6 +148,12 @@ namespace xma
         QVector<QPointF> m_distortionLookup;
         int m_distortionLookupCameraId = -1;
         QSize m_distortionLookupSize;
+
+    #ifdef XMA_ENABLE_QRHI_RENDERING
+            CameraOverlaySceneBridge* m_overlayBridge;
+            QQuickView* m_overlayView;
+            QWidget* m_overlayContainer;
+    #endif
     signals:
         void autozoomChanged(bool on);
         void zoomChanged(int zoom);

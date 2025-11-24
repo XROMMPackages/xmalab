@@ -92,7 +92,7 @@ find_package(Levmar REQUIRED)
 set(LEVMAR_INCLUDE_DIR "${CMAKE_PREFIX_PATH}/include/levmar" CACHE PATH "Path to Levmar include directory")
 
 #ADD QT4 SUPPORT
-FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Core Gui Widgets Quick QuickWidgets Quick3D Qml OpenGL OpenGLWidgets Concurrent PrintSupport)
+FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Core Gui Widgets Quick QuickWidgets Quick3D Quick3DAssetImport Qml OpenGL OpenGLWidgets Concurrent PrintSupport)
 cmake_policy(SET CMP0020 NEW)
 #SET(QT_USE_QTOPENGL TRUE)
 SET(CMAKE_AUTOMOC ON)
@@ -130,7 +130,9 @@ ENDIF()
 # Rendering options
 option(XMA_USE_PAINTER "Use QPainter-only rendering for camera views (no OpenGL in views)" ON)
 option(XMA_HIDE_WORLD_VIEW "Hide/disable the 3D world view dock" OFF)
-option(XMA_ENABLE_QUICK3D_WORLD_VIEW "Enable experimental Qt Quick 3D world view" OFF)
+option(XMA_ENABLE_QUICK3D_WORLD_VIEW "Enable experimental Qt Quick 3D world view" ON)
+# TODO(XMA_ENABLE_QRHI_RENDERING): Remove this option when QRhi/Quick3D paths fully replace legacy OpenGL widgets.
+option(XMA_ENABLE_QRHI_RENDERING "Enable QRhi-based Quick3D renderer for world and camera views" ON)
 
 ADD_DEFINITIONS(-DQCUSTOMPLOT_USE_OPENGL)
 ADD_DEFINITIONS(-DGLEW_STATIC)
@@ -142,6 +144,9 @@ if (XMA_HIDE_WORLD_VIEW)
 endif()
 if (XMA_ENABLE_QUICK3D_WORLD_VIEW)
 	add_definitions(-DXMA_ENABLE_QUICK3D_WORLD_VIEW)
+endif()
+if (XMA_ENABLE_QRHI_RENDERING)
+	add_definitions(-DXMA_ENABLE_QRHI_RENDERING)
 endif()
 
 #Set Includes and CMAKE_CURRENT_SOURCE_DIR
@@ -220,6 +225,7 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
 	Qt6::Quick
 	Qt6::QuickWidgets
 	Qt6::Quick3D
+	Qt6::Quick3DAssetImport
 	Qt6::Qml
 	Qt6::OpenGL
 	Qt6::OpenGLWidgets
