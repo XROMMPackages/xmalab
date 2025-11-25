@@ -39,6 +39,7 @@
 #include <QImage>
 #include <QColor>
 #include <QVector>
+#include <opencv2/core.hpp>
 
 #ifdef XMA_ENABLE_QRHI_RENDERING
 QT_FORWARD_DECLARE_CLASS(QQuickView)
@@ -145,7 +146,8 @@ namespace xma
         bool m_meshCacheFilteredSetting;
         QSize m_meshCacheSize;
 
-        QVector<QPointF> m_distortionLookup;
+        cv::Mat m_remapX;
+        cv::Mat m_remapY;
         int m_distortionLookupCameraId = -1;
         QSize m_distortionLookupSize;
 

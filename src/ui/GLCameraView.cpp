@@ -55,9 +55,11 @@
 #include "core/CalibrationSequence.h"
 #include "processing/MarkerDetection.h"
 
+#include <opencv2/imgproc.hpp>
 
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPainterPath>
 #ifdef XMA_ENABLE_QRHI_RENDERING
 #include <QQmlContext>
 #include <QQuickView>
@@ -937,7 +939,8 @@ bool GLCameraView::ensureDistortionLookup()
 {
 	if (!camera || camera_width <= 0 || camera_height <= 0)
 	{
-		m_distortionLookup.clear();
+		m_remapX.release();
+		m_remapY.release();
 		m_distortionLookupCameraId = -1;
 		m_distortionLookupSize = QSize();
 		return false;
@@ -947,7 +950,8 @@ bool GLCameraView::ensureDistortionLookup()
 	const bool hasModelDistortion = camera->hasModelDistortion();
 	if (!hasUndistortion && !hasModelDistortion)
 	{
-		m_distortionLookup.clear();
+		m_remapX.release();
+		m_remapY.release();
 		m_distortionLookupCameraId = camera->getID();
 		m_distortionLookupSize = QSize(camera_width, camera_height);
 		return false;
@@ -956,21 +960,25 @@ bool GLCameraView::ensureDistortionLookup()
 	const QSize requiredSize(camera_width, camera_height);
 	if (m_distortionLookupCameraId == camera->getID() &&
 		m_distortionLookupSize == requiredSize &&
-		!m_distortionLookup.isEmpty())
+		!m_remapX.empty())
 	{
 		return true;
 	}
 
 	m_distortionLookupCameraId = camera->getID();
 	m_distortionLookupSize = requiredSize;
-	m_distortionLookup.resize(static_cast<int>(requiredSize.width()) * requiredSize.height());
+	m_remapX.create(requiredSize.height(), requiredSize.width(), CV_32FC1);
+	m_remapY.create(requiredSize.height(), requiredSize.width(), CV_32FC1);
 
 	for (int y = 0; y < requiredSize.height(); ++y)
 	{
+		float* rowX = m_remapX.ptr<float>(y);
+		float* rowY = m_remapY.ptr<float>(y);
 		for (int x = 0; x < requiredSize.width(); ++x)
 		{
 			const cv::Point2d source = camera->undistortPoint(cv::Point2d(x, y), true, false, false);
-			m_distortionLookup[y * requiredSize.width() + x] = QPointF(source.x, source.y);
+			rowX[x] = static_cast<float>(source.x);
+			rowY[x] = static_cast<float>(source.y);
 		}
 	}
 	return true;
@@ -1087,26 +1095,18 @@ QImage GLCameraView::distortOverlayImage(const QImage& undistortedOverlay)
 		return undistortedOverlay;
 	}
 
-	QImage warped(camera_width, camera_height, QImage::Format_ARGB32_Premultiplied);
-	warped.fill(Qt::transparent);
+	// Convert QImage to cv::Mat (BGRA format, same memory layout as ARGB32_Premultiplied on little-endian)
 	const int width = camera_width;
 	const int height = camera_height;
-	for (int y = 0; y < height; ++y)
-	{
-		QRgb* dstRow = reinterpret_cast<QRgb*>(warped.scanLine(y));
-		const QPointF* mapRow = m_distortionLookup.constData() + y * width;
-		for (int x = 0; x < width; ++x)
-		{
-			const QPointF& srcPt = mapRow[x];
-			if (!std::isfinite(srcPt.x()) || !std::isfinite(srcPt.y()))
-			{
-				dstRow[x] = 0;
-				continue;
-			}
-			dstRow[x] = sampleOverlayBilinear(undistortedOverlay, srcPt.x(), srcPt.y());
-		}
-	}
-	return warped;
+	cv::Mat srcMat(height, width, CV_8UC4, const_cast<uchar*>(undistortedOverlay.constBits()), undistortedOverlay.bytesPerLine());
+
+	// Use OpenCV's highly optimized remap function
+	cv::Mat dstMat;
+	cv::remap(srcMat, dstMat, m_remapX, m_remapY, cv::INTER_LINEAR, cv::BORDER_TRANSPARENT);
+
+	// Convert back to QImage
+	QImage warped(dstMat.data, width, height, static_cast<int>(dstMat.step), QImage::Format_ARGB32_Premultiplied);
+	return warped.copy(); // Deep copy since dstMat will be destroyed
 }
 
 void GLCameraView::drawRigidBodyMeshes(QPainter& p)
