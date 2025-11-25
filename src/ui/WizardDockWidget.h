@@ -28,6 +28,7 @@
 #define WIZARDDOCKWIDGET_H_
 
 #include <QDockWidget>
+#include <QMatrix4x4>
 #include "ui/State.h"
 
 namespace Ui
@@ -57,7 +58,7 @@ namespace xma
 		void addDigitizationPoint(int camera, double x, double y);
 		void selectDigitizationPoint(int camera, double x, double y);
 		void moveDigitizationPoint(int camera, double x, double y, bool noDetection);
-		void draw();
+		void draw(const QMatrix4x4& mvp);
 		bool checkForPendingChanges();
 		void updateDialog();
 		void stop();

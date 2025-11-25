@@ -28,10 +28,11 @@
 #define GLSHAREDWIDGET_H
 
 #include <QtOpenGLWidgets/QOpenGLWidget>
+#include "gl/GLFunctions.h"
 
 namespace xma
 {
-	class GLSharedWidget : public QOpenGLWidget
+	class GLSharedWidget : public QOpenGLWidget, protected GLFunctions
 	{
 		Q_OBJECT
 

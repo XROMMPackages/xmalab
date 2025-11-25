@@ -37,6 +37,9 @@
 #include <QFileInfo>
 #include <fstream>
 #include "Project.h"
+#include "gl/ShaderManager.h"
+#include "gl/SimpleColorShader.h"
+#include "gl/GLPrimitives.h"
 
 using namespace xma;
 
@@ -254,70 +257,82 @@ cv::Mat CalibrationImage::getTranslationVector()
 }
 
 
-void CalibrationImage::drawPoints(std::vector<cv::Point2d>& points, bool drawAllPoints)
+void CalibrationImage::drawPoints(std::vector<cv::Point2d>& points, SimpleColorShader* shader, GLLineRenderer* lineRenderer, bool drawAllPoints)
 {
 	if (points.size() != Inlier.size()) return;
 
 	std::vector<int>::const_iterator it_inlier = Inlier.begin();
-	glBegin(GL_LINES);
 	for (std::vector<cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it,++it_inlier)
 	{
+		float r, g, b;
 		if ((*it_inlier) == 1)
 		{
-			glColor3f(0.0, 1.0, 0.0);
+			r = 0.0f; g = 1.0f; b = 0.0f;
 		}
 		else if ((*it_inlier) == 0)
 		{
-			glColor3f(1.0, 0.0, 0.0);
+			r = 1.0f; g = 0.0f; b = 0.0f;
 		}
 		else if ((*it_inlier) == -1)
 		{
-			glColor3f(0.0, 0.0, 1.0);
-			if (!drawAllPoints)continue;
+			r = 0.0f; g = 0.0f; b = 1.0f;
+			if (!drawAllPoints) continue;
+		}
+		else
+		{
+			continue;
 		}
 
-		glVertex2f((*it).x - 5, (*it).y);
-		glVertex2f((*it).x + 5, (*it).y);
-		glVertex2f((*it).x, (*it).y - 5);
-		glVertex2f((*it).x, (*it).y + 5);
+		shader->setColor(r, g, b, 1.0f);
+		float x = static_cast<float>((*it).x);
+		float y = static_cast<float>((*it).y);
+		lineRenderer->addLine(QVector3D(x - 5, y, 0), QVector3D(x + 5, y, 0));
+		lineRenderer->addLine(QVector3D(x, y - 5, 0), QVector3D(x, y + 5, 0));
+		lineRenderer->render();
+		lineRenderer->clear();
 	}
-	glEnd();
 }
 
-void CalibrationImage::draw(int type)
+void CalibrationImage::draw(int type, const QMatrix4x4& mvp)
 {
-	//if(isCalibrated() <= 0) return;
-
+	SimpleColorShader* shader = ShaderManager::getInstance()->getSimpleColorShader();
+	GLLineRenderer* lineRenderer = GLPrimitives::getInstance()->getLineRenderer();
+	
+	shader->bind();
+	shader->setMVP(mvp);
+	
 	switch (type)
 	{
 	case 0:
 	default:
 		break;
 	case 1:
-		glColor3f(1.0, 0.0, 0.0);
-		glBegin(GL_LINES);
+		shader->setColor(1.0f, 0.0f, 0.0f, 1.0f);
 		for (std::vector<cv::Point2d>::const_iterator it = detectedPoints_ALL.begin(); it != detectedPoints_ALL.end(); ++it)
 		{
-			glVertex2f((*it).x - 2, (*it).y);
-			glVertex2f((*it).x + 2, (*it).y);
-			glVertex2f((*it).x, (*it).y - 2);
-			glVertex2f((*it).x, (*it).y + 2);
+			float x = static_cast<float>((*it).x);
+			float y = static_cast<float>((*it).y);
+			lineRenderer->addLine(QVector3D(x - 2, y, 0), QVector3D(x + 2, y, 0));
+			lineRenderer->addLine(QVector3D(x, y - 2, 0), QVector3D(x, y + 2, 0));
 		}
-		glEnd();
+		lineRenderer->render();
+		lineRenderer->clear();
 		break;
 	case 2:
-		drawPoints(detectedPoints);
+		drawPoints(detectedPoints, shader, lineRenderer);
 		break;
 	case 3:
-		drawPoints(projectedPoints, true);
+		drawPoints(projectedPoints, shader, lineRenderer, true);
 		break;
 	case 4:
-		drawPoints(detectedPointsUndistorted);
+		drawPoints(detectedPointsUndistorted, shader, lineRenderer);
 		break;
 	case 5:
-		drawPoints(projectedPointsUndistorted, true);
+		drawPoints(projectedPointsUndistorted, shader, lineRenderer, true);
 		break;
 	}
+	
+	shader->release();
 }
 
 void CalibrationImage::getDrawTextData(int type, bool distorted, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text, std::vector<bool>& inlier)

@@ -28,23 +28,18 @@
 #define WorldViewDockGLWidget_H_
 
 #include <QtOpenGLWidgets/QOpenGLWidget>
-
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
+#include <QOpenGLFunctions_4_1_Core>
+#include <QMatrix4x4>
 
 namespace xma
 {
 	class Trial;
+	class SimpleColorShader;
+	class LitColorShader;
+	class TexturedQuadShader;
+	class GLSphere;
 
-	class WorldViewDockGLWidget : public QOpenGLWidget
+	class WorldViewDockGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_4_1_Core
 	{
 		Q_OBJECT
 
@@ -86,11 +81,23 @@ namespace xma
 		void drawCalibrationCube();
 		void drawCameras();
 
-		GLUquadricObj* sphere_quadric;
+		// Modern OpenGL state
 		bool opengl_initialised;
+		
+		// Transform matrices
+		QMatrix4x4 m_projection;
+		QMatrix4x4 m_view;
+		QMatrix4x4 m_model;
+		
+		// Textured quad VAO/VBO for camera viewports
+		GLuint m_quadVAO;
+		GLuint m_quadVBO;
+		bool m_quadInitialized;
+		void initQuadVAO();
+		void drawTexturedQuad3D(float x1, float y1, float x2, float y2, float z,
+		                        float tx1, float ty1, float tx2, float ty2);
 	};
 }
 
-
-#endif /* PROGRESSDIALOG_H_ */
+#endif /* WORLDVIEWDOCKGLWIDGET_H_ */
 

@@ -37,6 +37,7 @@
 #include <QFileOpenEvent>
 #include <QPushButton>
 #include <QStyleFactory>
+#include <QSurfaceFormat>
 
 #ifdef Q_OS_MACOS
 #include <QOperatingSystemVersion>
@@ -115,11 +116,28 @@ public:
 
 int main(int argc, char** argv)
 {
-	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+	// macOS Tahoe (26) has severe OpenGL issues with Qt's backing store
+	// Try to work around by setting the surface format before anything else
+	// and avoiding any RHI/compositor interaction with OpenGL
 	
-	// Enable proper high DPI scaling for modern displays
-	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-	QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+	// IMPORTANT: These must be set before QApplication is created
+	qputenv("QT_MAC_WANTS_LAYER", "1");  // Use layer-backed views (required on Tahoe)
+	qputenv("QSG_RENDER_LOOP", "basic"); // Use basic render loop
+	
+	// Configure OpenGL 4.1 Core Profile
+	QSurfaceFormat format;
+	format.setVersion(4, 1);
+	format.setProfile(QSurfaceFormat::CoreProfile);
+	format.setDepthBufferSize(24);
+	format.setStencilBufferSize(8);
+	format.setSamples(0);
+	format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+	format.setRenderableType(QSurfaceFormat::OpenGL);
+	// Set swap interval to 1 for vsync - helps stability
+	format.setSwapInterval(1);
+	QSurfaceFormat::setDefaultFormat(format);
+	
+	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 	
 #ifdef Q_OS_MACOS
 	// Disable native dialogs on macOS Sequoia (15.0) and later due to compatibility issues

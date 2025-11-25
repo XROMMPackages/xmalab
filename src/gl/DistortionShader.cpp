@@ -24,31 +24,18 @@
 ///\author Benjamin Knorlein
 ///\date 7/28/2016
 
-#include <GL/glew.h>
 #include "gl/DistortionShader.h"
 #include "gl/VertexBuffer.h"
 #include "core/Camera.h"
 
 #include <QtCore>
 #include <QtConcurrent/QtConcurrent>
+#include <QOpenGLContext>
 
 #include <iostream>
 #include <new>
 #include <vector>
 #include <algorithm>
-
-
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#include <QOpenGLContext>
-#else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
 
 using namespace xma;
 
@@ -57,39 +44,56 @@ static QBasicMutex s_distortionMutex;
 int DistortionShader::nbInstances = 0;
 bool DistortionShader::m_distortionComplete = false;
 
-DistortionShader::DistortionShader(Camera * camera) : QObject(), FrameBuffer(camera->getWidth(), camera->getHeight()), Shader(), m_tex(0), m_camera(camera), m_distortionRunning(false), m_numpoints(0), m_coords(NULL)
+// Modern GLSL 410 vertex shader
+static const char* distortionVertexShader = 
+	"#version 410 core\n"
+	"layout(location = 0) in vec2 a_position;\n"
+	"layout(location = 1) in vec2 a_texcoord;\n"
+	"uniform mat4 u_mvp;\n"
+	"out vec2 v_texcoord;\n"
+	"void main()\n"
+	"{\n"
+	"    gl_Position = u_mvp * vec4(a_position, 0.0, 1.0);\n"
+	"    v_texcoord = a_texcoord;\n"
+	"}\n";
+
+// Modern GLSL 410 fragment shader
+static const char* distortionFragmentShader = 
+	"#version 410 core\n"
+	"in vec2 v_texcoord;\n"
+	"uniform float u_transparency;\n"
+	"uniform sampler2D u_texture_coords;\n"
+	"uniform sampler2D u_texture;\n"
+	"uniform sampler2D u_depth_tex;\n"
+	"out vec4 fragColor;\n"
+	"void main()\n"
+	"{\n"
+	"    vec4 coords4 = texture(u_texture_coords, v_texcoord);\n"
+	"    vec2 coords2;\n"
+	"    coords2.x = (coords4.x * 255.0 + coords4.y * 255.0 / 256.0) / 256.0;\n"
+	"    coords2.y = (coords4.z * 255.0 + coords4.w * 255.0 / 256.0) / 256.0;\n"
+	"    vec4 color = texture(u_texture, coords2);\n"
+	"    float d = texture(u_depth_tex, coords2).x;\n"
+	"    color.a = (d < 1.0) ? u_transparency : 0.0;\n"
+	"    fragColor = color;\n"
+	"}\n";
+
+DistortionShader::DistortionShader(Camera * camera) 
+	: QObject()
+	, FrameBuffer(camera->getWidth(), camera->getHeight())
+	, Shader()
+	, m_tex(0)
+	, m_camera(camera)
+	, m_distortionRunning(false)
+	, m_numpoints(0)
+	, m_coords(NULL)
+	, m_vbo(QOpenGLBuffer::VertexBuffer)
+	, m_quadInitialized(false)
 {
 	m_shader = "Distortion";
-	m_vertexShader = "varying vec2 texture_coordinate; \n"
-			"void main()\n"
-			"{\n"
-			"\tgl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; \n"
-			"\ttexture_coordinate = vec2(gl_MultiTexCoord0); \n"
-			"}\n";
-	m_fragmentShader = "varying vec2 texture_coordinate;\n"
-		"uniform float transparency;\n"
-		"uniform sampler2D texture_coords;\n"
-		"uniform sampler2D texture;\n"
-		"uniform sampler2D depth_tex;\n"
-		"void main()\n"
-		"{\n"
-			"\t\tvec4 coords4 = texture2D(texture_coords, texture_coordinate.xy);\n"
-			"\t\tvec2 coords2;\n"
-			"\t\tcoords2.x = (coords4.x*255.0 + coords4.y*255.0/256.0)/256.0;\n"
-			"\t\tcoords2.y = (coords4.z*255.0 + coords4.w*255.0/256.0)/256.0;\n"
-			"\t\tvec4 color = texture2D(texture, coords2.xy);\n"
-			"\t\tfloat d = texture2D(depth_tex, coords2.xy).x;\n"
-			"\t\tcolor.a =  (d < 1.0 ) ? transparency : 0.0 ;\n"
-			"\t\tgl_FragColor = color; \n"
-		"}\n";
+	m_vertexShader = distortionVertexShader;
+	m_fragmentShader = distortionFragmentShader;
 	stopped = false;
-}
-
-void to2Char(double value, unsigned char * pt)
-{
-	unsigned int uivalue = value * 256 * 256 + 0.5;
-	pt[0] = uivalue / 256;
-	pt[1] = uivalue % 256;
 }
 
 DistortionShader::~DistortionShader()
@@ -97,23 +101,66 @@ DistortionShader::~DistortionShader()
 	stopped = true;
 	if (m_tex)
 	{
-#ifdef __APPLE__
-		if (QOpenGLContext::currentContext()) {
+		if (QOpenGLContext::currentContext() && initGLFunctions()) {
 			glDeleteTextures(1, &m_tex);
 		}
-#else
-		glDeleteTextures(1, &m_tex);
-#endif
 		m_tex = 0;
 	}
 
 	if (m_coords) delete[] m_coords;
 	m_coords = NULL;
 
+	if (m_vao.isCreated()) m_vao.destroy();
+	if (m_vbo.isCreated()) m_vbo.destroy();
+
 	{
 		QMutexLocker lock(&s_distortionMutex);
 		m_distortionComplete = false;
 	}
+}
+
+void DistortionShader::initializeQuad()
+{
+	if (m_quadInitialized) return;
+	if (!QOpenGLContext::currentContext()) return;
+	if (!initGLFunctions()) return;
+
+	// Create VAO/VBO for the quad
+	float vertices[] = {
+		// Position     // TexCoord
+		0.0f, 0.0f,     0.0f, 0.0f,
+		1.0f, 0.0f,     1.0f, 0.0f,
+		1.0f, 1.0f,     1.0f, 1.0f,
+		0.0f, 0.0f,     0.0f, 0.0f,
+		1.0f, 1.0f,     1.0f, 1.0f,
+		0.0f, 1.0f,     0.0f, 1.0f
+	};
+
+	m_vao.create();
+	m_vao.bind();
+
+	m_vbo.create();
+	m_vbo.bind();
+	m_vbo.allocate(vertices, sizeof(vertices));
+
+	// Position attribute (location = 0)
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+
+	// TexCoord attribute (location = 1)
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 
+	                      reinterpret_cast<void*>(2 * sizeof(float)));
+
+	m_vao.release();
+	m_quadInitialized = true;
+}
+
+static void to2Char(double value, unsigned char * pt)
+{
+	unsigned int uivalue = value * 256 * 256 + 0.5;
+	pt[0] = uivalue / 256;
+	pt[1] = uivalue % 256;
 }
 
 void DistortionShader::draw(unsigned texture_id, unsigned depth_texture_id, float transparency)
@@ -139,18 +186,24 @@ void DistortionShader::draw(unsigned texture_id, unsigned depth_texture_id, floa
 	}
 
 	if (m_tex){
-#ifdef __APPLE__
 		if (!QOpenGLContext::currentContext()) return;
-#endif
+		if (!initGLFunctions()) return;
+		
+		if (!m_quadInitialized) {
+			initializeQuad();
+		}
+		
 		bindProgram();
-		GLint loc = glGetUniformLocation(m_programID, "transparency");
+		
+		// Set uniforms
+		GLint loc = glGetUniformLocation(m_programID, "u_transparency");
 		glUniform1f(loc, transparency);
 
-		GLint texLoc = glGetUniformLocation(m_programID, "texture");
+		GLint texLoc = glGetUniformLocation(m_programID, "u_texture");
 		glUniform1i(texLoc, 0);
-		texLoc = glGetUniformLocation(m_programID, "depth_tex");
+		texLoc = glGetUniformLocation(m_programID, "u_depth_tex");
 		glUniform1i(texLoc, 1);
-		texLoc = glGetUniformLocation(m_programID, "texture_coords");
+		texLoc = glGetUniformLocation(m_programID, "u_texture_coords");
 		glUniform1i(texLoc, 2);
 
 
@@ -158,18 +211,29 @@ void DistortionShader::draw(unsigned texture_id, unsigned depth_texture_id, floa
 		glClearColor(0.0, 0.0, 0.0, 0.0);
 		glClearDepth(1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glDisable(GL_DEPTH_TEST); // Enables Depth Testing
-		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective Calculations
+		glDisable(GL_DEPTH_TEST);
 
 		glViewport(0, 0, getWidth(), getHeight());
-		glDisable(GL_LIGHTING);
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0, getWidth(), 0, getHeight(),-1000,1000);
+		
+		// Set up orthographic projection matrix for 2D rendering
+		float w = (float)getWidth();
+		float h = (float)getHeight();
+		
+		// Create MVP that maps unit quad [0,1] to screen coords, then to clip space
+		// Ortho projection: maps (0,0)-(width,height) to (-1,-1)-(1,1)
+		// Scale: scales unit quad to (width, height)
+		// The combined MVP transforms unit quad to fill the framebuffer
+		float mvp[16] = {
+			2.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, 2.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, -1.0f, 0.0f,
+			-1.0f - 0.5f * 2.0f / w, -1.0f - 0.5f * 2.0f / h, 0.0f, 1.0f
+		};
+		
+		GLint mvpLoc = glGetUniformLocation(m_programID, "u_mvp");
+		glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, mvp);
 
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-
+		// Bind textures
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 
@@ -179,20 +243,12 @@ void DistortionShader::draw(unsigned texture_id, unsigned depth_texture_id, floa
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, m_tex);
 
+		// Draw the quad using VAO
+		m_vao.bind();
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		m_vao.release();
 
-		glColor3f(1.0, 1.0, 1.0);
-
-		glBegin(GL_QUADS);
-		glTexCoord2f(0, 0);
-		glVertex2d(-0.5, -0.5);
-		glTexCoord2f(0, 1);
-		glVertex2d(-0.5, getHeight() - 0.5);
-		glTexCoord2f(1, 1);
-		glVertex2d(getWidth() - 0.5, getHeight() - 0.5);
-		glTexCoord2f(1, 0);
-		glVertex2d(getWidth() - 0.5, -0.5);
-		glEnd();
-
+		// Unbind textures
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -267,9 +323,9 @@ bool DistortionShader::canRender()
 
 void DistortionShader::intializeTexture()
 {
-#ifdef __APPLE__
 	if (!QOpenGLContext::currentContext()) return;
-#endif
+	if (!initGLFunctions()) return;
+	
 	glGenTextures(1, &m_tex);
 	glBindTexture(GL_TEXTURE_2D, m_tex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_coords);

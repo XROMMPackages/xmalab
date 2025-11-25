@@ -20,7 +20,7 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file DistortionShader.h
+///\file BlendShader.h
 ///\author Benjamin Knorlein
 ///\date 7/28/2016
 
@@ -28,6 +28,8 @@
 #define BLENDSHADER_H_
 
 #include "gl/Shader.h"
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
 
 namespace xma
 {
@@ -40,9 +42,14 @@ namespace xma
 		void draw(unsigned int width, unsigned int height, float transparency, unsigned int texture_id, unsigned int depth_texture_id, bool useDepthTrans);
 
 	private:
+		void initializeQuad();
+		
+		QOpenGLVertexArrayObject m_vao;
+		QOpenGLBuffer m_vbo;
+		bool m_quadInitialized;
 	};
 }
 
 
-#endif /* DISTORTIONSHADER_H_ */
+#endif /* BLENDSHADER_H_ */
 

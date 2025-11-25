@@ -44,16 +44,11 @@
 
 #include <fstream>
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
+#include "gl/ShaderManager.h"
+#include "gl/SimpleColorShader.h"
+#include "gl/MeshShader.h"
+#include "gl/GLPrimitives.h"
+#include <QMatrix4x4>
 
 #ifndef M_PI
 #define M_PI   3.14159265358979323846	
@@ -360,9 +355,9 @@ void RigidBody::setDrawMeshModel(bool value)
 	m_drawMeshModel = value;
 }
 
-void RigidBody::drawMesh(int frame)
+void RigidBody::drawMesh(int frame, const QMatrix4x4& projection, const QMatrix4x4& view)
 {
-	meshmodel->render(frame);
+	meshmodel->render(frame, projection, view);
 }
 
 double RigidBody::getMeshScale()
@@ -2653,20 +2648,29 @@ void RigidBody::setColor(QColor value)
 	color.setRgb(value.red(), value.green(), value.blue());
 }
 
-void RigidBody::draw2D(Camera* cam, int frame)
+void RigidBody::draw2D(Camera* cam, int frame, const QMatrix4x4& mvp)
 {
 	if (visible && (int) poseComputed.size() > frame && (poseComputed[frame] || (Settings::getInstance()->getBoolSetting("TrialDrawFiltered") && poseFiltered[frame])) && isReferencesSet())
 	{
 		std::vector<cv::Point2d> points2D_projected = projectToImage(cam, frame, true, false, false, Settings::getInstance()->getBoolSetting("TrialDrawFiltered"));
 
+		SimpleColorShader* shader = ShaderManager::getInstance()->getSimpleColorShader();
+		shader->bind();
+		shader->setMVP(mvp);
+		shader->setColor(color.redF(), color.greenF(), color.blueF(), 1.0f);
+
+		GLLineRenderer* lineRenderer = GLPrimitives::getInstance()->getLineRenderer();
+
+		// Draw lines from center to all points
 		for (unsigned int i = 1; i < points2D_projected.size(); i++)
 		{
-			glBegin(GL_LINES);
-			glColor3ub(color.red(), color.green(), color.blue());
-			glVertex2f(points2D_projected[0].x, points2D_projected[0].y);
-			glVertex2f(points2D_projected[i].x, points2D_projected[i].y);
-			glEnd();
+			lineRenderer->addLine(
+				QVector3D(points2D_projected[0].x, points2D_projected[0].y, 0.0f),
+				QVector3D(points2D_projected[i].x, points2D_projected[i].y, 0.0f)
+			);
 		}
+		lineRenderer->render();
+		lineRenderer->clear();
 
 		if (dummyNames.size() > 0)
 		{
@@ -2687,55 +2691,60 @@ void RigidBody::draw2D(Camera* cam, int frame)
 				}
 			}
 
-			if (count == 0) return;
+			if (count == 0) {
+				shader->release();
+				return;
+			}
 
 			points2D_projected.clear();
 			points2D_projected = projectToImage(cam, frame, true, true);
 
-			glLineStipple(10, 0xAAAA);
-			glEnable(GL_LINE_STIPPLE);
+			// TODO: Line stipple not supported in core profile - draw dashed lines differently
+			// For now, draw as solid lines
 			for (unsigned int i = 1; i < points2D_projected.size(); i++)
 			{
-				glBegin(GL_LINES);
-				glColor3ub(color.red(), color.green(), color.blue());
-				glVertex2f(points2D_projected[0].x, points2D_projected[0].y);
-				glVertex2f(points2D_projected[i].x, points2D_projected[i].y);
-				glEnd();
+				lineRenderer->addLine(
+					QVector3D(points2D_projected[0].x, points2D_projected[0].y, 0.0f),
+					QVector3D(points2D_projected[i].x, points2D_projected[i].y, 0.0f)
+				);
 			}
-			glDisable(GL_LINE_STIPPLE);
+			lineRenderer->render();
+			lineRenderer->clear();
 
 			points2D_projected.clear();
 			points2D_projected = projectToImage(cam, frame, false, true, true);
 
+			// Draw crosshairs for dummy points
 			for (unsigned int i = 0; i < points2D_projected.size(); i++)
 			{
-				double x = points2D_projected[i].x;
-				double y = points2D_projected[i].y;
+				float x = static_cast<float>(points2D_projected[i].x);
+				float y = static_cast<float>(points2D_projected[i].y);
 
-				glBegin(GL_LINES);
-				glColor3ub(color.red(), color.green(), color.blue());
-				glVertex2f(x - 5, y);
-				glVertex2f(x + 5, y);
-				glVertex2f(x, y - 5);
-				glVertex2f(x, y + 5);
-				glEnd();
+				lineRenderer->addLine(QVector3D(x - 5, y, 0.0f), QVector3D(x + 5, y, 0.0f));
+				lineRenderer->addLine(QVector3D(x, y - 5, 0.0f), QVector3D(x, y + 5, 0.0f));
 			}
+			lineRenderer->render();
+			lineRenderer->clear();
 		}
+		shader->release();
 	}
 }
 
-void RigidBody::draw3D(int frame)
+void RigidBody::draw3D(int frame, const QMatrix4x4& projection, const QMatrix4x4& view)
 {
 	if (visible && (getPoseComputed()[frame] || (Settings::getInstance()->getBoolSetting("TrialDrawFiltered") && getPoseFiltered()[frame])) && isReferencesSet())
 	{
 		bool filtered_trans = Settings::getInstance()->getBoolSetting("TrialDrawFiltered");
-		glPushMatrix();
-		double m[16];
-		//inversere Rotation = transposed rotation
-		//and opengl requires transposed, so we set R
-
+		
+		// Build the model transformation matrix
+		QMatrix4x4 model;
+		
 		cv::Mat rotationMat;
 		cv::Rodrigues(getRotationVector(filtered_trans)[frame], rotationMat);
+		
+		// Build the transformation matrix
+		// The original code built an inverse transformation matrix
+		double m[16];
 		for (unsigned int y = 0; y < 3; y++)
 		{
 			m[y * 4] = rotationMat.at<double>(y, 0);
@@ -2743,40 +2752,56 @@ void RigidBody::draw3D(int frame)
 			m[y * 4 + 2] = rotationMat.at<double>(y, 2);
 			m[y * 4 + 3] = 0.0;
 		}
-		//inverse translation = translation rotated with inverse rotation/transposed rotation
-		//R-1 * -t = R^tr * -t
+		m[3] = 0.0; m[7] = 0.0; m[11] = 0.0;
 		m[12] = m[0] * -getTranslationVector(filtered_trans)[frame][0] + m[4] * -getTranslationVector(filtered_trans)[frame][1] + m[8] * -getTranslationVector(filtered_trans)[frame][2];
 		m[13] = m[1] * -getTranslationVector(filtered_trans)[frame][0] + m[5] * -getTranslationVector(filtered_trans)[frame][1] + m[9] * -getTranslationVector(filtered_trans)[frame][2];
 		m[14] = m[2] * -getTranslationVector(filtered_trans)[frame][0] + m[6] * -getTranslationVector(filtered_trans)[frame][1] + m[10] * -getTranslationVector(filtered_trans)[frame][2];
 		m[15] = 1.0;
+		
+		// QMatrix4x4 constructor takes column-major data (same as OpenGL)
+		model = QMatrix4x4(
+			static_cast<float>(m[0]), static_cast<float>(m[4]), static_cast<float>(m[8]), static_cast<float>(m[12]),
+			static_cast<float>(m[1]), static_cast<float>(m[5]), static_cast<float>(m[9]), static_cast<float>(m[13]),
+			static_cast<float>(m[2]), static_cast<float>(m[6]), static_cast<float>(m[10]), static_cast<float>(m[14]),
+			static_cast<float>(m[3]), static_cast<float>(m[7]), static_cast<float>(m[11]), static_cast<float>(m[15])
+		);
+		
+		QMatrix4x4 mvp = projection * view * model;
 
-		glMultMatrixd(m);
+		SimpleColorShader* shader = ShaderManager::getInstance()->getSimpleColorShader();
+		shader->bind();
+		shader->setMVP(mvp);
+		shader->setColor(color.redF(), color.greenF(), color.blueF(), 1.0f);
 
+		GLLineRenderer* lineRenderer = GLPrimitives::getInstance()->getLineRenderer();
+
+		// Draw lines from center to all reference points
 		for (unsigned int i = 0; i < points3D.size(); i++)
 		{
-			glColor3ub(color.red(), color.green(), color.blue());
-			glBegin(GL_LINES);
-			glVertex3d(center.x, center.y, center.z);
-			glVertex3d(points3D[i].x, points3D[i].y, points3D[i].z);
-			glEnd();
+			lineRenderer->addLine(
+				QVector3D(center.x, center.y, center.z),
+				QVector3D(points3D[i].x, points3D[i].y, points3D[i].z)
+			);
 		}
+		lineRenderer->render();
+		lineRenderer->clear();
 
+		// Draw dummy points (stippled lines not supported in core profile)
 		if (dummypoints.size() > 0)
 		{
-			glLineStipple(10, 0xAAAA);
-			glEnable(GL_LINE_STIPPLE);
+			// TODO: Line stipple not supported in core profile - could implement with geometry shader
 			for (unsigned int i = 1; i < dummypoints.size(); i++)
 			{
-				glBegin(GL_LINES);
-				glColor3ub(color.red(), color.green(), color.blue());
-				glVertex3d(center.x, center.y, center.z);
-				glVertex3d(dummypoints[i].x, dummypoints[i].y, dummypoints[i].z);
-				glEnd();
+				lineRenderer->addLine(
+					QVector3D(center.x, center.y, center.z),
+					QVector3D(dummypoints[i].x, dummypoints[i].y, dummypoints[i].z)
+				);
 			}
-			glDisable(GL_LINE_STIPPLE);
+			lineRenderer->render();
+			lineRenderer->clear();
 		}
 
-		glPopMatrix();
+		shader->release();
 	}
 }
 

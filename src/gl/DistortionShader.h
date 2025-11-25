@@ -32,6 +32,8 @@
 #include <vector>
 #include <QObject>
 #include <QFutureWatcher>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
 
 namespace xma
 {
@@ -52,6 +54,7 @@ namespace xma
 	private:
 		Camera * m_camera;
 		void intializeTexture();
+		void initializeQuad();
 
 		static int nbInstances;
 		static bool m_distortionComplete;
@@ -63,6 +66,11 @@ namespace xma
 
 		QFutureWatcher<void>* m_FutureWatcher;
 		bool stopped;
+
+		// Modern OpenGL quad rendering
+		QOpenGLVertexArrayObject m_vao;
+		QOpenGLBuffer m_vbo;
+		bool m_quadInitialized;
 
 	public slots:
 		void loadComplete();

@@ -24,21 +24,9 @@
 ///\author Benjamin Knorlein
 ///\date 07/29/2016
 
-#include <GL/glew.h>
-
 #include "gl/FrameBuffer.h"
 #include <iostream>
-
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
+#include <QOpenGLContext>
 
 using namespace xma;
 
@@ -49,19 +37,21 @@ FrameBuffer::FrameBuffer(int width, int height, int samples) : m_width(width), m
 
 FrameBuffer::~FrameBuffer()
 {
-	if (m_initialised)
+	if (m_initialised && QOpenGLContext::currentContext() && initGLFunctions())
 	{
 		//Bind 0, which means render to back buffer, as a result, fb is unbound
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		//Delete resources
 		glDeleteTextures(1, &m_texture_id);
-		glDeleteRenderbuffersEXT(1, &m_depth_id);
-		glDeleteFramebuffersEXT(1, &m_fbo);
+		glDeleteTextures(1, &m_depth_id);
+		glDeleteFramebuffers(1, &m_fbo);
 	}
 }
 
 void FrameBuffer::setupFBO()
 {
+	if (!initGLFunctions()) return;
+	
 	glGenFramebuffers(1, &m_fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 
@@ -116,6 +106,7 @@ void FrameBuffer::setupFBO()
 
 void FrameBuffer::bindTexture()
 {
+	if (!initGLFunctions()) return;
 	if (!m_initialised) setupFBO();
 
 	if (m_samples == 0){
@@ -129,6 +120,8 @@ void FrameBuffer::bindTexture()
 
 void FrameBuffer::unbindTexture()
 {
+	if (!initGLFunctions()) return;
+	
 	if (m_samples == 0){
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
@@ -154,6 +147,8 @@ unsigned FrameBuffer::getDepthTextureID()
 
 void FrameBuffer::bindFrameBuffer()
 {
+	if (!initGLFunctions()) return;
+	
 	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &m_pdrawFboId);
 	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &m_preadFboId);
 
@@ -162,11 +157,13 @@ void FrameBuffer::bindFrameBuffer()
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
-	if (m_samples > 0)glEnable(GL_MULTISAMPLE);
+	if (m_samples > 0) glEnable(GL_MULTISAMPLE);
 }
 
 void FrameBuffer::unbindFrameBuffer()
 {
+	if (!initGLFunctions()) return;
+	
 	if (m_samples > 0)
 		glDisable(GL_MULTISAMPLE);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_pdrawFboId);

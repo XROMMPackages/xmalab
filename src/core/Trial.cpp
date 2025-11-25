@@ -55,8 +55,14 @@
 #define OS_SEP "/"
 #endif
 #include <QApplication>
+#include <QOpenGLContext>
+#include <QOpenGLFunctions>
 #include <opencv2/highgui/highgui.hpp>
 #include "processing/FilterImage.h"
+#include "gl/ShaderManager.h"
+#include "gl/SimpleColorShader.h"
+#include "gl/MeshShader.h"
+#include "gl/GLPrimitives.h"
 
 
 using namespace xma;
@@ -550,20 +556,20 @@ QString Trial::getName()
 	return name;
 }
 
-void Trial::drawRigidBodies(Camera* cam)
+void Trial::drawRigidBodies(Camera* cam, const QMatrix4x4& mvp)
 {
 	for (std::vector<RigidBody *>::const_iterator it = rigidBodies.begin(); it != rigidBodies.end(); ++it)
 	{
-		(*it)->draw2D(cam, activeFrame);
+		(*it)->draw2D(cam, activeFrame, mvp);
 	}
 }
 
-void Trial::drawRigidBodiesMesh()
+void Trial::drawRigidBodiesMesh(const QMatrix4x4& projection, const QMatrix4x4& view)
 {
 	for (std::vector<RigidBody *>::const_iterator it = rigidBodies.begin(); it != rigidBodies.end(); ++it)
 	{
 		if((*it)->getDrawMeshModel())
-			(*it)->drawMesh(activeFrame);
+			(*it)->drawMesh(activeFrame, projection, view);
 	}
 }
 
@@ -577,149 +583,166 @@ bool Trial::renderMeshes()
 	return render;
 }
 
-void Trial::drawPoints(int cameraId, bool detailView)
+void Trial::drawPoints(int cameraId, bool detailView, const QMatrix4x4& mvp)
 {
+	SimpleColorShader* shader = ShaderManager::getInstance()->getSimpleColorShader();
+	GLLineRenderer* lineRenderer = GLPrimitives::getInstance()->getLineRenderer();
+	
+	shader->bind();
+	shader->setMVP(mvp);
+	
 	int idx = 0;
 	if (Settings::getInstance()->getBoolSetting("TrialDrawMarkers")){
 		if (!detailView)
 		{
-			glBegin(GL_LINES);
+			// Collect lines by color and render in batches
+			// First pass: non-active markers (green) or colored by status
 			for (std::vector<Marker *>::const_iterator it = markers.begin(); it != markers.end(); ++it)
 			{
 				if (((*it)->getStatus2D()[cameraId][activeFrame] > 0))
 				{
+					float r, g, b;
 					if (Settings::getInstance()->getBoolSetting("ShowColoredMarkerCross"))
 					{
 						QColor color = (*it)->getStatusColor(cameraId, activeFrame);
-						glColor3f(color.redF(), color.greenF(), color.blueF());
+						r = color.redF(); g = color.greenF(); b = color.blueF();
 					}
 					else{
 						if (idx == activeMarkerIdx)
 						{
-							glColor3f(1.0, 0.0, 0.0);
+							r = 1.0f; g = 0.0f; b = 0.0f;
 						}
 						else
 						{
-							glColor3f(0.0, 1.0, 0.0);
+							r = 0.0f; g = 1.0f; b = 0.0f;
 						}
 					}
 
-					glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x - 5, (*it)->getPoints2D()[cameraId][activeFrame].y);
-					glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x + 5, (*it)->getPoints2D()[cameraId][activeFrame].y);
-					glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x, (*it)->getPoints2D()[cameraId][activeFrame].y - 5);
-					glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x, (*it)->getPoints2D()[cameraId][activeFrame].y + 5);
+					// Set color and draw this marker's crosshair
+					shader->setColor(r, g, b, 1.0f);
+					float x = static_cast<float>((*it)->getPoints2D()[cameraId][activeFrame].x);
+					float y = static_cast<float>((*it)->getPoints2D()[cameraId][activeFrame].y);
+					
+					lineRenderer->addLine(QVector3D(x - 5, y, 0), QVector3D(x + 5, y, 0));
+					lineRenderer->addLine(QVector3D(x, y - 5, 0), QVector3D(x, y + 5, 0));
+					lineRenderer->render();
+					lineRenderer->clear();
 				}
 				idx++;
 			}
-			glEnd();
 		}
 		else if (activeMarkerIdx >= 0 && activeMarkerIdx < (int)markers.size())
 		{
-			double x = markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].x;
-			double y = markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].y;
+			float x = static_cast<float>(markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].x);
+			float y = static_cast<float>(markers[activeMarkerIdx]->getPoints2D()[cameraId][activeFrame].y);
 
-			glBegin(GL_LINES);
-			glColor3f(1.0, 0.0, 0.0);
-			glVertex2f(x - 12, y);
-			glVertex2f(x + 12, y);
-			glVertex2f(x, y - 12);
-			glVertex2f(x, y + 12);
-			glEnd();
+			// Red crosshair for active marker in detail view
+			shader->setColor(1.0f, 0.0f, 0.0f, 1.0f);
+			lineRenderer->addLine(QVector3D(x - 12, y, 0), QVector3D(x + 12, y, 0));
+			lineRenderer->addLine(QVector3D(x, y - 12, 0), QVector3D(x, y + 12, 0));
+			lineRenderer->render();
+			lineRenderer->clear();
 
 			if (Settings::getInstance()->getBoolSetting("AdvancedCrosshairDetailView"))
 			{
-				glBegin(GL_LINES);
+				// Draw the detailed crosshair pattern
 				for (int i = 0; i < 6; i++)
 				{
-					glVertex2f(x - 1, y + i * 2);
-					glVertex2f(x + 1, y + i * 2);
-
-					glVertex2f(x - 1, y - i * 2);
-					glVertex2f(x + 1, y - i * 2);
-
-					glVertex2f(x + i * 2, y - 1);
-					glVertex2f(x + i * 2, y + 1);
-
-					glVertex2f(x - i * 2, y - 1);
-					glVertex2f(x - i * 2, y + 1);
+					lineRenderer->addLine(QVector3D(x - 1, y + i * 2, 0), QVector3D(x + 1, y + i * 2, 0));
+					lineRenderer->addLine(QVector3D(x - 1, y - i * 2, 0), QVector3D(x + 1, y - i * 2, 0));
+					lineRenderer->addLine(QVector3D(x + i * 2, y - 1, 0), QVector3D(x + i * 2, y + 1, 0));
+					lineRenderer->addLine(QVector3D(x - i * 2, y - 1, 0), QVector3D(x - i * 2, y + 1, 0));
 				}
-				glEnd();
-				double size = markers[activeMarkerIdx]->getSize();;
+				lineRenderer->render();
+				lineRenderer->clear();
+				
+				double size = markers[activeMarkerIdx]->getSize();
 				if (size > 0)
 				{
-					glEnable(GL_BLEND);
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-					glBegin(GL_LINES);
-					glColor4f(1.0f, 0.0f, 0.0f, 0.3f);
-					glVertex2f(x - size, y - size);
-					glVertex2f(x - size, y + size);
-
-					glVertex2f(x + size, y - size);
-					glVertex2f(x + size, y + size);
-
-					glVertex2f(x - size, y - size);
-					glVertex2f(x + size, y - size);
-
-					glVertex2f(x - size, y + size);
-					glVertex2f(x + size, y + size);
-					glEnd();
-					glDisable(GL_BLEND);
+					// Draw semi-transparent box - need to enable blending via GL context
+					QOpenGLFunctions* gl = QOpenGLContext::currentContext()->functions();
+					if (gl) {
+						gl->glEnable(GL_BLEND);
+						gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					}
+					
+					shader->setColor(1.0f, 0.0f, 0.0f, 0.3f);
+					float s = static_cast<float>(size);
+					lineRenderer->addLine(QVector3D(x - s, y - s, 0), QVector3D(x - s, y + s, 0));
+					lineRenderer->addLine(QVector3D(x + s, y - s, 0), QVector3D(x + s, y + s, 0));
+					lineRenderer->addLine(QVector3D(x - s, y - s, 0), QVector3D(x + s, y - s, 0));
+					lineRenderer->addLine(QVector3D(x - s, y + s, 0), QVector3D(x + s, y + s, 0));
+					lineRenderer->render();
+					lineRenderer->clear();
+					
+					if (gl) {
+						gl->glDisable(GL_BLEND);
+					}
 				}
 			}
 		}
 
+		// Draw projected 3D point for active marker
 		if (activeMarkerIdx >= 0 && activeMarkerIdx < (int)markers.size() && markers[activeMarkerIdx]->getStatus3D()[activeFrame] > 0)
 		{
 			if (!detailView || Settings::getInstance()->getBoolSetting("Show3dPointDetailView"))
 			{
-				glBegin(GL_LINES);
-				glColor3f(0.0, 1.0, 1.0);
-				glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x - 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y - 5);
-				glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x + 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y + 5);
-				glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x + 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y - 5);
-				glVertex2f(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x - 5, markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y + 5);
-				glEnd();
+				shader->setColor(0.0f, 1.0f, 1.0f, 1.0f);
+				float px = static_cast<float>(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].x);
+				float py = static_cast<float>(markers[activeMarkerIdx]->getPoints2D_projected()[cameraId][activeFrame].y);
+				lineRenderer->addLine(QVector3D(px - 5, py - 5, 0), QVector3D(px + 5, py + 5, 0));
+				lineRenderer->addLine(QVector3D(px + 5, py - 5, 0), QVector3D(px - 5, py + 5, 0));
+				lineRenderer->render();
+				lineRenderer->clear();
 			}
 		}
-		if (!detailView  && Settings::getInstance()->getBoolSetting("DrawProjected2DpositionsForAllPoints")) {
+		
+		// Draw projected 2D positions for all points
+		if (!detailView && Settings::getInstance()->getBoolSetting("DrawProjected2DpositionsForAllPoints")) {
+			shader->setColor(0.0f, 1.0f, 1.0f, 1.0f);
 			for (std::vector<Marker *>::const_iterator it = markers.begin(); it != markers.end(); ++it)
 			{
 				if ((*it)->getStatus3D()[activeFrame] > 0)
 				{
-					glBegin(GL_LINES);
-					glColor3f(0.0, 1.0, 1.0);
-					glVertex2f((*it)->getPoints2D_projected()[cameraId][activeFrame].x - 5, (*it)->getPoints2D_projected()[cameraId][activeFrame].y - 5);
-					glVertex2f((*it)->getPoints2D_projected()[cameraId][activeFrame].x + 5, (*it)->getPoints2D_projected()[cameraId][activeFrame].y + 5);
-					glVertex2f((*it)->getPoints2D_projected()[cameraId][activeFrame].x + 5, (*it)->getPoints2D_projected()[cameraId][activeFrame].y - 5);
-					glVertex2f((*it)->getPoints2D_projected()[cameraId][activeFrame].x - 5, (*it)->getPoints2D_projected()[cameraId][activeFrame].y + 5);
-					glEnd();
+					float px = static_cast<float>((*it)->getPoints2D_projected()[cameraId][activeFrame].x);
+					float py = static_cast<float>((*it)->getPoints2D_projected()[cameraId][activeFrame].y);
+					lineRenderer->addLine(QVector3D(px - 5, py - 5, 0), QVector3D(px + 5, py + 5, 0));
+					lineRenderer->addLine(QVector3D(px + 5, py - 5, 0), QVector3D(px - 5, py + 5, 0));
 				}
 			}
+			lineRenderer->render();
+			lineRenderer->clear();
 		}
 	}
+	
+	// Draw epipolar lines
 	if (Settings::getInstance()->getBoolSetting("TrialDrawEpipolar") &&
 		(!detailView || Settings::getInstance()->getBoolSetting("ShowEpiLineDetailView")))
 	{
+		shader->setColor(0.0f, 0.0f, 1.0f, 1.0f);
 		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 		{
-		
 			if (activeMarkerIdx >= 0 && activeMarkerIdx < (int) markers.size() && markers[activeMarkerIdx]->getStatus2D()[i][activeFrame] > 0)
 			{
-				if (cameraId != i)
+				if (cameraId != (int)i)
 				{
 					std::vector<cv::Point2d> epiline = markers[activeMarkerIdx]->getEpipolarLine(i, cameraId, activeFrame);
-					glBegin(GL_LINE_STRIP);
-					glColor3f(0.0, 0.0, 1.0);
-					for (std::vector<cv::Point2d>::const_iterator pt = epiline.begin(); pt != epiline.end(); ++pt)
+					// Draw as line strip - each consecutive pair
+					for (size_t j = 0; j + 1 < epiline.size(); ++j)
 					{
-						glVertex2f(pt->x, pt->y);
+						lineRenderer->addLine(
+							QVector3D(static_cast<float>(epiline[j].x), static_cast<float>(epiline[j].y), 0),
+							QVector3D(static_cast<float>(epiline[j+1].x), static_cast<float>(epiline[j+1].y), 0)
+						);
 					}
-					epiline.clear();
-					glEnd();
+					lineRenderer->render();
+					lineRenderer->clear();
 				}
 			}
 		}
 	}
+	
+	shader->release();
 }
 
 int Trial::getStartFrame()

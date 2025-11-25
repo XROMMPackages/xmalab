@@ -24,26 +24,13 @@
 ///\author Benjamin Knorlein
 ///\date 07/29/2016
 
-#include <GL/glew.h>
-
 #include "gl/VertexBuffer.h"
 #include <iostream>
 #include <cstring>
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-
 using namespace xma;
 
-VertexBuffer::VertexBuffer() : m_initialised(false), vboId(0), nboId(0), tboId(0), iboId(), m_dataReady(false), m_vertices(0), m_normals(0), m_texcoords(0), m_indices(0), m_numvertices(0)
+VertexBuffer::VertexBuffer() : m_initialised(false), vaoId(0), vboId(0), nboId(0), tboId(0), iboId(0), m_dataReady(false), m_vertices(0), m_normals(0), m_texcoords(0), m_indices(0), m_numvertices(0)
 {
 
 }
@@ -52,10 +39,11 @@ VertexBuffer::~VertexBuffer()
 {
 	if (m_initialised)
 	{
-		if(vboId != 0)glDeleteBuffers(1, &vboId);
-		if (nboId != 0)glDeleteBuffers(1, &nboId);
-		if (tboId != 0)glDeleteBuffers(1, &tboId);
-		if (iboId != 0)glDeleteBuffers(1, &iboId);
+		if(vaoId != 0) glDeleteVertexArrays(1, &vaoId);
+		if(vboId != 0) glDeleteBuffers(1, &vboId);
+		if (nboId != 0) glDeleteBuffers(1, &nboId);
+		if (tboId != 0) glDeleteBuffers(1, &tboId);
+		if (iboId != 0) glDeleteBuffers(1, &iboId);
 
 		m_initialised = false;
 	}
@@ -109,30 +97,16 @@ void VertexBuffer::render()
 	mutex.lock();
 	if (!m_initialised)
 	{
-		if (!m_dataReady) 
+		if (!m_dataReady) {
+			mutex.unlock();
 			return;
+		}
 
 		setupVBO();
 	}
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	if (nboId) glEnableClientState(GL_NORMAL_ARRAY);
-	if (tboId) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	////vertices
-	glBindBuffer(GL_ARRAY_BUFFER, vboId);
-	glVertexPointer(3, GL_FLOAT, 0, NULL);
-	
-	////Normals
-	if (nboId){
-		glBindBuffer(GL_ARRAY_BUFFER, nboId);
-		glNormalPointer(GL_FLOAT, 0, NULL);
-	}
-	//Texture
-	if (tboId){
-		glBindBuffer(GL_ARRAY_BUFFER, tboId);
-		glTexCoordPointer(2, GL_FLOAT, 0, NULL);
-	}
+	// Bind VAO - this contains all the vertex attribute state
+	glBindVertexArray(vaoId);
 
 	////Indices
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboId);
@@ -140,7 +114,7 @@ void VertexBuffer::render()
 	glDrawElements(GL_TRIANGLES, m_numvertices, GL_UNSIGNED_INT, NULL);
 
 	//unload
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	mutex.unlock();
 }
@@ -148,29 +122,50 @@ void VertexBuffer::render()
 void VertexBuffer::setupVBO()
 {
 	if (!m_dataReady) return;
+	
+	initGLFunctions();
+	
+	// Create VAO
+	glGenVertexArrays(1, &vaoId);
+	glBindVertexArray(vaoId);
 
+	// Vertex positions (attribute location 0)
 	if (m_vertices){
 		glGenBuffers(1, &vboId);
 		glBindBuffer(GL_ARRAY_BUFFER, vboId);
 		glBufferData(GL_ARRAY_BUFFER, 3 * m_numvertices * sizeof(float), m_vertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	}
 
+	// Normals (attribute location 1)
 	if (m_normals){
 		glGenBuffers(1, &nboId);
 		glBindBuffer(GL_ARRAY_BUFFER, nboId);
 		glBufferData(GL_ARRAY_BUFFER, 3 * m_numvertices * sizeof(float), m_normals, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	}
 
+	// Texture coordinates (attribute location 2)
 	if (m_texcoords){
 		glGenBuffers(1, &tboId);
 		glBindBuffer(GL_ARRAY_BUFFER, tboId);
 		glBufferData(GL_ARRAY_BUFFER, 2 * m_numvertices * sizeof(float), m_texcoords, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 	}
+	
+	// Indices
 	if (m_indices){
 		glGenBuffers(1, &iboId);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboId);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_numvertices * sizeof(GLuint), m_indices, GL_STATIC_DRAW);
 	}
+	
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	deleteData();
 

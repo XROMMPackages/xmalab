@@ -27,10 +27,12 @@
 #ifndef FRAMEBUFFER_H_
 #define FRAMEBUFFER_H_
 
+#include "gl/GLFunctions.h"
+
 namespace xma
 {
 
-	class FrameBuffer
+	class FrameBuffer : virtual protected GLFunctions
 	{
 	public:
 		FrameBuffer(int width, int height, int samples = 0);

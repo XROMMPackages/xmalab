@@ -27,9 +27,11 @@
 #ifndef SHADER_H_
 #define SHADER_H_
 
+#include "gl/GLFunctions.h"
+
 namespace xma
 {
-	class Shader{
+	class Shader : virtual protected GLFunctions {
 
 	protected:
 		Shader();
@@ -53,5 +55,5 @@ namespace xma
 }
 
 
-#endif /* DISTORTIONSHADER_H_ */
+#endif /* SHADER_H_ */
 

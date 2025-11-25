@@ -20,108 +20,178 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file Shader.cpp
+///\file BlendShader.cpp
 ///\author Benjamin Knorlein
 ///\date 7/28/2016
 
-#include <GL/glew.h>
 #include "gl/BlendShader.h"
-
 #include <iostream>
-
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
 #include <QOpenGLContext>
-#else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
 
 using namespace xma;
 
-BlendShader::BlendShader() : Shader()
+// Modern GLSL 410 vertex shader
+static const char* blendVertexShader = 
+	"#version 410 core\n"
+	"layout(location = 0) in vec2 a_position;\n"
+	"layout(location = 1) in vec2 a_texcoord;\n"
+	"uniform mat4 u_mvp;\n"
+	"out vec2 v_texcoord;\n"
+	"void main()\n"
+	"{\n"
+	"    gl_Position = u_mvp * vec4(a_position, 0.0, 1.0);\n"
+	"    v_texcoord = a_texcoord;\n"
+	"}\n";
+
+// Modern GLSL 410 fragment shader
+static const char* blendFragmentShader = 
+	"#version 410 core\n"
+	"in vec2 v_texcoord;\n"
+	"uniform float u_transparency;\n"
+	"uniform float u_useDepthTrans;\n"
+	"uniform sampler2D u_texture;\n"
+	"uniform sampler2D u_depth_tex;\n"
+	"out vec4 fragColor;\n"
+	"void main()\n"
+	"{\n"
+	"    vec4 color = texture(u_texture, v_texcoord);\n"
+	"    if (u_useDepthTrans > 0.5) {\n"
+	"        float d = texture(u_depth_tex, v_texcoord).x;\n"
+	"        color.a = (d < 1.0) ? u_transparency : 0.0;\n"
+	"    }\n"
+	"    fragColor = color;\n"
+	"}\n";
+
+BlendShader::BlendShader() : Shader(), m_vbo(QOpenGLBuffer::VertexBuffer), m_quadInitialized(false)
 {
 	m_shader = "Blending";
-	m_vertexShader = "varying vec2 texture_coordinate; \n"
-			"void main()\n"
-			"{\n"
-			"\tgl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; \n"
-			"\ttexture_coordinate = vec2(gl_MultiTexCoord0); \n"
-			"}\n";
-	m_fragmentShader = "varying vec2 texture_coordinate;\n"
-		"uniform float transparency;\n"
-		"uniform float useDepthTrans;\n"
-		"uniform sampler2D texture;\n"
-		"uniform sampler2D depth_tex;\n"
-		"void main()\n"
-		"{\n"
-		"\t\tvec4 color = texture2D(texture, texture_coordinate.xy);\n"
-		"\t\tif (useDepthTrans > 0.5){\n"
-		"\t\t\tfloat d = texture2D(depth_tex, texture_coordinate.xy).x;\n"
-		"\t\t\tcolor.a =  (d < 1.0 ) ? transparency : 0.0 ;\n"
-		"\t\t}\n"
-		"\t\tgl_FragColor = color; \n"
-		"}\n";
+	m_vertexShader = blendVertexShader;
+	m_fragmentShader = blendFragmentShader;
 }
 
 BlendShader::~BlendShader()
 {
-	
+	if (m_vao.isCreated()) m_vao.destroy();
+	if (m_vbo.isCreated()) m_vbo.destroy();
+}
+
+void BlendShader::initializeQuad()
+{
+	if (m_quadInitialized) return;
+	if (!QOpenGLContext::currentContext()) return;
+	if (!initGLFunctions()) return;
+
+	// Create VAO/VBO for the quad
+	// Unit quad that will be scaled by the MVP matrix
+	// Vertices: position (2) + texcoord (2) = 4 floats per vertex
+	float vertices[] = {
+		// Position     // TexCoord
+		0.0f, 0.0f,     0.0f, 0.0f,
+		1.0f, 0.0f,     1.0f, 0.0f,
+		1.0f, 1.0f,     1.0f, 1.0f,
+		0.0f, 0.0f,     0.0f, 0.0f,
+		1.0f, 1.0f,     1.0f, 1.0f,
+		0.0f, 1.0f,     0.0f, 1.0f
+	};
+
+	m_vao.create();
+	m_vao.bind();
+
+	m_vbo.create();
+	m_vbo.bind();
+	m_vbo.allocate(vertices, sizeof(vertices));
+
+	// Position attribute (location = 0)
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+
+	// TexCoord attribute (location = 1)
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 
+	                      reinterpret_cast<void*>(2 * sizeof(float)));
+
+	m_vao.release();
+	m_quadInitialized = true;
 }
 
 void BlendShader::draw(unsigned int width, unsigned int height, float transparency, unsigned texture_id, unsigned int depth_texture_id, bool useDepthTrans)
 {
-#ifdef __APPLE__
 	if (!QOpenGLContext::currentContext()) return;
-#endif
+	if (!initGLFunctions()) return;
+	
+	if (!m_quadInitialized) {
+		initializeQuad();
+	}
+	
 	bindProgram();
 
-	GLint loc = glGetUniformLocation(m_programID, "transparency");
+	// Set uniforms
+	GLint loc = glGetUniformLocation(m_programID, "u_transparency");
 	glUniform1f(loc, transparency);
 
-	GLint locDepthTrans = glGetUniformLocation(m_programID, "useDepthTrans");
-	if (useDepthTrans){
-		glUniform1f(locDepthTrans, 1.0);
-	} else
-	{
-		glUniform1f(locDepthTrans, 0.0);
-	}
+	GLint locDepthTrans = glGetUniformLocation(m_programID, "u_useDepthTrans");
+	glUniform1f(locDepthTrans, useDepthTrans ? 1.0f : 0.0f);
 
-	GLint texLoc = glGetUniformLocation(m_programID, "texture");
+	GLint texLoc = glGetUniformLocation(m_programID, "u_texture");
 	glUniform1i(texLoc, 0);
-	texLoc = glGetUniformLocation(m_programID, "depth_tex");
+	texLoc = glGetUniformLocation(m_programID, "u_depth_tex");
 	glUniform1i(texLoc, 1);
 
+	// Set up orthographic projection matrix for 2D rendering
+	// Maps (0,0)-(width,height) to clip space, with 0.5 offset for pixel-perfect rendering
+	float mvp[16] = {
+		2.0f / width, 0.0f, 0.0f, 0.0f,
+		0.0f, 2.0f / height, 0.0f, 0.0f,
+		0.0f, 0.0f, -1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f, 1.0f
+	};
+	// Apply scale to match the quad size (width x height) and offset by -0.5
+	// The quad is unit size [0,1], so we scale it to [0,width] x [0,height]
+	// Then offset by -0.5 for pixel alignment
+	float scale[16] = {
+		(float)width, 0.0f, 0.0f, 0.0f,
+		0.0f, (float)height, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		-0.5f, -0.5f, 0.0f, 1.0f
+	};
+	// Multiply mvp * scale manually
+	float finalMvp[16];
+	for (int i = 0; i < 4; ++i) {
+		for (int j = 0; j < 4; ++j) {
+			finalMvp[i * 4 + j] = 0;
+			for (int k = 0; k < 4; ++k) {
+				finalMvp[i * 4 + j] += mvp[i * 4 + k] * scale[k * 4 + j];
+			}
+		}
+	}
+	
+	GLint mvpLoc = glGetUniformLocation(m_programID, "u_mvp");
+	glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, finalMvp);
+
+	// Bind textures
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, depth_texture_id);
 
+	// Enable blending
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 0);
-	glVertex2d(-0.5, -0.5);
-	glTexCoord2f(0, 1);
-	glVertex2d(-0.5, height - 0.5);
-	glTexCoord2f(1, 1);
-	glVertex2d(width - 0.5, height - 0.5);
-	glTexCoord2f(1, 0);
-	glVertex2d( width - 0.5, -0.5);
-	glEnd();
+	// Draw the quad using VAO
+	m_vao.bind();
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_vao.release();
 
 	glDisable(GL_BLEND);
 
+	// Unbind textures
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	
 	unbindProgram();
 }

@@ -28,6 +28,7 @@
 #define CALIBRATIONIMAGE_H_
 
 #include <QString>
+#include <QMatrix4x4>
 
 #include <opencv2/opencv.hpp>
 
@@ -35,6 +36,8 @@ namespace xma
 {
 	class Camera;
 	class Image;
+	class SimpleColorShader;
+	class GLLineRenderer;
 
 	class CalibrationImage
 	{
@@ -121,7 +124,7 @@ namespace xma
 		cv::Mat getRotationVector();
 		cv::Mat getTranslationVector();
 
-		void draw(int type);
+		void draw(int type, const QMatrix4x4& mvp);
 		void getDrawTextData(int type, bool distorted, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text, std::vector<bool>& inlier);
 		void bindTexture(int type);
 
@@ -159,7 +162,7 @@ namespace xma
 	private:
 		void savePoints(std::vector<cv::Point2d>& points, QString filename);
 		void loadPoints(std::vector<cv::Point2d>& points, QString filename);
-		void drawPoints(std::vector<cv::Point2d>& points, bool drawAllPoints = false);
+		void drawPoints(std::vector<cv::Point2d>& points, SimpleColorShader* shader, GLLineRenderer* lineRenderer, bool drawAllPoints = false);
 		void computeError();
 		int calibrated;
 

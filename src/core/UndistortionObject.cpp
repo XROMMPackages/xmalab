@@ -39,6 +39,9 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui.hpp>
 #include "processing/FilterImage.h"
+#include "gl/ShaderManager.h"
+#include "gl/SimpleColorShader.h"
+#include "gl/GLPrimitives.h"
 
 using namespace xma;
 
@@ -459,86 +462,101 @@ cv::Point2d UndistortionObject::transformPoint(cv::Point2d pt, bool undistort, b
 	return pt_out;
 }
 
-void UndistortionObject::drawPoints(std::vector<cv::Point2d>& points)
+void UndistortionObject::drawPoints(std::vector<cv::Point2d>& points, SimpleColorShader* shader, GLLineRenderer* lineRenderer)
 {
 	std::vector<bool>::const_iterator it_inlier = points_grid_inlier.begin();
-	glBegin(GL_LINES);
+	
 	for (std::vector<cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it,++it_inlier)
 	{
+		float r, g, b;
 		if ((*it_inlier))
 		{
-			glColor3f(0.0f, 0.8f, 0.0f);
+			r = 0.0f; g = 0.8f; b = 0.0f;
 		}
 		else
 		{
-			glColor3f(0.8f, 0.0f, 0.0f);
+			r = 0.8f; g = 0.0f; b = 0.0f;
 		}
-		glVertex2f((*it).x - 2, (*it).y);
-		glVertex2f((*it).x + 2, (*it).y);
-		glVertex2f((*it).x, (*it).y - 2);
-		glVertex2f((*it).x, (*it).y + 2);
+		
+		shader->setColor(r, g, b, 1.0f);
+		float x = static_cast<float>((*it).x);
+		float y = static_cast<float>((*it).y);
+		lineRenderer->addLine(QVector3D(x - 2, y, 0), QVector3D(x + 2, y, 0));
+		lineRenderer->addLine(QVector3D(x, y - 2, 0), QVector3D(x, y + 2, 0));
+		lineRenderer->render();
+		lineRenderer->clear();
 	}
 
-	glEnd();
 	if (points.size() > 0)
 	{
+		float r, g, b;
 		if ((points_grid_inlier[0]))
 		{
-			glColor3f(0.0f, 0.8f, 0.0f);
+			r = 0.0f; g = 0.8f; b = 0.0f;
 		}
 		else
 		{
-			glColor3f(0.8f, 0.0f, 0.0f);
+			r = 0.8f; g = 0.0f; b = 0.0f;
 		}
-		glBegin(GL_LINES);
-		glVertex2f(points[0].x - 5, points[0].y);
-		glVertex2f(points[0].x + 5, points[0].y);
-		glVertex2f(points[0].x, points[0].y - 5);
-		glVertex2f(points[0].x, points[0].y + 5);
-		glEnd();
+		
+		shader->setColor(r, g, b, 1.0f);
+		float x = static_cast<float>(points[0].x);
+		float y = static_cast<float>(points[0].y);
+		lineRenderer->addLine(QVector3D(x - 5, y, 0), QVector3D(x + 5, y, 0));
+		lineRenderer->addLine(QVector3D(x, y - 5, 0), QVector3D(x, y + 5, 0));
+		lineRenderer->render();
+		lineRenderer->clear();
 	}
 }
 
-void UndistortionObject::drawData(int type)
+void UndistortionObject::drawData(int type, const QMatrix4x4& mvp)
 {
+	SimpleColorShader* shader = ShaderManager::getInstance()->getSimpleColorShader();
+	GLLineRenderer* lineRenderer = GLPrimitives::getInstance()->getLineRenderer();
+	
+	shader->bind();
+	shader->setMVP(mvp);
+	
 	switch (type)
 	{
 	case 0:
 	default:
 		break;
 	case 1:
-		glColor3f(1.0, 0.0, 0.0);
-		glBegin(GL_LINES);
+		shader->setColor(1.0f, 0.0f, 0.0f, 1.0f);
 		for (std::vector<cv::Point2d>::const_iterator it = points_detected.begin(); it != points_detected.end(); ++it)
 		{
-			glVertex2f((*it).x - 2, (*it).y);
-			glVertex2f((*it).x + 2, (*it).y);
-			glVertex2f((*it).x, (*it).y - 2);
-			glVertex2f((*it).x, (*it).y + 2);
+			float x = static_cast<float>((*it).x);
+			float y = static_cast<float>((*it).y);
+			lineRenderer->addLine(QVector3D(x - 2, y, 0), QVector3D(x + 2, y, 0));
+			lineRenderer->addLine(QVector3D(x, y - 2, 0), QVector3D(x, y + 2, 0));
 		}
-		glEnd();
+		lineRenderer->render();
+		lineRenderer->clear();
 		break;
 	case 2:
-		drawPoints(points_grid_distorted);
+		drawPoints(points_grid_distorted, shader, lineRenderer);
 		break;
 	case 3:
-		drawPoints(points_grid_undistorted);
+		drawPoints(points_grid_undistorted, shader, lineRenderer);
 		break;
 	case 4:
-		drawPoints(points_grid_references);
+		drawPoints(points_grid_references, shader, lineRenderer);
 		break;
 	}
 
 	if (isCenterSet())
 	{
-		glColor3f(0.0, 0.0, 1.0);
-		glBegin(GL_LINES);
-		glVertex2f(center.x - 5, center.y - 5);
-		glVertex2f(center.x + 5, center.y + 5);
-		glVertex2f(center.x + 5, center.y - 5);
-		glVertex2f(center.x - 5, center.y + 5);
-		glEnd();
+		shader->setColor(0.0f, 0.0f, 1.0f, 1.0f);
+		float cx = static_cast<float>(center.x);
+		float cy = static_cast<float>(center.y);
+		lineRenderer->addLine(QVector3D(cx - 5, cy - 5, 0), QVector3D(cx + 5, cy + 5, 0));
+		lineRenderer->addLine(QVector3D(cx + 5, cy - 5, 0), QVector3D(cx - 5, cy + 5, 0));
+		lineRenderer->render();
+		lineRenderer->clear();
 	}
+	
+	shader->release();
 }
 
 void UndistortionObject::computeTmpImage(int type)

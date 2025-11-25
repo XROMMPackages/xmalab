@@ -24,47 +24,34 @@
 ///\author Benjamin Knorlein
 ///\date 7/28/2016
 
-#include <GL/glew.h>
-
 #include "gl/Shader.h"
 #include <iostream>
 #include <string>
 #include <vector>
-
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
 #include <QOpenGLContext>
-#else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
 
 using namespace xma;
 
-static void printShaderLog(GLuint shader, const char* stage, const char* name)
+static void printShaderLog(QOpenGLFunctions_4_1_Core* gl, GLuint shader, const char* stage, const char* name)
 {
 	GLint logLen = 0;
-	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
+	gl->glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
 	if (logLen > 1) {
 		std::vector<char> buf(static_cast<size_t>(logLen));
 		GLsizei outLen = 0;
-		glGetShaderInfoLog(shader, logLen, &outLen, buf.data());
+		gl->glGetShaderInfoLog(shader, logLen, &outLen, buf.data());
 		std::cerr << "[Shader] " << stage << " log for '" << (name ? name : "?") << "':\n" << buf.data() << std::endl;
 	}
 }
 
-static void printProgramLog(GLuint program, const char* name)
+static void printProgramLog(QOpenGLFunctions_4_1_Core* gl, GLuint program, const char* name)
 {
 	GLint logLen = 0;
-	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLen);
+	gl->glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLen);
 	if (logLen > 1) {
 		std::vector<char> buf(static_cast<size_t>(logLen));
 		GLsizei outLen = 0;
-		glGetProgramInfoLog(program, logLen, &outLen, buf.data());
+		gl->glGetProgramInfoLog(program, logLen, &outLen, buf.data());
 		std::cerr << "[Shader] Link log for program '" << (name ? name : "?") << "':\n" << buf.data() << std::endl;
 	}
 }
@@ -92,20 +79,17 @@ Shader::~Shader()
 {
 	if (m_programID)
 	{
-#ifdef __APPLE__
-		// Avoid macOS driver crashes when no context is current
-		if (QOpenGLContext::currentContext()) {
+		if (QOpenGLContext::currentContext() && initGLFunctions()) {
 			glDeleteProgram(m_programID);
 		}
-#else
-		glDeleteProgram(m_programID);
-#endif
 		m_programID = 0;
 	}
 }
 
 void Shader::bindProgram()
 {
+	if (!initGLFunctions()) return;
+	
 	if (!m_programID)
 	{
 		m_programID = compileShader();
@@ -115,6 +99,7 @@ void Shader::bindProgram()
 
 void Shader::unbindProgram()
 {
+	if (!initGLFunctions()) return;
 	glUseProgram(0);
 }
 
@@ -130,6 +115,11 @@ unsigned Shader::getProgram()
 
 unsigned int Shader::compileShader()
 {
+	if (!initGLFunctions()) {
+		std::cerr << "could not initialize GL functions for shader" << std::endl;
+		return 0;
+	}
+	
 	if (!m_shader || !m_vertexShader || !m_fragmentShader) {
 		std::cerr << "could not create Shader" << std::endl;
 		return 0;
@@ -146,7 +136,7 @@ unsigned int Shader::compileShader()
 	if (shaderCompiled != GL_TRUE)
 	{
 		std::cerr << "Error compiling vertex shader " << m_shader << std::endl;
-		printShaderLog(vertexShader, "vertex", m_shader);
+		printShaderLog(this, vertexShader, "vertex", m_shader);
 		glDeleteProgram(programID);
 		glDeleteShader(vertexShader);
 		return 0;
@@ -164,7 +154,7 @@ unsigned int Shader::compileShader()
 	if (shaderCompiled != GL_TRUE)
 	{
 		std::cerr << "Error compiling fragment shader " << m_shader << std::endl;
-		printShaderLog(fragmentShader, "fragment", m_shader);
+		printShaderLog(this, fragmentShader, "fragment", m_shader);
 		glDeleteProgram(programID);
 		glDeleteShader(fragmentShader);
 		return 0;
@@ -180,7 +170,7 @@ unsigned int Shader::compileShader()
 	if (success != GL_TRUE)
 	{
 		std::cerr << "Error linking program " << m_shader << std::endl;
-		printProgramLog(programID, m_shader);
+		printProgramLog(this, programID, m_shader);
 		glDeleteProgram(programID); // FIX: delete correct programID
 		return 0;
 	}

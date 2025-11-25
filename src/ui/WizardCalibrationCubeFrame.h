@@ -28,6 +28,7 @@
 #define WIZARDCALIBRATIONCUBEFRAME_H_
 
 #include <QFrame>
+#include <QMatrix4x4>
 
 #include "ui/State.h"
 
@@ -57,7 +58,7 @@ namespace xma
 		void loadCalibrationSettings();
 		bool manualCalibrationRunning();
 		void addCalibrationReference(double x, double y);
-		void draw();
+		void draw(const QMatrix4x4& mvp);
 
 		void runCalibrationCameraAllFrames();
 		bool checkForPendingChanges();

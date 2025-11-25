@@ -30,6 +30,7 @@
 #define RIGIDBODYOBJ
 
 #include <QString>
+#include <QMatrix4x4>
 #include <vector>
 
 namespace xma
@@ -46,7 +47,7 @@ namespace xma
 		
 		QString getFilename();
 
-		void render(int frame);
+		void render(int frame, const QMatrix4x4& projection, const QMatrix4x4& view);
 
 		bool vboSet();
 

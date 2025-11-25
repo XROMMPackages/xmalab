@@ -27,11 +27,12 @@
 #ifndef VERTEXBUFFER_H_
 #define VERTEXBUFFER_H_
 #include <QtCore/QMutex>
+#include "gl/GLFunctions.h"
 
 namespace xma
 {
 
-	class VertexBuffer
+	class VertexBuffer : public GLFunctions
 	{
 	public:
 		VertexBuffer();
@@ -46,6 +47,7 @@ namespace xma
 		bool m_initialised;
 
 		void setupVBO();
+		unsigned int vaoId;
 		unsigned int vboId;
 		unsigned int nboId;
 		unsigned int tboId;

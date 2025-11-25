@@ -29,6 +29,7 @@
 
 #include <QString>
 #include <QColor>
+#include <QMatrix4x4>
 
 #include <vector>
 #include <opencv2/opencv.hpp>
@@ -124,8 +125,8 @@ namespace xma
 		QColor getColor();
 		void setColor(QColor value);
 
-		void draw2D(Camera* cam, int frame);
-		void draw3D(int frame);
+		void draw2D(Camera* cam, int frame, const QMatrix4x4& mvp);
+		void draw3D(int frame, const QMatrix4x4& projection, const QMatrix4x4& view);
 		void recomputeTransformations();
 		void makeRotationsContinous();
 		void filterTransformations();
@@ -146,7 +147,7 @@ namespace xma
 		QString getMeshModelname();
 		bool getDrawMeshModel();
 		void setDrawMeshModel(bool value);
-		void drawMesh(int frame);
+		void drawMesh(int frame, const QMatrix4x4& projection, const QMatrix4x4& view);
 		double getMeshScale();
 		void setMeshScale(double value);
 

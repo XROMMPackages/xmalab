@@ -42,9 +42,16 @@
 #include "core/RigidBody.h"
 #include "core/CalibrationSequence.h"
 
+#include "gl/ShaderManager.h"
+#include "gl/SimpleColorShader.h"
+#include "gl/LitColorShader.h"
+#include "gl/TexturedQuadShader.h"
+
 #include <QApplication>
 #include <QMouseEvent>
 #include "GLSharedWidget.h"
+
+#include <cmath>
 
 #ifndef _PI
 #define _PI 3.141592653
@@ -52,12 +59,9 @@
 
 using namespace xma;
 
-GLfloat LightAmbient[] = {0.3f, 0.3f, 0.3f, 1.0f}; // Ambient Light Values
-GLfloat LightDiffuse[] = {0.5f, 0.5f, 0.5f, 1.0f}; // Diffuse Light Values
-GLfloat LightPosition[] = {0.0f, 10.0f, 0.0f, 1.0f}; // Light Position
-
 WorldViewDockGLWidget::WorldViewDockGLWidget(QWidget* parent)
-	: QOpenGLWidget(parent), useCustomTimeline(false), frame(0)
+	: QOpenGLWidget(parent), useCustomTimeline(false), frame(0),
+	  m_quadVAO(0), m_quadVBO(0), m_quadInitialized(false)
 {
 	eyedistance = 500.0;
 	azimuth = 45.0;
@@ -88,7 +92,12 @@ void WorldViewDockGLWidget::setFocalPlaneDistance(float distance)
 
 WorldViewDockGLWidget::~WorldViewDockGLWidget()
 {
-	if (opengl_initialised)gluDeleteQuadric(sphere_quadric);
+	makeCurrent();
+	if (m_quadInitialized) {
+		glDeleteVertexArrays(1, &m_quadVAO);
+		glDeleteBuffers(1, &m_quadVBO);
+	}
+	doneCurrent();
 }
 
 void WorldViewDockGLWidget::setUseCustomTimeline(bool value)
@@ -133,21 +142,70 @@ void WorldViewDockGLWidget::wheelEvent(QWheelEvent* e)
 
 void WorldViewDockGLWidget::initializeGL()
 {
-	glShadeModel(GL_SMOOTH); // Enable Smooth Shading
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
-	glClearDepth(1.0f); // Depth Buffer Setup
-	glEnable(GL_DEPTH_TEST); // Enables Depth Testing
-	glDepthFunc(GL_LEQUAL); // The Type Of Depth Testing To Do
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective Calculations
+	initializeOpenGLFunctions();
+	
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearDepth(1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	
+	// Initialize shader manager
+	ShaderManager::getInstance()->initializeShaders();
+	
+	opengl_initialised = true;
+}
 
-	glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient); // Setup The Ambient Light
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse); // Setup The Diffuse Light
-	glLightfv(GL_LIGHT1, GL_POSITION, LightPosition); // Position The Light
-	glEnable(GL_LIGHT1);
-	glEnable(GL_LIGHTING);
+void WorldViewDockGLWidget::initQuadVAO()
+{
+	if (m_quadInitialized) return;
+	
+	glGenVertexArrays(1, &m_quadVAO);
+	glGenBuffers(1, &m_quadVBO);
+	
+	glBindVertexArray(m_quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
+	
+	// Allocate space for dynamic quad data (position xyz + texcoord uv) * 6 vertices
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 5 * 6, nullptr, GL_DYNAMIC_DRAW);
+	
+	// Position attribute (location 0)
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	
+	// TexCoord attribute (location 1)
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
+	m_quadInitialized = true;
+}
 
-	glEnable(GL_COLOR_MATERIAL);
-	glColorMaterial(GL_FRONT,GL_AMBIENT_AND_DIFFUSE);
+void WorldViewDockGLWidget::drawTexturedQuad3D(float x1, float y1, float x2, float y2, float z,
+                                                float tx1, float ty1, float tx2, float ty2)
+{
+	initQuadVAO();
+	
+	// Two triangles forming a quad
+	float vertices[] = {
+		// Position (x, y, z)      TexCoord (u, v)
+		z * x1, z * y1, z,         tx1, ty2,   // bottom-left
+		z * x2, z * y1, z,         tx2, ty2,   // bottom-right
+		z * x2, z * y2, z,         tx2, ty1,   // top-right
+		
+		z * x1, z * y1, z,         tx1, ty2,   // bottom-left
+		z * x2, z * y2, z,         tx2, ty1,   // top-right
+		z * x1, z * y2, z,         tx1, ty1,   // top-left
+	};
+	
+	glBindVertexArray(m_quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+	
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	
+	glBindVertexArray(0);
 }
 
 void WorldViewDockGLWidget::resizeGL(int _w, int _h)
@@ -162,9 +220,9 @@ void WorldViewDockGLWidget::resizeGL(int _w, int _h)
 
 void WorldViewDockGLWidget::paintGL()
 {
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(25.0, (double(w)) / h, 1.0, 100000.0);
+	// Set up projection matrix
+	m_projection.setToIdentity();
+	m_projection.perspective(25.0f, float(w) / float(h), 1.0f, 100000.0f);
 
 	double e_z = eyedistance * cos(polar * _PI / 180.0) * sin(azimuth * _PI / 180.0);
 	double e_x = eyedistance * sin(polar * _PI / 180.0) * sin(azimuth * _PI / 180.0);
@@ -172,33 +230,40 @@ void WorldViewDockGLWidget::paintGL()
 
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	gluLookAt(e_x, e_y, e_z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	glRotated(-90.0, 1.0, 0.0, 0.0);
-	glRotated(180.0, 0.0, 0.0, 1.0);
+	
+	// Set up view matrix
+	m_view.setToIdentity();
+	m_view.lookAt(QVector3D(e_x, e_y, e_z), QVector3D(0.0, 0.0, 0.0), QVector3D(0.0, 1.0, 0.0));
+	m_view.rotate(-90.0f, 1.0f, 0.0f, 0.0f);
+	m_view.rotate(180.0f, 0.0f, 0.0f, 1.0f);
+	
+	// Set up model matrix (identity for now)
+	m_model.setToIdentity();
 
-	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	// Draw coordinate axes using SimpleColorShader
+	SimpleColorShader* colorShader = ShaderManager::getInstance()->getSimpleColorShader();
+	colorShader->bind();
+	
+	QMatrix4x4 mvp = m_projection * m_view * m_model;
+	colorShader->setMVP(mvp);
+	
 	glLineWidth(2.5);
-	glColor3f(1.0, 0.0, 0.0);
-	glBegin(GL_LINES);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(100.0, 0, 0);
-	glEnd();
-
-	glColor3f(0.0, 1.0, 0.0);
-	glBegin(GL_LINES);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(0, 100.0, 0);
-	glEnd();
-
-	glColor3f(0.0, 0.0, 1.0);
-	glBegin(GL_LINES);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(0, 0, 100.0);
-	glEnd();
+	
+	// X axis (red)
+	colorShader->setColor(1.0f, 0.0f, 0.0f);
+	colorShader->drawLine(QVector3D(0.0f, 0.0f, 0.0f), QVector3D(100.0f, 0.0f, 0.0f));
+	
+	// Y axis (green)
+	colorShader->setColor(0.0f, 1.0f, 0.0f);
+	colorShader->drawLine(QVector3D(0.0f, 0.0f, 0.0f), QVector3D(0.0f, 100.0f, 0.0f));
+	
+	// Z axis (blue)
+	colorShader->setColor(0.0f, 0.0f, 1.0f);
+	colorShader->drawLine(QVector3D(0.0f, 0.0f, 0.0f), QVector3D(0.0f, 0.0f, 100.0f));
+	
+	colorShader->release();
 
 	//////////DRAW
 	if (this->isVisible())
@@ -229,12 +294,14 @@ void WorldViewDockGLWidget::paintGL()
 
 void WorldViewDockGLWidget::drawCameras()
 {
+	SimpleColorShader* colorShader = ShaderManager::getInstance()->getSimpleColorShader();
+	TexturedQuadShader* texShader = ShaderManager::getInstance()->getTexturedQuadShader();
+	
 	for (unsigned int cam = 0; cam < Project::getInstance()->getCameras().size(); cam++)
 	{
 		if (Project::getInstance()->getCameras()[cam]->isCalibrated()
 			&& (Project::getInstance()->getCameras()[cam]->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() > 0))
 		{
-			glPushMatrix();
 			double m[16];
 			//inversere Rotation = transposed rotation
 			//and opengl requires transposed, so we set R
@@ -279,27 +346,29 @@ void WorldViewDockGLWidget::drawCameras()
 				+ m[6] * -transTmp.at<double>(1, 0)
 				+ m[10] * -transTmp.at<double>(2, 0);
 			m[15] = 1.0;
-			glMultMatrixd(m);
+			
+			// Create camera transform matrix
+			QMatrix4x4 camTransform(
+				m[0], m[4], m[8], m[12],
+				m[1], m[5], m[9], m[13],
+				m[2], m[6], m[10], m[14],
+				m[3], m[7], m[11], m[15]
+			);
+			
+			QMatrix4x4 mvp = m_projection * m_view * m_model * camTransform;
 
-			//Draw CO
-			glColor3f(1.0, 0.0, 0.0);
-			glBegin(GL_LINES);
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(10.0, 0, 0);
-			glEnd();
-
-			glColor3f(0.0, 1.0, 0.0);
-			glBegin(GL_LINES);
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(0, 10.0, 0);
-			glEnd();
-
-			glColor3f(0.0, 0.0, 1.0);
-			glBegin(GL_LINES);
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(0, 0, 10.0);
-			glEnd();
-
+			// Draw camera coordinate axes
+			colorShader->bind();
+			colorShader->setMVP(mvp);
+			
+			colorShader->setColor(1.0f, 0.0f, 0.0f);
+			colorShader->drawLine(QVector3D(0.0f, 0.0f, 0.0f), QVector3D(10.0f, 0.0f, 0.0f));
+			
+			colorShader->setColor(0.0f, 1.0f, 0.0f);
+			colorShader->drawLine(QVector3D(0.0f, 0.0f, 0.0f), QVector3D(0.0f, 10.0f, 0.0f));
+			
+			colorShader->setColor(0.0f, 0.0f, 1.0f);
+			colorShader->drawLine(QVector3D(0.0f, 0.0f, 0.0f), QVector3D(0.0f, 0.0f, 10.0f));
 
 			//Draw Boundaries
 			double x_min = (0 - camTmp.at<double>(0, 2)) / camTmp.at<double>(0, 0);
@@ -311,32 +380,30 @@ void WorldViewDockGLWidget::drawCameras()
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
-			glBegin(GL_LINES);
-			glVertex3f(0.0f, 0.0f, 0.0f);
-			glVertex3f(z * x_min, z * y_min, z);
-
-			glVertex3f(0.0f, 0.0f, 0.0f);
-			glVertex3f(z * x_min, z * y_max, z);
-
-			glVertex3f(0.0f, 0.0f, 0.0f);
-			glVertex3f(z * x_max, z * y_min, z);
-
-			glVertex3f(0.0f, 0.0f, 0.0f);
-			glVertex3f(z * x_max, z * y_max, z);
-			glEnd();
-
-			glBegin(GL_LINE_LOOP);
-			glVertex3f(z * x_min, z * y_min, z);
-			glVertex3f(z * x_min, z * y_max, z);
-			glVertex3f(z * x_max, z * y_max, z);
-			glVertex3f(z * x_max, z * y_min, z);
-			glEnd();
+			colorShader->setColor(1.0f, 1.0f, 1.0f, 0.2f);
+			
+			// Draw frustum lines from origin to corners
+			std::vector<QVector3D> frustumLines = {
+				QVector3D(0.0f, 0.0f, 0.0f), QVector3D(z * x_min, z * y_min, z),
+				QVector3D(0.0f, 0.0f, 0.0f), QVector3D(z * x_min, z * y_max, z),
+				QVector3D(0.0f, 0.0f, 0.0f), QVector3D(z * x_max, z * y_min, z),
+				QVector3D(0.0f, 0.0f, 0.0f), QVector3D(z * x_max, z * y_max, z)
+			};
+			colorShader->drawLines(frustumLines);
+			
+			// Draw rectangle at focal plane
+			std::vector<QVector3D> rectPoints = {
+				QVector3D(z * x_min, z * y_min, z),
+				QVector3D(z * x_min, z * y_max, z),
+				QVector3D(z * x_max, z * y_max, z),
+				QVector3D(z * x_max, z * y_min, z)
+			};
+			colorShader->drawLineLoop(rectPoints);
+			
+			colorShader->release();
 			glDisable(GL_BLEND);
 
-			glEnable(GL_TEXTURE_2D);
-
-
+			// Draw textured quad at focal plane
 			if (State::getInstance()->getWorkspace() == CALIBRATION)
 			{
 				Project::getInstance()->getCameras()[cam]->getCalibrationSequence()->bindTexture(State::getInstance()->getActiveFrameCalibration(),State::getInstance()->getCalibrationVisImage());
@@ -352,118 +419,110 @@ void WorldViewDockGLWidget::drawCameras()
 				}
 			}
 
-			glBegin(GL_QUADS);
-			glTexCoord2f(0.0f, 1.0f);
-			glVertex3f(z * x_min, z * y_min, z); // bottom left
-			glTexCoord2f(1.0f, 1.0f);
-			glVertex3f(z * x_max, z * y_min, z); // bottom right
-			glTexCoord2f(1.0f, 0.0f);
-			glVertex3f(z * x_max, z * y_max, z);// top right
-			glTexCoord2f(0.0f, 0.0f);
-			glVertex3f(z * x_min, z * y_max, z); // top left
-			glEnd();
+			// Use a simple textured quad shader with 3D support
+			// We need to draw the quad in 3D space with texture
+			texShader->bind();
+			texShader->setMVP(mvp);
+			texShader->setScaleBias(1.0f, 0.0f);
+			
+			// Draw the textured quad manually (need 3D version)
+			drawTexturedQuad3D(x_min, y_min, x_max, y_max, z, 0.0f, 1.0f, 1.0f, 0.0f);
+			
+			texShader->release();
 			glBindTexture(GL_TEXTURE_2D, 0);
-			glDisable(GL_TEXTURE_2D);
-
-			glPopMatrix();
 
 			camTmp.release();
 			rotTmp.release();
 			transTmp.release();
-
-			glDisable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	}
 }
 
 void WorldViewDockGLWidget::drawMarkers(Trial* trial, int frame)
 {
-	if (!opengl_initialised)
-	{
-		sphere_quadric = gluNewQuadric(); // Create A Pointer To The Quadric Object ( NEW )
-		gluQuadricNormals(sphere_quadric, GLU_SMOOTH); // Create Smooth Normals ( NEW )
-		gluQuadricTexture(sphere_quadric, GL_TRUE); // Create Texture Coords ( NEW )
-	}
+	LitColorShader* litShader = ShaderManager::getInstance()->getLitColorShader();
+	litShader->bind();
+	litShader->setProjectionMatrix(m_projection);
+	litShader->setViewMatrix(m_view);
+	litShader->setLightPosition(QVector3D(0.0f, 10.0f, 0.0f));
+	litShader->setAmbientColor(QVector3D(0.3f, 0.3f, 0.3f));
+	litShader->setDiffuseColor(QVector3D(0.5f, 0.5f, 0.5f));
 
 	for (unsigned int i = 0; i < trial->getMarkers().size(); i++)
 	{
 		if (trial->getMarkers()[i]->getStatus3D()[frame] > 0){
-			glPushMatrix();
 			if (i == trial->getActiveMarkerIdx())
 			{
-				glColor3f(1.0, 0.0, 0.0);
+				litShader->setColor(1.0f, 0.0f, 0.0f);
 			}
 			else
 			{
-				glColor3f(0.0, 1.0, 0.0);
+				litShader->setColor(0.0f, 1.0f, 0.0f);
 			}
 
-			glTranslated(trial->getMarkers()[i]->getPoints3D()[frame].x,
+			QVector3D pos(trial->getMarkers()[i]->getPoints3D()[frame].x,
 				trial->getMarkers()[i]->getPoints3D()[frame].y,
 				trial->getMarkers()[i]->getPoints3D()[frame].z);
 
-			gluSphere(sphere_quadric, 0.3f, 32, 32);
-
-			glPopMatrix();
+			litShader->drawSphere(pos, 0.3f);
 		}
 	}
+	litShader->release();
 }
 
 void WorldViewDockGLWidget::drawRigidBodies(Trial* trial, int frame)
 {
 	for (unsigned int i = 0; i < trial->getRigidBodies().size(); i++)
 	{
-		trial->getRigidBodies()[i]->draw3D(frame);
+		trial->getRigidBodies()[i]->draw3D(frame, m_projection, m_view);
 
 		if (trial->getRigidBodies()[i]->getDrawMeshModel())
-			trial->getRigidBodies()[i]->drawMesh(frame);
+			trial->getRigidBodies()[i]->drawMesh(frame, m_projection, m_view);
 	}
 }
 
 void WorldViewDockGLWidget::drawCalibrationCube()
 {
-	if (!opengl_initialised)
-	{
-		sphere_quadric = gluNewQuadric(); // Create A Pointer To The Quadric Object ( NEW )
-		gluQuadricNormals(sphere_quadric, GLU_SMOOTH); // Create Smooth Normals ( NEW )
-		gluQuadricTexture(sphere_quadric, GL_TRUE); // Create Texture Coords ( NEW )
-	}
-
 	if (CalibrationObject::getInstance()->isInitialised() && !CalibrationObject::getInstance()->isCheckerboard())
 	{
+		LitColorShader* litShader = ShaderManager::getInstance()->getLitColorShader();
+		litShader->bind();
+		litShader->setProjectionMatrix(m_projection);
+		litShader->setViewMatrix(m_view);
+		litShader->setLightPosition(QVector3D(0.0f, 10.0f, 0.0f));
+		litShader->setAmbientColor(QVector3D(0.3f, 0.3f, 0.3f));
+		litShader->setDiffuseColor(QVector3D(0.5f, 0.5f, 0.5f));
+		
 		for (unsigned int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); i++)
 		{
-			glPushMatrix();
 			if (i == CalibrationObject::getInstance()->getReferenceIDs()[0])
 			{
-				glColor3f(1.0, 0.0, 0.0);
+				litShader->setColor(1.0f, 0.0f, 0.0f);
 			}
 			else if (i == CalibrationObject::getInstance()->getReferenceIDs()[1])
 			{
-				glColor3f(0.0, 1.0, 0.0);
+				litShader->setColor(0.0f, 1.0f, 0.0f);
 			}
 			else if (i == CalibrationObject::getInstance()->getReferenceIDs()[2])
 			{
-				glColor3f(0.0, 0.0, 1.0);
+				litShader->setColor(0.0f, 0.0f, 1.0f);
 			}
 			else if (i == CalibrationObject::getInstance()->getReferenceIDs()[3])
 			{
-				glColor3f(1.0, 1.0, 0.0);
+				litShader->setColor(1.0f, 1.0f, 0.0f);
 			}
 			else
 			{
-				glColor3f(1.0, 1.0, 1.0);
+				litShader->setColor(1.0f, 1.0f, 1.0f);
 			}
 
-			glTranslated(CalibrationObject::getInstance()->getFrameSpecifications()[i].x,
-			             CalibrationObject::getInstance()->getFrameSpecifications()[i].y,
-			             CalibrationObject::getInstance()->getFrameSpecifications()[i].z);
+			QVector3D pos(CalibrationObject::getInstance()->getFrameSpecifications()[i].x,
+			              CalibrationObject::getInstance()->getFrameSpecifications()[i].y,
+			              CalibrationObject::getInstance()->getFrameSpecifications()[i].z);
 
-			gluSphere(sphere_quadric, 0.3f, 32, 32);
-
-			glPopMatrix();
+			litShader->drawSphere(pos, 0.3f);
 		}
+		litShader->release();
 	}
 }
 

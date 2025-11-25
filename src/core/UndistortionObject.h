@@ -32,6 +32,7 @@
 #endif
 
 #include <QString>
+#include <QMatrix4x4>
 
 #include <opencv2/opencv.hpp>
 
@@ -39,6 +40,8 @@ namespace xma
 {
 	class Camera;
 	class Image;
+	class SimpleColorShader;
+	class GLLineRenderer;
 
 	class UndistortionObject
 	{
@@ -150,7 +153,7 @@ namespace xma
 		void loadTextures();
 		void reloadTextures();
 
-		void drawData(int type);
+		void drawData(int type, const QMatrix4x4& mvp);
 		void bindTexture(int type);
 
 		std::vector<bool>& getInlier()
@@ -202,7 +205,7 @@ namespace xma
 
 		void savePoints(std::vector<cv::Point2d>& points, QString filename);
 		void loadPoints(std::vector<cv::Point2d>& points, QString filename);
-		void drawPoints(std::vector<cv::Point2d>& points);
+		void drawPoints(std::vector<cv::Point2d>& points, SimpleColorShader* shader, GLLineRenderer* lineRenderer);
 		int findClosestPoint(std::vector<cv::Point2d>& points, double x, double y, double macDistSquare = 100);
 		void computeError();
 

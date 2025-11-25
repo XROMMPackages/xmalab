@@ -249,7 +249,7 @@ void Image::loadTexture()
 				cvtColor(image, image_color_disp, cv::COLOR_GRAY2RGB);
 		}
 
-		glEnable(GL_TEXTURE_2D);
+		// glEnable(GL_TEXTURE_2D) is not needed in modern OpenGL - texturing is shader-based
 
 		if (!textureLoaded)
 		{
@@ -261,8 +261,8 @@ void Image::loadTexture()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		// Set texture clamping method
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.cols, image.rows,
 			0, GL_BGR, GL_UNSIGNED_BYTE, tex_image->ptr());

@@ -126,14 +126,14 @@ void WizardDockWidget::moveDigitizationPoint(int camera, double x, double y, boo
 	digitizationFrame->moveDigitizationPoint(camera, x, y, noDetection);
 }
 
-void WizardDockWidget::draw()
+void WizardDockWidget::draw(const QMatrix4x4& mvp)
 {
 	if (State::getInstance()->getWorkspace() == UNDISTORTION)
 	{
 	}
 	else if (State::getInstance()->getWorkspace() == CALIBRATION)
 	{
-		calibrationFrame->draw();
+		calibrationFrame->draw(mvp);
 	}
 }
 

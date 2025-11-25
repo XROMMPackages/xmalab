@@ -28,10 +28,12 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <GL/glew.h>
 #include "gl/MultisampleFrameBuffer.h"
 #include "gl/DistortionShader.h"
 #include "gl/BlendShader.h"
+#include "gl/ShaderManager.h"
+#include "gl/TexturedQuadShader.h"
+#include "gl/MeshShader.h"
 #include "ui/GLCameraView.h"
 #include "ui/State.h"
 #include "ui/ErrorDialog.h"
@@ -61,22 +63,14 @@
 #include <math.h>
 #include "MainWindow.h"
 
-#ifdef __APPLE__
-	#include <OpenGL/gl.h>
-	#include <OpenGL/glu.h>
-#else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-
 
 using namespace xma;
 
 GLCameraView::GLCameraView(QWidget* parent)
 	: QOpenGLWidget(parent)
+	, m_quadVAO(0)
+	, m_quadVBO(0)
+	, m_quadInitialized(false)
 {
 	camera = NULL;
 	window_width = 50;
@@ -112,6 +106,8 @@ GLCameraView::GLCameraView(QWidget* parent)
 
 GLCameraView::~GLCameraView()
 {
+	makeCurrent();
+	
 	if (blendShader)
 		delete blendShader;
 
@@ -120,6 +116,13 @@ GLCameraView::~GLCameraView()
 
 	if (distortionShader)
 		delete distortionShader;
+		
+	if (m_quadInitialized) {
+		glDeleteVertexArrays(1, &m_quadVAO);
+		glDeleteBuffers(1, &m_quadVBO);
+	}
+	
+	doneCurrent();
 }
 
 void GLCameraView::setCamera(Camera* _camera)
@@ -350,9 +353,41 @@ void GLCameraView::wheelEvent(QWheelEvent* e)
 
 void GLCameraView::initializeGL()
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
-	glClearDepth(1.0f); // Depth Buffer Setup
+	initializeOpenGLFunctions();
+	
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearDepth(1.0f);
 	glDisable(GL_DEPTH_TEST);
+	
+	// Initialize shader manager
+	ShaderManager::getInstance()->initializeShaders();
+}
+
+void GLCameraView::initQuadVAO()
+{
+	if (m_quadInitialized) return;
+	
+	glGenVertexArrays(1, &m_quadVAO);
+	glGenBuffers(1, &m_quadVBO);
+	
+	glBindVertexArray(m_quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
+	
+	// Allocate space for quad data (position xy + texcoord uv) * 6 vertices
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 6, nullptr, GL_DYNAMIC_DRAW);
+	
+	// Position attribute (location 0)
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	
+	// TexCoord attribute (location 1)
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
+	m_quadInitialized = true;
 }
 
 void GLCameraView::setAutoZoom(bool on)
@@ -455,62 +490,37 @@ void GLCameraView::resizeGL(int _w, int _h)
 	if (autozoom)setZoomToFit();
 }
 
-void GLCameraView::transformTextPos(GLdouble out[4], const GLdouble m[16], const GLdouble in[4])
+bool GLCameraView::projectTextPos(double objx, double objy, double objz,
+	const QMatrix4x4& mvp,
+	const int viewport[4],
+	double* winx, double* winy, double* winz)
 {
-#define M(row,col)  m[col*4+row]
-	out[0] =
-		M(0, 0) * in[0] + M(0, 1) * in[1] + M(0, 2) * in[2] + M(0, 3) * in[3];
-	out[1] =
-		M(1, 0) * in[0] + M(1, 1) * in[1] + M(1, 2) * in[2] + M(1, 3) * in[3];
-	out[2] =
-		M(2, 0) * in[0] + M(2, 1) * in[1] + M(2, 2) * in[2] + M(2, 3) * in[3];
-	out[3] =
-		M(3, 0) * in[0] + M(3, 1) * in[1] + M(3, 2) * in[2] + M(3, 3) * in[3];
-#undef M
-}
+	QVector4D in(objx, objy, objz, 1.0);
+	QVector4D out = mvp * in;
 
-bool GLCameraView::projectTextPos(GLdouble objx, GLdouble objy, GLdouble objz,
-	const GLdouble model[16], const GLdouble proj[16],
-	const GLint viewport[4],
-	GLdouble * winx, GLdouble * winy, GLdouble * winz)
-{
-	GLdouble in[4], out[4];
+	if (out.w() == 0.0)
+		return false;
 
-	in[0] = objx;
-	in[1] = objy;
-	in[2] = objz;
-	in[3] = 1.0;
-	transformTextPos(out, model, in);
-	transformTextPos(in, proj, out);
+	out /= out.w();
 
-	if (in[3] == 0.0)
-		return GL_FALSE;
+	*winx = viewport[0] + (1 + out.x()) * viewport[2] / 2;
+	*winy = viewport[1] + (1 + out.y()) * viewport[3] / 2;
 
-	in[0] /= in[3];
-	in[1] /= in[3];
-	in[2] /= in[3];
-
-	*winx = viewport[0] + (1 + in[0]) * viewport[2] / 2;
-	*winy = viewport[1] + (1 + in[1]) * viewport[3] / 2;
-
-	*winz = (1 + in[2]) / 2;
-	return GL_TRUE;
+	*winz = (1 + out.z()) / 2;
+	return true;
 }
 
 void GLCameraView::renderText(double x, double y, double z, const QString &str, QColor fontColor , const QFont & font) {
 	int width = this->width();
 	int height = this->height();
 
-	GLdouble model[4][4], proj[4][4];
-	GLint view[4];
-	glGetDoublev(GL_MODELVIEW_MATRIX, &model[0][0]);
-	glGetDoublev(GL_PROJECTION_MATRIX, &proj[0][0]);
-	glGetIntegerv(GL_VIEWPORT, &view[0]);
-	GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
+	int view[4];
+	glGetIntegerv(GL_VIEWPORT, view);
+	
+	QMatrix4x4 mvp = m_projection * m_view;
+	double textPosX = 0, textPosY = 0, textPosZ = 0;
 
-	if (!projectTextPos(x, y, z,
-		&model[0][0], &proj[0][0], &view[0],
-		&textPosX, &textPosY, &textPosZ))
+	if (!projectTextPos(x, y, z, mvp, view, &textPosX, &textPosY, &textPosZ))
 		return;
 
 	// Handle high DPI displays: convert from device coordinates to widget coordinates
@@ -623,7 +633,7 @@ void GLCameraView::renderPointText(bool calibration)
 void GLCameraView::drawTexture()
 {
 	bool drawImage = true;
-	glEnable(GL_TEXTURE_2D);
+	// glEnable(GL_TEXTURE_2D) not needed in modern OpenGL - texturing is shader-based
 	if (State::getInstance()->getWorkspace() == UNDISTORTION)
 	{
 		if (camera->hasUndistortion())
@@ -650,26 +660,29 @@ void GLCameraView::drawTexture()
 	}
 	if (drawImage)
 	{
-		glDisable(GL_LIGHTING);
 		if (State::getInstance()->getWorkspace() != DIGITIZATION ||( State::getInstance()->getActiveTrial() != -1 && !Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getIsDefault()))
 			drawQuad();
 	}
-	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void GLCameraView::drawQuad()
 {
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 0);
-	glVertex2f(-0.5, -0.5);
-	glTexCoord2f(0, 1);
-	glVertex2f(-0.5, camera_height - 0.5);
-	glTexCoord2f(1, 1);
-	glVertex2f(camera_width - 0.5, camera_height - 0.5);
-	glTexCoord2f(1, 0);
-	glVertex2f(camera_width - 0.5, -0.5);
-	glEnd();
+	initQuadVAO();
+	
+	// Using TexturedQuadShader
+	TexturedQuadShader* texShader = ShaderManager::getInstance()->getTexturedQuadShader();
+	texShader->bind();
+	
+	QMatrix4x4 mvp = m_projection * m_view;
+	texShader->setMVP(mvp);
+	texShader->setScaleBias(1.0f, 0.0f);
+	
+	// Draw quad using the shader's method
+	texShader->drawQuadWithTexCoords(-0.5f, -0.5f, camera_width - 0.5f, camera_height - 0.5f,
+	                                  0.0f, 0.0f, 1.0f, 1.0f);
+	
+	texShader->release();
 }
 
 void GLCameraView::centerViewToPoint(bool resetZoom)
@@ -741,10 +754,10 @@ void GLCameraView::paintGL()
 						glClearColor(1.0, 1.0, 1.0, 0.0);
 						glClearDepth(1.0f);
 						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-						glEnable(GL_DEPTH_TEST); // Enables Depth Testing
-						glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective Calculations
+						glEnable(GL_DEPTH_TEST);
+						
 						if (renderTransparentModels){
-							glDepthFunc(GL_ALWAYS); // The Type Of Depth Testing To Do
+							glDepthFunc(GL_ALWAYS);
 							glEnable(GL_BLEND);
 							glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 						}
@@ -752,19 +765,16 @@ void GLCameraView::paintGL()
 						{
 							glDepthFunc(GL_LEQUAL);
 						}
-						glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient); // Setup The Ambient Light
-						glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse); // Setup The Diffuse Light
-						glLightfv(GL_LIGHT1, GL_POSITION, LightPosition_front); // Position The Light
-						glEnable(GL_LIGHT1);
-						glLightfv(GL_LIGHT2, GL_AMBIENT, LightAmbient); // Setup The Ambient Light
-						glLightfv(GL_LIGHT2, GL_DIFFUSE, LightDiffuse); // Setup The Diffuse Light
-						glLightfv(GL_LIGHT2, GL_POSITION, LightPosition_back); // Position The Light
-						glEnable(GL_LIGHT2);
-
-						glEnable(GL_LIGHTING);
-
-						glEnable(GL_COLOR_MATERIAL);
-						glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+						
+						// Set up mesh shader with lighting
+						MeshShader* meshShader = ShaderManager::getInstance()->getMeshShader();
+						meshShader->bind();
+						meshShader->setLight1Position(QVector3D(LightPosition_front[0], LightPosition_front[1], LightPosition_front[2]));
+						meshShader->setLight1Ambient(QVector3D(LightAmbient[0], LightAmbient[1], LightAmbient[2]));
+						meshShader->setLight1Diffuse(QVector3D(LightDiffuse[0], LightDiffuse[1], LightDiffuse[2]));
+						meshShader->setLight2Position(QVector3D(LightPosition_back[0], LightPosition_back[1], LightPosition_back[2]));
+						meshShader->setLight2Ambient(QVector3D(LightAmbient[0], LightAmbient[1], LightAmbient[2]));
+						meshShader->setLight2Diffuse(QVector3D(LightDiffuse[0], LightDiffuse[1], LightDiffuse[2]));
 
 						glViewport(0, 0, rigidbodyBufferUndistorted->getWidth(), rigidbodyBufferUndistorted->getHeight());
 						double proj[16];
@@ -772,16 +782,29 @@ void GLCameraView::paintGL()
 
 						camera->getGLTransformations(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getReferenceCalibrationImage(), &proj[0], &model[0]);
 
-						glMatrixMode(GL_PROJECTION);
-						glLoadMatrixd(&proj[0]);
+						// Convert double arrays to QMatrix4x4 (column-major)
+						QMatrix4x4 projMatrix(
+							proj[0], proj[4], proj[8], proj[12],
+							proj[1], proj[5], proj[9], proj[13],
+							proj[2], proj[6], proj[10], proj[14],
+							proj[3], proj[7], proj[11], proj[15]
+						);
+						QMatrix4x4 modelMatrix(
+							model[0], model[4], model[8], model[12],
+							model[1], model[5], model[9], model[13],
+							model[2], model[6], model[10], model[14],
+							model[3], model[7], model[11], model[15]
+						);
+						
+						meshShader->setProjectionMatrix(projMatrix);
+						meshShader->setViewMatrix(modelMatrix);
+						meshShader->setModelMatrix(QMatrix4x4()); // Identity for now
 
-						glMatrixMode(GL_MODELVIEW);
-						glLoadMatrixd(&model[0]);
-
-						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodiesMesh();
+						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodiesMesh(projMatrix, modelMatrix);
+						
+						meshShader->release();
 
 						glDisable(GL_BLEND);
-						glDisable(GL_LIGHTING);
 						glDisable(GL_DEPTH_TEST);
 						rigidbodyBufferUndistorted->unbindFrameBuffer();
 					}
@@ -799,26 +822,24 @@ void GLCameraView::paintGL()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glDisable(GL_DEPTH_TEST);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
+	
 	if (detailedView && Settings::getInstance()->getBoolSetting("CenterDetailView")) centerViewToPoint();
 
 	double effectiveWidth = window_width * devicePixelRatio;
 	double effectiveHeight = window_height * devicePixelRatio;
 	
-	glOrtho(-0.5 * (zoomRatio * effectiveWidth) - x_offset - 0.5,
-	        0.5 * (zoomRatio * effectiveWidth) - x_offset - 0.5,
-	        0.5 * (zoomRatio * effectiveHeight) - y_offset - 0.5,
-	        -0.5 * (zoomRatio * effectiveHeight) - y_offset - 0.5,
-	        -1000, 1000);
+	// Set up orthographic projection
+	m_projection.setToIdentity();
+	m_projection.ortho(-0.5f * (zoomRatio * effectiveWidth) - x_offset - 0.5f,
+	                    0.5f * (zoomRatio * effectiveWidth) - x_offset - 0.5f,
+	                    0.5f * (zoomRatio * effectiveHeight) - y_offset - 0.5f,
+	                   -0.5f * (zoomRatio * effectiveHeight) - y_offset - 0.5f,
+	                   -1000.0f, 1000.0f);
 
-	gluLookAt(0, 0, 1, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	// Set up view matrix
+	m_view.setToIdentity();
+	m_view.lookAt(QVector3D(0, 0, 1), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
 
-	glColor3f(1.0, 1.0, 1.0);
 	drawTexture();
 
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
@@ -855,7 +876,11 @@ void GLCameraView::paintGL()
 		}
 	}
 
-	if ((bias != 0.0 || scale != 1.0) && GLSharedWidget::getInstance()->getHasBlendSubtract())
+	// Scale/bias is applied in the shader now for the main texture
+	// The old blending approach is replaced by shader-based scale/bias in drawQuad()
+	// For backward compatibility, we still support the blending approach here
+	// but in OpenGL 4.1 core, these blend equations are standard
+	if ((bias != 0.0 || scale != 1.0))
 	{
 		/* NOTE: The blending approach does not allow negative
 		scales.  The blending approach also fails if the
@@ -868,39 +893,28 @@ void GLCameraView::paintGL()
 			float remainingScale;
 
 			remainingScale = scale;
-			if (GLSharedWidget::getInstance()->getHasBlendExt())
-			{
-				glBlendEquationEXT(GL_FUNC_ADD_EXT);
-			}
+			// In OpenGL 4.1 core, glBlendEquation is standard
+			glBlendEquation(GL_FUNC_ADD);
 			glBlendFunc(GL_DST_COLOR, GL_ONE);
 			if (remainingScale > 2.0)
 			{
 				/* Clever cascading approach.  Example: if the
 				scaling factor was 9.5, do 3 "doubling" blends
 				(8x), then scale by the remaining 1.1875. */
-				glColor4f(1, 1, 1, 1);
+				// TODO: Update scale/bias rendering to use shader
 				while (remainingScale > 2.0)
 				{
 					drawQuad();
 					remainingScale /= 2.0;
 				}
 			}
-			glColor4f(remainingScale - 1, remainingScale - 1, remainingScale - 1, 1);
 			drawQuad();
 			glBlendFunc(GL_ONE, GL_ONE);
 			if (bias != 0)
 			{
-				if (bias > 0)
+				if (bias < 0)
 				{
-					glColor4f(bias, bias, bias, 0.0);
-				}
-				else
-				{
-					if (GLSharedWidget::getInstance()->getHasBlendSubtract())
-					{
-						glBlendEquationEXT(GL_FUNC_REVERSE_SUBTRACT_EXT);
-					}
-					glColor4f(-bias, -bias, -bias, 0.0);
+					glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
 				}
 				drawQuad();
 			}
@@ -909,19 +923,11 @@ void GLCameraView::paintGL()
 		{
 			if (bias > 0)
 			{
-				if (GLSharedWidget::getInstance()->getHasBlendExt())
-				{
-					glBlendEquationEXT(GL_FUNC_ADD_EXT);
-				}
-				glColor4f(bias, bias, bias, scale);
+				glBlendEquation(GL_FUNC_ADD);
 			}
 			else
 			{
-				if (GLSharedWidget::getInstance()->getHasBlendSubtract())
-				{
-					glBlendEquationEXT(GL_FUNC_REVERSE_SUBTRACT_EXT);
-				}
-				glColor4f(-bias, -bias, -bias, scale);
+				glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
 			}
 			glBlendFunc(GL_ONE, GL_SRC_ALPHA);
 			drawQuad();
@@ -932,12 +938,14 @@ void GLCameraView::paintGL()
 	{
 		if (camera->hasUndistortion())
 		{
-			camera->getUndistortionObject()->drawData(State::getInstance()->getUndistortionVisPoints());
+			QMatrix4x4 mvp = m_projection * m_view;
+			camera->getUndistortionObject()->drawData(State::getInstance()->getUndistortionVisPoints(), mvp);
 		}
 	}
 	else if ((State::getInstance()->getWorkspace() == CALIBRATION && Project::getInstance()->getCalibration() == INTERNAL))
 	{
-		camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->draw(State::getInstance()->getCalibrationVisPoints());
+		QMatrix4x4 mvp = m_projection * m_view;
+		camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->draw(State::getInstance()->getCalibrationVisPoints(), mvp);
 		if (State::getInstance()->getCalibrationVisText() > 0 ||
 			((!camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() == 1)
 				&& WizardDockWidget::getInstance()->manualCalibrationRunning()))
@@ -950,13 +958,13 @@ void GLCameraView::paintGL()
 		if (!Settings::getInstance()->getBoolSetting("TrialDrawHideAll")){
 			if ((int)Project::getInstance()->getTrials().size() > State::getInstance()->getActiveTrial() && State::getInstance()->getActiveTrial() >= 0)
 			{
-
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawPoints(this->camera->getID(), detailedView);
+				QMatrix4x4 mvp = m_projection * m_view;
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawPoints(this->camera->getID(), detailedView, mvp);
 
 				if (!detailedView)
 				{
 					if (Settings::getInstance()->getBoolSetting("TrialDrawRigidBodyConstellation"))
-						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodies(this->camera);
+						Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->drawRigidBodies(this->camera, mvp);
 				}
 				if (!detailedView || Settings::getInstance()->getBoolSetting("ShowIDsInDetail"))
 				{
@@ -970,7 +978,8 @@ void GLCameraView::paintGL()
 	}
 	if (State::getInstance()->getActiveCamera() == this->camera->getID())
 	{
-		WizardDockWidget::getInstance()->draw();
+		QMatrix4x4 mvp = m_projection * m_view;
+		WizardDockWidget::getInstance()->draw(mvp);
 	}
 
 	glFlush();

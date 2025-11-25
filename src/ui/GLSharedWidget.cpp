@@ -27,7 +27,6 @@
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #endif
-#include "GL/glew.h"
 
 #include "ui/GLSharedWidget.h"
 
@@ -39,12 +38,23 @@ using namespace xma;
 GLSharedWidget* GLSharedWidget::instance = NULL;
 
 GLSharedWidget::GLSharedWidget(QWidget* parent)
-	: QOpenGLWidget(parent), version(0.0f)
+	: QOpenGLWidget(parent), version(0.0f), hasBlendSubtract(false), hasBlendExt(false)
 {
 	setAutoFillBackground(false);
-	show();
-	initializeGL();
-	hide();
+	
+	// Set format explicitly for this widget
+	QSurfaceFormat format;
+	format.setVersion(4, 1);
+	format.setProfile(QSurfaceFormat::CoreProfile);
+	format.setDepthBufferSize(24);
+	format.setStencilBufferSize(8);
+	format.setSamples(0);
+	format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+	format.setRenderableType(QSurfaceFormat::OpenGL);
+	setFormat(format);
+	
+	// Don't show() or initialize here - let caller do it when ready
+	// This prevents crashes during early initialization
 }
 
 GLSharedWidget::~GLSharedWidget()
@@ -84,24 +94,25 @@ QString GLSharedWidget::getInfo() const
 
 void GLSharedWidget::initializeGL()
 {
-	GLenum err = glewInit();
-	if (GLEW_OK != err)
-	{
-		/* Problem: glewInit failed, something is seriously wrong. */
-		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+	// Initialize OpenGL 4.1 Core functions using the base class helper
+	if (!initGLFunctions()) {
+		fprintf(stderr, "Error: Failed to initialize OpenGL 4.1 Core functions\n");
+		return;
 	}
 
 	gl_VENDOR = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
 	gl_RENDERER = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
 	gl_VERSION = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
 	gl_SHADING_LANGUAGE_VERSION = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
-	gl_EXTENSIONS = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
+	// GL_EXTENSIONS is deprecated in core profile, use glGetStringi instead
+	gl_EXTENSIONS = QString();
 
 	QString version_string = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_VERSION)), 3);
 	version = version_string.toDouble();
 
-	hasBlendSubtract = glewGetExtension("GL_EXT_blend_subtract");
-	hasBlendExt = glewGetExtension("GL_EXT_blend_minmax");
+	// In OpenGL 4.1 Core, these blend operations are always available
+	hasBlendSubtract = true;
+	hasBlendExt = true;
 }
 
 bool GLSharedWidget::getHasBlendSubtract() const

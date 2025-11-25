@@ -28,6 +28,8 @@
 #define GLWIDGET_H_
 
 #include <QOpenGLWidget>
+#include <QOpenGLFunctions_4_1_Core>
+#include <QMatrix4x4>
 
 namespace xma
 {
@@ -35,7 +37,9 @@ namespace xma
 	class FrameBuffer;
 	class DistortionShader;
 	class BlendShader;
-	class GLCameraView : public QOpenGLWidget
+	class TexturedQuadShader;
+	
+	class GLCameraView : public QOpenGLWidget, protected QOpenGLFunctions_4_1_Core
 	{
 		Q_OBJECT
 
@@ -89,8 +93,7 @@ namespace xma
 		void setZoomRatio(double newZoomRation, bool autozoom = false);
 
 		void renderTextCentered(QString string);
-		inline bool projectTextPos(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble proj[16], const GLint viewport[4], GLdouble * winx, GLdouble * winy, GLdouble * winz);
-		inline void transformTextPos(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
+		bool projectTextPos(double objx, double objy, double objz, const QMatrix4x4& mvp, const int viewport[4], double* winx, double* winy, double* winz);
 		void renderText(double x, double y, double z, const QString &str, QColor fontColor, const QFont & font = QFont());
 		void renderPointText(bool calibration);
 		void drawTexture();
@@ -107,6 +110,18 @@ namespace xma
 		FrameBuffer * rigidbodyBufferUndistorted;
 		bool doDistortion;
 		bool renderMeshes;
+		
+		// Modern OpenGL state
+		QMatrix4x4 m_projection;
+		QMatrix4x4 m_view;
+		QMatrix4x4 m_model;
+		
+		// Quad VAO for drawing textured quads
+		GLuint m_quadVAO;
+		GLuint m_quadVBO;
+		bool m_quadInitialized;
+		void initQuadVAO();
+		
 	public:
 		signals :
 
@@ -115,10 +130,10 @@ namespace xma
 		void transparencyChanged(double zoom);
 
 	private:
-		GLfloat LightAmbient[4];
-		GLfloat LightDiffuse[4];
-		GLfloat LightPosition_front[4];
-		GLfloat LightPosition_back[4];
+		float LightAmbient[4];
+		float LightDiffuse[4];
+		float LightPosition_front[4];
+		float LightPosition_back[4];
 	};
 }
 

@@ -29,8 +29,6 @@
 /// ndr@pobox.com, http://www.pobox.com/~ndr/
 
 
-#include <GL/glew.h>
-
 #define  _CRT_SECURE_NO_WARNINGS
 
 #include "gl/GLMLoader.h"
@@ -38,16 +36,8 @@
 #include <cassert>
 #include <math.h>
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
+// For GL types (GLfloat, GLuint, etc.)
+#include <QOpenGLFunctions>
 
 #ifndef ANGLE_THRES
 #define ANGLE_THRES 0

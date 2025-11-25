@@ -1,0 +1,2 @@
+set(__QT_DEPLOY_TARGET_test_opengl_FILE /Users/peterfalkingham/Documents/XmaLab/xmalab/test_opengl/build/test_opengl)
+set(__QT_DEPLOY_TARGET_test_opengl_TYPE EXECUTABLE)

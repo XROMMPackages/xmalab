@@ -30,6 +30,7 @@
 #include <vector>
 #include <QString>
 #include <QStringList>
+#include <QMatrix4x4>
 #include "VideoStream.h"
 #include "EventData.h"
 
@@ -91,10 +92,10 @@ namespace xma
 		void bindTextures();
 		void save(QString path);
 
-		void drawRigidBodies(Camera* cam);
-		void drawRigidBodiesMesh();
+		void drawRigidBodies(Camera* cam, const QMatrix4x4& mvp);
+		void drawRigidBodiesMesh(const QMatrix4x4& projection, const QMatrix4x4& view);
 		bool renderMeshes();
-		void drawPoints(int cameraId, bool detailView);
+		void drawPoints(int cameraId, bool detailView, const QMatrix4x4& mvp);
 
 		int getStartFrame();
 		void setStartFrame(int value);

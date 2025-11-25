@@ -23,27 +23,16 @@
 ///\file RigidBodyObj.cpp
 ///\author Benjamin Knorlein
 ///\date 07/23/2016
-#include <GL/glew.h>
-
 
 /// The contents on this file are based on the GLM Loader by Nate Robins
 #include "gl/GLMLoader.h"
 #include "core/RigidBodyObj.h"
 #include "core/RigidBody.h"
 #include "core/Settings.h"
+#include "gl/ShaderManager.h"
+#include "gl/MeshShader.h"
 #include <iostream>
-
-
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
+#include <QMatrix4x4>
 
 using namespace xma;
 
@@ -71,22 +60,16 @@ bool RigidBodyObj::vboSet()
 	return m_vbo != NULL;
 }
 
-void RigidBodyObj::render(int frame)
+void RigidBodyObj::render(int frame, const QMatrix4x4& projection, const QMatrix4x4& view)
 {
-	if (m_body->getPoseComputed().size() <= frame)
+	if (m_body->getPoseComputed().size() <= (unsigned int)frame)
 		return;
 
 	if (m_body->getPoseComputed()[frame] || (Settings::getInstance()->getBoolSetting("TrialDrawFiltered") && m_body->getPoseFiltered()[frame])){
 		bool filtered = Settings::getInstance()->getBoolSetting("TrialDrawFiltered");
 		
-		glPushMatrix();
-
-		glColor4f(m_body->getColor().redF(), m_body->getColor().greenF(), m_body->getColor().blueF(), 1.0);
-
+		// Build the model transformation matrix
 		double m[16];
-		//inversere Rotation = transposed rotation
-		//and opengl requires transposed, so we set R
-
 		cv::Mat rotationMat;
 		cv::Rodrigues(m_body->getRotationVector(filtered)[frame], rotationMat);
 		for (unsigned int y = 0; y < 3; y++)
@@ -96,20 +79,38 @@ void RigidBodyObj::render(int frame)
 			m[y * 4 + 2] = rotationMat.at<double>(y, 2);
 			m[y * 4 + 3] = 0.0;
 		}
-		//inverse translation = translation rotated with inverse rotation/transposed rotation
-		//R-1 * -t = R^tr * -t
+		m[3] = 0.0; m[7] = 0.0; m[11] = 0.0;
 		m[12] = m[0] * -m_body->getTranslationVector(filtered)[frame][0] + m[4] * -m_body->getTranslationVector(filtered)[frame][1] + m[8] * -m_body->getTranslationVector(filtered)[frame][2];
 		m[13] = m[1] * -m_body->getTranslationVector(filtered)[frame][0] + m[5] * -m_body->getTranslationVector(filtered)[frame][1] + m[9] * -m_body->getTranslationVector(filtered)[frame][2];
 		m[14] = m[2] * -m_body->getTranslationVector(filtered)[frame][0] + m[6] * -m_body->getTranslationVector(filtered)[frame][1] + m[10] * -m_body->getTranslationVector(filtered)[frame][2];
 		m[15] = 1.0;
 		
-		glMultMatrixd(m);
-		glEnable(GL_NORMALIZE);
-		glScaled(m_body->getMeshScale(), m_body->getMeshScale(), m_body->getMeshScale());
+		// Create model matrix from the array (column-major)
+		QMatrix4x4 modelMatrix(
+			static_cast<float>(m[0]), static_cast<float>(m[4]), static_cast<float>(m[8]), static_cast<float>(m[12]),
+			static_cast<float>(m[1]), static_cast<float>(m[5]), static_cast<float>(m[9]), static_cast<float>(m[13]),
+			static_cast<float>(m[2]), static_cast<float>(m[6]), static_cast<float>(m[10]), static_cast<float>(m[14]),
+			static_cast<float>(m[3]), static_cast<float>(m[7]), static_cast<float>(m[11]), static_cast<float>(m[15])
+		);
+		
+		// Apply scale
+		float scale = static_cast<float>(m_body->getMeshScale());
+		modelMatrix.scale(scale, scale, scale);
+		
+		// Get the mesh shader and set up matrices
+		MeshShader* meshShader = ShaderManager::getInstance()->getMeshShader();
+		meshShader->bind();
+		meshShader->setProjectionMatrix(projection);
+		meshShader->setViewMatrix(view);
+		meshShader->setModelMatrix(modelMatrix);
+		
+		// Set color from rigid body
+		QColor bodyColor = m_body->getColor();
+		meshShader->setColor(bodyColor.redF(), bodyColor.greenF(), bodyColor.blueF(), 1.0f);
+		
 		if (m_vbo) m_vbo->render();
-
-		glDisable(GL_NORMALIZE);
-		glPopMatrix();
+		
+		meshShader->release();
 	}
 }
 

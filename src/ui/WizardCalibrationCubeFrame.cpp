@@ -48,18 +48,11 @@
 #include "processing/Calibration.h"
 #include "processing/MultiCameraCalibration.h"
 
-#include <QInputDialog>
+#include "gl/ShaderManager.h"
+#include "gl/SimpleColorShader.h"
+#include "gl/GLPrimitives.h"
 
-#ifdef __APPLE__
-	#include <OpenGL/gl.h>
-	#include <OpenGL/glu.h>
-#else
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
+#include <QInputDialog>
 
 using namespace xma;
 
@@ -278,22 +271,30 @@ bool WizardCalibrationCubeFrame::checkForPendingChanges()
 	}
 }
 
-void WizardCalibrationCubeFrame::draw()
+void WizardCalibrationCubeFrame::draw(const QMatrix4x4& mvp)
 {
+	SimpleColorShader* shader = ShaderManager::getInstance()->getSimpleColorShader();
+	GLLineRenderer* lineRenderer = GLPrimitives::getInstance()->getLineRenderer();
+	
+	shader->bind();
+	shader->setMVP(mvp);
+	shader->setColor(1.0f, 0.0f, 0.0f, 1.0f);
+	
 	for (int i = 0; i < 4; i++)
 	{
-		glColor3f(1.0, 0.0, 0.0);
-		glBegin(GL_LINES);
 		if (selectedReferencePoints[i].x > -1 &&
 			selectedReferencePoints[i].y > -1)
 		{
-			glVertex2f(selectedReferencePoints[i].x - 5, selectedReferencePoints[i].y - 5);
-			glVertex2f(selectedReferencePoints[i].x + 5, selectedReferencePoints[i].y + 5);
-			glVertex2f(selectedReferencePoints[i].x + 5, selectedReferencePoints[i].y - 5);
-			glVertex2f(selectedReferencePoints[i].x - 5, selectedReferencePoints[i].y + 5);
+			float x = static_cast<float>(selectedReferencePoints[i].x);
+			float y = static_cast<float>(selectedReferencePoints[i].y);
+			lineRenderer->addLine(QVector3D(x - 5, y - 5, 0), QVector3D(x + 5, y + 5, 0));
+			lineRenderer->addLine(QVector3D(x + 5, y - 5, 0), QVector3D(x - 5, y + 5, 0));
 		}
-		glEnd();
 	}
+	lineRenderer->render();
+	lineRenderer->clear();
+	
+	shader->release();
 }
 
 void WizardCalibrationCubeFrame::resetReferences()
