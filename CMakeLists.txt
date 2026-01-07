@@ -173,6 +173,7 @@ if (MSVC)
             /Ot         # Favor speed over size
             /Oy         # Omit frame pointers
             /Gy         # Function-level linking
+			/MP 	   # Multi-processor compilation
         )
         target_link_options(${PROJECT_NAME} PRIVATE
             /LTCG       # Link-time code generation
