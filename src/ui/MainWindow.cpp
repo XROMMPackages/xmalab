@@ -804,8 +804,7 @@ void MainWindow::loadProject(QString fileName, QString fileName_extraCalib)
 	connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(loadProjectFinished()));
 
 	QFuture<int> future = QtConcurrent::run([this, fileName, fileName_extraCalib]() -> int {
-		ProjectFileIO::getInstance()->loadProject(fileName, fileName_extraCalib);
-		return 0; // Return a default value
+		return ProjectFileIO::getInstance()->loadProject(fileName, fileName_extraCalib);
 	});
 	m_FutureWatcher->setFuture(future);
 
