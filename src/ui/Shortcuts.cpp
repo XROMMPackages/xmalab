@@ -232,11 +232,19 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 		}
 		if (_keyEvent->key() == Qt::Key_1)
 		{
+			if (_keyEvent->isAutoRepeat())
+			{
+				return true;
+			}
 			WizardDockWidget::getInstance()->trackPointsShortcut(false, _keyEvent->modifiers().testFlag(Qt::ControlModifier), _keyEvent->modifiers().testFlag(Qt::AltModifier));
 			return true; 
 		}
 		if (_keyEvent->key() == Qt::Key_2)
 		{
+			if (_keyEvent->isAutoRepeat())
+			{
+				return true;
+			}
 			WizardDockWidget::getInstance()->trackPointsShortcut(true, _keyEvent->modifiers().testFlag(Qt::ControlModifier), _keyEvent->modifiers().testFlag(Qt::AltModifier));
 			return true;
 		}

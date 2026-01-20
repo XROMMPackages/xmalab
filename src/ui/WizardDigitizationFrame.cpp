@@ -767,6 +767,10 @@ void WizardDigitizationFrame::goToFirstTrackedFrame()
 
 void WizardDigitizationFrame::trackPointsShortcut(bool direction, bool selected, bool continous)
 {
+	if (State::getInstance()->getDisableDraw())
+	{
+		return;
+	}
 	if (direction)
 	{
 		if (selected)
