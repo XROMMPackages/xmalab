@@ -37,10 +37,12 @@
 #include "ui/PlotWindow.h"
 #include <QShortcut>
 #include <QKeyEvent>
+#include "ui/State.h"
 
 using namespace xma;
 
 Shortcuts* Shortcuts::instance = NULL;
+
 
 Shortcuts::~Shortcuts()
 {
@@ -232,16 +234,16 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 		}
 		if (_keyEvent->key() == Qt::Key_1)
 		{
-			if (_keyEvent->isAutoRepeat())
+			if (State::getInstance()->getDisableDraw())
 			{
 				return true;
 			}
 			WizardDockWidget::getInstance()->trackPointsShortcut(false, _keyEvent->modifiers().testFlag(Qt::ControlModifier), _keyEvent->modifiers().testFlag(Qt::AltModifier));
-			return true; 
+			return true;
 		}
 		if (_keyEvent->key() == Qt::Key_2)
 		{
-			if (_keyEvent->isAutoRepeat())
+			if (State::getInstance()->getDisableDraw())
 			{
 				return true;
 			}
