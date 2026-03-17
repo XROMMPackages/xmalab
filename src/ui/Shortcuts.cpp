@@ -290,17 +290,17 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 			SequenceNavigationFrame::getInstance()->moveFrameToMissingBackward();
 			return true;
 		}
-		if (_keyEvent->key() == Qt::Key_Q)
+		if (_keyEvent->key() == Qt::Key_Q && !_keyEvent->modifiers().testFlag(Qt::MetaModifier))
 		{
 			SequenceNavigationFrame::getInstance()->on_toolButtonPrev_clicked();
 			return true;
 		}
-		if (_keyEvent->key() == Qt::Key_W)
+		if (_keyEvent->key() == Qt::Key_W && !_keyEvent->modifiers().testFlag(Qt::MetaModifier))
 		{
 			SequenceNavigationFrame::getInstance()->on_toolButtonNext_clicked();
 			return true;
 		}
-		if (_keyEvent->key() == Qt::Key_C)
+		if (_keyEvent->key() == Qt::Key_C && !_keyEvent->modifiers().testFlag(Qt::MetaModifier))
 		{
 			MainWindow::getInstance()->centerViews();
 			return true;
@@ -360,7 +360,7 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 			PlotWindow::getInstance()->deleteAllAboveError();
 			return true;
 		}
-		if (_keyEvent->key() == Qt::Key_H)
+		if (_keyEvent->key() == Qt::Key_H && !_keyEvent->modifiers().testFlag(Qt::MetaModifier))
 		{
 			DisplayOptionsDockWidget::getInstance()->toggleHideAll();
 			return true;
