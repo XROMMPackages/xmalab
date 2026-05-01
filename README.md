@@ -11,5 +11,15 @@ components of the MATLAB X-ray Project workflow. For marker-based XROMM, XMALab 
 ### XMALab Tutorial with example data on [xmaportal.org/sandbox/](http://xmaportal.org/sandbox/larequest.php?request=explorePublicStudy&StudyID=49&instit=SANDBOX1)
 ### Instructions on how to build the source code can be found [here](https://github.com/XROMMPackages/xmalab/wiki/Build-instructions-for-developers-(versions-greater-than-2.2.0))
 
+## Local integration with XROMM_DLCTools and DeepLabCut
+This repository is also used as a sibling checkout in the current local 3-repo workflow:
+- `../XROMM_DLCTools`
+- `../DeepLabCut`
+- `./xmalab`
+
+In that setup, `XROMM_DLCTools/scripts/baseline_harness.py` validates XMALab’s CSV import/export contract against `src/core/Trial.cpp` and participates in a broader end-to-end local workflow integration scenario.
+
+See `instructions.md` in this repo for the local sibling-checkout notes and the exact harness commands.
+
 XMALab development is supported by the US National Science Foundation through an Advances in Biological Informatics grant to PI Elizabeth Brainerd and 
 CoPIs Stephen Gatesy and David Baier.
