@@ -159,12 +159,20 @@ void WorldViewDockGLWidget::mousePressEvent(QMouseEvent* e)
 {
 	if (e->button() == Qt::RightButton && !(e->modifiers() & Qt::ControlModifier))
 	{
-		eyedistance = 500.0;
-		azimuth = 45.0;
-		polar = -45.0;
-		center_x = 0.0;
-		center_y = 0.0;
-		center_z = 0.0;
+		// If we have panned away from the center (using squared distance to check)
+		if (center_x * center_x + center_y * center_y + center_z * center_z > 0.0001)
+		{
+			center_x = 0.0;
+			center_y = 0.0;
+			center_z = 0.0;
+		}
+		else
+		{
+			// Already centered, reset zoom and rotation
+			eyedistance = 500.0;
+			azimuth = 45.0;
+			polar = -45.0;
+		}
 		update();
 	}
 
@@ -176,15 +184,34 @@ void WorldViewDockGLWidget::keyPressEvent(QKeyEvent* e)
 {
 	if (e->key() == Qt::Key_R)
 	{
-		eyedistance = 500.0;
-		azimuth = 45.0;
-		polar = -45.0;
-		center_x = 0.0;
-		center_y = 0.0;
-		center_z = 0.0;
+		if (center_x * center_x + center_y * center_y + center_z * center_z > 0.0001)
+		{
+			center_x = 0.0;
+			center_y = 0.0;
+			center_z = 0.0;
+		}
+		else
+		{
+			eyedistance = 500.0;
+			azimuth = 45.0;
+			polar = -45.0;
+		}
 		update();
 	}
-	
+    else if (e->key() == Qt::Key_O)
+    {
+        // Increase eyedistance for zooming out
+        eyedistance += 10.0;
+        update();
+    }
+    else if (e->key() == Qt::Key_P)
+    {
+        // Decrease eyedistance for zooming in, with a minimum limit
+        eyedistance -= 10.0;
+        if (eyedistance < 100.0) eyedistance = 100.0;
+        update();
+    }
+
 	QOpenGLWidget::keyPressEvent(e);
 }
 
