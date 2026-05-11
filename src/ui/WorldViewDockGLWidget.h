@@ -66,6 +66,7 @@ namespace xma
 		void mouseMoveEvent(QMouseEvent* e) override;
 		void mousePressEvent(QMouseEvent* e) override;
 		void wheelEvent(QWheelEvent* event) override;
+		void keyPressEvent(QKeyEvent* event) override;
 
 	private:
 		int w, h;
@@ -76,6 +77,10 @@ namespace xma
 		double prev_azi;
 		double prev_pol;
 		double focal_plane_distance;
+		
+		double center_x;
+		double center_y;
+		double center_z;
 		
 		int frame;
 		bool useCustomTimeline;

@@ -44,6 +44,7 @@
 
 #include <QApplication>
 #include <QMouseEvent>
+#include <QKeyEvent>
 #include "GLSharedWidget.h"
 
 #ifndef _PI
@@ -63,6 +64,10 @@ WorldViewDockGLWidget::WorldViewDockGLWidget(QWidget* parent)
 	azimuth = 45.0;
 	polar = -45.0;
 	focal_plane_distance = 200;
+	
+	center_x = 0.0;
+	center_y = 0.0;
+	center_z = 0.0;
 	
 	w = 50;
 	h = 50;
@@ -113,16 +118,74 @@ void WorldViewDockGLWidget::mouseMoveEvent(QMouseEvent* e)
 		prev_pol = e->pos().x();
 		update();
 	}
+	else if ((e->buttons() & Qt::MiddleButton) || ((e->buttons() & Qt::RightButton) && (e->modifiers() & Qt::ControlModifier)))
+	{
+		double dx = e->pos().x() - prev_pol;
+		double dy = e->pos().y() - prev_azi;
+		
+		double e_x = sin(polar * _PI / 180.0) * sin(azimuth * _PI / 180.0);
+		double e_y = cos(azimuth * _PI / 180.0);
+		double e_z = cos(polar * _PI / 180.0) * sin(azimuth * _PI / 180.0);
+        
+		double right_x = -e_z;
+		double right_y = 0;
+		double right_z = e_x;
+		
+		double r_len = sqrt(right_x * right_x + right_z * right_z);
+		if (r_len > 0.0) 
+		{
+			right_x /= r_len;
+			right_z /= r_len;
+		}
+
+		double up_x = right_y * -e_z - right_z * -e_y;
+		double up_y = right_z * -e_x - right_x * -e_z;
+		double up_z = right_x * -e_y - right_y * -e_x;
+		
+		double panSens = eyedistance / 500.0;
+
+		center_x -= (right_x * dx - up_x * dy) * panSens;
+		center_y -= (right_y * dx - up_y * dy) * panSens;
+		center_z -= (right_z * dx - up_z * dy) * panSens;
+		
+		prev_pol = e->pos().x();
+		prev_azi = e->pos().y();
+		update();
+	}
 }
 
 
 void WorldViewDockGLWidget::mousePressEvent(QMouseEvent* e)
 {
-	if (e->buttons() & Qt::LeftButton)
+	if (e->button() == Qt::RightButton && !(e->modifiers() & Qt::ControlModifier))
 	{
-		prev_azi = e->pos().y();
-		prev_pol = e->pos().x();
+		eyedistance = 500.0;
+		azimuth = 45.0;
+		polar = -45.0;
+		center_x = 0.0;
+		center_y = 0.0;
+		center_z = 0.0;
+		update();
 	}
+
+	prev_azi = e->pos().y();
+	prev_pol = e->pos().x();
+}
+
+void WorldViewDockGLWidget::keyPressEvent(QKeyEvent* e)
+{
+	if (e->key() == Qt::Key_R)
+	{
+		eyedistance = 500.0;
+		azimuth = 45.0;
+		polar = -45.0;
+		center_x = 0.0;
+		center_y = 0.0;
+		center_z = 0.0;
+		update();
+	}
+	
+	QOpenGLWidget::keyPressEvent(e);
 }
 
 void WorldViewDockGLWidget::wheelEvent(QWheelEvent* e)
@@ -174,7 +237,7 @@ void WorldViewDockGLWidget::paintGL()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(e_x, e_y, e_z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	gluLookAt(e_x + center_x, e_y + center_y, e_z + center_z, center_x, center_y, center_z, 0.0, 1.0, 0.0);
 	glRotated(-90.0, 1.0, 0.0, 0.0);
 	glRotated(180.0, 0.0, 0.0, 1.0);
 
