@@ -128,7 +128,9 @@ IF (APPLE)
 		COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources
 		COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/MacOS
 		COMMAND cp ${CMAKE_SOURCE_DIR}/src/ui/resource-files/icons/${MACOSX_BUNDLE_ICON_FILE}
-			${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources/${MACOSX_BUNDLE_ICON_FILE})
+			${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources/${MACOSX_BUNDLE_ICON_FILE}
+		COMMAND cp ${CMAKE_SOURCE_DIR}/src/ui/resource-files/xmalab-dark.qss
+			${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources/xmalab-dark.qss)
 ENDIF (APPLE)
 
 #Set Definitions
@@ -211,7 +213,7 @@ IF(WIN32)
 		PATH_SUFFIXES bin
 	)
 
-	if(WINDEPLOYQT_EXECUTABLE)
+		if(WINDEPLOYQT_EXECUTABLE)
 		message(STATUS "Found windeployqt: ${WINDEPLOYQT_EXECUTABLE}")
 		add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 			COMMAND "${WINDEPLOYQT_EXECUTABLE}"
@@ -226,6 +228,14 @@ IF(WIN32)
 	else()
 		message(WARNING "windeployqt not found. Qt DLLs and plugins will not be auto-deployed.")
 	endif()
+
+	# Copy dark theme stylesheet to output directory
+	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			"${CMAKE_SOURCE_DIR}/src/ui/resource-files/xmalab-dark.qss"
+			"$<TARGET_FILE_DIR:${PROJECT_NAME}>/xmalab-dark.qss"
+		COMMENT "Copying dark theme stylesheet..."
+	)
 ENDIF()
 
 # Compiler-specific optimizations
