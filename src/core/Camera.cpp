@@ -38,14 +38,10 @@
 #include "core/CalibrationSequence.h"
 
 #include <QApplication>
+#include <QDir>
 
 #include <fstream>
 
-#ifdef WIN32
-#define OS_SEP "\\"
-#else
-	#define OS_SEP "/"
-#endif
 
 #ifndef _PI
 #define _PI 3.141592653
@@ -295,8 +291,8 @@ void Camera::save(QString folder)
 {
 	if (isCalibrated())
 	{
-		saveCameraMatrix(folder + "data" + OS_SEP + getFilenameCameraMatrix());
-		if (hasModelDistortion())saveUndistortionParam(folder + "data" + OS_SEP + getFilenameUndistortionParam());
+		saveCameraMatrix(folder + "data" + QDir::separator() + getFilenameCameraMatrix());
+		if (hasModelDistortion())saveUndistortionParam(folder + "data" + QDir::separator() + getFilenameUndistortionParam());
 	}
 
 	if (undistortionObject)
@@ -304,10 +300,10 @@ void Camera::save(QString folder)
 		undistortionObject->getImage()->save(folder + undistortionObject->getFilename(), isFlipped());
 		if (undistortionObject->isComputed())
 		{
-			undistortionObject->savePointsDetected(folder + "data" + OS_SEP + undistortionObject->getFilenamePointsDetected());
-			undistortionObject->saveGridPointsDistorted(folder + "data" + OS_SEP + undistortionObject->getFilenameGridPointsDistorted());
-			undistortionObject->saveGridPointsReferences(folder + "data" + OS_SEP + undistortionObject->getFilenameGridPointsReferences());
-			undistortionObject->saveGridPointsInlier(folder + "data" + OS_SEP + undistortionObject->getFilenameGridPointsInlier());
+			undistortionObject->savePointsDetected(folder + "data" + QDir::separator() + undistortionObject->getFilenamePointsDetected());
+			undistortionObject->saveGridPointsDistorted(folder + "data" + QDir::separator() + undistortionObject->getFilenameGridPointsDistorted());
+			undistortionObject->saveGridPointsReferences(folder + "data" + QDir::separator() + undistortionObject->getFilenameGridPointsReferences());
+			undistortionObject->saveGridPointsInlier(folder + "data" + QDir::separator() + undistortionObject->getFilenameGridPointsInlier());
 		}
 	}
 

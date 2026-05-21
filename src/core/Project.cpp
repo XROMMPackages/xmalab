@@ -36,16 +36,12 @@
 #include "core/UndistortionObject.h"
 
 #include <QApplication>
+#include <QDir>
 #include <QFileInfo>
 #include <QTextStream>
 #include <QXmlStreamReader>
 #include <QDateTime>
 
-#ifdef WIN32
-#define OS_SEP "\\"
-#else
-	#define OS_SEP "/"
-#endif
 
 using namespace xma;
 
@@ -157,25 +153,25 @@ void Project::set_date_created()
 
 bool Project::hasDefaultTrial()
 {
-	for (std::vector<Trial*>::iterator it = trials.begin(); it != trials.end(); ++it)
-		if ((*it)->getIsDefault()) return true;
+	for (Trial* trial : trials)
+		if (trial->getIsDefault()) return true;
 
 	return false;
 }
 
 Trial* Project::getDefaultTrail()
 {
-	for (std::vector<Trial*>::iterator it = trials.begin(); it != trials.end(); ++it)
-		if ((*it)->getIsDefault()) return *it;
+	for (Trial* trial : trials)
+		if (trial->getIsDefault()) return trial;
 
 	return NULL;
 }
 
 bool Project::camerasOptimized()
 {
-	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+	for (Camera* cam : cameras)
 	{
-		if (!(*it)->isOptimized())return false;
+		if (!cam->isOptimized())return false;
 	}
 	return true;
 }
@@ -183,12 +179,12 @@ bool Project::camerasOptimized()
 
 Project::~Project()
 {
-	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
-		delete (*it);
+	for (Camera* cam : cameras)
+		delete cam;
 	cameras.clear();
 
-	for (std::vector<Trial*>::iterator it = trials.begin(); it != trials.end(); ++it)
-		delete (*it);
+	for (Trial* trial : trials)
+		delete trial;
 	trials.clear();
 
 	delete CalibrationObject::getInstance();
@@ -222,9 +218,9 @@ const std::vector<Trial*>& Project::getTrials()
 
 Trial* Project::getTrialByName(QString Name)
 {
-	for (std::vector<Trial*>::iterator it = trials.begin(); it != trials.end(); ++it)
+	for (Trial* trial : trials)
 	{
-		if ((*it)->getName() == Name) return *it;
+		if (trial->getName() == Name) return trial;
 	}
 	return NULL;
 }
@@ -251,8 +247,8 @@ bool Project::isCalibrated()
 void Project::checkCalibration()
 {
 	calibrated = true;
-	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
-		calibrated = (*it)->isCalibrated() && calibrated;
+	for (Camera* cam : cameras)
+		calibrated = cam->isCalibrated() && calibrated;
 }
 
 void Project::addCamera(Camera* cam)
@@ -440,9 +436,9 @@ void Project::recountFrames()
 	if (cameras.size() > 0)
 	{
 		nbImagesCalibration = cameras[0]->getCalibrationImages().size();
-		for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+		for (Camera* cam : cameras)
 		{
-			if (nbImagesCalibration != (*it)->getCalibrationImages().size())
+			if (nbImagesCalibration != cam->getCalibrationImages().size())
 			{
 				fprintf(stderr, "Error Invalid number of images");
 			}
@@ -452,9 +448,9 @@ void Project::recountFrames()
 
 void Project::loadTextures()
 {
-	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+	for (Camera* cam : cameras)
 	{
-		(*it)->loadTextures();
+		cam->loadTextures();
 		QApplication::processEvents();
 	}
 
@@ -469,9 +465,9 @@ void Project::reloadTextures()
 			vid->getImage()->resetImage();
 		}
 	}
-	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+	for (Camera* cam : cameras)
 	{
-		(*it)->reloadTextures();
+		cam->reloadTextures();
 		QApplication::processEvents();
 	}
 }
@@ -483,12 +479,12 @@ void Project::exportDLT(QString foldername)
 		std::vector<double*> dlts;
 		double allCamsSet = true;
 
-		for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+		for (Camera* cam : cameras)
 		{
-			if ((*it)->getCalibrationImages()[frame]->isCalibrated() > 0)
+			if (cam->getCalibrationImages()[frame]->isCalibrated() > 0)
 			{
 				double* out = new double[12];
-				(*it)->getDLT(&out[0], frame);
+				cam->getDLT(&out[0], frame);
 				dlts.push_back(out);
 			}
 			else
@@ -499,7 +495,7 @@ void Project::exportDLT(QString foldername)
 
 		if (allCamsSet)
 		{
-			std::ofstream outfile((foldername + OS_SEP + "MergedDlts_Frame" + QString::number(frame) + ".csv").toStdString());
+			std::ofstream outfile((foldername + QDir::separator() + "MergedDlts_Frame" + QString::number(frame) + ".csv").toStdString());
 			outfile.precision(12);
 			for (unsigned int i = 0; i < 11; i++)
 			{
@@ -530,18 +526,18 @@ void Project::exportDLT(QString foldername)
 void Project::exportMayaCam(QString foldername, int frame)
 {
 	
-	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+	for (Camera* cam : cameras)
 	{
 		int start = (frame == -1) ? 0 : frame;
-		int stop = (frame == -1) ? (*it)->getCalibrationImages().size() : frame + 1;
+		int stop = (frame == -1) ? cam->getCalibrationImages().size() : frame + 1;
 
 		for (unsigned int f = start; f < stop; f++)
 		{
-			if ((*it)->getCalibrationImages()[f]->isCalibrated() > 0)
+			if (cam->getCalibrationImages()[f]->isCalibrated() > 0)
 			{
 				double out[15];
-				(*it)->getMayaCam(&out[0], f);
-				std::ofstream outfile((foldername + OS_SEP + (*it)->getCalibrationImages()[f]->getFilenameBase() + "_MayaCam.csv").toStdString());
+				cam->getMayaCam(&out[0], f);
+				std::ofstream outfile((foldername + QDir::separator() + cam->getCalibrationImages()[f]->getFilenameBase() + "_MayaCam.csv").toStdString());
 				outfile.precision(12);
 				for (unsigned int i = 0; i < 5; i++)
 				{
@@ -555,18 +551,18 @@ void Project::exportMayaCam(QString foldername, int frame)
 
 void Project::exportMayaCamVersion2(QString foldername, int frame, int id)
 {
-	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+	for (Camera* cam : cameras)
 	{
-		if (id == -1 || (*it)->getID() == id){
+		if (id == -1 || cam->getID() == id){
 
 			int start = (frame == -1) ? 0 : frame;
-			int stop = (frame == -1) ? (*it)->getCalibrationImages().size() : frame + 1;
+			int stop = (frame == -1) ? cam->getCalibrationImages().size() : frame + 1;
 
 			for (unsigned int f = start; f < stop; f++)
 			{
-				if ((*it)->getCalibrationImages()[f]->isCalibrated() > 0)
+				if (cam->getCalibrationImages()[f]->isCalibrated() > 0)
 				{
-					(*it)->saveMayaCamVersion2(f, foldername + OS_SEP + (*it)->getCalibrationImages()[f]->getFilenameBase() + "_MayaCam" + QString::number((*it)->getID() + 1) + ".txt");
+					cam->saveMayaCamVersion2(f, foldername + QDir::separator() + cam->getCalibrationImages()[f]->getFilenameBase() + "_MayaCam" + QString::number(cam->getID() + 1) + ".txt");
 				}
 			}
 		}
@@ -575,13 +571,13 @@ void Project::exportMayaCamVersion2(QString foldername, int frame, int id)
 
 void Project::exportLUT(QString foldername)
 {
-	for (std::vector<Camera*>::iterator it = cameras.begin(); it != cameras.end(); ++it)
+	for (Camera* cam : cameras)
 	{
-		if ((*it)->hasUndistortion() && (*it)->getUndistortionObject()->isComputed())
+		if (cam->hasUndistortion() && cam->getUndistortionObject()->isComputed())
 		{
-			(*it)->getUndistortionObject()->exportData(foldername + OS_SEP + (*it)->getUndistortionObject()->getFilenameBase() + "_LUT.csv",
-			                                           foldername + OS_SEP + (*it)->getUndistortionObject()->getFilenameBase() + "_INPTS.csv",
-			                                           foldername + OS_SEP + (*it)->getUndistortionObject()->getFilenameBase() + "_BSPTS.csv");
+			cam->getUndistortionObject()->exportData(foldername + QDir::separator() + cam->getUndistortionObject()->getFilenameBase() + "_LUT.csv",
+			                                         foldername + QDir::separator() + cam->getUndistortionObject()->getFilenameBase() + "_INPTS.csv",
+			                                         foldername + QDir::separator() + cam->getUndistortionObject()->getFilenameBase() + "_BSPTS.csv");
 		}
 	}
 }

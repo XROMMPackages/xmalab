@@ -53,12 +53,6 @@
 #include <QFileDialog>
 #include <algorithm>
 
-#ifdef WIN32
-#define OS_SEP "\\"
-#else
-#define OS_SEP "/"
-#endif
-
 using namespace xma;
 
 WorkspaceNavigationFrame* WorkspaceNavigationFrame::instance = NULL;
@@ -423,7 +417,7 @@ void WorkspaceNavigationFrame::changeDenoiseTrialDataAfterDenoise() {
 	std::vector<QStringList> imageFileNames_vector;
 	for (int i = 0; i < nbVideoStreams; i++) {
 		QStringList imageFileNames;
-		QDir pdir(DenoiseTrial::output_directory + OS_SEP + "Cam" + QString::number(i));
+		QDir pdir(DenoiseTrial::output_directory + QDir::separator() + "Cam" + QString::number(i));
 		QStringList imageFileNames_rel = pdir.entryList(QStringList() << "*.jpg", QDir::Files | QDir::NoSymLinks);
 		for (int i = 0; i < imageFileNames_rel.size(); ++i)
 		{

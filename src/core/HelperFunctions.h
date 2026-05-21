@@ -29,12 +29,7 @@
 
 #include <fstream>
 #include <QString>
-
-#ifdef WIN32
-#define OS_SEP "\\"
-#else
-	#define OS_SEP "/"
-#endif
+#include <filesystem>
 
 namespace littleHelper
 {
@@ -47,6 +42,18 @@ namespace littleHelper
 	QString adjustPathToOS(QString filename);
 
 	void copyPath(QString src, QString dst);
+
+	// Convert QString to std::filesystem::path
+	inline std::filesystem::path toPath(const QString& str)
+	{
+		return std::filesystem::u8path(str.toStdString());
+	}
+
+	// Convert std::filesystem::path to QString
+	inline QString fromPath(const std::filesystem::path& p)
+	{
+		return QString::fromStdString(p.u8string());
+	}
 }
 
 #endif //VIDEOSTREAM_H

@@ -88,11 +88,6 @@
 
 #include <iostream>
 
-#ifdef WIN32
-#define OS_SEP "\\"
-#else
-#define OS_SEP "/"
-#endif
 #include <QInputDialog>
 #include "ProjectOverview.h"
 
@@ -1191,7 +1186,7 @@ void MainWindow::checkTrialImagePaths()
 				if (!path.isEmpty())
 				{
 					QString oldfolder = filename.replace(fileinfo.fileName(), "");
-					Project::getInstance()->getTrials()[t]->changeImagePath(c, path + OS_SEP, oldfolder);
+					Project::getInstance()->getTrials()[t]->changeImagePath(c, path + QDir::separator(), oldfolder);
 					Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
 					requiresReload = true;
 				}
@@ -1218,7 +1213,7 @@ void MainWindow::checkTrialImagePaths()
 						if (!newfolder.isEmpty())
 						{
 							QString oldfolder = filename.replace(fileinfo.fileName(), "");
-							Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder + OS_SEP, oldfolder);
+							Project::getInstance()->getTrials()[t]->changeImagePath(c, newfolder + QDir::separator(), oldfolder);
 							Project::getInstance()->getTrials()[t]->setActiveFrame(Project::getInstance()->getTrials()[t]->getActiveFrame());
 						}
 					}
@@ -1792,7 +1787,7 @@ void MainWindow::save3DPoints(std::vector<int> markers)
 
 				if (outputPath.isNull() == false)
 				{
-					saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(markers, outputPath + OS_SEP
+					saved = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save3dPoints(markers, outputPath + QDir::separator()
 						, Settings::getInstance()->getBoolSetting("Export3DMulti")
 						, Settings::getInstance()->getBoolSetting("Export3DHeader")
 						, filter_frequency
@@ -1847,7 +1842,7 @@ void MainWindow::on_actionExport2D_Points_triggered(bool checked)
 
 			if (outputPath.isNull() == false)
 			{
-				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(outputPath + OS_SEP
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->save2dPoints(outputPath + QDir::separator()
 																				 ,Settings::getInstance()->getBoolSetting("Export2DMulti")
 																				 ,Settings::getInstance()->getBoolSetting("Export2DDistorted")
 																				 ,Settings::getInstance()->getBoolSetting("Export2DCount1")
@@ -1890,7 +1885,7 @@ void MainWindow::on_actionExportEvents_triggered(bool checked)
 	if (outputPath.isNull() == false)
 	{
 		for (auto e : Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEvents())
-			e->saveData(outputPath + OS_SEP + e->getName() + ".csv");
+			e->saveData(outputPath + QDir::separator() + e->getName() + ".csv");
 
 		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 	}
@@ -1930,7 +1925,7 @@ void MainWindow::saveRigidBodies(std::vector<int> bodies)
 
 				if (outputPath.isNull() == false)
 				{
-					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(bodies, outputPath + OS_SEP
+					Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveRigidBodyTransformations(bodies, outputPath + QDir::separator()
 						, Settings::getInstance()->getBoolSetting("ExportTransMulti")
 						, Settings::getInstance()->getBoolSetting("ExportTransHeader")
 						, Settings::getInstance()->getBoolSetting("ExportTransFiltered")
@@ -2020,7 +2015,7 @@ void MainWindow::on_actionReprojection_Errors_triggered(bool checked) {
 
 	if (outputPath.isNull() == false)
 	{
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveReprojectionErrors(outputPath + OS_SEP);
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveReprojectionErrors(outputPath + QDir::separator());
 		Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 	}
 }
@@ -2040,7 +2035,7 @@ void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(boo
 
 		if (outputPath.isNull() == false)
 		{
-			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveTrialImages(outputPath + OS_SEP, fromTo->getFrom(), fromTo->getTo(), fromTo->getFormat(), fromTo->getFiltered());
+			Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveTrialImages(outputPath + QDir::separator(), fromTo->getFrom(), fromTo->getTo(), fromTo->getFormat(), fromTo->getFiltered());
 			Settings::getInstance()->setLastUsedDirectory(outputPath, true);
 		}
 	}
@@ -2112,21 +2107,21 @@ void MainWindow::on_actionAll_Trials_for_External_triggered(bool checked)
 		ProgressDialog::getInstance()->showProgressbar(0, 0, "Exporting all for external processing");
 		for (auto &tr : Project::getInstance()->getTrials())
 		{
-			QString trial_path = outputPath + OS_SEP + tr->getName() + OS_SEP;
+			QString trial_path = outputPath + QDir::separator() + tr->getName() + QDir::separator();
 			QDir().mkdir(trial_path);
 
 			for (int i = 0; i < project->getCameras().size(); i++){
-				QString cam_path = trial_path + OS_SEP + "Camera " + QString::number(i) + OS_SEP;
+				QString cam_path = trial_path + QDir::separator() + "Camera " + QString::number(i) + QDir::separator();
 				QDir().mkdir(cam_path);
 
-				QDir().mkdir(cam_path + OS_SEP + "calib" + OS_SEP);
-				Project::getInstance()->exportMayaCamVersion2(cam_path + OS_SEP + "calib" + OS_SEP, -1, i);
-				QDir().mkdir(cam_path + OS_SEP + "images" + OS_SEP);
-				tr->saveTrialImages(cam_path + OS_SEP + "images" + OS_SEP, 1, tr->getVideoStreams()[i]->getNbImages(), "tif", i);
-				QDir().mkdir(cam_path + OS_SEP + "markers" + OS_SEP);
-				tr->save2dPoints(cam_path + OS_SEP + "markers" + OS_SEP, false, false, false, false, false, false, i);
-				QDir().mkdir(cam_path + OS_SEP + "reprojection_errors" + OS_SEP);
-				tr->saveReprojectionErrors(cam_path + OS_SEP + "reprojection_errors" + OS_SEP);
+				QDir().mkdir(cam_path + QDir::separator() + "calib" + QDir::separator());
+				Project::getInstance()->exportMayaCamVersion2(cam_path + QDir::separator() + "calib" + QDir::separator(), -1, i);
+				QDir().mkdir(cam_path + QDir::separator() + "images" + QDir::separator());
+				tr->saveTrialImages(cam_path + QDir::separator() + "images" + QDir::separator(), 1, tr->getVideoStreams()[i]->getNbImages(), "tif", i);
+				QDir().mkdir(cam_path + QDir::separator() + "markers" + QDir::separator());
+				tr->save2dPoints(cam_path + QDir::separator() + "markers" + QDir::separator(), false, false, false, false, false, false, i);
+				QDir().mkdir(cam_path + QDir::separator() + "reprojection_errors" + QDir::separator());
+				tr->saveReprojectionErrors(cam_path + QDir::separator() + "reprojection_errors" + QDir::separator());
 			}
 		}
 		ProgressDialog::getInstance()->closeProgressbar();
@@ -2456,7 +2451,7 @@ void MainWindow::on_actionXROMM_VR_triggered(bool checked)
 
 	if (outputPath.isNull() == false)
 	{
-		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveVR(outputPath + OS_SEP);
+		Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->saveVR(outputPath + QDir::separator());
 	}
 }
 

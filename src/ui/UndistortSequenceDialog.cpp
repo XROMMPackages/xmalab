@@ -45,13 +45,6 @@
 #include <algorithm>
 
 
-#ifdef WIN32
-#define OS_SEP "\\"
-#else
-	#define OS_SEP "/"
-#endif
-
-
 using namespace xma;
 
 UndistortSequenceDialog::UndistortSequenceDialog(QWidget* parent) :
@@ -266,7 +259,7 @@ void UndistortSequenceDialog::on_pushButtonUndist_clicked()
 		for (int i = 0; i < stream->getNbImages(); i++)
 		{
 			stream->setActiveFrame(i);
-			QString outname = item.output + OS_SEP + info.completeBaseName() + "_UND." + QString("%1").arg(i + 1, 4, 10, QChar('0')) + ".tif";
+			QString outname = item.output + QDir::separator() + info.completeBaseName() + "_UND." + QString("%1").arg(i + 1, 4, 10, QChar('0')) + ".tif";
 			stream->setActiveFrame(i);
 			Project::getInstance()->getCameras()[item.camera]->getUndistortionObject()->undistort(stream->getImage(), outname);
 		}

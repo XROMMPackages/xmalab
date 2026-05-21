@@ -58,12 +58,6 @@
 #include "quazip.h"
 #include "quazipfile.h"
 
-#ifdef WIN32
-#define OS_SEP "\\"
-#else
-	#define OS_SEP "/"
-#endif
-
 
 using namespace xma;
 
@@ -121,7 +115,7 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 	if (!subset)
 		Project::getInstance()->projectFilename = filename;
 	
-	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp" + OS_SEP;
+	QString tmpDir_path = QDir::tempPath() + QDir::separator() + "XROMM_tmp" + QDir::separator();
 	if (!QDir().mkpath(tmpDir_path))
 	{
 		ErrorDialog::getInstance()->showErrorDialog("Can not create tmp folder " + tmpDir_path);
@@ -145,7 +139,7 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 				ErrorDialog::getInstance()->showErrorDialog("Can not create tmp folder " + path);
 				success = false;
 			}
-			Project::getInstance()->saveXMLData(path + OS_SEP + "metadata.xml");
+			Project::getInstance()->saveXMLData(path + QDir::separator() + "metadata.xml");
 		}
 	}
 
@@ -154,7 +148,7 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 	{
 		for (std::vector<Camera*>::const_iterator it = Project::getInstance()->getCameras().begin(); it != Project::getInstance()->getCameras().end(); ++it)
 		{
-			QString camera_path = tmpDir_path + (*it)->getName() + OS_SEP;
+			QString camera_path = tmpDir_path + (*it)->getName() + QDir::separator();
 			if (success)
 			{
 				if (!QDir().mkpath(camera_path))
@@ -164,7 +158,7 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 				}
 				else
 				{
-					QDir().mkpath(camera_path + OS_SEP + "data");
+					QDir().mkpath(camera_path + QDir::separator() + "data");
 					(*it)->save(camera_path);
 				}
 			}
@@ -176,7 +170,7 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 	{
 		if (!CalibrationObject::getInstance()->isCheckerboard())
 		{
-			QString path = tmpDir_path + OS_SEP + "CalibrationObject" + OS_SEP;
+			QString path = tmpDir_path + QDir::separator() + "CalibrationObject" + QDir::separator();
 			if (!QDir().mkpath(path))
 			{
 				ErrorDialog::getInstance()->showErrorDialog("Can not create tmp folder " + path);
@@ -194,12 +188,12 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 		for (std::vector<Trial*>::const_iterator trial_it = trials.begin(); trial_it != trials.end(); ++trial_it)
 		{
 			if (!((*trial_it)->getRequiresRecomputation())) {
-				(*trial_it)->savePrecisionInfo(tmpDir_path + OS_SEP + "PrecisionInfo_" + (*trial_it)->getName() + ".txt", 0, (*trial_it)->getNbImages());
-				(*trial_it)->saveMarkerToMarkerDistances(tmpDir_path + OS_SEP + "MarkerDistances_" + (*trial_it)->getName() + ".txt", 0, (*trial_it)->getNbImages());
+				(*trial_it)->savePrecisionInfo(tmpDir_path + QDir::separator() + "PrecisionInfo_" + (*trial_it)->getName() + ".txt", 0, (*trial_it)->getNbImages());
+				(*trial_it)->saveMarkerToMarkerDistances(tmpDir_path + QDir::separator() + "MarkerDistances_" + (*trial_it)->getName() + ".txt", 0, (*trial_it)->getNbImages());
 			}
 
 
-			QString path = tmpDir_path + OS_SEP + (*trial_it)->getName() + OS_SEP;
+			QString path = tmpDir_path + QDir::separator() + (*trial_it)->getName() + QDir::separator();
 			if (!QDir().mkpath(path))
 			{
 				ErrorDialog::getInstance()->showErrorDialog("Can not create tmp folder " + path);
@@ -209,16 +203,16 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 			{
 
 				if ((*trial_it)->getHasStudyData()){
-					(*trial_it)->saveXMLData(path + OS_SEP + "metadata.xml");
+					(*trial_it)->saveXMLData(path + QDir::separator() + "metadata.xml");
 				}
 
 				(*trial_it)->save(path);
-				QDir().mkpath(path + OS_SEP + "data");
-				(*trial_it)->saveMarkers(path + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
-				(*trial_it)->saveRigidBodies(path + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
+				QDir().mkpath(path + QDir::separator() + "data");
+				(*trial_it)->saveMarkers(path + QDir::separator() + "data" + QDir::separator() + "MarkerDescription.txt");
+				(*trial_it)->saveRigidBodies(path + QDir::separator() + "data" + QDir::separator() + "RigidBodies.txt");
 				for (auto e : (*trial_it)->getEvents())
 				{
-					e->saveData(path + OS_SEP + "data" + OS_SEP + e->getName() + ".csv");
+					e->saveData(path + QDir::separator() + "data" + QDir::separator() + e->getName() + ".csv");
 				}
 				for (unsigned int k = 0; k < (*trial_it)->getMarkers().size(); k++)
 				{
@@ -228,16 +222,16 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 					QString points3DFilename = QString("Marker%1points3d.csv").arg(k, 3, 10, QChar('0'));
 					QString status3DFilename = QString("Marker%1status3d.csv").arg(k, 3, 10, QChar('0'));
 
-					(*trial_it)->getMarkers()[k]->save(path + OS_SEP + "data" + OS_SEP + markerFilename,
-					                                   path + OS_SEP + "data" + OS_SEP + statusFilename,
-					                                   path + OS_SEP + "data" + OS_SEP + sizeFilename);
-					(*trial_it)->getMarkers()[k]->save3DPoints(path + OS_SEP + "data" + OS_SEP + points3DFilename,
-					                                           path + OS_SEP + "data" + OS_SEP + status3DFilename);
-					(*trial_it)->getMarkers()[k]->saveInterpolation(path + OS_SEP + "data" + OS_SEP + QString("Marker%1interpolation.csv").arg(k, 3, 10, QChar('0')));
+					(*trial_it)->getMarkers()[k]->save(path + QDir::separator() + "data" + QDir::separator() + markerFilename,
+					                                   path + QDir::separator() + "data" + QDir::separator() + statusFilename,
+					                                   path + QDir::separator() + "data" + QDir::separator() + sizeFilename);
+					(*trial_it)->getMarkers()[k]->save3DPoints(path + QDir::separator() + "data" + QDir::separator() + points3DFilename,
+					                                           path + QDir::separator() + "data" + QDir::separator() + status3DFilename);
+					(*trial_it)->getMarkers()[k]->saveInterpolation(path + QDir::separator() + "data" + QDir::separator() + QString("Marker%1interpolation.csv").arg(k, 3, 10, QChar('0')));
 
 					if ((*trial_it)->getMarkers()[k]->Reference3DPointSet())
 					{
-						(*trial_it)->getMarkers()[k]->saveReference3DPoint(path + OS_SEP + "data" + OS_SEP + QString("Marker%1reference3Dpoint.csv").arg(k, 3, 10, QChar('0')));
+						(*trial_it)->getMarkers()[k]->saveReference3DPoint(path + QDir::separator() + "data" + QDir::separator() + QString("Marker%1reference3Dpoint.csv").arg(k, 3, 10, QChar('0')));
 					}
 				}
 				for (unsigned int k = 0; k < (*trial_it)->getRigidBodies().size(); k++)
@@ -245,20 +239,20 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 					if ((*trial_it)->getRigidBodies()[k]->isReferencesSet() == 2)
 					{
 						(*trial_it)->getRigidBodies()[k]->save(
-							path + OS_SEP + "data" + OS_SEP + QString("RigidBody%1ReferenceNames.csv").arg(k, 3, 10, QChar('0')),
-							path + OS_SEP + "data" + OS_SEP + QString("RigidBody%1ReferencePoints3d.csv").arg(k, 3, 10, QChar('0')));
+							path + QDir::separator() + "data" + QDir::separator() + QString("RigidBody%1ReferenceNames.csv").arg(k, 3, 10, QChar('0')),
+							path + QDir::separator() + "data" + QDir::separator() + QString("RigidBody%1ReferencePoints3d.csv").arg(k, 3, 10, QChar('0')));
 					}
 					if ((*trial_it)->getRigidBodies()[k]->getHasOptimizedCoordinates())
 					{
 						(*trial_it)->getRigidBodies()[k]->saveOptimized(
-							path + OS_SEP + "data" + OS_SEP + QString("RigidBody%1ReferencePoints3d_optimized.csv").arg(k, 3, 10, QChar('0')));
+							path + QDir::separator() + "data" + QDir::separator() + QString("RigidBody%1ReferencePoints3d_optimized.csv").arg(k, 3, 10, QChar('0')));
 					}
 					for (unsigned int p = 0; p < (*trial_it)->getRigidBodies()[k]->getDummyNames().size(); p++)
 					{
 						(*trial_it)->getRigidBodies()[k]->saveDummy(p,
-						                                            path + OS_SEP + "data" + OS_SEP + QString("RigidBody%1DummyMarker%2PointReferences.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')),
-						                                            path + OS_SEP + "data" + OS_SEP + QString("RigidBody%1DummyMarker%2PointReferences2.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')),
-						                                            path + OS_SEP + "data" + OS_SEP + QString("RigidBody%1DummyMarker%2PointCoordinates.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')));
+						                                            path + QDir::separator() + "data" + QDir::separator() + QString("RigidBody%1DummyMarker%2PointReferences.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')),
+						                                            path + QDir::separator() + "data" + QDir::separator() + QString("RigidBody%1DummyMarker%2PointReferences2.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')),
+						                                            path + QDir::separator() + "data" + QDir::separator() + QString("RigidBody%1DummyMarker%2PointCoordinates.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')));
 					}
 				}
 			}
@@ -266,7 +260,7 @@ int ProjectFileIO::saveProject(QString filename, std::vector <Trial*> trials, bo
 	}
 
 	//save Log
-	ConsoleDockWidget::getInstance()->save(tmpDir_path + OS_SEP + "log.html");
+	ConsoleDockWidget::getInstance()->save(tmpDir_path + QDir::separator() + "log.html");
 
 	zipFromFolderToFile(filename, tmpDir_path, "XROMM Project File");
 
@@ -283,15 +277,15 @@ int ProjectFileIO::loadProject(QString filename, QString filename_extraCalib)
 
 	bool success = true;
 	Project::getInstance()->projectFilename = filename;
-	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+	QString tmpDir_path = QDir::tempPath() + QDir::separator() + "XROMM_tmp";
 	removeDir(tmpDir_path);
 
 	unzipFromFileToFolder(filename, tmpDir_path);
 	
-	if (QFile::exists(tmpDir_path + OS_SEP + "project.xml"))
+	if (QFile::exists(tmpDir_path + QDir::separator() + "project.xml"))
 	{
-		readProjectFile(tmpDir_path + OS_SEP + "project.xml");
-		ConsoleDockWidget::getInstance()->load(tmpDir_path + OS_SEP + "log.html");
+		readProjectFile(tmpDir_path + QDir::separator() + "project.xml");
+		ConsoleDockWidget::getInstance()->load(tmpDir_path + QDir::separator() + "log.html");
 	}
 	else
 	{
@@ -299,7 +293,7 @@ int ProjectFileIO::loadProject(QString filename, QString filename_extraCalib)
 		QStringList filesList = myDir.entryList(QDir::NoDotAndDotDot | QDir::Dirs);
 
 		if (filesList.size() > 0){
-			if (QFile::exists(tmpDir_path + OS_SEP + filesList[0] + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml"))
+			if (QFile::exists(tmpDir_path + QDir::separator() + filesList[0] + QDir::separator() + "File_Metadata" + QDir::separator() + "XMALab_Files-metadata.xml"))
 			{
 				return 1;
 			}
@@ -337,17 +331,17 @@ QStringList ProjectFileIO::readTrials(QString filename)
 {
 	QStringList names;
 
-	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+	QString tmpDir_path = QDir::tempPath() + QDir::separator() + "XROMM_tmp";
 
 	unzipFromFileToFolder(filename, tmpDir_path);
 
-	if (QFile::exists(tmpDir_path + OS_SEP + "project.xml"))
+	if (QFile::exists(tmpDir_path + QDir::separator() + "project.xml"))
 	{
 		if (filename.isNull() == false)
 		{
 			QFileInfo info(filename);
 			QString basedir = info.absolutePath();
-			QString xml_filename = tmpDir_path + OS_SEP + "project.xml";
+			QString xml_filename = tmpDir_path + QDir::separator() + "project.xml";
 			if (!xml_filename.isNull())
 			{
 				QFile file(xml_filename);
@@ -391,17 +385,17 @@ QStringList ProjectFileIO::readTrials(QString filename)
 Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 {
 	Trial* trial;
-	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+	QString tmpDir_path = QDir::tempPath() + QDir::separator() + "XROMM_tmp";
 	double version;
 	unzipFromFileToFolder(filename, tmpDir_path);
 
-	if (QFile::exists(tmpDir_path + OS_SEP + "project.xml"))
+	if (QFile::exists(tmpDir_path + QDir::separator() + "project.xml"))
 	{
 		if (filename.isNull() == false)
 		{
-			QFileInfo info(tmpDir_path + OS_SEP + "project.xml");
+			QFileInfo info(tmpDir_path + QDir::separator() + "project.xml");
 			QString basedir = info.absolutePath();
-			QString xml_filename = tmpDir_path + OS_SEP + "project.xml";
+			QString xml_filename = tmpDir_path + QDir::separator() + "project.xml";
 			if (!xml_filename.isNull())
 			{
 				QFile file(xml_filename);
@@ -433,7 +427,7 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 								if (attr.value("Name").toString() == trialname)
 								{
 									QString _trialname = attr.value("Name").toString();
-									QString trialfolder = basedir + OS_SEP + _trialname + OS_SEP;
+									QString trialfolder = basedir + QDir::separator() + _trialname + QDir::separator();
 									if (trialname == "Default")
 									{
 										trial = new Trial();
@@ -460,15 +454,15 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 									QString nbImages = attr.value("nbImages").toString();
 									if (!nbImages.isEmpty())trial->setNbImagesFromConfig(nbImages.toInt());
 
-									trial->loadMarkers(trialfolder + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
+									trial->loadMarkers(trialfolder + QDir::separator() + "data" + QDir::separator() + "MarkerDescription.txt");
 
-									trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
+									trial->loadRigidBodies(trialfolder + QDir::separator() + "data" + QDir::separator() + "RigidBodies.txt");
 
 									QString xml_file = attr.value("MetaData").toString();
 									if (!xml_file.isEmpty())
 									{
-										loadProjectMetaData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
-										trial->setXMLData(littleHelper::adjustPathToOS(trialfolder + OS_SEP + xml_file));
+										loadProjectMetaData(littleHelper::adjustPathToOS(trialfolder + QDir::separator() + xml_file));
+										trial->setXMLData(littleHelper::adjustPathToOS(trialfolder + QDir::separator() + xml_file));
 									}
 
 									QString isDefault = attr.value("Default").toString();
@@ -496,20 +490,20 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 
 												trial->addEvent(name_e, QColor(color_e));
 												trial->getEvents().back()->setDraw(draw_e.toInt());
-												trial->getEvents().back()->loadData(basedir + OS_SEP + littleHelper::adjustPathToOS(filename_e));
+												trial->getEvents().back()->loadData(basedir + QDir::separator() + littleHelper::adjustPathToOS(filename_e));
 											}
 											if (xml.name() == "Marker")
 											{
 												attr = xml.attributes();
-												QString filename_points2D = basedir + OS_SEP + attr.value("FilenamePoints2D").toString();
-												QString filename_status2D = basedir + OS_SEP + attr.value("FilenameStatus2D").toString();
-												QString filename_size = basedir + OS_SEP + attr.value("FilenameSize").toString();
+												QString filename_points2D = basedir + QDir::separator() + attr.value("FilenamePoints2D").toString();
+												QString filename_status2D = basedir + QDir::separator() + attr.value("FilenameStatus2D").toString();
+												QString filename_size = basedir + QDir::separator() + attr.value("FilenameSize").toString();
 
 												int id = attr.value("ID").toString().toInt();
 												trial->getMarkers()[id]->load(littleHelper::adjustPathToOS(filename_points2D), littleHelper::adjustPathToOS(filename_status2D), littleHelper::adjustPathToOS(filename_size));
 
 												QString Reference3DPoint = attr.value("Reference3DPoint").toString();
-												if (!Reference3DPoint.isEmpty())trial->getMarkers()[id]->loadReference3DPoint(littleHelper::adjustPathToOS(basedir + OS_SEP + Reference3DPoint));
+												if (!Reference3DPoint.isEmpty())trial->getMarkers()[id]->loadReference3DPoint(littleHelper::adjustPathToOS(basedir + QDir::separator() + Reference3DPoint));
 
 												QString TrackingPenalty = attr.value("TrackingPenalty").toString();
 												if (!TrackingPenalty.isEmpty())trial->getMarkers()[id]->setMaxPenalty(TrackingPenalty.toInt());
@@ -553,7 +547,7 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 												QString filename_interpolation = attr.value("FilenameInterpolation").toString();
 												if (!filename_interpolation.isEmpty())
 												{
-													trial->getMarkers()[id]->loadInterpolation(basedir + OS_SEP + filename_interpolation);
+													trial->getMarkers()[id]->loadInterpolation(basedir + QDir::separator() + filename_interpolation);
 												}
 											}
 
@@ -568,8 +562,8 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 
 												if (!filename_referenceNames_attr.isEmpty() && !filename_referencePoints3D_attr.isEmpty())
 												{
-													QString filename_referenceNames = basedir + OS_SEP + filename_referenceNames_attr;
-													QString filename_referencePoints3D = basedir + OS_SEP + filename_referencePoints3D_attr;
+													QString filename_referenceNames = basedir + QDir::separator() + filename_referenceNames_attr;
+													QString filename_referencePoints3D = basedir + QDir::separator() + filename_referencePoints3D_attr;
 													trial->getRigidBodies()[id]->load(littleHelper::adjustPathToOS(filename_referenceNames), littleHelper::adjustPathToOS(filename_referencePoints3D));
 												}
 												else
@@ -580,7 +574,7 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 												QString filename_referencePoints3DOptimized_attr = attr.value("ReferencePoints3DOptimized").toString();
 												if (!filename_referencePoints3DOptimized_attr.isEmpty())
 												{
-													QString filename_referencePoints3DOptimized = basedir + OS_SEP + filename_referencePoints3DOptimized_attr;
+													QString filename_referencePoints3DOptimized = basedir + QDir::separator() + filename_referencePoints3DOptimized_attr;
 													trial->getRigidBodies()[id]->loadOptimized(littleHelper::adjustPathToOS(filename_referencePoints3DOptimized));
 												}
 
@@ -636,16 +630,16 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 															attr = xml.attributes();
 
 															QString dummyName = attr.value("Name").toString();
-															QString dummyPointReferences = basedir + OS_SEP + attr.value("PointReferences").toString();
+															QString dummyPointReferences = basedir + QDir::separator() + attr.value("PointReferences").toString();
 															QString dummyPointReferences2 = attr.value("PointReferences2").toString();
 															if (dummyPointReferences2.isEmpty())
 															{
 																dummyPointReferences2 = dummyPointReferences;
 															} else
 															{
-																dummyPointReferences2 = basedir + OS_SEP + dummyPointReferences2;
+																dummyPointReferences2 = basedir + QDir::separator() + dummyPointReferences2;
 															}
-															QString dummyPointCoordinates = basedir + OS_SEP + attr.value("PointCoordinates").toString();
+															QString dummyPointCoordinates = basedir + QDir::separator() + attr.value("PointCoordinates").toString();
 
 															trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), littleHelper::adjustPathToOS(dummyPointReferences2), -1, littleHelper::adjustPathToOS(dummyPointCoordinates));
 														}
@@ -686,17 +680,17 @@ Trial* ProjectFileIO::loadTrials(QString filename, QString trialname)
 
 void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial)
 {
-	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+	QString tmpDir_path = QDir::tempPath() + QDir::separator() + "XROMM_tmp";
 
 	unzipFromFileToFolder(filename, tmpDir_path);
 
-	if (QFile::exists(tmpDir_path + OS_SEP + "project.xml"))
+	if (QFile::exists(tmpDir_path + QDir::separator() + "project.xml"))
 	{
 		if (filename.isNull() == false)
 		{
-			QFileInfo info(tmpDir_path + OS_SEP + "project.xml");
+			QFileInfo info(tmpDir_path + QDir::separator() + "project.xml");
 			QString basedir = info.absolutePath();
-			QString xml_filename = tmpDir_path + OS_SEP + "project.xml";
+			QString xml_filename = tmpDir_path + QDir::separator() + "project.xml";
 			if (!xml_filename.isNull())
 			{
 				QFile file(xml_filename);
@@ -722,10 +716,10 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 								if (attr.value("Name").toString() == trialname)
 								{
 									QString _trialname = attr.value("Name").toString();
-									QString trialfolder = basedir + OS_SEP + _trialname + OS_SEP;
+									QString trialfolder = basedir + QDir::separator() + _trialname + QDir::separator();
 
-									trial->loadMarkers(trialfolder + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
-									trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
+									trial->loadMarkers(trialfolder + QDir::separator() + "data" + QDir::separator() + "MarkerDescription.txt");
+									trial->loadRigidBodies(trialfolder + QDir::separator() + "data" + QDir::separator() + "RigidBodies.txt");
 
 									while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "Trial"))
 									{
@@ -736,7 +730,7 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 												attr = xml.attributes();
 												int id = attr.value("ID").toString().toInt();
 
-												QString Reference3DPoint = basedir + OS_SEP + attr.value("Reference3DPoint").toString();
+												QString Reference3DPoint = basedir + QDir::separator() + attr.value("Reference3DPoint").toString();
 												if (!Reference3DPoint.isEmpty())trial->getMarkers()[id]->loadReference3DPoint(littleHelper::adjustPathToOS(Reference3DPoint));
 
 												QString TrackingPenalty = attr.value("TrackingPenalty").toString();
@@ -791,8 +785,8 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 
 												if (!filename_referenceNames_attr.isEmpty() && !filename_referencePoints3D_attr.isEmpty())
 												{
-													QString filename_referenceNames = basedir + OS_SEP + filename_referenceNames_attr;
-													QString filename_referencePoints3D = basedir + OS_SEP + filename_referencePoints3D_attr;
+													QString filename_referenceNames = basedir + QDir::separator() + filename_referenceNames_attr;
+													QString filename_referencePoints3D = basedir + QDir::separator() + filename_referencePoints3D_attr;
 													trial->getRigidBodies()[id]->load(littleHelper::adjustPathToOS(filename_referenceNames), littleHelper::adjustPathToOS(filename_referencePoints3D));
 												}
 												else
@@ -803,7 +797,7 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 												QString filename_referencePoints3DOptimized_attr = attr.value("ReferencePoints3DOptimized").toString();
 												if (!filename_referencePoints3DOptimized_attr.isEmpty())
 												{
-													QString filename_referencePoints3DOptimized = basedir + OS_SEP + filename_referencePoints3DOptimized_attr;
+													QString filename_referencePoints3DOptimized = basedir + QDir::separator() + filename_referencePoints3DOptimized_attr;
 													trial->getRigidBodies()[id]->loadOptimized(littleHelper::adjustPathToOS(filename_referencePoints3DOptimized));
 												}
 
@@ -872,7 +866,7 @@ void ProjectFileIO::loadMarker(QString filename, QString trialname, Trial* trial
 
 void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
 {
-	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+	QString tmpDir_path = QDir::tempPath() + QDir::separator() + "XROMM_tmp";
 	removeDir(tmpDir_path);
 	unzipFromFileToFolder(filename, tmpDir_path);
 	QString studyName;
@@ -884,13 +878,13 @@ void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
 	QDir myDir(tmpDir_path);
 	QStringList filesList = myDir.entryList(QDir::NoDotAndDotDot | QDir::Dirs);
 
-	if (QFile::exists(tmpDir_path + OS_SEP + filesList[0] + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml"))
+	if (QFile::exists(tmpDir_path + QDir::separator() + filesList[0] + QDir::separator() + "File_Metadata" + QDir::separator() + "XMALab_Files-metadata.xml"))
 	{
-		QString xml_filename = tmpDir_path + OS_SEP + filesList[0] + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml";
+		QString xml_filename = tmpDir_path + QDir::separator() + filesList[0] + QDir::separator() + "File_Metadata" + QDir::separator() + "XMALab_Files-metadata.xml";
 		
 		if (xml_filename.isNull() == false)
 		{
-			QString basedir = tmpDir_path + OS_SEP + filesList[0] + OS_SEP;
+			QString basedir = tmpDir_path + QDir::separator() + filesList[0] + QDir::separator();
 
 			QFile file(xml_filename);
 			if (file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -962,26 +956,26 @@ void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
 		if (Settings::getInstance()->getBoolSetting("CustomWorkspacePath"))
 		{
 			folder = Settings::getInstance()->getQStringSetting("WorkspacePath");
-			folder = folder + OS_SEP + studyName;
+			folder = folder + QDir::separator() + studyName;
 
 			QDir().mkpath(folder);
-			folder = folder + OS_SEP + trialName;
+			folder = folder + QDir::separator() + trialName;
 			QDir().mkpath(folder);
 		} 
 		else if (Project::getInstance()->getProjectFilename().isEmpty())
 		{
 			folder = QFileInfo(filename).absolutePath();
-			folder = folder + OS_SEP + trialName;
+			folder = folder + QDir::separator() + trialName;
 			QDir().mkpath(folder);
 		}
 		else
 		{
 
 			folder = QFileInfo(Project::getInstance()->getProjectFilename()).absolutePath();
-			folder = folder + OS_SEP + trialName;
+			folder = folder + QDir::separator() + trialName;
 			QDir().mkpath(folder);
 		}
-		littleHelper::copyPath(tmpDir_path + OS_SEP + filesList[0], folder);
+		littleHelper::copyPath(tmpDir_path + QDir::separator() + filesList[0], folder);
 		//Fill Dialog
 
 		//check for zip
@@ -996,18 +990,18 @@ void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
 		{
 			if (filename_vec[i].endsWith("zip"))
 			{
-				QString videoPath = QString(folder + OS_SEP + filename_vec[i]).replace(".zip", "");
-				unzipFromFileToFolder(folder + OS_SEP + filename_vec[i], videoPath);
-				QFile(folder + OS_SEP + filename_vec[i]).remove();
+				QString videoPath = QString(folder + QDir::separator() + filename_vec[i]).replace(".zip", "");
+				unzipFromFileToFolder(folder + QDir::separator() + filename_vec[i], videoPath);
+				QFile(folder + QDir::separator() + filename_vec[i]).remove();
 			}
 
 			int id = std::distance(s.begin(), s.find(camera_vec[i]));
 			dialog->setTrialName(trialName);
 			if (Project::getInstance()->getCameras().size() == 0 || Project::getInstance()->getCameras()[id]->getPortalId() == -1 || Project::getInstance()->getCameras()[id]->getPortalId() == camera_vec[i]){
-				dialog->setCam(id, folder + OS_SEP + filename_vec[i]);
+				dialog->setCam(id, folder + QDir::separator() + filename_vec[i]);
 			}
 		}
-		dialog->setXmlMetadata(folder + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml");
+		dialog->setXmlMetadata(folder + QDir::separator() + "File_Metadata" + QDir::separator() + "XMALab_Files-metadata.xml");
 	} 
 	else
 	{
@@ -1019,12 +1013,12 @@ void ProjectFileIO::loadXMAPortalTrial(QString filename, NewTrialDialog* dialog)
 void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog* dialog)
 {
 	Project::getInstance()->projectFilename = filename;
-	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+	QString tmpDir_path = QDir::tempPath() + QDir::separator() + "XROMM_tmp";
 
 	QDir myDir(tmpDir_path);
 	QStringList filesList = myDir.entryList(QDir::NoDotAndDotDot | QDir::Dirs);
 
-	QString xml_filename = tmpDir_path + OS_SEP + filesList[0] + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml";
+	QString xml_filename = tmpDir_path + QDir::separator() + filesList[0] + QDir::separator() + "File_Metadata" + QDir::separator() + "XMALab_Files-metadata.xml";
 	
 	loadProjectMetaData(xml_filename);
 
@@ -1034,7 +1028,7 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog* dialog
 
 	if (xml_filename.isNull() == false)
 	{
-		QString basedir = tmpDir_path + OS_SEP + filesList[0] + OS_SEP;
+		QString basedir = tmpDir_path + QDir::separator() + filesList[0] + QDir::separator();
 
 		QFile file(xml_filename);
 		if (file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -1126,13 +1120,13 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog* dialog
 	}
 	
 	//check for calibration csv and ref
-	QDir directory(tmpDir_path + OS_SEP + filesList[0]);
+	QDir directory(tmpDir_path + QDir::separator() + filesList[0]);
 	QStringList filtersCSV;
 	filtersCSV << "*.csv";
 	QStringList csvFiles = directory.entryList(filtersCSV);
 	if (csvFiles.size() == 1)
 	{
-		dialog->setCalibrationCubeCSV(tmpDir_path + OS_SEP + filesList[0] + OS_SEP + csvFiles.at(0));
+		dialog->setCalibrationCubeCSV(tmpDir_path + QDir::separator() + filesList[0] + QDir::separator() + csvFiles.at(0));
 	}
 
 	QStringList filterREF;
@@ -1140,7 +1134,7 @@ void ProjectFileIO::loadXMALabProject(QString filename, NewProjectDialog* dialog
 	QStringList refFiles = directory.entryList(filterREF);
 	if (refFiles.size() == 1)
 	{
-		dialog->setCalibrationCubeREF(tmpDir_path + OS_SEP + filesList[0] + OS_SEP + refFiles.at(0));
+		dialog->setCalibrationCubeREF(tmpDir_path + QDir::separator() + filesList[0] + QDir::separator() + refFiles.at(0));
 	}
 }
 
@@ -1168,7 +1162,7 @@ void ProjectFileIO::upgradeTo13(Trial* trial)
 
 void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 {
-	QString xml_filename = path + OS_SEP + "xma_metadata.xml";
+	QString xml_filename = path + QDir::separator() + "xma_metadata.xml";
 	if (!xml_filename.isNull())
 	{
 		QFile file(xml_filename);
@@ -1426,14 +1420,14 @@ void ProjectFileIO::writePortalFile(QString path, std::vector <Trial*> trials)
 void ProjectFileIO::addMetaData(QString filename, Trial* trial)
 {
 	bool success = true;
-	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp";
+	QString tmpDir_path = QDir::tempPath() + QDir::separator() + "XROMM_tmp";
 	removeDir(tmpDir_path);
 	unzipFromFileToFolder(filename, tmpDir_path);
 
 	QDir myDir(tmpDir_path);
 	QStringList filesList = myDir.entryList(QDir::NoDotAndDotDot | QDir::Dirs);
 
-	QString xml_filename = tmpDir_path + OS_SEP + filesList[0] + OS_SEP + "File_Metadata" + OS_SEP + "XMALab_Files-metadata.xml";
+	QString xml_filename = tmpDir_path + QDir::separator() + filesList[0] + QDir::separator() + "File_Metadata" + QDir::separator() + "XMALab_Files-metadata.xml";
 
 	if (QFile::exists(xml_filename))
 	{
@@ -1452,7 +1446,7 @@ void ProjectFileIO::addMetaData(QString filename, Trial* trial)
 
 void ProjectFileIO::removeTmpDir()
 {
-	QString tmpDir_path = QDir::tempPath() + OS_SEP + "XROMM_tmp" + OS_SEP;
+	QString tmpDir_path = QDir::tempPath() + QDir::separator() + "XROMM_tmp" + QDir::separator();
 	removeDir(tmpDir_path);
 }
 
@@ -1472,7 +1466,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 			xmlWriter.writeAttribute("DateCreated", Project::getInstance()->get_date_created());
 			xmlWriter.writeAttribute("ActiveTrial", QString::number(State::getInstance()->getActiveTrial()));
 			if (Project::getInstance()->getHasStudyData()){
-				xmlWriter.writeAttribute("MetaData", QString("projectMetaData") + OS_SEP + QString("metadata.xml"));
+				xmlWriter.writeAttribute("MetaData", QString("projectMetaData") + QDir::separator() + QString("metadata.xml"));
 			}
 			xmlWriter.writeAttribute("CalibrationType", QString::number(Project::getInstance()->getCalibration()));
 			//Cameras
@@ -1486,17 +1480,17 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 				xmlWriter.writeAttribute("isFlipped", QString::number((*it)->isFlipped()));
 				if ((*it)->isCalibrated())
 				{
-					xmlWriter.writeAttribute("CameraMatrix", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it)->getFilenameCameraMatrix());
+					xmlWriter.writeAttribute("CameraMatrix", (*it)->getName() + QDir::separator() + "data" + QDir::separator() + (*it)->getFilenameCameraMatrix());
 					if ((*it)->hasModelDistortion())
 					{
-						xmlWriter.writeAttribute("UndistortionParameter", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it)->getFilenameUndistortionParam());
+						xmlWriter.writeAttribute("UndistortionParameter", (*it)->getName() + QDir::separator() + "data" + QDir::separator() + (*it)->getFilenameUndistortionParam());
 					}
 				}
 
 				if ((*it)->hasUndistortion() && (*it)->getUndistortionObject())
 				{
 					xmlWriter.writeStartElement("UndistortionGrid");
-					xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + (*it)->getUndistortionObject()->getFilename());
+					xmlWriter.writeAttribute("Filename", (*it)->getName() + QDir::separator() + (*it)->getUndistortionObject()->getFilename());
 					xmlWriter.writeAttribute("isComputed", QString::number((*it)->getUndistortionObject()->isComputed()));
 					if ((*it)->getUndistortionObject()->isComputed())
 					{
@@ -1509,19 +1503,19 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 						}
 
 						xmlWriter.writeStartElement("PointsDetected");
-						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it)->getUndistortionObject()->getFilenamePointsDetected());
+						xmlWriter.writeAttribute("Filename", (*it)->getName() + QDir::separator() + "data" + QDir::separator() + (*it)->getUndistortionObject()->getFilenamePointsDetected());
 						xmlWriter.writeEndElement();
 
 						xmlWriter.writeStartElement("GridPointsDistorted");
-						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it)->getUndistortionObject()->getFilenameGridPointsDistorted());
+						xmlWriter.writeAttribute("Filename", (*it)->getName() + QDir::separator() + "data" + QDir::separator() + (*it)->getUndistortionObject()->getFilenameGridPointsDistorted());
 						xmlWriter.writeEndElement();
 
 						xmlWriter.writeStartElement("GridPointsReferences");
-						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it)->getUndistortionObject()->getFilenameGridPointsReferences());
+						xmlWriter.writeAttribute("Filename", (*it)->getName() + QDir::separator() + "data" + QDir::separator() + (*it)->getUndistortionObject()->getFilenameGridPointsReferences());
 						xmlWriter.writeEndElement();
 
 						xmlWriter.writeStartElement("GridPointsInlier");
-						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it)->getUndistortionObject()->getFilenameGridPointsInlier());
+						xmlWriter.writeAttribute("Filename", (*it)->getName() + QDir::separator() + "data" + QDir::separator() + (*it)->getUndistortionObject()->getFilenameGridPointsInlier());
 						xmlWriter.writeEndElement();
 					}
 					xmlWriter.writeEndElement();
@@ -1560,7 +1554,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 							xmlWriter.writeAttribute("Height", QString::number((*it)->getHeight()));
 						}
 						else{
-							xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + (*it2)->getFilename());
+							xmlWriter.writeAttribute("Filename", (*it)->getName() + QDir::separator() + (*it2)->getFilename());
 						}
 						xmlWriter.writeAttribute("isCalibrated", QString::number((*it2)->isCalibrated()));
 					}
@@ -1568,23 +1562,23 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 					if ((*it2)->isCalibrated() > 0)
 					{
 						xmlWriter.writeStartElement("PointsDetectedAll");
-						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it2)->getFilenamePointsDetectedAll());
+						xmlWriter.writeAttribute("Filename", (*it)->getName() + QDir::separator() + "data" + QDir::separator() + (*it2)->getFilenamePointsDetectedAll());
 						xmlWriter.writeEndElement();
 
 						xmlWriter.writeStartElement("PointsDetected");
-						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it2)->getFilenamePointsDetected());
+						xmlWriter.writeAttribute("Filename", (*it)->getName() + QDir::separator() + "data" + QDir::separator() + (*it2)->getFilenamePointsDetected());
 						xmlWriter.writeEndElement();
 
 						xmlWriter.writeStartElement("Inlier");
-						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it2)->getFilenamePointsInlier());
+						xmlWriter.writeAttribute("Filename", (*it)->getName() + QDir::separator() + "data" + QDir::separator() + (*it2)->getFilenamePointsInlier());
 						xmlWriter.writeEndElement();
 
 						xmlWriter.writeStartElement("RotationMatrix");
-						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it2)->getFilenameRotationMatrix());
+						xmlWriter.writeAttribute("Filename", (*it)->getName() + QDir::separator() + "data" + QDir::separator() + (*it2)->getFilenameRotationMatrix());
 						xmlWriter.writeEndElement();
 
 						xmlWriter.writeStartElement("TranslationVector");
-						xmlWriter.writeAttribute("Filename", (*it)->getName() + OS_SEP + "data" + OS_SEP + (*it2)->getFilenameTranslationVector());
+						xmlWriter.writeAttribute("Filename", (*it)->getName() + QDir::separator() + "data" + QDir::separator() + (*it2)->getFilenameTranslationVector());
 						xmlWriter.writeEndElement();
 					}
 					if (!(*it)->getCalibrationSequence()->hasCalibrationSequence() || ((*it2)->isCalibrated() > 0))
@@ -1609,8 +1603,8 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 				{
 					QFileInfo frameSpecificationsFilenameInfo(CalibrationObject::getInstance()->getFrameSpecificationsFilename());
 					QFileInfo referencesFilenameInfo(CalibrationObject::getInstance()->getReferencesFilename());
-					xmlWriter.writeAttribute("FrameSpecifications", QString("CalibrationObject") + OS_SEP + frameSpecificationsFilenameInfo.fileName());
-					xmlWriter.writeAttribute("References", QString("CalibrationObject") + OS_SEP + referencesFilenameInfo.fileName());
+					xmlWriter.writeAttribute("FrameSpecifications", QString("CalibrationObject") + QDir::separator() + frameSpecificationsFilenameInfo.fileName());
+					xmlWriter.writeAttribute("References", QString("CalibrationObject") + QDir::separator() + referencesFilenameInfo.fileName());
 				}
 				xmlWriter.writeEndElement();
 			}
@@ -1631,7 +1625,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 				xmlWriter.writeAttribute("nbImages", QString::number((*trial_it)->getNbImages()));
 
 				if ((*trial_it)->getHasStudyData()){
-					xmlWriter.writeAttribute("MetaData", (*trial_it)->getName() + OS_SEP + QString("metadata.xml"));
+					xmlWriter.writeAttribute("MetaData", (*trial_it)->getName() + QDir::separator() + QString("metadata.xml"));
 				}
 				for (auto e : (*trial_it)->getEvents())
 				{
@@ -1639,7 +1633,7 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 					xmlWriter.writeAttribute("Name", e->getName());
 					xmlWriter.writeAttribute("Color", e->getColor().name());
 					xmlWriter.writeAttribute("Draw", QString::number(e->getDraw()));
-					xmlWriter.writeAttribute("Filename", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + e->getName() + ".csv");
+					xmlWriter.writeAttribute("Filename", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + e->getName() + ".csv");
 					xmlWriter.writeEndElement();
 				}
 				for (unsigned int k = 0; k < (*trial_it)->getMarkers().size(); k++)
@@ -1655,15 +1649,15 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 
 					if ((*trial_it)->getMarkers()[k]->Reference3DPointSet())
 					{
-						xmlWriter.writeAttribute("Reference3DPoint", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1reference3Dpoint.csv").arg(k, 3, 10, QChar('0')));
+						xmlWriter.writeAttribute("Reference3DPoint", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + QString("Marker%1reference3Dpoint.csv").arg(k, 3, 10, QChar('0')));
 					}
 
-					xmlWriter.writeAttribute("FilenamePoints2D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1points2d.csv").arg(k, 3, 10, QChar('0')));
-					xmlWriter.writeAttribute("FilenameStatus2D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1status2d.csv").arg(k, 3, 10, QChar('0')));
-					xmlWriter.writeAttribute("FilenameSize", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1size.csv").arg(k, 3, 10, QChar('0')));
-					xmlWriter.writeAttribute("FilenamePoints3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1points3d.csv").arg(k, 3, 10, QChar('0')));
-					xmlWriter.writeAttribute("FilenameStatus3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1status3d.csv").arg(k, 3, 10, QChar('0')));
-					xmlWriter.writeAttribute("FilenameInterpolation", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("Marker%1interpolation.csv").arg(k, 3, 10, QChar('0')));
+					xmlWriter.writeAttribute("FilenamePoints2D", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + QString("Marker%1points2d.csv").arg(k, 3, 10, QChar('0')));
+					xmlWriter.writeAttribute("FilenameStatus2D", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + QString("Marker%1status2d.csv").arg(k, 3, 10, QChar('0')));
+					xmlWriter.writeAttribute("FilenameSize", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + QString("Marker%1size.csv").arg(k, 3, 10, QChar('0')));
+					xmlWriter.writeAttribute("FilenamePoints3D", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + QString("Marker%1points3d.csv").arg(k, 3, 10, QChar('0')));
+					xmlWriter.writeAttribute("FilenameStatus3D", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + QString("Marker%1status3d.csv").arg(k, 3, 10, QChar('0')));
+					xmlWriter.writeAttribute("FilenameInterpolation", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + QString("Marker%1interpolation.csv").arg(k, 3, 10, QChar('0')));
 					xmlWriter.writeEndElement();
 				}
 
@@ -1674,12 +1668,12 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 					xmlWriter.writeAttribute("ID", QString::number(k));
 					if ((*trial_it)->getRigidBodies()[k]->isReferencesSet() == 2)
 					{
-						xmlWriter.writeAttribute("ReferenceNames", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("RigidBody%1ReferenceNames.csv").arg(k, 3, 10, QChar('0')));
-						xmlWriter.writeAttribute("ReferencePoints3D", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("RigidBody%1ReferencePoints3d.csv").arg(k, 3, 10, QChar('0')));
+						xmlWriter.writeAttribute("ReferenceNames", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + QString("RigidBody%1ReferenceNames.csv").arg(k, 3, 10, QChar('0')));
+						xmlWriter.writeAttribute("ReferencePoints3D", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + QString("RigidBody%1ReferencePoints3d.csv").arg(k, 3, 10, QChar('0')));
 					}
 					if ((*trial_it)->getRigidBodies()[k]->getHasOptimizedCoordinates())
 					{
-						xmlWriter.writeAttribute("ReferencePoints3DOptimized", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("RigidBody%1ReferencePoints3d_optimized.csv").arg(k, 3, 10, QChar('0')));
+						xmlWriter.writeAttribute("ReferencePoints3DOptimized", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + QString("RigidBody%1ReferencePoints3d_optimized.csv").arg(k, 3, 10, QChar('0')));
 					}
 					xmlWriter.writeAttribute("Visible", QString::number((*trial_it)->getRigidBodies()[k]->getVisible()));
 					xmlWriter.writeAttribute("Color", (*trial_it)->getRigidBodies()[k]->getColor().name());
@@ -1695,9 +1689,9 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 					{
 						xmlWriter.writeStartElement("DummyMarker");
 						xmlWriter.writeAttribute("Name", (*trial_it)->getRigidBodies()[k]->getDummyNames()[p]);
-						xmlWriter.writeAttribute("PointReferences", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("RigidBody%1DummyMarker%2PointReferences.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')));
-						xmlWriter.writeAttribute("PointReferences2", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("RigidBody%1DummyMarker%2PointReferences2.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')));
-						xmlWriter.writeAttribute("PointCoordinates", (*trial_it)->getName() + OS_SEP + "data" + OS_SEP + QString("RigidBody%1DummyMarker%2PointCoordinates.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')));
+						xmlWriter.writeAttribute("PointReferences", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + QString("RigidBody%1DummyMarker%2PointReferences.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')));
+						xmlWriter.writeAttribute("PointReferences2", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + QString("RigidBody%1DummyMarker%2PointReferences2.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')));
+						xmlWriter.writeAttribute("PointCoordinates", (*trial_it)->getName() + QDir::separator() + "data" + QDir::separator() + QString("RigidBody%1DummyMarker%2PointCoordinates.csv").arg(k, 3, 10, QChar('0')).arg(p, 3, 10, QChar('0')));
 						xmlWriter.writeEndElement();
 					}
 
@@ -1759,7 +1753,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							QString xml_file = attr.value("MetaData").toString();
 							if (!xml_file.isEmpty())
 							{
-								loadProjectMetaData(littleHelper::adjustPathToOS(basedir + OS_SEP + xml_file));
+								loadProjectMetaData(littleHelper::adjustPathToOS(basedir + QDir::separator() + xml_file));
 							}
 
 							QString flipImages = attr.value("FlipImages").toString();
@@ -1795,16 +1789,16 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							{
 								attr = xml.attributes();
 								text = attr.value("CameraMatrix").toString();
-								text.replace("\\",OS_SEP);
-								text.replace("/",OS_SEP);
-								cam->loadCameraMatrix(basedir + OS_SEP + text);
+								text.replace("\\",QDir::separator());
+								text.replace("/",QDir::separator());
+								cam->loadCameraMatrix(basedir + QDir::separator() + text);
 
 								QString undistparam = attr.value("UndistortionParameter").toString();
 								if (!undistparam.isEmpty())
 								{
-									undistparam.replace("\\", OS_SEP);
-									undistparam.replace("/", OS_SEP);
-									cam->loadUndistortionParam(basedir + OS_SEP + undistparam);
+									undistparam.replace("\\", QDir::separator());
+									undistparam.replace("/", QDir::separator());
+									cam->loadUndistortionParam(basedir + QDir::separator() + undistparam);
 								}
 							}
 
@@ -1817,9 +1811,9 @@ bool ProjectFileIO::readProjectFile(QString filename)
 									{
 										attr = xml.attributes();
 										text = attr.value("Filename").toString();
-										text.replace("\\",OS_SEP);
-										text.replace("/",OS_SEP);
-										cam->loadUndistortionImage(basedir + OS_SEP + text);
+										text.replace("\\",QDir::separator());
+										text.replace("/",QDir::separator());
+										cam->loadUndistortionImage(basedir + QDir::separator() + text);
 										cam->getUndistortionObject()->setComputed(attr.value("isComputed").toString().toInt());
 										while (!(xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "UndistortionGrid"))
 										{
@@ -1834,33 +1828,33 @@ bool ProjectFileIO::readProjectFile(QString filename)
 												{
 													attr = xml.attributes();
 													text = attr.value("Filename").toString();
-													text.replace("\\",OS_SEP);
-													text.replace("/",OS_SEP);
-													cam->getUndistortionObject()->loadPointsDetected(basedir + OS_SEP + text);
+													text.replace("\\",QDir::separator());
+													text.replace("/",QDir::separator());
+													cam->getUndistortionObject()->loadPointsDetected(basedir + QDir::separator() + text);
 												}
 												else if (xml.name() == "GridPointsDistorted")
 												{
 													attr = xml.attributes();
 													text = attr.value("Filename").toString();
-													text.replace("\\",OS_SEP);
-													text.replace("/",OS_SEP);
-													cam->getUndistortionObject()->loadGridPointsDistorted(basedir + OS_SEP + text);
+													text.replace("\\",QDir::separator());
+													text.replace("/",QDir::separator());
+													cam->getUndistortionObject()->loadGridPointsDistorted(basedir + QDir::separator() + text);
 												}
 												else if (xml.name() == "GridPointsReferences")
 												{
 													attr = xml.attributes();
 													text = attr.value("Filename").toString();
-													text.replace("\\",OS_SEP);
-													text.replace("/",OS_SEP);
-													cam->getUndistortionObject()->loadGridPointsReferences(basedir + OS_SEP + text);
+													text.replace("\\",QDir::separator());
+													text.replace("/",QDir::separator());
+													cam->getUndistortionObject()->loadGridPointsReferences(basedir + QDir::separator() + text);
 												}
 												else if (xml.name() == "GridPointsInlier")
 												{
 													attr = xml.attributes();
 													text = attr.value("Filename").toString();
-													text.replace("\\",OS_SEP);
-													text.replace("/",OS_SEP);
-													cam->getUndistortionObject()->loadGridPointsInlier(basedir + OS_SEP + text);
+													text.replace("\\",QDir::separator());
+													text.replace("/",QDir::separator());
+													cam->getUndistortionObject()->loadGridPointsInlier(basedir + QDir::separator() + text);
 												}
 											}
 											xml.readNext();
@@ -1870,8 +1864,8 @@ bool ProjectFileIO::readProjectFile(QString filename)
 									{
 										attr = xml.attributes();
 										QString filename_seq = attr.value("Filename").toString();
-										filename_seq.replace("\\", OS_SEP);
-										filename_seq.replace("/", OS_SEP);
+										filename_seq.replace("\\", QDir::separator());
+										filename_seq.replace("/", QDir::separator());
 
 										int frames_seq = attr.value("Frames").toString().toInt();
 										int width_seq = attr.value("Width").toString().toInt();
@@ -1885,16 +1879,16 @@ bool ProjectFileIO::readProjectFile(QString filename)
 										text = attr.value("Filename").toString();
 										if (text == "external")
 										{
-											image = cam->addImage(basedir + OS_SEP + text);
+											image = cam->addImage(basedir + QDir::separator() + text);
 											int width_ext = attr.value("Width").toString().toInt();
 											int height_ext = attr.value("Height").toString().toInt();
 											cam->setResolution(width_ext, height_ext);
 										}
 										else if (!text.isEmpty()){
-											text.replace("\\", OS_SEP);
-											text.replace("/", OS_SEP);
+											text.replace("\\", QDir::separator());
+											text.replace("/", QDir::separator());
 											//TODO
-											image = cam->addImage(basedir + OS_SEP + text);
+											image = cam->addImage(basedir + QDir::separator() + text);
 										} 
 										else
 										{
@@ -1910,41 +1904,41 @@ bool ProjectFileIO::readProjectFile(QString filename)
 												{
 													attr = xml.attributes();
 													text = attr.value("Filename").toString();
-													text.replace("\\",OS_SEP);
-													text.replace("/",OS_SEP);
-													image->loadPointsDetectedAll(basedir + OS_SEP + text);
+													text.replace("\\",QDir::separator());
+													text.replace("/",QDir::separator());
+													image->loadPointsDetectedAll(basedir + QDir::separator() + text);
 												}
 												else if (xml.name() == "PointsDetected")
 												{
 													attr = xml.attributes();
 													text = attr.value("Filename").toString();
-													text.replace("\\",OS_SEP);
-													text.replace("/",OS_SEP);
-													image->loadPointsDetected(basedir + OS_SEP + text);
+													text.replace("\\",QDir::separator());
+													text.replace("/",QDir::separator());
+													image->loadPointsDetected(basedir + QDir::separator() + text);
 												}
 												else if (xml.name() == "Inlier")
 												{
 													attr = xml.attributes();
 													text = attr.value("Filename").toString();
-													text.replace("\\",OS_SEP);
-													text.replace("/",OS_SEP);
-													image->loadPointsInlier(basedir + OS_SEP + text);
+													text.replace("\\",QDir::separator());
+													text.replace("/",QDir::separator());
+													image->loadPointsInlier(basedir + QDir::separator() + text);
 												}
 												else if (xml.name() == "RotationMatrix")
 												{
 													attr = xml.attributes();
 													text = attr.value("Filename").toString();
-													text.replace("\\",OS_SEP);
-													text.replace("/",OS_SEP);
-													image->loadRotationMatrix(basedir + OS_SEP + text);
+													text.replace("\\",QDir::separator());
+													text.replace("/",QDir::separator());
+													image->loadRotationMatrix(basedir + QDir::separator() + text);
 												}
 												else if (xml.name() == "TranslationVector")
 												{
 													attr = xml.attributes();
 													text = attr.value("Filename").toString();
-													text.replace("\\",OS_SEP);
-													text.replace("/",OS_SEP);
-													image->loadTranslationVector(basedir + OS_SEP + text);
+													text.replace("\\",QDir::separator());
+													text.replace("/",QDir::separator());
+													image->loadTranslationVector(basedir + QDir::separator() + text);
 												}
 											}
 											xml.readNext();
@@ -1979,12 +1973,12 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							}
 							else
 							{
-								QString frameSpec = basedir + OS_SEP + attr.value("FrameSpecifications").toString();
-								QString references = basedir + OS_SEP + attr.value("References").toString();
-								references.replace("\\",OS_SEP);
-								references.replace("/",OS_SEP);
-								frameSpec.replace("\\",OS_SEP);
-								frameSpec.replace("/",OS_SEP);
+								QString frameSpec = basedir + QDir::separator() + attr.value("FrameSpecifications").toString();
+								QString references = basedir + QDir::separator() + attr.value("References").toString();
+								references.replace("\\",QDir::separator());
+								references.replace("/",QDir::separator());
+								frameSpec.replace("\\",QDir::separator());
+								frameSpec.replace("/",QDir::separator());
 								CalibrationObject::getInstance()->loadCoords(frameSpec, references);
 							}
 						}
@@ -1992,7 +1986,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 						{
 							QXmlStreamAttributes attr = xml.attributes();
 							QString trialname = attr.value("Name").toString();
-							QString trialfolder = basedir + OS_SEP + trialname + OS_SEP;
+							QString trialfolder = basedir + QDir::separator() + trialname + QDir::separator();
 							Trial* trial;
 							if (trialname == "Default")
 							{
@@ -2021,13 +2015,13 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							QString nbImages = attr.value("nbImages").toString();
 							if (!nbImages.isEmpty())trial->setNbImagesFromConfig(nbImages.toInt());
 
-							trial->loadMarkers(trialfolder + OS_SEP + "data" + OS_SEP + "MarkerDescription.txt");
-							trial->loadRigidBodies(trialfolder + OS_SEP + "data" + OS_SEP + "RigidBodies.txt");
+							trial->loadMarkers(trialfolder + QDir::separator() + "data" + QDir::separator() + "MarkerDescription.txt");
+							trial->loadRigidBodies(trialfolder + QDir::separator() + "data" + QDir::separator() + "RigidBodies.txt");
 
 							QString xml_file = attr.value("MetaData").toString();
 							if (!xml_file.isEmpty())
 							{
-								trial->setXMLData(littleHelper::adjustPathToOS(basedir + OS_SEP + xml_file));
+								trial->setXMLData(littleHelper::adjustPathToOS(basedir + QDir::separator() + xml_file));
 							}
 
 							QString isDefault = attr.value("Default").toString();
@@ -2056,20 +2050,20 @@ bool ProjectFileIO::readProjectFile(QString filename)
 
 										trial->addEvent(name_e, QColor(color_e));
 										trial->getEvents().back()->setDraw(draw_e.toInt());
-										trial->getEvents().back()->loadData(basedir + OS_SEP + littleHelper::adjustPathToOS(filename_e));
+										trial->getEvents().back()->loadData(basedir + QDir::separator() + littleHelper::adjustPathToOS(filename_e));
 									}
 									if (xml.name() == "Marker")
 									{
 										attr = xml.attributes();
-										QString filename_points2D = basedir + OS_SEP + attr.value("FilenamePoints2D").toString();
-										QString filename_status2D = basedir + OS_SEP + attr.value("FilenameStatus2D").toString();
-										QString filename_size = basedir + OS_SEP + attr.value("FilenameSize").toString();
+										QString filename_points2D = basedir + QDir::separator() + attr.value("FilenamePoints2D").toString();
+										QString filename_status2D = basedir + QDir::separator() + attr.value("FilenameStatus2D").toString();
+										QString filename_size = basedir + QDir::separator() + attr.value("FilenameSize").toString();
 
 										int id = attr.value("ID").toString().toInt();
 										trial->getMarkers()[id]->load(littleHelper::adjustPathToOS(filename_points2D), littleHelper::adjustPathToOS(filename_status2D), littleHelper::adjustPathToOS(filename_size));
 
 										QString Reference3DPoint = attr.value("Reference3DPoint").toString();
-										if (!Reference3DPoint.isEmpty())trial->getMarkers()[id]->loadReference3DPoint(littleHelper::adjustPathToOS(basedir + OS_SEP + Reference3DPoint));
+										if (!Reference3DPoint.isEmpty())trial->getMarkers()[id]->loadReference3DPoint(littleHelper::adjustPathToOS(basedir + QDir::separator() + Reference3DPoint));
 
 										QString TrackingPenalty = attr.value("TrackingPenalty").toString();
 										if (!TrackingPenalty.isEmpty())trial->getMarkers()[id]->setMaxPenalty(TrackingPenalty.toInt());
@@ -2116,8 +2110,8 @@ bool ProjectFileIO::readProjectFile(QString filename)
 
 										if (!requiresRecomputation.isEmpty() && !filename_points3D.isEmpty() && !filename_status3D.isEmpty())
 										{
-											filename_points3D = basedir + OS_SEP + filename_points3D;
-											filename_status3D = basedir + OS_SEP + filename_status3D;
+											filename_points3D = basedir + QDir::separator() + filename_points3D;
+											filename_status3D = basedir + QDir::separator() + filename_status3D;
 											trial->getMarkers()[id]->setRequiresRecomputation(requiresRecomputation.toInt());
 											trial->getMarkers()[id]->load3DPoints(littleHelper::adjustPathToOS(filename_points3D), littleHelper::adjustPathToOS(filename_status3D));
 										}
@@ -2125,7 +2119,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 										QString filename_interpolation = attr.value("FilenameInterpolation").toString();
 										if (!filename_interpolation.isEmpty())
 										{
-											trial->getMarkers()[id]->loadInterpolation(basedir + OS_SEP + filename_interpolation);
+											trial->getMarkers()[id]->loadInterpolation(basedir + QDir::separator() + filename_interpolation);
 										}
 									}
 
@@ -2140,8 +2134,8 @@ bool ProjectFileIO::readProjectFile(QString filename)
 
 										if (!filename_referenceNames_attr.isEmpty() && !filename_referencePoints3D_attr.isEmpty())
 										{
-											QString filename_referenceNames = basedir + OS_SEP + filename_referenceNames_attr;
-											QString filename_referencePoints3D = basedir + OS_SEP + filename_referencePoints3D_attr;
+											QString filename_referenceNames = basedir + QDir::separator() + filename_referenceNames_attr;
+											QString filename_referencePoints3D = basedir + QDir::separator() + filename_referencePoints3D_attr;
 											trial->getRigidBodies()[id]->load(littleHelper::adjustPathToOS(filename_referenceNames), littleHelper::adjustPathToOS(filename_referencePoints3D));
 										}
 										else
@@ -2152,7 +2146,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 										QString filename_referencePoints3DOptimized_attr = attr.value("ReferencePoints3DOptimized").toString();
 										if (!filename_referencePoints3DOptimized_attr.isEmpty())
 										{
-											QString filename_referencePoints3DOptimized = basedir + OS_SEP + filename_referencePoints3DOptimized_attr;
+											QString filename_referencePoints3DOptimized = basedir + QDir::separator() + filename_referencePoints3DOptimized_attr;
 											trial->getRigidBodies()[id]->loadOptimized(littleHelper::adjustPathToOS(filename_referencePoints3DOptimized));
 										}
 
@@ -2208,7 +2202,7 @@ bool ProjectFileIO::readProjectFile(QString filename)
 													attr = xml.attributes();
 
 													QString dummyName = attr.value("Name").toString();
-													QString dummyPointReferences = basedir + OS_SEP + attr.value("PointReferences").toString();
+													QString dummyPointReferences = basedir + QDir::separator() + attr.value("PointReferences").toString();
 													QString dummyPointReferences2 = attr.value("PointReferences2").toString();
 													if (dummyPointReferences2.isEmpty())
 													{
@@ -2216,9 +2210,9 @@ bool ProjectFileIO::readProjectFile(QString filename)
 													}
 													else
 													{
-														dummyPointReferences2 = basedir + OS_SEP + dummyPointReferences2;
+														dummyPointReferences2 = basedir + QDir::separator() + dummyPointReferences2;
 													}
-													QString dummyPointCoordinates = basedir + OS_SEP + attr.value("PointCoordinates").toString();
+													QString dummyPointCoordinates = basedir + QDir::separator() + attr.value("PointCoordinates").toString();
 
 													trial->getRigidBodies()[id]->addDummyPoint(dummyName, littleHelper::adjustPathToOS(dummyPointReferences), littleHelper::adjustPathToOS(dummyPointReferences2), -1, littleHelper::adjustPathToOS(dummyPointCoordinates));
 												}

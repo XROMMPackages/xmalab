@@ -1,24 +1,24 @@
 # LEVMAR_FOUND               - Levmar library was found
 # LEVMAR_INCLUDE_DIR         - Path to Levmar include dir
-# LEVMAR_LIBRARy           - List of Levmar libraries
-
+# LEVMAR_LIBRARY             - Levmar library
 
 IF (LEVMAR_INCLUDE_DIR AND LEVMAR_LIBRARY)
 	# in cache already
 	SET(LEVMAR_FOUND TRUE)
-ELSE (LEVMAR_INCLUDE_DIR AND LEVMAR_LIBRARY)
-	IF (WIN32)
-		FIND_LIBRARY(LEVMAR_LIBRARY NAMES levmar.lib)
-		FIND_PATH(LEVMAR_INCLUDE_DIR NAMES levmar.h)
-	ELSE(WIN32)
-		FIND_LIBRARY(LEVMAR_LIBRARY
-			WIN32_DEBUG_POSTFIX d
-			NAMES  levmar.lib
-			HINTS /usr/lib /usr/lib64
-		)
-		FIND_PATH(LEVMAR_INCLUDE_DIR levmar.h
-			HINTS /usr/include /usr/local/include
-			PATH_SUFFIXES levmar
-		)
-	ENDIF (WIN32)
-ENDIF (LEVMAR_INCLUDE_DIR AND LEVMAR_LIBRARY)
+ELSE()
+	FIND_PATH(LEVMAR_INCLUDE_DIR
+		NAMES levmar.h
+		PATH_SUFFIXES levmar
+	)
+	FIND_LIBRARY(LEVMAR_LIBRARY
+		NAMES levmar levmar.lib
+	)
+
+	include(FindPackageHandleStandardArgs)
+	find_package_handle_standard_args(Levmar
+		DEFAULT_MSG
+		LEVMAR_LIBRARY LEVMAR_INCLUDE_DIR
+	)
+
+	mark_as_advanced(LEVMAR_INCLUDE_DIR LEVMAR_LIBRARY)
+ENDIF()

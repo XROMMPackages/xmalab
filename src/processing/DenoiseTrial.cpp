@@ -39,11 +39,6 @@
 #include <QFileInfo>
 #include <QDir>
 
-#ifdef WIN32
-	#define OS_SEP "\\"
-#else
-	#define OS_SEP "/"
-#endif
 
 using namespace xma;
 
@@ -74,7 +69,7 @@ void DenoiseTrial::process()
 
 	QFileInfo info(m_trial->getVideoStreams()[m_cameraID]->getFileBasename());
 
-	QDir().mkpath(output_directory + OS_SEP + "Cam" + QString::number(m_cameraID));
+	QDir().mkpath(output_directory + QDir::separator() + "Cam" + QString::number(m_cameraID));
 	int window_size = (m_temporalWindowSize - 1) / 2;
 
 	for (int i = 0; i < m_trial->getNbImages(); i++) {
@@ -89,7 +84,7 @@ void DenoiseTrial::process()
 			out_image = images[i];
 			fastNlMeansDenoisingMulti(images, out_image, i, m_temporalWindowSize, m_filterStrength, m_templateWindowSize, m_searchWindowSize);
 		}
-		QString filename = output_directory + OS_SEP + "Cam" + QString::number(m_cameraID) + OS_SEP + info.completeBaseName() + "." + QString("%1").arg(i + 1, 4, 10, QChar('0')) + ".jpg";
+		QString filename = output_directory + QDir::separator() + "Cam" + QString::number(m_cameraID) + QDir::separator() + info.completeBaseName() + "." + QString("%1").arg(i + 1, 4, 10, QChar('0')) + ".jpg";
 		cv::imwrite(filename.toStdString(), out_image);
 	}
 }

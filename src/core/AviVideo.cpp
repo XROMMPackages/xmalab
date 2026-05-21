@@ -37,7 +37,12 @@ using namespace xma;
 AviVideo::AviVideo(QStringList _filenames) : VideoStream(_filenames)
 {
     lastFrame = -1;
-    cap = std::make_unique<cv::VideoCapture>(filenames.at(0).toStdString());
+    cap = std::make_unique<cv::VideoCapture>(filenames.at(0).toStdString(), cv::CAP_FFMPEG);
+    if (!cap->isOpened())
+    {
+        cap->release();
+        cap = std::make_unique<cv::VideoCapture>(filenames.at(0).toStdString());
+    }
     reloadFile();
 }
 
@@ -87,7 +92,12 @@ void AviVideo::reloadFile()
 {
     if (cap && cap->isOpened())
         cap->release();
-    cap = std::make_unique<cv::VideoCapture>(filenames.at(0).toStdString());
+    cap = std::make_unique<cv::VideoCapture>(filenames.at(0).toStdString(), cv::CAP_FFMPEG);
+    if (!cap->isOpened())
+    {
+        cap->release();
+        cap = std::make_unique<cv::VideoCapture>(filenames.at(0).toStdString());
+    }
 
     if (cap->isOpened())
     {

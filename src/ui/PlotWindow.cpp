@@ -52,11 +52,6 @@
 #include "ui/ConfirmationDialog.h"
 #include "core/Settings.h"
 
-#ifdef WIN32
-#define OS_SEP "\\"
-#else
-#define OS_SEP "/"
-#endif
 #include "Shortcuts.h"
 
 
@@ -135,7 +130,7 @@ void PlotWindow::saveData()
 {
 	QString text = "Save PlotData";
 	QString fileName = QFileDialog::getSaveFileName(this,
-		text, Settings::getInstance()->getLastUsedDirectory() + OS_SEP + "PlotData.csv", tr("Comma seperated data (*.csv)"));
+		text, Settings::getInstance()->getLastUsedDirectory() + QDir::separator() + "PlotData.csv", tr("Comma seperated data (*.csv)"));
 	if (fileName.isNull() == false)
 	{
 		std::ofstream outfile(fileName.toStdString());

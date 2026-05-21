@@ -1,0 +1,119 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 25,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "windows",
+            "displayName": "Windows (MSVC + vcpkg)",
+            "description": "Windows build using MSVC with vcpkg dependencies",
+            "generator": "Visual Studio 18 2026",
+            "architecture": "x64",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "CMAKE_CXX_STANDARD": "17",
+                "VCPKG_TARGET_TRIPLET": "x64-windows"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "hostOS": [ "Windows" ]
+                }
+            }
+        },
+        {
+            "name": "macos",
+            "displayName": "macOS (Apple Silicon + vcpkg)",
+            "description": "macOS ARM64 build using Clang with vcpkg dependencies",
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "CMAKE_CXX_STANDARD": "17",
+                "VCPKG_TARGET_TRIPLET": "arm64-osx",
+                "CMAKE_OSX_ARCHITECTURES": "arm64"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "hostOS": [ "macOS" ]
+                }
+            }
+        },
+        {
+            "name": "macos-intel",
+            "displayName": "macOS (Intel + vcpkg)",
+            "description": "macOS x86_64 build using Clang with vcpkg dependencies",
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "CMAKE_CXX_STANDARD": "17",
+                "VCPKG_TARGET_TRIPLET": "x64-osx",
+                "CMAKE_OSX_ARCHITECTURES": "x86_64"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "hostOS": [ "macOS" ]
+                }
+            }
+        },
+        {
+            "name": "linux",
+            "displayName": "Linux (GCC + vcpkg)",
+            "description": "Linux build using GCC with vcpkg dependencies",
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "CMAKE_CXX_STANDARD": "17",
+                "VCPKG_TARGET_TRIPLET": "x64-linux"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "hostOS": [ "Linux" ]
+                }
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "windows-release",
+            "displayName": "Windows Release",
+            "configurePreset": "windows",
+            "configuration": "Release"
+        },
+        {
+            "name": "windows-debug",
+            "displayName": "Windows Debug",
+            "configurePreset": "windows",
+            "configuration": "Debug"
+        },
+        {
+            "name": "macos-release",
+            "displayName": "macOS Release",
+            "configurePreset": "macos",
+            "configuration": "Release"
+        },
+        {
+            "name": "macos-debug",
+            "displayName": "macOS Debug",
+            "configurePreset": "macos",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-release",
+            "displayName": "Linux Release",
+            "configurePreset": "linux",
+            "configuration": "Release"
+        },
+        {
+            "name": "linux-debug",
+            "displayName": "Linux Debug",
+            "configurePreset": "linux",
+            "configuration": "Debug"
+        }
+    ]
+}

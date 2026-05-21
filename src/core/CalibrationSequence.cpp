@@ -40,6 +40,7 @@
 #include "core/AviVideo.h"
 
 #include <QApplication>
+#include <QDir>
 #include <QFile>
 #include "Settings.h"
 #include <QFileDialog>
@@ -59,8 +60,8 @@ CalibrationSequence::CalibrationSequence(Camera * camera)
 
 CalibrationSequence::~CalibrationSequence()
 {
-	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
-		delete *it;
+	for (CalibrationImage* img : calibrationImages)
+		delete img;
 	calibrationImages.clear();
 	if (sequence) delete sequence;
 	if (undistortedImage) delete undistortedImage;
@@ -68,10 +69,10 @@ CalibrationSequence::~CalibrationSequence()
 
 void CalibrationSequence::reset()
 {
-	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
+	for (CalibrationImage* img : calibrationImages)
 	{
-		(*it)->reset();
-		(*it)->init(CalibrationObject::getInstance()->getFrameSpecifications().size());
+		img->reset();
+		img->init(CalibrationObject::getInstance()->getFrameSpecifications().size());
 	}
 }
 
@@ -105,9 +106,9 @@ bool CalibrationSequence::checkResolution(int width, int height)
 	if (sequence || !sequence_filename.isEmpty())
 		return true;
 
-	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
+	for (CalibrationImage* img : calibrationImages)
 	{
-		if (width != (*it)->getWidth() || height != (*it)->getHeight()) return false;
+		if (width != img->getWidth() || height != img->getHeight()) return false;
 	}
 	return true;
 }
@@ -154,18 +155,18 @@ CalibrationImage* CalibrationSequence::addImage(QString fileName)
 
 void CalibrationSequence::save(QString folder)
 {
-	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
+	for (CalibrationImage* img : calibrationImages)
 	{
 		if (!sequence && (Project::getInstance()->getCalibration() == INTERNAL)) 
-			(*it)->getImage()->save(folder + (*it)->getFilename(),m_camera->isFlipped());
+			img->getImage()->save(folder + img->getFilename(),m_camera->isFlipped());
 		
-		if ((*it)->isCalibrated() > 0)
+		if (img->isCalibrated() > 0)
 		{
-			(*it)->savePointsInlier(folder + "data" + OS_SEP + (*it)->getFilenamePointsInlier());
-			(*it)->savePointsDetected(folder + "data" + OS_SEP + (*it)->getFilenamePointsDetected());
-			(*it)->savePointsDetectedAll(folder + "data" + OS_SEP + (*it)->getFilenamePointsDetectedAll());
-			(*it)->saveRotationMatrix(folder + "data" + OS_SEP + (*it)->getFilenameRotationMatrix());
-			(*it)->saveTranslationVector(folder + "data" + OS_SEP + (*it)->getFilenameTranslationVector());
+			img->savePointsInlier(folder + "data" + QDir::separator() + img->getFilenamePointsInlier());
+			img->savePointsDetected(folder + "data" + QDir::separator() + img->getFilenamePointsDetected());
+			img->savePointsDetectedAll(folder + "data" + QDir::separator() + img->getFilenamePointsDetectedAll());
+			img->saveRotationMatrix(folder + "data" + QDir::separator() + img->getFilenameRotationMatrix());
+			img->saveTranslationVector(folder + "data" + QDir::separator() + img->getFilenameTranslationVector());
 		}
 	}
 }
@@ -201,9 +202,9 @@ void CalibrationSequence::loadTextures()
 		undistortedImage->resetImage();
 	}
 	else if (!sequence){
-		for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
+		for (CalibrationImage* img : calibrationImages)
 		{
-			(*it)->loadTextures();
+			img->loadTextures();
 			QApplication::processEvents();
 		}
 	}
@@ -229,35 +230,35 @@ void CalibrationSequence::undistort()
 	if (!sequence){
 		if (m_camera->getUndistortionObject() && m_camera->getUndistortionObject()->isComputed())
 		{
-			for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
+			for (CalibrationImage* img : calibrationImages)
 			{
-				m_camera->getUndistortionObject()->undistort((*it)->getImage(), (*it)->getUndistortedImage());
+				m_camera->getUndistortionObject()->undistort(img->getImage(), img->getUndistortedImage());
 				if (m_camera->hasModelDistortion())
 				{
 					cv::Mat imageMat;
-					(*it)->getUndistortedImage()->getImage(imageMat);
+					img->getUndistortedImage()->getImage(imageMat);
 					cv::remap(imageMat, imageMat, *m_camera->getUndistortionMapX(), *m_camera->getUndistortionMapY(), cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
-					(*it)->getUndistortedImage()->setImage(imageMat);
+					img->getUndistortedImage()->setImage(imageMat);
 					imageMat.release();
 				}
 			}
 		}
 		else if (m_camera->hasModelDistortion())
 		{
-			for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
+			for (CalibrationImage* img : calibrationImages)
 			{			
 				cv::Mat imageMat;
-				(*it)->getImage()->getImage(imageMat);
+				img->getImage()->getImage(imageMat);
 				cv::remap(imageMat, imageMat, *m_camera->getUndistortionMapX(), *m_camera->getUndistortionMapY(), cv::INTER_LANCZOS4, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
-				(*it)->getUndistortedImage()->setImage(imageMat);
+				img->getUndistortedImage()->setImage(imageMat);
 				imageMat.release();
 			}
 		}
 	}
 
-	for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
+	for (CalibrationImage* img : calibrationImages)
 	{
-		(*it)->undistortPoints();
+		img->undistortPoints();
 	}
 }
 
@@ -348,7 +349,7 @@ void CalibrationSequence::undstortSequenceImage(int id)
 
 	if (m_camera->getUndistortionObject() && m_camera->getUndistortionObject()->isComputed())
 	{
-		for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
+		for (CalibrationImage* img : calibrationImages)
 		{
 			m_camera->getUndistortionObject()->undistort(sequence->getImage(), undistortedImage);
 
@@ -364,7 +365,7 @@ void CalibrationSequence::undstortSequenceImage(int id)
 	}
 	else if (m_camera->hasModelDistortion())
 	{
-		for (std::vector<CalibrationImage*>::iterator it = calibrationImages.begin(); it != calibrationImages.end(); ++it)
+		for (CalibrationImage* img : calibrationImages)
 		{
 			cv::Mat imageMat;
 			sequence->getImage()->getImage(imageMat);

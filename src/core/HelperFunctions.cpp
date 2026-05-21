@@ -153,8 +153,8 @@ namespace littleHelper
 	QString adjustPathToOS(QString filename)
 	{
 		QString tmp = filename;
-		tmp.replace("\\", OS_SEP);
-		tmp.replace("/", OS_SEP);
+		tmp.replace("\\", QDir::separator());
+		tmp.replace("/", QDir::separator());
 		return tmp;
 	}
 

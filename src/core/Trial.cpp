@@ -49,11 +49,6 @@
 
 #include <fstream>
 
-#ifdef WIN32
-#define OS_SEP "\\"
-#else
-#define OS_SEP "/"
-#endif
 #include <QApplication>
 #include <opencv2/highgui/highgui.hpp>
 #include "processing/FilterImage.h"
@@ -78,27 +73,27 @@ Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
 	interpolate3D = false;
 	requiresRecomputation = true;
 
-	for (std::vector<QStringList>::iterator filenameList = imageFilenames.begin(); filenameList != imageFilenames.end(); ++filenameList)
+	for (const QStringList& filenameList : imageFilenames)
 	{
 		VideoStream* newSequence = NULL;
-		if ((*filenameList).size() > 1)
+		if (filenameList.size() > 1)
 		{
-			newSequence = new ImageSequence(*filenameList);
+			newSequence = new ImageSequence(filenameList);
 		}
 		else
 		{
-			QFileInfo info((*filenameList).at(0));
+			QFileInfo info(filenameList.at(0));
 			if (info.suffix() == "cine")
 			{
-				newSequence = new CineVideo(*filenameList);
+				newSequence = new CineVideo(filenameList);
 			}
 			else if (info.suffix() == "avi")
 			{
-				newSequence = new AviVideo(*filenameList);
+				newSequence = new AviVideo(filenameList);
 			}
 			else
 			{
-				newSequence = new ImageSequence(*filenameList);
+				newSequence = new ImageSequence(filenameList);
 			}
 		}
 		videos.push_back(newSequence);
@@ -202,25 +197,25 @@ Trial::Trial()
 Trial::~Trial()
 {
 	if(!isDefault){
-		for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
+		for (VideoStream* video : videos)
 		{
-			delete *video;
+			delete video;
 		}
 	}
 	videos.clear();
-	for (std::vector<RigidBody*>::iterator rigidBody = rigidBodies.begin(); rigidBody != rigidBodies.end(); ++rigidBody)
+	for (RigidBody* rigidBody : rigidBodies)
 	{
-		delete *rigidBody;
+		delete rigidBody;
 	}
 	rigidBodies.clear();
-	for (std::vector<Marker*>::iterator marker = markers.begin(); marker != markers.end(); ++marker)
+	for (Marker* marker : markers)
 	{
-		delete *marker;
+		delete marker;
 	}
 	markers.clear();
-	for (std::vector<EventData*>::iterator e = events.begin(); e != events.end(); ++e)
+	for (EventData* e : events)
 	{
-		delete *e;
+		delete e;
 	}
 	events.clear();
 }
@@ -234,27 +229,27 @@ bool Trial::changeTrialData(QString trialname, std::vector<QStringList>& imageFi
 	std::vector<VideoStream*> video_tmp = videos;
 	videos.clear();
 
-	for (std::vector<QStringList>::iterator filenameList = imageFilenames.begin(); filenameList != imageFilenames.end(); ++filenameList)
+	for (const QStringList& filenameList : imageFilenames)
 	{
 		VideoStream* newSequence = NULL;
-		if ((*filenameList).size() > 1)
+		if (filenameList.size() > 1)
 		{
-			newSequence = new ImageSequence(*filenameList);
+			newSequence = new ImageSequence(filenameList);
 		}
 		else
 		{
-			QFileInfo info((*filenameList).at(0));
+			QFileInfo info(filenameList.at(0));
 			if (info.suffix() == "cine")
 			{
-				newSequence = new CineVideo(*filenameList);
+				newSequence = new CineVideo(filenameList);
 			}
 			else if (info.suffix() == "avi")
 			{
-				newSequence = new AviVideo(*filenameList);
+				newSequence = new AviVideo(filenameList);
 			}
 			else
 			{
-				newSequence = new ImageSequence(*filenameList);
+				newSequence = new ImageSequence(filenameList);
 			}
 		}
 		newSequence->setActiveFrame(activeFrame);
@@ -264,9 +259,9 @@ bool Trial::changeTrialData(QString trialname, std::vector<QStringList>& imageFi
 	if (!checkTrialImageSizeValid())
 	{
 		//image size wrong we restore the old data
-		for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
+		for (VideoStream* video : videos)
 		{
-			delete *video;
+			delete video;
 		}
 		videos.clear();
 		videos = video_tmp;
@@ -275,9 +270,9 @@ bool Trial::changeTrialData(QString trialname, std::vector<QStringList>& imageFi
 	else
 	{
 		//image size correct we delete the old data
-		for (std::vector<VideoStream*>::iterator video = video_tmp.begin(); video != video_tmp.end(); ++video)
+		for (VideoStream* video : video_tmp)
 		{
-			delete *video;
+			delete video;
 		}
 		video_tmp.clear();	
 	}
@@ -341,9 +336,9 @@ void Trial::bindTextures()
 {
 	if (isDefault)
 		return;
-	for (std::vector<VideoStream*>::iterator video = videos.begin(); video != videos.end(); ++video)
+	for (VideoStream* video : videos)
 	{
-		(*video)->bindTexture();
+		video->bindTexture();
 	}
 }
 
@@ -463,10 +458,10 @@ void Trial::removeMarker(int idx)
 	if (activeMarkerIdx >= (int) markers.size())setActiveMarkerIdx(markers.size() - 1);
 
 	//Update RigidBodies
-	for (std::vector<RigidBody*>::const_iterator it = rigidBodies.begin(); it < rigidBodies.end(); ++it)
+	for (RigidBody* rb : rigidBodies)
 	{
-		(*it)->removePointIdx(idx);
-		(*it)->updatePointIdx(idx);
+		rb->removePointIdx(idx);
+		rb->updatePointIdx(idx);
 	}
 }
 
@@ -552,27 +547,27 @@ QString Trial::getName()
 
 void Trial::drawRigidBodies(Camera* cam)
 {
-	for (std::vector<RigidBody *>::const_iterator it = rigidBodies.begin(); it != rigidBodies.end(); ++it)
+	for (RigidBody* rb : rigidBodies)
 	{
-		(*it)->draw2D(cam, activeFrame);
+		rb->draw2D(cam, activeFrame);
 	}
 }
 
 void Trial::drawRigidBodiesMesh()
 {
-	for (std::vector<RigidBody *>::const_iterator it = rigidBodies.begin(); it != rigidBodies.end(); ++it)
+	for (RigidBody* rb : rigidBodies)
 	{
-		if((*it)->getDrawMeshModel())
-			(*it)->drawMesh(activeFrame);
+		if(rb->getDrawMeshModel())
+			rb->drawMesh(activeFrame);
 	}
 }
 
 bool Trial::renderMeshes()
 {
 	bool render = false;
-	for (std::vector<RigidBody *>::const_iterator it = rigidBodies.begin(); it != rigidBodies.end(); ++it)
+	for (RigidBody* rb : rigidBodies)
 	{
-		render = (*it)->getDrawMeshModel() || render;
+		render = rb->getDrawMeshModel() || render;
 	}
 	return render;
 }
@@ -584,13 +579,13 @@ void Trial::drawPoints(int cameraId, bool detailView)
 		if (!detailView)
 		{
 			glBegin(GL_LINES);
-			for (std::vector<Marker *>::const_iterator it = markers.begin(); it != markers.end(); ++it)
+			for (Marker* marker : markers)
 			{
-				if (((*it)->getStatus2D()[cameraId][activeFrame] > 0))
+				if ((marker->getStatus2D()[cameraId][activeFrame] > 0))
 				{
 					if (Settings::getInstance()->getBoolSetting("ShowColoredMarkerCross"))
 					{
-						QColor color = (*it)->getStatusColor(cameraId, activeFrame);
+						QColor color = marker->getStatusColor(cameraId, activeFrame);
 						glColor3f(color.redF(), color.greenF(), color.blueF());
 					}
 					else{
@@ -604,10 +599,10 @@ void Trial::drawPoints(int cameraId, bool detailView)
 						}
 					}
 
-					glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x - 5, (*it)->getPoints2D()[cameraId][activeFrame].y);
-					glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x + 5, (*it)->getPoints2D()[cameraId][activeFrame].y);
-					glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x, (*it)->getPoints2D()[cameraId][activeFrame].y - 5);
-					glVertex2f((*it)->getPoints2D()[cameraId][activeFrame].x, (*it)->getPoints2D()[cameraId][activeFrame].y + 5);
+					glVertex2f(marker->getPoints2D()[cameraId][activeFrame].x - 5, marker->getPoints2D()[cameraId][activeFrame].y);
+					glVertex2f(marker->getPoints2D()[cameraId][activeFrame].x + 5, marker->getPoints2D()[cameraId][activeFrame].y);
+					glVertex2f(marker->getPoints2D()[cameraId][activeFrame].x, marker->getPoints2D()[cameraId][activeFrame].y - 5);
+					glVertex2f(marker->getPoints2D()[cameraId][activeFrame].x, marker->getPoints2D()[cameraId][activeFrame].y + 5);
 				}
 				idx++;
 			}
@@ -682,16 +677,16 @@ void Trial::drawPoints(int cameraId, bool detailView)
 			}
 		}
 		if (!detailView  && Settings::getInstance()->getBoolSetting("DrawProjected2DpositionsForAllPoints")) {
-			for (std::vector<Marker *>::const_iterator it = markers.begin(); it != markers.end(); ++it)
+			for (Marker* marker : markers)
 			{
-				if ((*it)->getStatus3D()[activeFrame] > 0)
+				if (marker->getStatus3D()[activeFrame] > 0)
 				{
 					glBegin(GL_LINES);
 					glColor3f(0.0, 1.0, 1.0);
-					glVertex2f((*it)->getPoints2D_projected()[cameraId][activeFrame].x - 5, (*it)->getPoints2D_projected()[cameraId][activeFrame].y - 5);
-					glVertex2f((*it)->getPoints2D_projected()[cameraId][activeFrame].x + 5, (*it)->getPoints2D_projected()[cameraId][activeFrame].y + 5);
-					glVertex2f((*it)->getPoints2D_projected()[cameraId][activeFrame].x + 5, (*it)->getPoints2D_projected()[cameraId][activeFrame].y - 5);
-					glVertex2f((*it)->getPoints2D_projected()[cameraId][activeFrame].x - 5, (*it)->getPoints2D_projected()[cameraId][activeFrame].y + 5);
+					glVertex2f(marker->getPoints2D_projected()[cameraId][activeFrame].x - 5, marker->getPoints2D_projected()[cameraId][activeFrame].y - 5);
+					glVertex2f(marker->getPoints2D_projected()[cameraId][activeFrame].x + 5, marker->getPoints2D_projected()[cameraId][activeFrame].y + 5);
+					glVertex2f(marker->getPoints2D_projected()[cameraId][activeFrame].x + 5, marker->getPoints2D_projected()[cameraId][activeFrame].y - 5);
+					glVertex2f(marker->getPoints2D_projected()[cameraId][activeFrame].x - 5, marker->getPoints2D_projected()[cameraId][activeFrame].y + 5);
 					glEnd();
 				}
 			}
@@ -1162,7 +1157,7 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 		if (format == "avi")
 		{
 			cv::VideoWriter outputVideo;
-			QString outname = foldername + OS_SEP + info.completeBaseName() + "." + format;
+			QString outname = foldername + QDir::separator() + info.completeBaseName() + "." + format;
 			outputVideo.open(outname.toStdString(), -1, (getRecordingSpeed() <= 0) ? 30 : getRecordingSpeed(), cv::Size(Project::getInstance()->getCameras()[i]->getWidth(), Project::getInstance()->getCameras()[i]->getHeight()), true);
 
 			if (outputVideo.isOpened())
@@ -1270,7 +1265,7 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 			{
 				for (int j = from - 1; j < to; j++)
 				{
-					QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
+					QString outname = foldername + QDir::separator() + info.completeBaseName() + "_UND." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
 					videos[i]->setActiveFrame(j);
 					Project::getInstance()->getCameras()[i]->getUndistortionObject()->undistort(videos[i]->getImage(), outname, filter);
 				}
@@ -1280,7 +1275,7 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 				Camera*  cam = Project::getInstance()->getCameras()[i];
 				for (int j = from - 1; j < to; j++)
 				{
-					QString outname = foldername + OS_SEP + info.completeBaseName() + "_UND." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
+					QString outname = foldername + QDir::separator() + info.completeBaseName() + "_UND." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
 					videos[i]->setActiveFrame(j);
 					cv::Mat imageMat;
 					videos[i]->getImage()->getImage(imageMat, true);
@@ -1297,7 +1292,7 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 			{
 				for (int j = from - 1; j < to; j++)
 				{
-					QString outname = foldername + OS_SEP + info.completeBaseName() + "." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
+					QString outname = foldername + QDir::separator() + info.completeBaseName() + "." + QString("%1").arg(j + 1, 4, 10, QChar('0')) + "." + format;
 					videos[i]->setActiveFrame(j);
 					videos[i]->getImage()->save(outname, Project::getInstance()->getCameras()[i]->isFlipped(), filter);
 				}
@@ -2334,14 +2329,14 @@ void Trial::setIsCopyFromDefault(bool value)
 
 void Trial::clearMarkerAndRigidBodies()
 {
-	for (std::vector<RigidBody*>::iterator rigidBody = rigidBodies.begin(); rigidBody != rigidBodies.end(); ++rigidBody)
+	for (RigidBody* rigidBody : rigidBodies)
 	{
-		delete *rigidBody;
+		delete rigidBody;
 	}
 	rigidBodies.clear();
-	for (std::vector<Marker*>::iterator marker = markers.begin(); marker != markers.end(); ++marker)
+	for (Marker* marker : markers)
 	{
-		delete *marker;
+		delete marker;
 	}
 	markers.clear();
 }

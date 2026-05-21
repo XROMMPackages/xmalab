@@ -44,6 +44,7 @@
 #include <QColorDialog>
 #include <QInputDialog>
 #include <QFileDialog>
+#include <QDir>
 #include <core/HelperFunctions.h>
 #include "PlotWindow.h"
 
@@ -341,7 +342,7 @@ void RigidBodyDialog::on_pushButton_setFromFrame_clicked()
 void RigidBodyDialog::on_pushButtonExport_clicked()
 {
 	QString fileName = QFileDialog::getSaveFileName(this,tr("Rigid Body references as"), 
-		Settings::getInstance()->getLastUsedDirectory() + OS_SEP + m_body->getDescription(), tr("CSV (*.csv)"));
+		Settings::getInstance()->getLastUsedDirectory() + QDir::separator() + m_body->getDescription(), tr("CSV (*.csv)"));
 
 	if (fileName.isNull() == false)
 	{
