@@ -34,7 +34,6 @@
 #include "core/Settings.h"
 
 #include <QApplication>
-#include <QFile>
 #include <QFileOpenEvent>
 #include <QPushButton>
 #include <QStyleFactory>
@@ -57,26 +56,6 @@
 #endif
 
 using namespace xma;
-
-static void loadStyleSheet(QApplication& app)
-{
-	QString stylePath;
-
-#ifdef Q_OS_MACOS
-	stylePath = QCoreApplication::applicationDirPath() + "/../Resources/xmalab-dark.qss";
-#else
-	stylePath = QCoreApplication::applicationDirPath() + "/xmalab-dark.qss";
-#endif
-
-	if (QFile::exists(stylePath))
-	{
-		QFile file(stylePath);
-		if (file.open(QFile::ReadOnly | QFile::Text))
-		{
-			app.setStyleSheet(QString::fromUtf8(file.readAll()));
-		}
-	}
-}
 
 class MApplication : public QApplication
 {
@@ -153,9 +132,6 @@ int main(int argc, char** argv)
 
 	// Set Fusion style by default for cross-platform theming
 	app.setStyle(QStyleFactory::create("Fusion"));
-
-	// Load dark theme stylesheet
-	loadStyleSheet(app);
 
 #ifdef _DEBUG
 	cv::setBreakOnError(true);
