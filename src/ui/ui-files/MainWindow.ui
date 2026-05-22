@@ -498,6 +498,8 @@ from another xma-file</string>
     <addaction name="actionProject_Overview"/>
     <addaction name="actionDetectionSettings"/>
     <addaction name="actionConsole"/>
+    <addaction name="separator"/>
+    <addaction name="actionLock_UI_Panes"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -513,6 +515,14 @@ from another xma-file</string>
   <action name="actionAddCamera">
    <property name="text">
     <string>Add camera</string>
+   </property>
+  </action>
+  <action name="actionLock_UI_Panes">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lock UI Panes</string>
    </property>
   </action>
   <action name="actionLoadGrid">

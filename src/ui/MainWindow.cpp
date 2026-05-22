@@ -2313,6 +2313,24 @@ void MainWindow::on_actionHelp_triggered(bool checked)
 }
 
 //startMainFrameButtons
+void MainWindow::on_actionLock_UI_Panes_toggled(bool locked)
+{
+	QList<QDockWidget*> docks = findChildren<QDockWidget*>();
+	for (QDockWidget* dock : docks) {
+		if (locked) {
+			dock->setProperty("originalFeatures", static_cast<int>(dock->features()));
+			dock->setFeatures(QDockWidget::NoDockWidgetFeatures);
+		} else {
+			QVariant v = dock->property("originalFeatures");
+			if (v.isValid()) {
+				dock->setFeatures(static_cast<QDockWidget::DockWidgetFeatures>(v.toInt()));
+			} else {
+				dock->setFeatures(QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable);
+			}
+		}
+	}
+}
+
 void MainWindow::on_pushButtonNew_Project_clicked()
 {
 	newProject();
