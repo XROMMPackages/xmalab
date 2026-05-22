@@ -108,6 +108,15 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 	diag->pushButton_General->click();
 	diag->pushButton_General->setFocus();
 	initPhase = false;
+
+	diag->comboBox_DetectionMethodForCalibration->setToolTip("Select the computer vision algorithm used to snap to the marker.");
+	diag->comboBox_DetectionMethodForCalibration->setItemData(0, "Optimized for dark, spherical beads in X-rays", Qt::ToolTipRole);
+	diag->comboBox_DetectionMethodForCalibration->setItemData(1, "Uses OpenCV SimpleBlobDetector to find circular blobs", Qt::ToolTipRole);
+	diag->comboBox_DetectionMethodForCalibration->setItemData(2, "Inverts image to track bright white beads on a dark background", Qt::ToolTipRole);
+	diag->comboBox_DetectionMethodForCalibration->setItemData(3, "Uses Shi-Tomasi corner finder for sharp angles (e.g. checkerboards)", Qt::ToolTipRole);
+	diag->comboBox_DetectionMethodForCalibration->setItemData(4, "Turns off automatic snapping. Marker stays exactly where clicked", Qt::ToolTipRole);
+	diag->comboBox_DetectionMethodForCalibration->setItemData(5, "Calculates exact center of mass of dark pixels instead of fitting a contour", Qt::ToolTipRole);
+	diag->comboBox_DetectionMethodForCalibration->setItemData(6, "OpenCV SimpleBlobDetector for bright circular blobs", Qt::ToolTipRole);
 }
 
 SettingsDialog::~SettingsDialog()

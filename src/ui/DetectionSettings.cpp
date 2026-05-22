@@ -54,6 +54,17 @@ DetectionSettings::DetectionSettings(QWidget* parent) :
 
 	setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
 	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+	diag->comboBox->setToolTip("Visualization tool: Preview intermediate steps of the image processing pipeline.");
+	diag->comboBox_Method->setToolTip("Select the computer vision algorithm used to snap to the marker.");
+	
+	diag->comboBox_Method->setItemData(0, "Optimized for dark, spherical beads in X-rays", Qt::ToolTipRole);
+	diag->comboBox_Method->setItemData(1, "Uses OpenCV SimpleBlobDetector to find circular blobs", Qt::ToolTipRole);
+	diag->comboBox_Method->setItemData(2, "Inverts image to track bright white beads on a dark background", Qt::ToolTipRole);
+	diag->comboBox_Method->setItemData(3, "Uses Shi-Tomasi corner finder for sharp angles (e.g. checkerboards)", Qt::ToolTipRole);
+	diag->comboBox_Method->setItemData(4, "Turns off automatic snapping. Marker stays exactly where clicked", Qt::ToolTipRole);
+	diag->comboBox_Method->setItemData(5, "Calculates exact center of mass of dark pixels instead of fitting a contour", Qt::ToolTipRole);
+	diag->comboBox_Method->setItemData(6, "OpenCV SimpleBlobDetector for bright circular blobs", Qt::ToolTipRole);
 }
 
 void DetectionSettings::on_comboBox_currentIndexChanged(int index)
