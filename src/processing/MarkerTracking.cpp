@@ -117,13 +117,13 @@ namespace
         return entry;
     }
 
-    void getEpipolarPenaltySurface(int rows, int cols, double theta, cv::Mat& mat, cv::UMat& umat)
+    void getEpipolarPenaltySurface(int rows, int cols, double theta, double maxPenalty, cv::Mat& mat, cv::UMat& umat)
     {
         mat.create(rows, cols, CV_32FC1);
         double halfcol = 0.5 * cols;
         double halfrow = 0.5 * rows;
-        double sigma_along = halfcol * 10.0; // very wide along the line
-        double sigma_perp = halfcol * 0.2; // very narrow perpendicular
+        double sigma_along = (maxPenalty > 0) ? maxPenalty : halfcol * 10.0;
+        double sigma_perp = (maxPenalty > 0) ? maxPenalty * 0.2 : halfcol * 0.2;
         double inv_2sigma_along_sq = 1.0 / (2.0 * sigma_along * sigma_along);
         double inv_2sigma_perp_sq = 1.0 / (2.0 * sigma_perp * sigma_perp);
         double cos_theta = cos(theta);
@@ -138,7 +138,7 @@ namespace
                 double dx = halfcol - j;
                 double d_along = dx * cos_theta + dy * sin_theta;
                 double d_perp = -dx * sin_theta + dy * cos_theta;
-                double val = exp((d_along * d_along) * inv_2sigma_along_sq + (d_perp * d_perp) * inv_2sigma_perp_sq);
+                double val = exp(-(d_along * d_along) * inv_2sigma_along_sq - (d_perp * d_perp) * inv_2sigma_perp_sq);
                 data[i * cols + j] = static_cast<float>(val);
             }
         }
@@ -190,6 +190,13 @@ void MarkerTracking::trackMarker_thread()
 
     int prediction = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMarkerPrediction(m_camera, m_frame_to, x_to, y_to, m_forward);
 
+    if (m_use3DTracking)
+    {
+        // Disable momentum for 3D assisted tracking to prevent overshooting on directional changes
+        x_to = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame_from].x;
+        y_to = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[m_camera][m_frame_from].y;
+    }
+
     if (prediction <= 1) maxPenalty /= 3;
 
 #ifdef WRITEIMAGES
@@ -231,14 +238,16 @@ void MarkerTracking::trackMarker_thread()
 
         if (other_camera != -1)
         {
-            double x_other, y_other;
-            Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMarkerPrediction(other_camera, m_frame_to, x_other, y_other, m_forward);
+            // Use 0th order prediction for the other camera as well
+            double x_other = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[other_camera][m_frame_from].x;
+            double y_other = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getPoints2D()[other_camera][m_frame_from].y;
+            
             std::vector<cv::Point2d> epiline = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getEpipolarLine(other_camera, m_camera, cv::Point2d(x_other, y_other));
             
             if (epiline.size() >= 2)
             {
                 double theta = atan2(epiline[1].y - epiline[0].y, epiline[1].x - epiline[0].x);
-                getEpipolarPenaltySurface(result_rows, result_cols, theta, penaltyMat, penaltyUMat);
+                getEpipolarPenaltySurface(result_rows, result_cols, theta, maxPenalty, penaltyMat, penaltyUMat);
             }
             else
             {

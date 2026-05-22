@@ -63,14 +63,8 @@ void MarkerTracking3D::trackMarker_thread()
 {
     Marker* marker = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker];
     
-    // Predict 3D center
+    // Predict 3D center using only the previous frame (0th order prediction)
     cv::Point3d pred3D = marker->getPoints3D()[m_frame_from];
-    int dir = m_forward ? 1 : -1;
-    if (m_frame_from - dir >= 0 && marker->getStatus3D()[m_frame_from - dir] > 0)
-    {
-        cv::Point3d pt_prev = marker->getPoints3D()[m_frame_from - dir];
-        pred3D = pred3D + (pred3D - pt_prev);
-    }
 
     int size = (int)(marker->getSize() + 0.5);
     size = (size < 5) ? 5 : size;
@@ -183,6 +177,15 @@ void MarkerTracking3D::trackMarker_thread()
                         }
                     }
                 }
+
+                // Apply a strict 3D distance penalty based on maxPenalty
+                double dist_sq = dx * dx + dy * dy + dz * dz;
+                double maxPenalty = marker->getMaxPenalty();
+                double sigma_3d = (maxPenalty > 0) ? maxPenalty / 10.0 : 2.0; // scale 2D pixel penalty to ~mm stddev
+                double inv_2sigma_sq = 1.0 / (2.0 * sigma_3d * sigma_3d);
+                double penalty = exp(-dist_sq * inv_2sigma_sq);
+                
+                score *= penalty; // Penalize the joint correlation score
 
                 if (valid_cams >= 2 && score > max_score)
                 {
