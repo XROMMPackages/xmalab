@@ -48,6 +48,7 @@
 #include <QMouseEvent>
 #include <QInputDialog>
 #include <QToolButton>
+#include <QResizeEvent>
 
 
 using namespace xma;
@@ -71,6 +72,31 @@ PointsDockWidget::PointsDockWidget(QWidget* parent) :
 PointsDockWidget::~PointsDockWidget()
 {
 	delete dock;
+}
+
+void PointsDockWidget::resizeEvent(QResizeEvent* event)
+{
+	QDockWidget::resizeEvent(event);
+	if (width() < 450)
+	{
+		dock->gridLayout->removeWidget(dock->pushButtonSetNumberMarkers);
+		dock->gridLayout->removeWidget(dock->pushButtonSetNumberRigidBodies);
+		dock->gridLayout->removeWidget(dock->pushButtonImportExport);
+
+		dock->gridLayout->addWidget(dock->pushButtonSetNumberMarkers, 6, 0, 1, 3);
+		dock->gridLayout->addWidget(dock->pushButtonSetNumberRigidBodies, 7, 0, 1, 3);
+		dock->gridLayout->addWidget(dock->pushButtonImportExport, 8, 0, 1, 3);
+	}
+	else
+	{
+		dock->gridLayout->removeWidget(dock->pushButtonSetNumberMarkers);
+		dock->gridLayout->removeWidget(dock->pushButtonSetNumberRigidBodies);
+		dock->gridLayout->removeWidget(dock->pushButtonImportExport);
+
+		dock->gridLayout->addWidget(dock->pushButtonSetNumberMarkers, 6, 0, 1, 1);
+		dock->gridLayout->addWidget(dock->pushButtonSetNumberRigidBodies, 6, 1, 1, 1);
+		dock->gridLayout->addWidget(dock->pushButtonImportExport, 6, 2, 1, 1);
+	}
 }
 
 PointsDockWidget* PointsDockWidget::getInstance()

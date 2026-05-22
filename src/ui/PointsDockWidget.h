@@ -63,6 +63,8 @@ namespace xma
 		static PointsDockWidget* instance;
 
 	protected:
+		void resizeEvent(QResizeEvent* event) override;
+
 	public slots:
 
 		void on_treeWidgetPoints_currentItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
