@@ -9,6 +9,7 @@
 #include "core/Trial.h"
 #include "core/Marker.h"
 #include "core/Camera.h"
+#include "processing/MarkerDetection.h"
 
 #include <QtCore>
 #include <QtConcurrent/QtConcurrent>
@@ -216,6 +217,33 @@ void MarkerTracking3D::trackMarker_threadFinished()
         {
             if (m_best2D.size() > i && m_best2D[i].x > 0)
             {
+                // Refine the tracked point by snapping to the darkest sub-pixel intensity centroid
+                // in a tight window around the 3D-projected coordinate.
+                int method = marker->getMethod();
+                int searchArea = (int)(marker->getSize() + 0.5) + 3; // Tight search area
+                int masksize = marker->getSize() * 2;
+                double threshold = marker->getThresholdOffset();
+                
+                cv::Point2d refined = MarkerDetection::detectionPoint(
+                    Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[i]->getImage(),
+                    method,
+                    m_best2D[i],
+                    searchArea,
+                    masksize,
+                    threshold,
+                    NULL,
+                    NULL,
+                    false
+                );
+                
+                // If refinement succeeded and didn't drift too wildly, use it
+                if (refined.x > 0 && refined.y > 0 && 
+                    abs(refined.x - m_best2D[i].x) <= searchArea && 
+                    abs(refined.y - m_best2D[i].y) <= searchArea)
+                {
+                    m_best2D[i] = refined;
+                }
+                
                 marker->setPoint(i, m_frame_to, m_best2D[i].x, m_best2D[i].y, TRACKED);
             }
         }

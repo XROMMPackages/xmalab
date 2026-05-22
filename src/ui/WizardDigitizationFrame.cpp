@@ -71,6 +71,7 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
     frame->toolButton_PointBack->setMinimumHeight(26);
     frame->toolButton_PointForw->setMinimumHeight(26);
 
+	frame->toolButton_SetInterpolation->setMinimumHeight(26);
 	frame->toolButton_InterpolateActive->setMinimumHeight(26);
 	frame->toolButton_InterpolateAll->setMinimumHeight(26);
 
@@ -95,6 +96,9 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 	connect(State::getInstance(), SIGNAL(activeCameraChanged(int)), this, SLOT(activeCameraChanged(int)));
 	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameTrialChanged(int)));
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
+
+	frame->groupBox_VolumetricSelected->hide();
+	frame->groupBox_VolumetricAll->hide();
 
 	trackID = 0;
 	trackType = 0;
@@ -276,7 +280,7 @@ void WizardDigitizationFrame::trackSinglePoint()
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][endFrame] <= (Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
 				&& !(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][endFrame] == INTERPOLATED && !Settings::getInstance()->getBoolSetting("TrackInterpolatedPoints")))
 			{
-				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, trackID, trackDirection > 0, frame->checkBox_3DTracking->isChecked());
+				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, trackID, trackDirection > 0);
 				connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(trackSinglePointFinished()));
 				trackers.push_back(markertracking);
 			}
@@ -370,7 +374,7 @@ void WizardDigitizationFrame::trackSinglePoint3D()
 			State::getInstance()->changeActiveFrameTrial(endFrame);
 
 			MarkerTracking3D* markertracking = new MarkerTracking3D(State::getInstance()->getActiveTrial(), startFrame, endFrame, trackID, trackDirection > 0);
-			connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(trackSinglePointFinished()));
+			connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(checkIfValid()));
 			markertracking->trackMarker();
 		}
 		else
@@ -410,7 +414,7 @@ void WizardDigitizationFrame::trackRB()
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][endFrame] <= (Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
 				&& !(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][endFrame] == INTERPOLATED && !Settings::getInstance()->getBoolSetting("TrackInterpolatedPoints")))
 			{
-				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, *it, trackDirection > 0, frame->checkBox_3DTracking->isChecked());
+				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, *it, trackDirection > 0);
 				connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(trackAllFinished()));
 				trackers.push_back(markertracking);
 			}
@@ -490,7 +494,7 @@ void WizardDigitizationFrame::trackAll()
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][endFrame] <= (Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
 				&& !(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][endFrame] == INTERPOLATED && !Settings::getInstance()->getBoolSetting("TrackInterpolatedPoints")))
 			{
-				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, j, trackDirection > 0, frame->checkBox_3DTracking->isChecked());
+				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, j, trackDirection > 0);
 				connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(trackAllFinished()));
 				trackers.push_back(markertracking);
 			}
@@ -511,6 +515,87 @@ void WizardDigitizationFrame::trackAll()
 	{
 		checkIfValid();
 	}
+}
+
+void WizardDigitizationFrame::trackRB3D()
+{
+	int startFrame = State::getInstance()->getActiveFrameTrial();
+	int endFrame;
+	if (trackDirection > 0) { endFrame = startFrame + 1; }
+	else { endFrame = startFrame - 1; }
+
+	std::vector<int> markers = PointsDockWidget::getInstance()->getSelectedPoints();
+	std::vector<MarkerTracking3D *> trackers;
+	for (std::vector<int>::const_iterator it = markers.begin(); it < markers.end();++it)
+	{
+		bool canTrack = false;
+		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+		{
+			if (Project::getInstance()->getCameras()[i]->isVisible() && 
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][startFrame] > UNDEFINED &&
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][endFrame] != UNTRACKABLE &&
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][endFrame] <= (Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
+				&& !(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][endFrame] == INTERPOLATED && !Settings::getInstance()->getBoolSetting("TrackInterpolatedPoints")))
+			{
+				canTrack = true;
+			}
+		}
+		if (canTrack && Project::getInstance()->getCalibration() != NO_CALIBRATION)
+		{
+			MarkerTracking3D* markertracking = new MarkerTracking3D(State::getInstance()->getActiveTrial(), startFrame, endFrame, *it, trackDirection > 0);
+			connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(checkIfValid())); // Bypass MarkerDetection for 3D
+			trackers.push_back(markertracking);
+		}
+	}
+	State::getInstance()->setDisableDraw(true);
+	State::getInstance()->changeActiveFrameTrial(endFrame);
+
+	if (trackers.size() > 0)
+	{
+		for (unsigned int i = 0; i < trackers.size(); i++) { trackers[i]->trackMarker(); }
+		trackers.clear();
+	}
+	else { checkIfValid(); }
+}
+
+void WizardDigitizationFrame::trackAll3D()
+{
+	int startFrame = State::getInstance()->getActiveFrameTrial();
+	int endFrame;
+	if (trackDirection > 0) { endFrame = startFrame + 1; }
+	else { endFrame = startFrame - 1; }
+
+	std::vector<MarkerTracking3D *> trackers;
+	for (unsigned int j = 0; j < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size(); j++)
+	{
+		bool canTrack = false;
+		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+		{
+			if (Project::getInstance()->getCameras()[i]->isVisible() && 
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][startFrame] > UNDEFINED &&
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][endFrame] != UNTRACKABLE &&
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][endFrame] <= (Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
+				&& !(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][endFrame] == INTERPOLATED && !Settings::getInstance()->getBoolSetting("TrackInterpolatedPoints")))
+			{
+				canTrack = true;
+			}
+		}
+		if (canTrack && Project::getInstance()->getCalibration() != NO_CALIBRATION)
+		{
+			MarkerTracking3D* markertracking = new MarkerTracking3D(State::getInstance()->getActiveTrial(), startFrame, endFrame, j, trackDirection > 0);
+			connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(checkIfValid())); // Bypass MarkerDetection for 3D
+			trackers.push_back(markertracking);
+		}
+	}
+	State::getInstance()->setDisableDraw(true);
+	State::getInstance()->changeActiveFrameTrial(endFrame);
+
+	if (trackers.size() > 0)
+	{
+		for (unsigned int i = 0; i < trackers.size(); i++) { trackers[i]->trackMarker(); }
+		trackers.clear();
+	}
+	else { checkIfValid(); }
 }
 
 void WizardDigitizationFrame::trackAllFinished()
@@ -647,6 +732,12 @@ void WizardDigitizationFrame::track()
 		break;
 	case 4:
 		trackSinglePoint3D();
+		break;
+	case 5:
+		trackRB3D();
+		break;
+	case 6:
+		trackAll3D();
 		break;
 	}
 }
@@ -965,45 +1056,96 @@ void WizardDigitizationFrame::on_toolButton_PointBack_clicked(bool checked)
 	}
 }
 
-void WizardDigitizationFrame::on_toolButton_Point3DNext_clicked()
+void WizardDigitizationFrame::on_checkBox_VolumetricTracking_stateChanged(int state)
+{
+	bool visible = (state == Qt::Checked);
+	frame->groupBox_VolumetricSelected->setVisible(visible);
+	frame->groupBox_VolumetricAll->setVisible(visible);
+}
+
+void WizardDigitizationFrame::on_toolButton_VolumetricSelected_Next_clicked()
 {
 	uncheckTrackButtons();
-	trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
-	trackType = 4;
+	trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx();
+	trackType = 5;
 	trackDirection = 1;
 	track();
 }
 
-void WizardDigitizationFrame::on_toolButton_Point3DPrev_clicked()
+void WizardDigitizationFrame::on_toolButton_VolumetricSelected_Prev_clicked()
 {
 	uncheckTrackButtons();
-	trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
-	trackType = 4;
+	trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx();
+	trackType = 5;
 	trackDirection = -1;
 	track();
 }
 
-void WizardDigitizationFrame::on_toolButton_Point3DForw_clicked(bool checked)
+void WizardDigitizationFrame::on_toolButton_VolumetricSelected_Forw_clicked(bool checked)
 {
 	uncheckTrackButtons();
 	if (checked)
 	{
-		frame->toolButton_Point3DForw->setChecked(true);
-		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
-		trackType = 4;
+		frame->toolButton_VolumetricSelected_Forw->setChecked(true);
+		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx();
+		trackType = 5;
 		trackDirection = 2;
 		track();
 	}
 }
 
-void WizardDigitizationFrame::on_toolButton_Point3DBack_clicked(bool checked)
+void WizardDigitizationFrame::on_toolButton_VolumetricSelected_Back_clicked(bool checked)
 {
 	uncheckTrackButtons();
 	if (checked)
 	{
-		frame->toolButton_Point3DBack->setChecked(true);
-		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
-		trackType = 4;
+		frame->toolButton_VolumetricSelected_Back->setChecked(true);
+		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveRBIdx();
+		trackType = 5;
+		trackDirection = -2;
+		track();
+	}
+}
+
+void WizardDigitizationFrame::on_toolButton_VolumetricAll_Next_clicked()
+{
+	uncheckTrackButtons();
+	trackID = -1;
+	trackType = 6;
+	trackDirection = 1;
+	track();
+}
+
+void WizardDigitizationFrame::on_toolButton_VolumetricAll_Prev_clicked()
+{
+	uncheckTrackButtons();
+	trackID = -1;
+	trackType = 6;
+	trackDirection = -1;
+	track();
+}
+
+void WizardDigitizationFrame::on_toolButton_VolumetricAll_Forw_clicked(bool checked)
+{
+	uncheckTrackButtons();
+	if (checked)
+	{
+		frame->toolButton_VolumetricAll_Forw->setChecked(true);
+		trackID = -1;
+		trackType = 6;
+		trackDirection = 2;
+		track();
+	}
+}
+
+void WizardDigitizationFrame::on_toolButton_VolumetricAll_Back_clicked(bool checked)
+{
+	uncheckTrackButtons();
+	if (checked)
+	{
+		frame->toolButton_VolumetricAll_Back->setChecked(true);
+		trackID = -1;
+		trackType = 6;
 		trackDirection = -2;
 		track();
 	}
@@ -1117,6 +1259,11 @@ void WizardDigitizationFrame::on_toolButton_AllBack_clicked(bool checked)
 	}
 }
 
+void WizardDigitizationFrame::on_toolButton_SetInterpolation_clicked()
+{
+	PlotWindow::getInstance()->setInterpolation();
+}
+
 void WizardDigitizationFrame::on_toolButton_InterpolateActive_clicked(bool checked)
 {
 	Marker* activeMarker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
@@ -1140,8 +1287,10 @@ void WizardDigitizationFrame::uncheckTrackButtons()
 {
 	frame->toolButton_PointForw->setChecked(false);
 	frame->toolButton_PointBack->setChecked(false);
-	frame->toolButton_Point3DForw->setChecked(false);
-	frame->toolButton_Point3DBack->setChecked(false);
+	frame->toolButton_VolumetricSelected_Forw->setChecked(false);
+	frame->toolButton_VolumetricSelected_Back->setChecked(false);
+	frame->toolButton_VolumetricAll_Forw->setChecked(false);
+	frame->toolButton_VolumetricAll_Back->setChecked(false);
 	frame->toolButton_RBForw->setChecked(false);
 	frame->toolButton_RBBack->setChecked(false);
 	frame->toolButton_AllForw->setChecked(false);

@@ -75,7 +75,9 @@ namespace xma
 		void trackSinglePoint();
 		void trackSinglePoint3D();
 		void trackRB();
+		void trackRB3D();
 		void trackAll();
+		void trackAll3D();
 
 		void uncheckTrackButtons();
 
@@ -92,10 +94,17 @@ namespace xma
 		void on_toolButton_PointForw_clicked(bool checked);
 		void on_toolButton_PointBack_clicked(bool checked);
 
-		void on_toolButton_Point3DNext_clicked();
-		void on_toolButton_Point3DPrev_clicked();
-		void on_toolButton_Point3DForw_clicked(bool checked);
-		void on_toolButton_Point3DBack_clicked(bool checked);
+		void on_checkBox_VolumetricTracking_stateChanged(int state);
+
+		void on_toolButton_VolumetricSelected_Next_clicked();
+		void on_toolButton_VolumetricSelected_Prev_clicked();
+		void on_toolButton_VolumetricSelected_Forw_clicked(bool checked);
+		void on_toolButton_VolumetricSelected_Back_clicked(bool checked);
+
+		void on_toolButton_VolumetricAll_Next_clicked();
+		void on_toolButton_VolumetricAll_Prev_clicked();
+		void on_toolButton_VolumetricAll_Forw_clicked(bool checked);
+		void on_toolButton_VolumetricAll_Back_clicked(bool checked);
 
 		void on_toolButton_RBNext_clicked();
 		void on_toolButton_RBPrev_clicked();
@@ -107,6 +116,7 @@ namespace xma
 		void on_toolButton_AllForw_clicked(bool checked);
 		void on_toolButton_AllBack_clicked(bool checked);
 
+		void on_toolButton_SetInterpolation_clicked();
 		void on_toolButton_InterpolateActive_clicked(bool checked);
 		void on_toolButton_InterpolateAll_clicked(bool checked);
 

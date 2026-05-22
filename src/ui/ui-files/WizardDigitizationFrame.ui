@@ -425,7 +425,23 @@
       <property name="margin">
        <number>0</number>
       </property>
-      <item row="0" column="0">
+      <item row="0" column="0" colspan="2">
+       <widget class="QToolButton" name="toolButton_SetInterpolation">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Select a missing frame range in the plot (Shift+Drag), then click here (or Ctrl+I) to assign an interpolation method to the gap.</string>
+        </property>
+        <property name="text">
+         <string>Set Interpolation</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
        <widget class="QToolButton" name="toolButton_InterpolateActive">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -433,18 +449,24 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>Interpolate missing frames for the active marker</string>
+        </property>
         <property name="text">
          <string>active</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
+      <item row="1" column="1">
        <widget class="QToolButton" name="toolButton_InterpolateAll">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Interpolate missing frames for all markers</string>
         </property>
         <property name="text">
          <string>all</string>
@@ -455,9 +477,12 @@
     </widget>
    </item>
    <item row="7" column="0" colspan="2">
-    <widget class="QCheckBox" name="checkBox_3DTracking">
+    <widget class="QCheckBox" name="checkBox_VolumetricTracking">
+     <property name="toolTip">
+      <string>Enables 3D Volumetric Tracking. Note: This is significantly slower than standard tracking.</string>
+     </property>
      <property name="text">
-      <string>Enable 3D-Assisted Tracking</string>
+      <string>Enable Volumetric Tracking</string>
      </property>
      <property name="checked">
       <bool>false</bool>
@@ -465,7 +490,7 @@
     </widget>
    </item>
    <item row="8" column="0" colspan="2">
-    <widget class="QGroupBox" name="groupBox_Point3D">
+    <widget class="QGroupBox" name="groupBox_VolumetricSelected">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -473,9 +498,9 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>single (3D Volumetric)</string>
+      <string>volumetric selected</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_Point3D">
+     <layout class="QGridLayout" name="gridLayout_VolumetricSelected">
       <property name="horizontalSpacing">
        <number>0</number>
       </property>
@@ -483,9 +508,15 @@
        <number>0</number>
       </property>
       <item row="0" column="0">
-       <widget class="QToolButton" name="toolButton_Point3DPrev">
+       <widget class="QToolButton" name="toolButton_VolumetricSelected_Prev">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="toolTip">
-         <string>track single point to previous frame using 3D volume</string>
+         <string>Track selected points to previous frame using 3D volume</string>
         </property>
         <property name="icon">
          <iconset resource="../calibrationtool_resources.qrc">
@@ -494,9 +525,15 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QToolButton" name="toolButton_Point3DNext">
+       <widget class="QToolButton" name="toolButton_VolumetricSelected_Next">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="toolTip">
-         <string>track single point to next frame using 3D volume</string>
+         <string>Track selected points to next frame using 3D volume</string>
         </property>
         <property name="icon">
          <iconset resource="../calibrationtool_resources.qrc">
@@ -505,9 +542,15 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QToolButton" name="toolButton_Point3DBack">
+       <widget class="QToolButton" name="toolButton_VolumetricSelected_Back">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="toolTip">
-         <string>track single point backward using 3D volume</string>
+         <string>Track selected points backward using 3D volume</string>
         </property>
         <property name="icon">
          <iconset resource="../calibrationtool_resources.qrc">
@@ -519,9 +562,110 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QToolButton" name="toolButton_Point3DForw">
+       <widget class="QToolButton" name="toolButton_VolumetricSelected_Forw">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="toolTip">
-         <string>track single point forward using 3D volume</string>
+         <string>Track selected points forward using 3D volume</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../calibrationtool_resources.qrc">
+          <normaloff>:/images/resource-files/icons/forward_blue.png</normaloff>:/images/resource-files/icons/forward_blue.png</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="9" column="0" colspan="2">
+    <widget class="QGroupBox" name="groupBox_VolumetricAll">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="title">
+      <string>volumetric all</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_VolumetricAll">
+      <property name="horizontalSpacing">
+       <number>0</number>
+      </property>
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QToolButton" name="toolButton_VolumetricAll_Prev">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Track all points to previous frame using 3D volume</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../calibrationtool_resources.qrc">
+          <normaloff>:/images/resource-files/icons/playbackward_blue.png</normaloff>:/images/resource-files/icons/playbackward_blue.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QToolButton" name="toolButton_VolumetricAll_Next">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Track all points to next frame using 3D volume</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../calibrationtool_resources.qrc">
+          <normaloff>:/images/resource-files/icons/play_blue.png</normaloff>:/images/resource-files/icons/play_blue.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QToolButton" name="toolButton_VolumetricAll_Back">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Track all points backward using 3D volume</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../calibrationtool_resources.qrc">
+          <normaloff>:/images/resource-files/icons/backward_blue.png</normaloff>:/images/resource-files/icons/backward_blue.png</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QToolButton" name="toolButton_VolumetricAll_Forw">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Track all points forward using 3D volume</string>
         </property>
         <property name="icon">
          <iconset resource="../calibrationtool_resources.qrc">

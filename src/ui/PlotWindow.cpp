@@ -38,6 +38,7 @@
 #include <QFileDialog>
 #include <QLineEdit>
 #include <QInputDialog>
+#include <QMessageBox>
 #include <fstream>
 
 #include "core/Trial.h"
@@ -3027,6 +3028,12 @@ void PlotWindow::setInterpolation()
 	frameEnd = (endFrame > startFrame) ? endFrame : startFrame;
 	frameStart = (frameStart < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1 : frameStart;
 	frameEnd = (frameEnd > Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1 : frameEnd;
+
+	if (frameStart == frameEnd)
+	{
+		QMessageBox::information(this, "No Range Selected", "Please select a frame range in the plot (Shift+Drag) before setting interpolation.");
+		return;
+	}
 
 	QStringList list;
 	list << "None" << "Repeat" << "Linear" << "Cubic";
