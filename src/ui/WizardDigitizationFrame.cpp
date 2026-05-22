@@ -42,6 +42,7 @@
 #include "core/Camera.h"
 #include <processing/MarkerDetection.h>
 #include <processing/MarkerTracking.h>
+#include <processing/MarkerTracking3D.h>
 
 
 using namespace xma;
@@ -334,6 +335,56 @@ void WizardDigitizationFrame::trackSinglePointFinished()
 }
 
 
+void WizardDigitizationFrame::trackSinglePoint3D()
+{
+	int startFrame = State::getInstance()->getActiveFrameTrial();
+	int endFrame;
+	tmptrackID = trackID;
+	if (trackID >= 0 && trackID <= (int) Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers().size())
+	{
+		if (trackDirection > 0)
+		{
+			endFrame = startFrame + 1;
+		}
+		else
+		{
+			endFrame = startFrame - 1;
+		}
+
+		bool canTrack = false;
+		for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+		{
+			if (Project::getInstance()->getCameras()[i]->isVisible() &&
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][startFrame] > UNDEFINED &&
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][endFrame] != UNTRACKABLE &&
+				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][endFrame] <= (Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
+				&& !(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][endFrame] == INTERPOLATED && !Settings::getInstance()->getBoolSetting("TrackInterpolatedPoints")))
+			{
+				canTrack = true;
+			}
+		}
+
+		if (canTrack && Project::getInstance()->getCalibration() != NO_CALIBRATION)
+		{
+			State::getInstance()->setDisableDraw(true);
+			State::getInstance()->changeActiveFrameTrial(endFrame);
+
+			MarkerTracking3D* markertracking = new MarkerTracking3D(State::getInstance()->getActiveTrial(), startFrame, endFrame, trackID, trackDirection > 0);
+			connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(trackSinglePointFinished()));
+			markertracking->trackMarker();
+		}
+		else
+		{
+			checkIfValid();
+		}
+	}
+	else
+	{
+		uncheckTrackButtons();
+	}
+}
+
+
 void WizardDigitizationFrame::trackRB()
 {
 	int startFrame = State::getInstance()->getActiveFrameTrial();
@@ -593,6 +644,9 @@ void WizardDigitizationFrame::track()
 		break;
 	case 3:
 		trackAll();
+		break;
+	case 4:
+		trackSinglePoint3D();
 		break;
 	}
 }
@@ -911,6 +965,50 @@ void WizardDigitizationFrame::on_toolButton_PointBack_clicked(bool checked)
 	}
 }
 
+void WizardDigitizationFrame::on_toolButton_Point3DNext_clicked()
+{
+	uncheckTrackButtons();
+	trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
+	trackType = 4;
+	trackDirection = 1;
+	track();
+}
+
+void WizardDigitizationFrame::on_toolButton_Point3DPrev_clicked()
+{
+	uncheckTrackButtons();
+	trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
+	trackType = 4;
+	trackDirection = -1;
+	track();
+}
+
+void WizardDigitizationFrame::on_toolButton_Point3DForw_clicked(bool checked)
+{
+	uncheckTrackButtons();
+	if (checked)
+	{
+		frame->toolButton_Point3DForw->setChecked(true);
+		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
+		trackType = 4;
+		trackDirection = 2;
+		track();
+	}
+}
+
+void WizardDigitizationFrame::on_toolButton_Point3DBack_clicked(bool checked)
+{
+	uncheckTrackButtons();
+	if (checked)
+	{
+		frame->toolButton_Point3DBack->setChecked(true);
+		trackID = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx();
+		trackType = 4;
+		trackDirection = -2;
+		track();
+	}
+}
+
 void WizardDigitizationFrame::on_toolButton_RBNext_clicked()
 {
 	uncheckTrackButtons();
@@ -1042,6 +1140,8 @@ void WizardDigitizationFrame::uncheckTrackButtons()
 {
 	frame->toolButton_PointForw->setChecked(false);
 	frame->toolButton_PointBack->setChecked(false);
+	frame->toolButton_Point3DForw->setChecked(false);
+	frame->toolButton_Point3DBack->setChecked(false);
 	frame->toolButton_RBForw->setChecked(false);
 	frame->toolButton_RBBack->setChecked(false);
 	frame->toolButton_AllForw->setChecked(false);

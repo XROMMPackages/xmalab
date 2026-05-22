@@ -80,6 +80,7 @@ namespace xma
 	class Marker
 	{
 	public:
+		friend class MarkerTracking3D;
 
 		Marker(int nbCameras, int size, Trial* _trial);
 		virtual ~Marker();

@@ -73,6 +73,7 @@ namespace xma
 		//bool isTracking;
 
 		void trackSinglePoint();
+		void trackSinglePoint3D();
 		void trackRB();
 		void trackAll();
 
@@ -90,6 +91,11 @@ namespace xma
 		void on_toolButton_PointPrev_clicked();
 		void on_toolButton_PointForw_clicked(bool checked);
 		void on_toolButton_PointBack_clicked(bool checked);
+
+		void on_toolButton_Point3DNext_clicked();
+		void on_toolButton_Point3DPrev_clicked();
+		void on_toolButton_Point3DForw_clicked(bool checked);
+		void on_toolButton_Point3DBack_clicked(bool checked);
 
 		void on_toolButton_RBNext_clicked();
 		void on_toolButton_RBPrev_clicked();
