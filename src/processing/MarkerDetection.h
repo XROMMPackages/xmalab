@@ -29,6 +29,7 @@
 
 #include <QFutureWatcher>
 #include <QObject>
+#include <memory>
 
 #include <opencv2/opencv.hpp>
 
@@ -62,7 +63,7 @@ namespace xma
 
 	private:
 		void detectMarker_thread();
-		QFutureWatcher<void>* m_FutureWatcher;
+		std::unique_ptr<QFutureWatcher<void>> m_FutureWatcher;
 		static int nbInstances;
 
 		int m_camera;

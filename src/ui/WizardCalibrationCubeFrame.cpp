@@ -203,7 +203,7 @@ void WizardCalibrationCubeFrame::updateFrameList()
 		bool has_calibrated_Frame = false;
 		for (auto cam : Project::getInstance()->getCameras())
 		{
-			has_calibrated_Frame = has_calibrated_Frame | cam->getCalibrationImages()[i]->isCalibrated();
+			has_calibrated_Frame = has_calibrated_Frame || (cam->getCalibrationImages()[i]->isCalibrated() != 0);
 		}
 		if (has_calibrated_Frame){
 			QTreeWidgetItem* qtreewidgetitem = new QTreeWidgetItem();

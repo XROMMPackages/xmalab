@@ -29,6 +29,8 @@
 #endif
 
 #include "ui/State.h"
+#include "core/Project.h"
+#include "core/Trial.h"
 
 using namespace xma;
 
@@ -102,6 +104,15 @@ void State::changeActiveTrial(int newActiveTrial, bool force)
 		activeTrial = newActiveTrial;
 		emit activeTrialChanged(newActiveTrial);
 	}
+}
+
+Trial* State::getActiveTrialData() const
+{
+	if (activeTrial >= 0 && activeTrial < (int)Project::getInstance()->getTrials().size())
+	{
+		return Project::getInstance()->getTrials()[activeTrial];
+	}
+	return nullptr;
 }
 
 void State::changeActiveFrameTrial(int newActiveFrameTrial, bool force)

@@ -1021,9 +1021,12 @@ void WizardDigitizationFrame::on_toolButton_AllBack_clicked(bool checked)
 
 void WizardDigitizationFrame::on_toolButton_InterpolateActive_clicked(bool checked)
 {
-	Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker()->interpolate();
-
-	MainWindow::getInstance()->redrawGL();
+	Marker* activeMarker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
+	if (activeMarker)
+	{
+		activeMarker->interpolate();
+		MainWindow::getInstance()->redrawGL();
+	}
 }
 
 void WizardDigitizationFrame::on_toolButton_InterpolateAll_clicked(bool checked)

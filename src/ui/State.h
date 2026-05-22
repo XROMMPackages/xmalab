@@ -151,6 +151,8 @@ namespace xma
 			return activeTrial;
 		}
 
+		class Trial* getActiveTrialData() const;
+
 		int getActiveFrameTrial() const
 		{
 			return activeFrameTrial;

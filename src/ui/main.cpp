@@ -117,9 +117,8 @@ int main(int argc, char** argv)
 {
 	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 	
-	// Enable proper high DPI scaling for modern displays
-	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-	QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+	// High DPI scaling is handled automatically in Qt6
+
 	
 #ifdef Q_OS_MACOS
 	// Disable native dialogs on macOS Sequoia (15.0) and later due to compatibility issues

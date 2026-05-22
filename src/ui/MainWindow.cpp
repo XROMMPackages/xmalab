@@ -504,6 +504,30 @@ void MainWindow::applyTheme(const QString& themeName) {
 			darkPalette.setColor(QPalette::Shadow, QColor(15, 15, 15));
 
             qApp->setPalette(darkPalette);
+            
+            // Apply stylesheet for the rough edges (Menus, Scrollbars, Headers, Tooltips) that QPalette misses
+            QString darkStyleSheet = R"(
+                QToolTip { color: #ffffff; background-color: #2b2b2b; border: 1px solid #555; }
+                QMenuBar { background-color: #202020; color: #ffffff; }
+                QMenuBar::item:selected { background-color: #404040; }
+                QMenu { background-color: #2b2b2b; color: #ffffff; border: 1px solid #444; }
+                QMenu::item:selected { background-color: #0078d7; }
+                QHeaderView::section { background-color: #2b2b2b; color: white; border: 1px solid #444; padding: 4px; }
+                QTabBar::tab { background-color: #2b2b2b; color: #aaa; border: 1px solid #444; padding: 6px; }
+                QTabBar::tab:selected { background-color: #454545; color: white; }
+                QScrollBar:vertical { background: #202020; width: 14px; margin: 0px; }
+                QScrollBar::handle:vertical { background: #505050; min-height: 20px; border-radius: 7px; margin: 2px; }
+                QScrollBar::handle:vertical:hover { background: #707070; }
+                QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
+                QScrollBar:horizontal { background: #202020; height: 14px; margin: 0px; }
+                QScrollBar::handle:horizontal { background: #505050; min-width: 20px; border-radius: 7px; margin: 2px; }
+                QScrollBar::handle:horizontal:hover { background: #707070; }
+                QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; }
+                QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox { border: 1px solid #555; border-radius: 3px; background-color: #2d2d2d; padding: 2px; color: white; }
+                QComboBox::drop-down { border: 0px; }
+                QComboBox QAbstractItemView { background-color: #2d2d2d; border: 1px solid #555; selection-background-color: #0078d7; color: white; }
+            )";
+            qApp->setStyleSheet(darkStyleSheet);
         }
     } else if (themeName == "light") {
         // Force light mode - create a completely fresh light palette
@@ -536,10 +560,12 @@ void MainWindow::applyTheme(const QString& themeName) {
 		lightPalette.setColor(QPalette::Shadow, QColor(110, 110, 110));   // deepest shadow
         
         qApp->setPalette(lightPalette);
+        qApp->setStyleSheet(""); // Clear custom dark stylesheet
     } else { // system
         // Use system default - let Qt automatically follow the OS theme
         qApp->setStyle(QStyleFactory::create("Fusion"));
         qApp->setPalette(QPalette());
+        qApp->setStyleSheet(""); // Clear custom dark stylesheet
     }
 }
 

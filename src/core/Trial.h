@@ -67,11 +67,23 @@ namespace xma
 
 		Marker* getActiveMarker();
 		int getActiveMarkerIdx();
-		void setActiveMarkerIdx(int _activeMarker);
 		bool isActiveMarkerUndefined(int camera);
 		void setActiveToNextUndefinedMarker(int camera);
+		void setActiveMarkerIdx(int _activeMarker);
 
 		RigidBody* getActiveRB();
+		
+		template<typename Func>
+		void withActiveMarker(Func func) {
+			Marker* m = getActiveMarker();
+			if (m) func(*m);
+		}
+
+		template<typename Func>
+		void withActiveRB(Func func) {
+			RigidBody* rb = getActiveRB();
+			if (rb) func(*rb);
+		}
 		int getActiveRBIdx();
 		void setActiveRBIdx(int _activeBody);
 

@@ -329,31 +329,33 @@ void SequenceNavigationFrame::moveFrameToMissingForward()
 {
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
-		if (Project::getInstance()->getTrials().size() > 0 && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker())
+		if (Trial* trial = State::getInstance()->getActiveTrialData())
 		{
-			int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame();
-			while (f <= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame() - 1){
-				bool allset = true;
-				bool allunset = true;
-				for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
-				{
-					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker()->getStatus2D()[i][f] <= UNDEFINED)
+			trial->withActiveMarker([&](Marker& activeMarker) {
+				int f = trial->getActiveFrame();
+				while (f <= trial->getEndFrame() - 1){
+					bool allset = true;
+					bool allunset = true;
+					for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 					{
-						allset = false;
-					} 
-					else
-					{
-						allunset = false;
+						if (activeMarker.getStatus2D()[i][f] <= UNDEFINED)
+						{
+							allset = false;
+						} 
+						else
+						{
+							allunset = false;
+						}
+						if (!allset && !allunset)
+						{
+							changeFrame(f);
+							return;
+						}
 					}
-					if (!allset && !allunset)
-					{
-						changeFrame(f);
-						return;
-					}
-				}
 
-				f++;
-			}
+					f++;
+				}
+			});
 		}
 	}
 }
@@ -362,31 +364,33 @@ void SequenceNavigationFrame::moveFrameToMissingBackward()
 {
 	if (State::getInstance()->getWorkspace() == DIGITIZATION)
 	{
-		if (Project::getInstance()->getTrials().size() > 0 && Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker())
+		if (Trial* trial = State::getInstance()->getActiveTrialData())
 		{
-			int f = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveFrame();
-			while (f >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1){
-				bool allset = true;
-				bool allunset = true;
-				for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
-				{
-					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker()->getStatus2D()[i][f] <= UNDEFINED)
+			trial->withActiveMarker([&](Marker& activeMarker) {
+				int f = trial->getActiveFrame();
+				while (f >= trial->getStartFrame() - 1){
+					bool allset = true;
+					bool allunset = true;
+					for (int i = 0; i < Project::getInstance()->getCameras().size(); i++)
 					{
-						allset = false;
+						if (activeMarker.getStatus2D()[i][f] <= UNDEFINED)
+						{
+							allset = false;
+						}
+						else
+						{
+							allunset = false;
+						}
+						if (!allset && !allunset)
+						{
+							changeFrame(f);
+							return;
+						}
 					}
-					else
-					{
-						allunset = false;
-					}
-					if (!allset && !allunset)
-					{
-						changeFrame(f);
-						return;
-					}
-				}
 
-				f--;
-			}
+					f--;
+				}
+			});
 		}
 	}
 }

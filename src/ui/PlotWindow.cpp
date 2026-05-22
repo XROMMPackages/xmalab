@@ -1299,7 +1299,9 @@ void PlotWindow::updateTimeCheckBox()
 
 void PlotWindow::goToNextAboveError()
 {
-	Marker* marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
+	Trial* trial = State::getInstance()->getActiveTrialData();
+	if (!trial) return;
+	Marker* marker = trial->getActiveMarker();
 	if (dock->comboBoxPlotType->currentIndex() == 3 && marker != NULL)
 	{
 		for (int i = State::getInstance()->getActiveFrameTrial() + 1; i < Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getEndFrame(); i++)
@@ -1331,7 +1333,9 @@ void PlotWindow::goToNextAboveError()
 
 void PlotWindow::goToPrevAboveError()
 {
-	Marker* marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
+	Trial* trial = State::getInstance()->getActiveTrialData();
+	if (!trial) return;
+	Marker* marker = trial->getActiveMarker();
 	if (dock->comboBoxPlotType->currentIndex() == 3 && marker != NULL)
 	{
 		for (int i = State::getInstance()->getActiveFrameTrial() - 1; i >= Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getStartFrame() - 1; i--)
@@ -1363,7 +1367,9 @@ void PlotWindow::goToPrevAboveError()
 
 void PlotWindow::deleteAllAboveError()
 {
-	Marker* marker = Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarker();
+	Trial* trial = State::getInstance()->getActiveTrialData();
+	if (!trial) return;
+	Marker* marker = trial->getActiveMarker();
 
 	if (dock->comboBoxPlotType->currentIndex() == 3 && marker != NULL)
 	{
@@ -3009,7 +3015,9 @@ void PlotWindow::setInterpolation()
 		}
 	}
 
-	Marker * marker = Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getActiveMarker();
+	Trial* trial = State::getInstance()->getActiveTrialData();
+	if (!trial) return;
+	Marker* marker = trial->getActiveMarker();
 	if (marker == NULL)
 		return;
 

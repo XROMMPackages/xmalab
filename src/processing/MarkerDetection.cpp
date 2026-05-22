@@ -92,8 +92,8 @@ MarkerDetection::~MarkerDetection()
 
 void MarkerDetection::detectMarker()
 {
-	m_FutureWatcher = new QFutureWatcher<void>();
-	connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(detectMarker_threadFinished()));
+	m_FutureWatcher = std::make_unique<QFutureWatcher<void>>();
+	connect(m_FutureWatcher.get(), SIGNAL(finished()), this, SLOT(detectMarker_threadFinished()));
 
 	QFuture<void> future = QtConcurrent::run(&MarkerDetection::detectMarker_thread, this);
 	m_FutureWatcher->setFuture(future);
@@ -416,7 +416,6 @@ void MarkerDetection::detectMarker_threadFinished()
 	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->setSize(m_camera, m_frame, m_size);
 	Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->setPoint(m_camera, m_frame, m_x, m_y, m_refinementAfterTracking ? TRACKED : SET);
 
-	delete m_FutureWatcher;
 	nbInstances--;
 	if (nbInstances == 0)
 	{

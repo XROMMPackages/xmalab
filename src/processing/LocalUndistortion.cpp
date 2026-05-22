@@ -66,8 +66,8 @@ void LocalUndistortion::computeUndistortion(bool recompute)
 	if (hasReferences)
 		Project::getInstance()->getCameras()[m_camera]->getUndistortionObject()->getGridPoints(tmpPoints_distorted, tmpPoints_references, tmpPoints_inlier);
 
-	m_FutureWatcher = new QFutureWatcher<void>();
-	connect(m_FutureWatcher, SIGNAL( finished() ), this, SLOT( localUndistortion_threadFinished() ));
+	m_FutureWatcher = std::make_unique<QFutureWatcher<void>>();
+	connect(m_FutureWatcher.get(), SIGNAL( finished() ), this, SLOT( localUndistortion_threadFinished() ));
 
 	QFuture<void> future = QtConcurrent::run([this]() { localUndistortion_thread(); });
 	m_FutureWatcher->setFuture(future);
@@ -93,7 +93,6 @@ void LocalUndistortion::localUndistortion_threadFinished()
 	B_inverse.release();
 	radii_inverse.release();
 
-	delete m_FutureWatcher;
 	nbInstances--;
 	if (nbInstances == 0)
 	{
