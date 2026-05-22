@@ -275,7 +275,7 @@ void WizardDigitizationFrame::trackSinglePoint()
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][endFrame] <= (Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
 				&& !(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[trackID]->getStatus2D()[i][endFrame] == INTERPOLATED && !Settings::getInstance()->getBoolSetting("TrackInterpolatedPoints")))
 			{
-				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, trackID, trackDirection > 0);
+				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, trackID, trackDirection > 0, frame->checkBox_3DTracking->isChecked());
 				connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(trackSinglePointFinished()));
 				trackers.push_back(markertracking);
 			}
@@ -359,7 +359,7 @@ void WizardDigitizationFrame::trackRB()
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][endFrame] <= (Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
 				&& !(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[*it]->getStatus2D()[i][endFrame] == INTERPOLATED && !Settings::getInstance()->getBoolSetting("TrackInterpolatedPoints")))
 			{
-				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, *it, trackDirection > 0);
+				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, *it, trackDirection > 0, frame->checkBox_3DTracking->isChecked());
 				connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(trackAllFinished()));
 				trackers.push_back(markertracking);
 			}
@@ -439,7 +439,7 @@ void WizardDigitizationFrame::trackAll()
 				Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][endFrame] <= (Settings::getInstance()->getBoolSetting("RetrackOptimizedTrackedPoints") ? TRACKED_AND_OPTIMIZED : TRACKED)
 				&& !(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[j]->getStatus2D()[i][endFrame] == INTERPOLATED && !Settings::getInstance()->getBoolSetting("TrackInterpolatedPoints")))
 			{
-				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, j, trackDirection > 0);
+				MarkerTracking* markertracking = new MarkerTracking(i, State::getInstance()->getActiveTrial(), startFrame, endFrame, j, trackDirection > 0, frame->checkBox_3DTracking->isChecked());
 				connect(markertracking, SIGNAL(trackMarker_finished()), this, SLOT(trackAllFinished()));
 				trackers.push_back(markertracking);
 			}

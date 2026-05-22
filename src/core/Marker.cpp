@@ -1730,6 +1730,12 @@ void Marker::updateMeanSize()
 
 std::vector<cv::Point2d> Marker::getEpipolarLine(int cameraOrigin, int CameraDestination, int frame)
 {
+	cv::Point2d pt_origin(points2D[cameraOrigin][frame].x, points2D[cameraOrigin][frame].y);
+	return getEpipolarLine(cameraOrigin, CameraDestination, pt_origin);
+}
+
+std::vector<cv::Point2d> Marker::getEpipolarLine(int cameraOrigin, int CameraDestination, cv::Point2d pt_origin)
+{
 	std::vector<cv::Point2d> epiline;
 
 	if (Project::getInstance()->getCalibration() == NO_CALIBRATION)
@@ -1750,8 +1756,6 @@ std::vector<cv::Point2d> Marker::getEpipolarLine(int cameraOrigin, int CameraDes
 	cv::vconcat(Project::getInstance()->getCameras()[CameraDestination]->getProjectionMatrix(trial->getReferenceCalibrationImage()), tmp, proj2);
 
 	proj = proj2 * proj1.inv();
-
-	cv::Point2d pt_origin(points2D[cameraOrigin][frame].x, points2D[cameraOrigin][frame].y);
 	cv::Point2d pt_origin_trans;
 
 	pt_origin_trans = Project::getInstance()->getCameras()[cameraOrigin]->undistortPoint(pt_origin, true);

@@ -104,6 +104,7 @@ namespace xma
 
 		void setPoint(int camera, int activeFrame, double x, double y, markerStatus status);
 		std::vector<cv::Point2d> getEpipolarLine(int cameraOrigin, int CameraDestination, int frame);
+		std::vector<cv::Point2d> getEpipolarLine(int cameraOrigin, int CameraDestination, cv::Point2d pt_origin);
 		void reconstruct3DPoint(int frame, bool updateAll = false);
 		void reconstruct3DPointZisserman(int frame);
 		void reconstruct3DPointZissermanIncremental(int frame);

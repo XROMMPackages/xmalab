@@ -34,6 +34,7 @@
 #include "core/Image.h"
 #include "core/Trial.h"
 #include "core/Marker.h"
+#include "core/Camera.h"
 
 #include <QtCore>
 #include <QtConcurrent/QtConcurrent>
@@ -115,12 +116,41 @@ namespace
 
         return entry;
     }
+
+    void getEpipolarPenaltySurface(int rows, int cols, double theta, cv::Mat& mat, cv::UMat& umat)
+    {
+        mat.create(rows, cols, CV_32FC1);
+        double halfcol = 0.5 * cols;
+        double halfrow = 0.5 * rows;
+        double sigma_along = halfcol * 10.0; // very wide along the line
+        double sigma_perp = halfcol * 0.2; // very narrow perpendicular
+        double inv_2sigma_along_sq = 1.0 / (2.0 * sigma_along * sigma_along);
+        double inv_2sigma_perp_sq = 1.0 / (2.0 * sigma_perp * sigma_perp);
+        double cos_theta = cos(theta);
+        double sin_theta = sin(theta);
+
+        float* data = mat.ptr<float>();
+        for (int i = 0; i < rows; ++i)
+        {
+            double dy = halfrow - i;
+            for (int j = 0; j < cols; ++j)
+            {
+                double dx = halfcol - j;
+                double d_along = dx * cos_theta + dy * sin_theta;
+                double d_perp = -dx * sin_theta + dy * cos_theta;
+                double val = exp((d_along * d_along) * inv_2sigma_along_sq + (d_perp * d_perp) * inv_2sigma_perp_sq);
+                data[i * cols + j] = static_cast<float>(val);
+            }
+        }
+        cv::normalize(mat, mat, 0.0f, 1.0f, cv::NORM_MINMAX);
+        mat.copyTo(umat);
+    }
 }
 
 int MarkerTracking::nbInstances = 0;
 
-MarkerTracking::MarkerTracking(int camera, int trial, int frame_from, int frame_to, int marker, bool forward) : QObject(),
-m_camera(camera), m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to), m_marker(marker), m_forward(forward)
+MarkerTracking::MarkerTracking(int camera, int trial, int frame_from, int frame_to, int marker, bool forward, bool use3DTracking) : QObject(),
+m_camera(camera), m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to), m_marker(marker), m_forward(forward), m_use3DTracking(use3DTracking)
 {
     nbInstances++;
     ensureOpenClInitialized();
@@ -183,7 +213,53 @@ void MarkerTracking::trackMarker_thread()
         return;
     }
 
-    const auto& penaltyEntry = getNormalizedPenaltySurface(result_rows, result_cols);
+    cv::Mat penaltyMat;
+    cv::UMat penaltyUMat;
+
+    if (m_use3DTracking)
+    {
+        // Compute epipolar line from another camera's prediction
+        int other_camera = -1;
+        for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+        {
+            if ((int)i != m_camera && Project::getInstance()->getCameras()[i]->isVisible())
+            {
+                other_camera = i;
+                break;
+            }
+        }
+
+        if (other_camera != -1)
+        {
+            double x_other, y_other;
+            Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMarkerPrediction(other_camera, m_frame_to, x_other, y_other, m_forward);
+            std::vector<cv::Point2d> epiline = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getEpipolarLine(other_camera, m_camera, cv::Point2d(x_other, y_other));
+            
+            if (epiline.size() >= 2)
+            {
+                double theta = atan2(epiline[1].y - epiline[0].y, epiline[1].x - epiline[0].x);
+                getEpipolarPenaltySurface(result_rows, result_cols, theta, penaltyMat, penaltyUMat);
+            }
+            else
+            {
+                const auto& entry = getNormalizedPenaltySurface(result_rows, result_cols);
+                penaltyMat = entry.mat;
+                penaltyUMat = entry.umat;
+            }
+        }
+        else
+        {
+            const auto& entry = getNormalizedPenaltySurface(result_rows, result_cols);
+            penaltyMat = entry.mat;
+            penaltyUMat = entry.umat;
+        }
+    }
+    else
+    {
+        const auto& entry = getNormalizedPenaltySurface(result_rows, result_cols);
+        penaltyMat = entry.mat;
+        penaltyUMat = entry.umat;
+    }
 
     if (cv::ocl::useOpenCL() && !templ_umat.empty())
     {
@@ -199,7 +275,7 @@ void MarkerTracking::trackMarker_thread()
         cv::imwrite("Tra_Result.png", dbgResult);
 #endif
 
-        cv::multiply(penaltyEntry.umat, cv::Scalar(static_cast<float>(maxPenalty)), springforce_buffer);
+        cv::multiply(penaltyUMat, cv::Scalar(static_cast<float>(maxPenalty)), springforce_buffer);
 
 #ifdef WRITEIMAGES
         cv::Mat dbgPenalty = springforce_buffer.getMat(cv::ACCESS_READ);
@@ -243,7 +319,7 @@ void MarkerTracking::trackMarker_thread()
 #endif
 
     cv::Mat springforce;
-    cv::multiply(penaltyEntry.mat, cv::Scalar(static_cast<float>(maxPenalty)), springforce);
+    cv::multiply(penaltyMat, cv::Scalar(static_cast<float>(maxPenalty)), springforce);
 
 #ifdef WRITEIMAGES
         cv::imwrite("Tra_Penalty.png", springforce);

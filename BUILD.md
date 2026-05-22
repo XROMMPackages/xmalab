@@ -6,8 +6,21 @@ This process automatically fetches and builds necessary dependencies (using `vcp
 ## Prerequisites
 - **Git**
 - **CMake** (v3.25 or newer)
-- **vcpkg** (Must be installed and the `VCPKG_ROOT` environment variable must be set to its installation path)
 - **C++17 Compiler** (MSVC for Windows, Clang for macOS, GCC for Linux)
+
+### Dependencies
+XMALab requires the following libraries:
+- **Qt5 or Qt6** (Core, Gui, Widgets, OpenGL)
+- **OpenCV**
+- **GLEW**
+- **QuaZip**
+- **zlib**
+
+**For Windows Users:**
+The provided `CMakePresets.json` relies on **vcpkg** to automatically resolve dependencies on Windows. You must have vcpkg installed and the `VCPKG_ROOT` environment variable set to its installation path.
+
+**For macOS / Linux Users:**
+Dependencies are typically installed via your system's package manager (e.g., `brew` on macOS, or `apt` on Linux) or built directly from source. The CMake Presets provided for macOS and Linux assume you have installed these libraries globally or configured CMake to find them.
 
 ---
 
