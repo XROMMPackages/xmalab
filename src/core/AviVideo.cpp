@@ -65,18 +65,32 @@ void AviVideo::setActiveFrame(int _activeFrame)
         cap->set(cv::CAP_PROP_POS_FRAMES, _activeFrame);
 
         cv::Mat frame;
-        cap->read(frame);
-        if (frame.channels() > 1)
+        bool success = cap->read(frame);
+        if (!success || frame.empty())
         {
-            if (isFlipped)
-                cv::flip(frame, frame, 1);
-            image->setImage(frame, true);
+            // If the read fails (e.g., inaccurate CAP_PROP_FRAME_COUNT reading past the end of a bad AVI), 
+            // the VideoCapture object often enters a permanently broken error state. We must re-open it.
+            reloadFile();
+            
+            // Try to read the frame again after reloading
+            cap->set(cv::CAP_PROP_POS_FRAMES, _activeFrame);
+            success = cap->read(frame);
         }
-        else
+
+        if (success && !frame.empty())
         {
-            if (isFlipped)
-                cv::flip(frame, frame, 1);
-            image->setImage(frame);
+            if (frame.channels() > 1)
+            {
+                if (isFlipped)
+                    cv::flip(frame, frame, 1);
+                image->setImage(frame, true);
+            }
+            else
+            {
+                if (isFlipped)
+                    cv::flip(frame, frame, 1);
+                image->setImage(frame);
+            }
         }
         frame.release();
     }

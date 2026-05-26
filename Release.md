@@ -13,6 +13,7 @@ This document tracks all backend and user-facing changes made during the `c++upg
 ## Backend & Tracking Algorithms
 - **Pointer Safety Enhancements**: Migrated unsafe UI pointer-chaining to robust, modernized functional wrappers (`State::getActiveTrialData()` and `Trial::withActiveMarker()`). These use lambdas to ensure bounds checking and prevent null pointer dereferences.
 - **Crash Fixes**: Resolved a crash relating to `RigidBody` interpolation by utilizing the new pointer safety patterns.
+- **Video Decoding Resilience**: Added an interception layer to OpenCV's `VideoCapture` (`AviVideo.cpp`) to prevent the video decoder from entering a permanent unrecoverable error state when seeking to improperly encoded frames (such as EOF overestimations common in AVIs).
 - **Performance**: Parallelized `ButterworthLowPassFilter.cpp` to significantly improve filtering speed for large datasets.
 - **Sub-Pixel Refinement**: Integrated `MarkerDetection::detectionPoint` into `MarkerTracking3D` to ensure volumetric tracking correctly snaps to the precise sub-pixel centroid of the marker, preventing tracking drift and jumping between neighboring beads.
 
