@@ -20,6 +20,7 @@
 using namespace xma;
 
 int MarkerTracking3D::nbInstances = 0;
+double MarkerTracking3D::s_searchArea = 10.0;
 
 MarkerTracking3D::MarkerTracking3D(int trial, int frame_from, int frame_to, int marker, bool forward) : QObject(),
 m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to), m_marker(marker), m_forward(forward)
@@ -135,15 +136,14 @@ void MarkerTracking3D::trackMarker_thread()
     double max_score = -1e9;
     cv::Point3d best_p3d = pred3D;
 
-    // Search volume: +/- 10mm in X, Y, Z with 0.5mm steps
-    double search_range = 10.0;
-    double step = 0.5;
+    double coarse_search_range = s_searchArea;
+    double coarse_step = std::max(0.5, s_searchArea / 5.0); // e.g. 10.0 -> 2.0
 
-    for (double dx = -search_range; dx <= search_range; dx += step)
+    for (double dx = -coarse_search_range; dx <= coarse_search_range; dx += coarse_step)
     {
-        for (double dy = -search_range; dy <= search_range; dy += step)
+        for (double dy = -coarse_search_range; dy <= coarse_search_range; dy += coarse_step)
         {
-            for (double dz = -search_range; dz <= search_range; dz += step)
+            for (double dz = -coarse_search_range; dz <= coarse_search_range; dz += coarse_step)
             {
                 cv::Point3d p3d(pred3D.x + dx, pred3D.y + dy, pred3D.z + dz);
                 double score = 0;
@@ -181,6 +181,75 @@ void MarkerTracking3D::trackMarker_thread()
 
                 // Apply a strict 3D distance penalty based on maxPenalty
                 double dist_sq = dx * dx + dy * dy + dz * dz;
+                double maxPenalty = marker->getMaxPenalty();
+                double sigma_3d = (maxPenalty > 0) ? maxPenalty / 10.0 : 2.0; // scale 2D pixel penalty to ~mm stddev
+                double inv_2sigma_sq = 1.0 / (2.0 * sigma_3d * sigma_3d);
+                double penalty = exp(-dist_sq * inv_2sigma_sq);
+                
+                score *= penalty; // Penalize the joint correlation score
+
+                if (valid_cams >= 2 && score > max_score)
+                {
+                    max_score = score;
+                    best_p3d = p3d;
+                }
+            }
+        }
+    }
+
+    // --- Pass 2: Fine Search ---
+    cv::Point3d fine_pred3D = best_p3d;
+    max_score = -1e9;
+    
+    double fine_search_range = 2.0;
+    double fine_step = 0.5;
+    
+    for (double dx = -fine_search_range; dx <= fine_search_range; dx += fine_step)
+    {
+        for (double dy = -fine_search_range; dy <= fine_search_range; dy += fine_step)
+        {
+            for (double dz = -fine_search_range; dz <= fine_search_range; dz += fine_step)
+            {
+                cv::Point3d p3d(fine_pred3D.x + dx, fine_pred3D.y + dy, fine_pred3D.z + dz);
+                double score = 0;
+                int valid_cams = 0;
+
+                for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+                {
+                    if (!result_buffers[i].empty())
+                    {
+                        cv::Point2d proj = Project::getInstance()->getCameras()[i]->projectPoint(p3d, Project::getInstance()->getTrials()[m_trial]->getReferenceCalibrationImage());
+                        
+                        double u = proj.x - offsets[i].x + result_buffers[i].cols / 2.0;
+                        double v = proj.y - offsets[i].y + result_buffers[i].rows / 2.0;
+
+                        if (u >= 0 && u < result_buffers[i].cols - 1 && v >= 0 && v < result_buffers[i].rows - 1)
+                        {
+                            // Bilinear interpolation
+                            int ui = (int)u;
+                            int vi = (int)v;
+                            double uf = u - ui;
+                            double vf = v - vi;
+
+                            float s00 = result_buffers[i].at<float>(vi, ui);
+                            float s10 = result_buffers[i].at<float>(vi, ui + 1);
+                            float s01 = result_buffers[i].at<float>(vi + 1, ui);
+                            float s11 = result_buffers[i].at<float>(vi + 1, ui + 1);
+
+                            double s0 = s00 * (1 - uf) + s10 * uf;
+                            double s1 = s01 * (1 - uf) + s11 * uf;
+                            score += s0 * (1 - vf) + s1 * vf;
+                            valid_cams++;
+                        }
+                    }
+                }
+
+                // Re-calculate penalty based on the ORIGINAL prediction so penalties remain consistent
+                double total_dx = (p3d.x - pred3D.x);
+                double total_dy = (p3d.y - pred3D.y);
+                double total_dz = (p3d.z - pred3D.z);
+                double dist_sq = total_dx * total_dx + total_dy * total_dy + total_dz * total_dz;
+                
                 double maxPenalty = marker->getMaxPenalty();
                 double sigma_3d = (maxPenalty > 0) ? maxPenalty / 10.0 : 2.0; // scale 2D pixel penalty to ~mm stddev
                 double inv_2sigma_sq = 1.0 / (2.0 * sigma_3d * sigma_3d);

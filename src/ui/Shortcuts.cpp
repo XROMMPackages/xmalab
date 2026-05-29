@@ -37,6 +37,9 @@
 #include "ui/PlotWindow.h"
 #include <QShortcut>
 #include <QKeyEvent>
+#include <QApplication>
+#include <QAbstractSpinBox>
+#include <QLineEdit>
 #include "ui/State.h"
 
 using namespace xma;
@@ -201,6 +204,17 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 	if (event->type() == QEvent::KeyPress)
 	{
 		QKeyEvent* _keyEvent = static_cast<QKeyEvent*>(event);
+
+		// If a spinbox or line edit has focus, don't intercept number keys
+		QWidget* fw = QApplication::focusWidget();
+		if (fw && (qobject_cast<QAbstractSpinBox*>(fw) || qobject_cast<QLineEdit*>(fw)))
+		{
+			int key = _keyEvent->key();
+			if ((key >= Qt::Key_0 && key <= Qt::Key_9) || key == Qt::Key_Period || key == Qt::Key_Comma || key == Qt::Key_Minus || key == Qt::Key_Backspace || key == Qt::Key_Delete)
+			{
+				return false; // Allow the widget to handle it
+			}
+		}
 
 		if (_keyEvent->key() == Qt::Key_Shift)
 		{

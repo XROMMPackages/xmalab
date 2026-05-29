@@ -95,6 +95,7 @@ namespace xma
 		void on_toolButton_PointBack_clicked(bool checked);
 
 		void on_checkBox_VolumetricTracking_stateChanged(int state);
+		void on_doubleSpinBox_VolumetricSearchArea_valueChanged(double arg1);
 
 		void on_toolButton_VolumetricSelected_Next_clicked();
 		void on_toolButton_VolumetricSelected_Prev_clicked();
