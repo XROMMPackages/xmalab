@@ -55,6 +55,7 @@ Settings::Settings()
 	addBoolSetting("ShowEvents", true);
 	addBoolSetting("Show3DView", true);
 	addBoolSetting("Console", false);
+	addBoolSetting("LockUIPanes", false);
 	addQStringSetting("WelcomeDialog", "0");
 	addQStringSetting("Theme", "system");
 

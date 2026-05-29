@@ -277,6 +277,8 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->actionImportTrial->setEnabled(false);
 	ui->actionPrecisionInfo->setEnabled(false);
 
+	ui->actionLock_UI_Panes->setChecked(Settings::getInstance()->getBoolSetting("LockUIPanes"));
+
 	Shortcuts::getInstance()->bindApplicationShortcuts();
 #ifndef PROJECT_BETA_VERSION
 	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
@@ -2315,6 +2317,7 @@ void MainWindow::on_actionHelp_triggered(bool checked)
 //startMainFrameButtons
 void MainWindow::on_actionLock_UI_Panes_toggled(bool locked)
 {
+	Settings::getInstance()->setBoolSetting("LockUIPanes", locked);
 	QList<QDockWidget*> docks = findChildren<QDockWidget*>();
 	for (QDockWidget* dock : docks) {
 		if (locked) {
