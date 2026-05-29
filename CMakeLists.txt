@@ -107,6 +107,9 @@ find_package(Levmar REQUIRED)
 FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGL OpenGLWidgets Concurrent PrintSupport)
 cmake_policy(SET CMP0020 NEW)
 SET(CMAKE_AUTOMOC ON)
+SET(CMAKE_AUTOUIC ON)
+SET(CMAKE_AUTORCC ON)
+SET(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/src/ui/ui-files)
 
 #Allow a console window on Windows for debugging
 OPTION(WITH_CONSOLE "Build with a command line for debugging" OFF)
@@ -123,11 +126,10 @@ ENDIF(WIN32)
 IF (APPLE)
 	SET(GUI_TYPE MACOSX_BUNDLE)
 	SET( MACOSX_BUNDLE_ICON_FILE XMALab-Icon.icns )
-	# Allows for bundle re-creation just by running "make". Also installs bundle icon
+	# Copy the icon file so macdeployqt and CMake bundle creation can find it
 	ADD_CUSTOM_TARGET(osx_bundle_dirs
-		COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources
-		COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/MacOS
-		COMMAND cp ${CMAKE_SOURCE_DIR}/src/ui/resource-files/icons/${MACOSX_BUNDLE_ICON_FILE}
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/ui/resource-files/icons/${MACOSX_BUNDLE_ICON_FILE}
 			${CMAKE_CURRENT_BINARY_DIR}/bin/XMALab.app/Contents/Resources/${MACOSX_BUNDLE_ICON_FILE})
 ENDIF (APPLE)
 
@@ -172,23 +174,10 @@ ADD_SUBDIRECTORY(src)
 
 
 
-#Create QT4 UI related tasks
-SET(XMALab_RESOURCE_FILES
-		${CMAKE_CURRENT_BINARY_DIR}/qrc_calibrationtool_resources.cxx
-		src/ui//calibrationtool_resources.qrc
-)
-QT_WRAP_UI(XMALab_FORMS_HEADERS_GEN ${XMALab_FORMS})
-SET(XMALab_RESOURCES
-		src/ui/calibrationtool_resources.qrc
-)
-QT_ADD_RESOURCES(XMALab_RESOURCES_RCC ${XMALab_RESOURCES})
-
-
-#Build and link
+# Build and link
 ADD_EXECUTABLE(${PROJECT_NAME} ${GUI_TYPE}
 		${XMALAB_SOURCES}
-		${XMALab_RESOURCES_RCC}
-		${XMALab_FORMS_HEADERS_GEN}
+		src/ui/calibrationtool_resources.qrc
 		src/ui/calibrationtool_resources.rc
 )
 
@@ -201,7 +190,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${XMALAB_INCLUDE_DIRS})
 
 # Windows: Run windeployqt to copy Qt DLLs, plugins, and platform files
 IF(WIN32)
-	# Find windeployqt from Qt6 tools or vcpkg
 	find_program(WINDEPLOYQT_EXECUTABLE
 		NAMES windeployqt windeployqt6
 		HINTS
@@ -210,21 +198,29 @@ IF(WIN32)
 			"${Qt6_DIR}/../../../bin"
 		PATH_SUFFIXES bin
 	)
-
 	if(WINDEPLOYQT_EXECUTABLE)
-		message(STATUS "Found windeployqt: ${WINDEPLOYQT_EXECUTABLE}")
 		add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-			COMMAND "${WINDEPLOYQT_EXECUTABLE}"
-				--no-compiler-runtime
-				--no-system-d3d-compiler
-				--no-translations
-				--no-opengl-sw
-				--verbose 0
-				"$<TARGET_FILE:${PROJECT_NAME}>"
+			COMMAND "${WINDEPLOYQT_EXECUTABLE}" --no-compiler-runtime --no-system-d3d-compiler --no-translations --no-opengl-sw --verbose 0 "$<TARGET_FILE:${PROJECT_NAME}>"
 			COMMENT "Deploying Qt dependencies with windeployqt..."
 		)
-	else()
-		message(WARNING "windeployqt not found. Qt DLLs and plugins will not be auto-deployed.")
+	endif()
+ENDIF()
+
+# macOS: Run macdeployqt to bundle Qt frameworks
+IF(APPLE)
+	find_program(MACDEPLOYQT_EXECUTABLE
+		NAMES macdeployqt macdeployqt6
+		HINTS
+			"$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/tools/Qt6/bin"
+			"$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/bin"
+			"${Qt6_DIR}/../../../bin"
+		PATH_SUFFIXES bin
+	)
+	if(MACDEPLOYQT_EXECUTABLE)
+		add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+			COMMAND "${MACDEPLOYQT_EXECUTABLE}" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/../.." -always-overwrite
+			COMMENT "Deploying Qt dependencies with macdeployqt..."
+		)
 	endif()
 ENDIF()
 
@@ -314,8 +310,6 @@ IF(MSVC OR MSVC_IDE)
 	ENDFOREACH()
 
 	SOURCE_GROUP(UI_FILES FILES ${XMALab_FORMS})
-	SOURCE_GROUP(UI_FILES FILES ${XMALab_FORMS_HEADERS_GEN})
-	SOURCE_GROUP(UI_FILES FILES ${XMALab_FORMS_HEADERS_GEN})
-	SOURCE_GROUP(UI_FILES FILES ${XMALab_RESOURCE_FILES} src/ui/calibrationtool_resources.rc )
+	SOURCE_GROUP(UI_FILES FILES src/ui/calibrationtool_resources.qrc src/ui/calibrationtool_resources.rc )
 	SOURCE_GROUP(UI_FILES FILES ${CMAKE_CURRENT_BINARY_DIR}/XMALab_automoc.cpp)
 ENDIF()
