@@ -178,6 +178,7 @@ ADD_SUBDIRECTORY(src)
 ADD_EXECUTABLE(${PROJECT_NAME} ${GUI_TYPE}
 		${XMALAB_SOURCES}
 		src/ui/calibrationtool_resources.qrc
+		src/ui/resource-files/qdarkstyle/darkstyle.qrc
 		src/ui/calibrationtool_resources.rc
 )
 
