@@ -2317,7 +2317,7 @@ void MainWindow::on_actionHelp_triggered(bool checked)
 //startMainFrameButtons
 void MainWindow::on_actionLock_UI_Panes_toggled(bool locked)
 {
-	Settings::getInstance()->setBoolSetting("LockUIPanes", locked);
+	Settings::getInstance()->set("LockUIPanes", locked);
 	QList<QDockWidget*> docks = findChildren<QDockWidget*>();
 	for (QDockWidget* dock : docks) {
 		if (locked) {
