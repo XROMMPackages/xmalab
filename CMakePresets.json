@@ -61,6 +61,18 @@
             }
         },
         {
+            "name": "linux-system",
+            "displayName": "Linux System Packages",
+            "description": "Linux build using system packages (no vcpkg) for AppImage distribution",
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++",
+                "CMAKE_CXX_STANDARD": "17"
+            }
+        },
+        {
             "name": "linux",
             "displayName": "Linux (GCC + vcpkg)",
             "description": "Linux build using GCC with vcpkg dependencies",
@@ -113,6 +125,18 @@
             "name": "linux-debug",
             "displayName": "Linux Debug",
             "configurePreset": "linux",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-system-release",
+            "displayName": "Linux System Release",
+            "configurePreset": "linux-system",
+            "configuration": "Release"
+        },
+        {
+            "name": "linux-system-debug",
+            "displayName": "Linux System Debug",
+            "configurePreset": "linux-system",
             "configuration": "Debug"
         }
     ]

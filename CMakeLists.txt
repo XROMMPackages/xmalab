@@ -263,8 +263,12 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
 	Qt6::PrintSupport
 	${OpenCV_LIBS}
 	OpenGL::GL
-	glu32
+	OpenGL::GLU
 )
+
+if(WIN32)
+	target_link_libraries(${PROJECT_NAME} glu32)
+endif()
 
 # Add legacy-style dependencies (config-mode packages provide their own targets)
 if(QuaZip-Qt6_FOUND)

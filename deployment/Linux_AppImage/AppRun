@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -e
+
+APPDIR="${APPDIR:-$(dirname "$(realpath "$0")")}"
+
+export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${APPDIR}/usr/lib64:${LD_LIBRARY_PATH}"
+export QT_PLUGIN_PATH="${APPDIR}/usr/lib/qt6/plugins:${APPDIR}/usr/plugins"
+
+# FlexiBLAS config for OpenCV
+export FLEXIBLAS_CONFIG="${APPDIR}/etc/flexiblasrc"
+export FLEXIBLAS_LIBRARY_PATH="${APPDIR}/usr/lib64/flexiblas:${APPDIR}/usr/lib/flexiblas"
+
+exec "${APPDIR}/usr/bin/XMALab" "$@"

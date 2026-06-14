@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=XMALab
+Comment=Marker-based fluoroscopy and XROMM analysis software
+Exec=XMALab
+Icon=XMALab
+Type=Application
+Categories=Science;Engineering;Graphics;
+Terminal=false
+StartupNotify=true
