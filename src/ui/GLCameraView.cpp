@@ -211,6 +211,12 @@ void GLCameraView::mouseDoubleClickEvent(QMouseEvent* e)
 void GLCameraView::mousePressEvent(QMouseEvent* e)
 {
 	State::getInstance()->changeActiveCamera(this->camera->getID());
+
+	if (State::getInstance()->getDisableDraw())
+	{
+		return;
+	}
+
 	qreal devicePixelRatio = this->devicePixelRatio();
 	
 	if (e->buttons() & Qt::RightButton)

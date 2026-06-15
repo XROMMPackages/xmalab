@@ -903,12 +903,19 @@ void Marker::resetMultipleFrames(int camera, int frameStart, int frameEnd, bool 
 
 void Marker::setInterpolation(int frame, interpolationMethod method)
 {
+	if (frame < 0 || frame >= (int)interpolation.size()) return;
 	interpolation[frame] = method;
 }
 
 interpolationMethod Marker::getInterpolation(int frame)
 {
+	if (frame < 0 || frame >= (int)interpolation.size()) return NONE;
 	return interpolation[frame];
+}
+
+int Marker::getInterpolationCount()
+{
+	return (int)interpolation.size();
 }
 
 bool Marker::getHasInterpolation()

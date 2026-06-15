@@ -72,11 +72,12 @@ void MarkerTreeWidgetButton::init()
 void MarkerTreeWidgetButton::setButtonIcon()
 {
 	QIcon icon;
-	if (m_type == 1)
+	Trial* trial = State::getInstance()->getActiveTrialData();
+	if (m_type == 1 && trial && m_idx >= 0 && m_idx < (int)trial->getRigidBodies().size())
 	{
-		if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[m_idx]->isReferencesSet() == 2)
+		if (trial->getRigidBodies()[m_idx]->isReferencesSet() == 2)
 		{
-			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[m_idx]->getHasOptimizedCoordinates())
+			if (trial->getRigidBodies()[m_idx]->getHasOptimizedCoordinates())
 			{
 				icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_optimized.png"), QSize(), QIcon::Normal, QIcon::Off);
 			}
@@ -84,9 +85,9 @@ void MarkerTreeWidgetButton::setButtonIcon()
 				icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d.png"), QSize(), QIcon::Normal, QIcon::Off);
 			}
 		}
-		else if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[m_idx]->isReferencesSet() == 1)
+		else if (trial->getRigidBodies()[m_idx]->isReferencesSet() == 1)
 		{
-			if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[m_idx]->getHasOptimizedCoordinates())
+			if (trial->getRigidBodies()[m_idx]->getHasOptimizedCoordinates())
 			{
 				icon.addFile(QString::fromUtf8(":/images/resource-files/icons/shape_3d_setMarker_optimized.png"), QSize(), QIcon::Normal, QIcon::Off);
 			}
@@ -108,18 +109,21 @@ void MarkerTreeWidgetButton::setButtonIcon()
 
 void MarkerTreeWidgetButton::settingsButtonClicked()
 {
-	if (m_type == 1)
+	Trial* trial = State::getInstance()->getActiveTrialData();
+	if (!trial) return;
+
+	if (m_type == 1 && m_idx >= 0 && m_idx < (int)trial->getRigidBodies().size())
 	{
-		RigidBodyDialog* dialog = new RigidBodyDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getRigidBodies()[m_idx], MainWindow::getInstance());
+		RigidBodyDialog* dialog = new RigidBodyDialog(trial->getRigidBodies()[m_idx], MainWindow::getInstance());
 
 		dialog->exec();
 		MainWindow::getInstance()->redrawGL();
 		setButtonIcon();
 		delete dialog;
 	}
-	else if (m_type == 2)
+	else if (m_type == 2 && m_idx >= 0 && m_idx < (int)trial->getMarkers().size())
 	{
-		MarkerDialog* dialog = new MarkerDialog(Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getMarkers()[m_idx], MainWindow::getInstance());
+		MarkerDialog* dialog = new MarkerDialog(trial->getMarkers()[m_idx], MainWindow::getInstance());
 
 		dialog->exec();
 

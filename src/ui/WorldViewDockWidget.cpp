@@ -202,7 +202,7 @@ void WorldViewDockWidget::setStartEndSequence(int start, int end)
 void WorldViewDockWidget::closeEvent(QCloseEvent* event)
 {
 	on_toolButtonStop_clicked();
-	event->ignore();
+	event->accept();
 	MainWindow::getInstance()->on_action3D_world_view_triggered(false);
 }
 

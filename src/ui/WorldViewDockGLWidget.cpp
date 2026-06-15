@@ -238,6 +238,11 @@ void WorldViewDockGLWidget::initializeGL()
 
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT,GL_AMBIENT_AND_DIFFUSE);
+
+	sphere_quadric = gluNewQuadric(); // Create A Pointer To The Quadric Object ( NEW )
+	gluQuadricNormals(sphere_quadric, GLU_SMOOTH); // Create Smooth Normals ( NEW )
+	gluQuadricTexture(sphere_quadric, GL_TRUE); // Create Texture Coords ( NEW )
+	opengl_initialised = true;
 }
 
 void WorldViewDockGLWidget::resizeGL(int _w, int _h)
@@ -252,6 +257,8 @@ void WorldViewDockGLWidget::resizeGL(int _w, int _h)
 
 void WorldViewDockGLWidget::paintGL()
 {
+	if (w == 0 || h == 0) return;
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(25.0, (double(w)) / h, 1.0, 100000.0);
@@ -469,13 +476,6 @@ void WorldViewDockGLWidget::drawCameras()
 
 void WorldViewDockGLWidget::drawMarkers(Trial* trial, int frame)
 {
-	if (!opengl_initialised)
-	{
-		sphere_quadric = gluNewQuadric(); // Create A Pointer To The Quadric Object ( NEW )
-		gluQuadricNormals(sphere_quadric, GLU_SMOOTH); // Create Smooth Normals ( NEW )
-		gluQuadricTexture(sphere_quadric, GL_TRUE); // Create Texture Coords ( NEW )
-	}
-
 	for (unsigned int i = 0; i < trial->getMarkers().size(); i++)
 	{
 		if (trial->getMarkers()[i]->getStatus3D()[frame] > 0){
@@ -513,13 +513,6 @@ void WorldViewDockGLWidget::drawRigidBodies(Trial* trial, int frame)
 
 void WorldViewDockGLWidget::drawCalibrationCube()
 {
-	if (!opengl_initialised)
-	{
-		sphere_quadric = gluNewQuadric(); // Create A Pointer To The Quadric Object ( NEW )
-		gluQuadricNormals(sphere_quadric, GLU_SMOOTH); // Create Smooth Normals ( NEW )
-		gluQuadricTexture(sphere_quadric, GL_TRUE); // Create Texture Coords ( NEW )
-	}
-
 	if (CalibrationObject::getInstance()->isInitialised() && !CalibrationObject::getInstance()->isCheckerboard())
 	{
 		for (unsigned int i = 0; i < CalibrationObject::getInstance()->getFrameSpecifications().size(); i++)

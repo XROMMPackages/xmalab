@@ -14,14 +14,31 @@ This document tracks all backend and user-facing changes made during the `c++upg
 - **Pointer Safety Enhancements**: Migrated unsafe UI pointer-chaining to robust, modernized functional wrappers (`State::getActiveTrialData()` and `Trial::withActiveMarker()`). These use lambdas to ensure bounds checking and prevent null pointer dereferences.
 - **Crash Fixes**: Resolved a crash relating to `RigidBody` interpolation by utilizing the new pointer safety patterns.
 - **Video Decoding Resilience**: Added an interception layer to OpenCV's `VideoCapture` (`AviVideo.cpp`) to prevent the video decoder from entering a permanent unrecoverable error state when seeking to improperly encoded frames (such as EOF overestimations common in AVIs).
-- **Performance**: Parallelized `ButterworthLowPassFilter.cpp` to significantly improve filtering speed for large datasets.
 - **Sub-Pixel Refinement**: Integrated `MarkerDetection::detectionPoint` into `MarkerTracking3D` to ensure volumetric tracking correctly snaps to the precise sub-pixel centroid of the marker, preventing tracking drift and jumping between neighboring beads.
-
-## Todos for Next Phase
-1. **Automate/Calibrate Marker Detection**: Investigate sampling a user-identified "good" frame to automatically estimate and set ideal `Threshold` and `Penalty` detection settings based on pixel profile.
-2. **Implement Autosave**: Build a robust background autosave feature to prevent data loss.
 
 ## Build Infrastructure & Maintenance
 - **Standardized Build Process**: Cleared out outdated legacy build directories and completely standardized the cross-platform CMake build process using `CMakePresets.json`. 
 - **Build Documentation**: Created a comprehensive `BUILD.md` file at the repository root detailing the exact steps to compile XMALab from scratch on Windows using vcpkg.
 - **Versioning**: Incremented software versioning to `3.0.0` across `CMakeLists.txt` and installer scripts (`XMALabInstaller.nsi`).
+- **macOS bundle metadata**: Added `MACOSX_BUNDLE_BUNDLE_NAME`, `BUNDLE_VERSION`, and `GUI_IDENTIFIER` to `CMakeLists.txt` so the app appears with proper name/version in the macOS menu bar and About dialog.
+- **ESC-tracking crash fix**: Pressing ESC during marker tracking left `disableDraw = true` permanently and frame state inconsistent, causing a crash on next mouse click. Fixed by adding `setDisableDraw(false)` and frame state refresh to `WizardDigitizationFrame::stopTracking()`. Also removed duplicate ESC handler from `Shortcuts::eventFilter` (QShortcut already handles it) and added `disableDraw` guard to `GLCameraView::mousePressEvent`.
+- **AppImage libxkbcommon fix**: Bundled `libxkbcommon` 1.6.0 from Fedora 40 could not parse the host's newer XKB keymap data (`xkeyboard-config`), crashing on any keyboard event. Fixed by excluding libxkbcommon from the AppImage so the host's version is used at runtime.
+
+
+## Currently Broken
+- ~~**MacOS (maybe all OS) in 'force close' macos menu, XMALab doesn't have a title** — fixed by adding `MACOSX_BUNDLE_BUNDLE_NAME` and related properties to CMakeLists.txt.~~
+- ~~**Linux Crashing a lot**: Crashes if you close the 3D world view — fixed by accepting the close event instead of ignoring it, guarding division by zero in paintGL, and moving quadric allocation to initializeGL.~~ 
+- **Linux and Windows still _much_ slower at tracking, and scrubbing than MacOS** May not be fixable.
+- ~~**MacOS Theming (maybe all OS)** - light theme on MacOS does not match 'follow system theme' when MacOS is in light mode. Fixed by replacing hardcoded grey palette with `QPalette()` for light theme, making it identical to system theme.~~
+- ~~**Settings button crash**: clicking settings button next to marker crashes — fixed by adding bounds checks in `MarkerTreeWidgetButton`.~~
+- ~~**Set interpolation crash**: clicking set interpolation crashes — fixed by bounds-safe `Marker::setInterpolation/getInterpolation` and safe access in `PlotWindow::setInterpolation`.~~
+
+
+## Todos for Next Phase
+1. **Automate/Calibrate Marker Detection**: Investigate sampling a user-identified "good" frame to automatically estimate and set ideal `Threshold` and `Penalty` detection settings based on pixel profile.
+2. **Implement Autosave**: Build a robust background autosave feature to prevent data loss. create .xma1 while working.  save in background every 10 minutes (configurable in settings). On clean save and exit, save to .xma and remove .xma1.  
+3. **mark change to file with asterix in the title bar**: let people know if a file has been changed.
+4. **Save image slider state (bias etc)**
+
+
+gitbook wiki blender animation stuff

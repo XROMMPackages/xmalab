@@ -243,8 +243,7 @@ bool Shortcuts::eventFilter(QObject* target, QEvent* event)
 		}
 		if (_keyEvent->key() == Qt::Key_Escape)
 		{
-			SequenceNavigationFrame::getInstance()->on_toolButtonStop_clicked();
-			return true;
+			return true; // ESC handled by QShortcut at line 69; just consume the event (avoid double-fire)
 		}
 		if (_keyEvent->key() == Qt::Key_1)
 		{

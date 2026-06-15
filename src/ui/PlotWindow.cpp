@@ -3026,8 +3026,8 @@ void PlotWindow::setInterpolation()
 	int frameEnd;
 	frameStart = (endFrame > startFrame) ? startFrame : endFrame;
 	frameEnd = (endFrame > startFrame) ? endFrame : startFrame;
-	frameStart = (frameStart < Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getStartFrame() - 1 : frameStart;
-	frameEnd = (frameEnd > Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1) ? Project::getInstance()->getTrials()[xma::State::getInstance()->getActiveTrial()]->getEndFrame() - 1 : frameEnd;
+	frameStart = (frameStart < trial->getStartFrame() - 1) ? trial->getStartFrame() - 1 : frameStart;
+	frameEnd = (frameEnd > trial->getEndFrame() - 1) ? trial->getEndFrame() - 1 : frameEnd;
 
 	if (frameStart == frameEnd)
 	{
@@ -3055,7 +3055,7 @@ void PlotWindow::setInterpolation()
 			method = CUBIC;
 		}
 				
-		for (int i = frameStart; i <= frameEnd; i++)
+		for (int i = frameStart; i <= frameEnd && i < (int)marker->getInterpolationCount(); i++)
 		{
 			marker->setInterpolation(i, method);
 		}

@@ -853,6 +853,8 @@ void WizardDigitizationFrame::setDialog()
 
 void WizardDigitizationFrame::stopTracking()
 {
+	State::getInstance()->setDisableDraw(false);
+	State::getInstance()->changeActiveFrameTrial(State::getInstance()->getActiveFrameTrial(), true);
 	uncheckTrackButtons();
 }
 

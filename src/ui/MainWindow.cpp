@@ -517,36 +517,9 @@ void MainWindow::applyTheme(const QString& themeName) {
             }
         }
     } else if (themeName == "light") {
-        // Force light mode - create a completely fresh light palette
+        // Light theme: use system default palette (same as system theme)
         qApp->setStyle(QStyleFactory::create("Fusion"));
-        
-        // Create a brand new light palette from scratch, not based on system
-        QPalette lightPalette;
-        lightPalette.setColor(QPalette::Window, QColor(240, 240, 240));
-        lightPalette.setColor(QPalette::WindowText, Qt::black);
-        lightPalette.setColor(QPalette::Base, Qt::white);
-        lightPalette.setColor(QPalette::AlternateBase, QColor(245, 245, 245));
-        lightPalette.setColor(QPalette::ToolTipBase, QColor(255, 255, 220));
-        lightPalette.setColor(QPalette::ToolTipText, Qt::black);
-        lightPalette.setColor(QPalette::Text, Qt::black);
-        lightPalette.setColor(QPalette::Button, QColor(240, 240, 240));
-        lightPalette.setColor(QPalette::ButtonText, Qt::black);
-        lightPalette.setColor(QPalette::BrightText, Qt::red);
-        lightPalette.setColor(QPalette::Link, QColor(0, 0, 255));
-        lightPalette.setColor(QPalette::Highlight, QColor(0, 120, 215));
-        lightPalette.setColor(QPalette::HighlightedText, Qt::white);
-        lightPalette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(120, 120, 120));
-        lightPalette.setColor(QPalette::Disabled, QPalette::Text, QColor(120, 120, 120));
-        lightPalette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(120, 120, 120));
-		lightPalette.setColor(QPalette::Disabled, QPalette::HighlightedText, QColor(120, 120, 120));
-		// Normalize 3D/shadow roles for forced light mode (system is dark)
-		lightPalette.setColor(QPalette::Light, QColor(255, 255, 255));   // top highlight
-		lightPalette.setColor(QPalette::Midlight, QColor(248, 248, 248));   // subtle inner highlight
-		lightPalette.setColor(QPalette::Mid, QColor(220, 220, 220));   // mid tone for grooves
-		lightPalette.setColor(QPalette::Dark, QColor(160, 160, 160));   // lower edge
-		lightPalette.setColor(QPalette::Shadow, QColor(110, 110, 110));   // deepest shadow
-        
-        qApp->setPalette(lightPalette);
+        qApp->setPalette(QPalette());
         qApp->setStyleSheet(""); // Clear custom dark stylesheet
     } else { // system
         // Use system default - let Qt automatically follow the OS theme

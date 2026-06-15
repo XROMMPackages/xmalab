@@ -127,6 +127,7 @@ namespace xma
 		void setInterpolation(int frame, interpolationMethod method);
 		interpolationMethod getInterpolation(int frame);
 		bool getHasInterpolation();
+		int getInterpolationCount();
 		void updateHasInterpolation(); 
 		void saveInterpolation(QString filename);
 		void loadInterpolation(QString filename);

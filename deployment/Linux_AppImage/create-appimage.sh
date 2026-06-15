@@ -54,6 +54,7 @@ LINUXDEPLOY_PLUGIN_CONFIG_TYPE=qt6 \
     --exclude-library="*libnss_*" \
     --exclude-library="*libpam*" \
     --exclude-library="*libsss*" \
+    --exclude-library="*libxkbcommon*" \
     -v1 2>&1
 
 echo ""

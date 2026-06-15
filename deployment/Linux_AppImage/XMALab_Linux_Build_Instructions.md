@@ -1,6 +1,6 @@
 # XMALab Linux Build & AppImage Instructions
 
-**⚠️ glibc requirement**: Built on Fedora 40 (glibc 2.40). The AppImage runs on **Fedora 39+, Ubuntu 24.04+, Debian 13+, RHEL 10+ and equivalent**. Older distros will crash with a glibc version error. For older targets, build on Ubuntu 22.04 (glibc 2.35) instead.
+**⚠️ glibc requirement**: Built on Fedora 40 (glibc 2.38). The AppImage runs on **Fedora 36+, Ubuntu 22.04+, Debian 12+, RHEL 9+ and equivalent**. Older distros will crash with a glibc version error. For older targets, build on Ubuntu 22.04 (glibc 2.35) instead.
 
 This guide covers building XMALab for Linux using a **Fedora 40 Distrobox** container, and packaging it as a portable **AppImage**.
 
@@ -120,6 +120,7 @@ The AppImage bundles:
 - **Samba/OpenCV**: OpenCV links `libsmbclient` on Fedora, which pulls in Samba private libraries. The build script aggressively removes all Samba libs. The binary still works; it just can't read video from SMB shares.
 - **FlexiBLAS**: Uses the `netlib` backend by default for maximum compatibility. The `FLEXIBLAS_LIBRARY_PATH` and `FLEXIBLAS_CONFIG` env vars are set in the AppRun script.
 - **Wayland vs XCB**: The AppImage bundles both xcb and wayland platform plugins. On Wayland sessions, Qt probes Wayland first; if the compositor is missing a feature, it falls back to xcb. Set `QT_QPA_PLATFORM=xcb` to force the xcb backend.
+- **libxkbcommon excluded**: The AppImage deliberately excludes `libxkbcommon` and uses the host system's version. This avoids version mismatch between the bundled library and the host's XKB keymap data (`/usr/share/X11/xkb/`). Every graphical Linux since ~2017 provides this library, so it's safe to omit.
 
 ---
 

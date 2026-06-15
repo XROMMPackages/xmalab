@@ -181,6 +181,14 @@ ADD_EXECUTABLE(${PROJECT_NAME} ${GUI_TYPE}
 		src/ui/calibrationtool_resources.rc
 )
 
+IF(APPLE)
+	set_target_properties(${PROJECT_NAME} PROPERTIES
+		MACOSX_BUNDLE_BUNDLE_NAME "XMALab"
+		MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+		MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_DOMAIN}.${PROJECT_NAME}"
+	)
+ENDIF()
+
 # Apply include directories to the target (modern CMake)
 target_include_directories(${PROJECT_NAME} PRIVATE ${XMALAB_INCLUDE_DIRS})
 
