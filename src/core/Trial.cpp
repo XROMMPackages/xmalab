@@ -46,6 +46,7 @@
 #include <QTextStream>
 #include <QXmlStreamReader>
 #include <QChar>
+#include <QtConcurrent/QtConcurrentMap>
 
 #include <fstream>
 
@@ -364,11 +365,23 @@ void Trial::setActiveFrame(int _activeFrame)
 	activeFrame = _activeFrame;
 	if (isDefault)
 		return;
-	
-	for (int i = 0; i < videos.size(); i++)
+
+	std::vector<int> visibleIndices;
+	for (int i = 0; i < (int)videos.size(); i++)
 	{
 		if (Project::getInstance()->getCameras()[i]->isVisible())
-			videos[i]->setActiveFrame(activeFrame);
+			visibleIndices.push_back(i);
+	}
+
+	if (visibleIndices.size() > 1)
+	{
+		QtConcurrent::blockingMap(visibleIndices, [this, _activeFrame](int i) {
+			videos[i]->setActiveFrame(_activeFrame);
+		});
+	}
+	else if (visibleIndices.size() == 1)
+	{
+		videos[visibleIndices[0]]->setActiveFrame(_activeFrame);
 	}
 }
 
