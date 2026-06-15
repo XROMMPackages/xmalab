@@ -73,16 +73,11 @@ void MarkerTracking3D::trackMarker_thread()
     int searchArea = 30;
     int used_size = size + searchArea + 3;
 
-    unsigned int numCameras = Project::getInstance()->getCameras().size();
-    std::vector<cv::Mat> result_buffers(numCameras);
-    std::vector<cv::Point2d> offsets(numCameras);
+    std::vector<cv::Mat> result_buffers;
+    std::vector<cv::Point2d> offsets;
 
-    std::vector<int> cameraIndices;
-    cameraIndices.reserve(numCameras);
-    for (unsigned int i = 0; i < numCameras; i++)
-        cameraIndices.push_back(i);
-
-    QtConcurrent::blockingMap(cameraIndices, [&](int i) {
+    for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+    {
         if (Project::getInstance()->getCameras()[i]->isVisible() && !m_templates[i].empty())
         {
             cv::Mat templ = m_templates[i];
@@ -120,23 +115,23 @@ void MarkerTracking3D::trackMarker_thread()
                     }
                 }
 
-                result_buffers[i] = result;
-                offsets[i] = cv::Point2d(off_x + size + 3, off_y + size + 3);
+                result_buffers.push_back(result);
+                offsets.push_back(cv::Point2d(off_x + size + 3, off_y + size + 3));
             }
             else
             {
-                result_buffers[i] = cv::Mat();
-                offsets[i] = cv::Point2d(0, 0);
+                result_buffers.push_back(cv::Mat());
+                offsets.push_back(cv::Point2d(0, 0));
             }
             ROI_to.release();
             templ.release();
         }
         else
         {
-            result_buffers[i] = cv::Mat();
-            offsets[i] = cv::Point2d(0, 0);
+            result_buffers.push_back(cv::Mat());
+            offsets.push_back(cv::Point2d(0, 0));
         }
-    });
+    }
 
     double max_score = -1e9;
     cv::Point3d best_p3d = pred3D;
