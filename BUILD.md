@@ -1,7 +1,6 @@
 # XMALab Build Instructions
 
 XMALab uses a modern CMake Presets setup to ensure consistent and reproducible builds across all supported platforms. 
-This process automatically fetches and builds necessary dependencies (using `vcpkg`), configures the build tree, and compiles the software.
 
 ## Prerequisites
 - **Git**
@@ -14,20 +13,24 @@ XMALab requires the following libraries:
 - **OpenCV**
 - **GLEW**
 - **QuaZip**
+- **Levmar**
 - **zlib**
 
 **For Windows Users:**
 The provided `CMakePresets.json` relies on **vcpkg** to automatically resolve dependencies on Windows. You must have vcpkg installed and the `VCPKG_ROOT` environment variable set to its installation path.
 
-**For macOS / Linux Users:**
-Dependencies are typically installed via your system's package manager (e.g., `brew` on macOS, or `apt` on Linux) or built directly from source. The CMake Presets provided for macOS and Linux assume you have installed these libraries globally or configured CMake to find them.
+**For macOS Users:**
+The macOS build utilizes local dependency directories instead of vcpkg. Our CMake configuration automatically resolves paths for Homebrew (`/opt/homebrew`), Qt installs (`~/Qt`), and source builds located in `~/Documents` (e.g., `~/Documents/opencvbuild`, `~/Documents/quazip-1.5`, `~/Documents/levmar-2.6`). Ensure your local dependencies are placed in these standard paths.
+
+**For Linux Users:**
+Dependencies are typically installed via your system's package manager (e.g., `apt`) or built directly from source. The CMake Presets provided for Linux assume you have installed these libraries globally or configured CMake to find them.
 
 ---
 
 ## Standard Build Process
 
 ### 1. Clone the Repository
-Always start with a clean clone of the repository to ensure no leftover artifacts interfere with the build.
+Always start with a clean clone of the repository.
 ```bash
 git clone https://github.com/XROMMPackages/xmalab.git
 cd xmalab
@@ -72,6 +75,34 @@ cmake --build --preset macos-intel-release
 ```bash
 cmake --build --preset linux-release
 ```
+
+*Note on Automatic Deployment:* 
+- **Windows**: The build process automatically runs `windeployqt` as a post-build step.
+- **macOS**: The build process automatically invokes `macdeployqt` to package dependencies, followed by a deep ad-hoc code signature (`codesign --force --deep --sign -`) to prevent crashes on launch.
+
+---
+
+## 4. Packaging the Installers
+
+### Windows Installer (.exe)
+1. Open **NSIS** on your computer.
+2. Select **Compile NSI scripts**.
+3. Load the script located at `deployment/Windows_NSIS/XMALabInstaller.nsi`.
+4. Compile the script. This will bundle the compiled binary, assets, and dependencies into a standalone installer (`XMALab_Setup.exe`).
+
+### macOS Installer (.dmg)
+We use `appdmg` to package the app bundle into a user-friendly installer image:
+1. Ensure Node.js and `appdmg` are installed (`brew install node && npm install -g appdmg`).
+2. Edit the template JSON to set the correct version number:
+   ```bash
+   cd deployment/MAC
+   cp xmalab_template.json xmalab.json
+   sed -i '' 's/VERSION/3.0.0/g' xmalab.json
+   ```
+3. Run `appdmg` to generate the package:
+   ```bash
+   appdmg xmalab.json ../../build/macos/bin/XMALab_3.0.0_macOS.dmg
+   ```
 
 ---
 

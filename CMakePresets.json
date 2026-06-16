@@ -26,14 +26,11 @@
         },
         {
             "name": "macos",
-            "displayName": "macOS (Apple Silicon + vcpkg)",
-            "description": "macOS ARM64 build using Clang with vcpkg dependencies",
-            "generator": "Ninja Multi-Config",
+            "displayName": "macOS (Apple Silicon)",
+            "description": "macOS ARM64 build using Clang with local dependencies",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
                 "CMAKE_CXX_STANDARD": "17",
-                "VCPKG_TARGET_TRIPLET": "arm64-osx",
                 "CMAKE_OSX_ARCHITECTURES": "arm64"
             },
             "vendor": {
@@ -44,14 +41,11 @@
         },
         {
             "name": "macos-intel",
-            "displayName": "macOS (Intel + vcpkg)",
-            "description": "macOS x86_64 build using Clang with vcpkg dependencies",
-            "generator": "Ninja Multi-Config",
+            "displayName": "macOS (Intel)",
+            "description": "macOS x86_64 build using Clang with local dependencies",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
                 "CMAKE_CXX_STANDARD": "17",
-                "VCPKG_TARGET_TRIPLET": "x64-osx",
                 "CMAKE_OSX_ARCHITECTURES": "x86_64"
             },
             "vendor": {
