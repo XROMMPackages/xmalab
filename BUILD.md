@@ -51,9 +51,13 @@ cmake --preset macos
 ```bash
 cmake --preset macos-intel
 ```
-**Linux:**
+**Linux (vcpkg):**
 ```bash
 cmake --preset linux
+```
+**Linux (system packages):**
+```bash
+cmake --preset linux-system
 ```
 
 ### 3. Compile the Application
@@ -71,9 +75,13 @@ cmake --build --preset macos-release
 ```bash
 cmake --build --preset macos-intel-release
 ```
-**Linux:**
+**Linux (vcpkg):**
 ```bash
 cmake --build --preset linux-release
+```
+**Linux (system packages):**
+```bash
+cmake --build --preset linux-system-release
 ```
 
 *Note on Automatic Deployment:* 
@@ -104,6 +112,33 @@ We use `appdmg` to package the app bundle into a user-friendly installer image:
    cp -R ../../build/macos/bin/XMALab.app .
    appdmg xmalab.json ../../build/macos/bin/XMALab_3.0.0_macOS.dmg
    ```
+
+### Linux AppImage (.AppImage)
+The project includes a pre-configured AppDir at `XMALab.AppDir/`. To package the compiled binary into a portable AppImage:
+
+1. Copy the compiled binary into the AppDir:
+   ```bash
+   cp build/linux-system/bin/Release/XMALab XMALab.AppDir/usr/bin/XMALab
+   ```
+
+2. Ensure the AppRun script is executable:
+   ```bash
+   chmod +x XMALab.AppDir/AppRun
+   ```
+
+3. Download and extract `appimagetool` (FUSE is typically unavailable in build containers, so extract the AppImage):
+   ```bash
+   wget 'https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage' -O /tmp/appimagetool
+   chmod +x /tmp/appimagetool
+   /tmp/appimagetool --appimage-extract
+   ```
+
+4. Generate the AppImage:
+   ```bash
+   /tmp/squashfs-root/AppRun XMALab.AppDir
+   ```
+
+   This creates `XMALab-x86_64.AppImage` in the project root.
 
 ---
 
