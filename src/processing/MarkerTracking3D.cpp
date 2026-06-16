@@ -133,6 +133,10 @@ void MarkerTracking3D::trackMarker_thread()
         }
     }
 
+    double maxPenalty = marker->getMaxPenalty();
+    double sigma_3d = (maxPenalty > 0) ? maxPenalty / 10.0 : 2.0;
+    double inv_2sigma_sq = 1.0 / (2.0 * sigma_3d * sigma_3d);
+
     double max_score = -1e9;
     cv::Point3d best_p3d = pred3D;
 
@@ -155,12 +159,11 @@ void MarkerTracking3D::trackMarker_thread()
                     {
                         cv::Point2d proj = Project::getInstance()->getCameras()[i]->projectPoint(p3d, Project::getInstance()->getTrials()[m_trial]->getReferenceCalibrationImage());
                         
-                        double u = proj.x - offsets[i].x + result_buffers[i].cols / 2.0;
-                        double v = proj.y - offsets[i].y + result_buffers[i].rows / 2.0;
+                        double u = proj.x - offsets[i].x;
+                        double v = proj.y - offsets[i].y;
 
                         if (u >= 0 && u < result_buffers[i].cols - 1 && v >= 0 && v < result_buffers[i].rows - 1)
                         {
-                            // Bilinear interpolation
                             int ui = (int)u;
                             int vi = (int)v;
                             double uf = u - ui;
@@ -179,14 +182,9 @@ void MarkerTracking3D::trackMarker_thread()
                     }
                 }
 
-                // Apply a strict 3D distance penalty based on maxPenalty
                 double dist_sq = dx * dx + dy * dy + dz * dz;
-                double maxPenalty = marker->getMaxPenalty();
-                double sigma_3d = (maxPenalty > 0) ? maxPenalty / 10.0 : 2.0; // scale 2D pixel penalty to ~mm stddev
-                double inv_2sigma_sq = 1.0 / (2.0 * sigma_3d * sigma_3d);
                 double penalty = exp(-dist_sq * inv_2sigma_sq);
-                
-                score *= penalty; // Penalize the joint correlation score
+                score *= penalty;
 
                 if (valid_cams >= 2 && score > max_score)
                 {
@@ -220,12 +218,11 @@ void MarkerTracking3D::trackMarker_thread()
                     {
                         cv::Point2d proj = Project::getInstance()->getCameras()[i]->projectPoint(p3d, Project::getInstance()->getTrials()[m_trial]->getReferenceCalibrationImage());
                         
-                        double u = proj.x - offsets[i].x + result_buffers[i].cols / 2.0;
-                        double v = proj.y - offsets[i].y + result_buffers[i].rows / 2.0;
+                        double u = proj.x - offsets[i].x;
+                        double v = proj.y - offsets[i].y;
 
                         if (u >= 0 && u < result_buffers[i].cols - 1 && v >= 0 && v < result_buffers[i].rows - 1)
                         {
-                            // Bilinear interpolation
                             int ui = (int)u;
                             int vi = (int)v;
                             double uf = u - ui;
@@ -244,18 +241,13 @@ void MarkerTracking3D::trackMarker_thread()
                     }
                 }
 
-                // Re-calculate penalty based on the ORIGINAL prediction so penalties remain consistent
                 double total_dx = (p3d.x - pred3D.x);
                 double total_dy = (p3d.y - pred3D.y);
                 double total_dz = (p3d.z - pred3D.z);
                 double dist_sq = total_dx * total_dx + total_dy * total_dy + total_dz * total_dz;
-                
-                double maxPenalty = marker->getMaxPenalty();
-                double sigma_3d = (maxPenalty > 0) ? maxPenalty / 10.0 : 2.0; // scale 2D pixel penalty to ~mm stddev
-                double inv_2sigma_sq = 1.0 / (2.0 * sigma_3d * sigma_3d);
+
                 double penalty = exp(-dist_sq * inv_2sigma_sq);
-                
-                score *= penalty; // Penalize the joint correlation score
+                score *= penalty;
 
                 if (valid_cams >= 2 && score > max_score)
                 {
