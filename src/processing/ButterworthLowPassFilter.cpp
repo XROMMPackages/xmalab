@@ -50,7 +50,6 @@
 #endif
 
 #include "processing/ButterworthLowPassFilter.h" 
-#include <execution>
 #include <algorithm>
 #include <numeric>
 #ifndef M_PI
@@ -216,11 +215,11 @@ void filter(vectord B, vectord A, const vectord& X, vectord& Y, vectord& Zi)
 	auto a0 = A[0];
 	if (a0 != 1.0)
 	{
-		std::transform(std::execution::par_unseq, A.begin(), A.end(), A.begin(), [a0](double v)
+		std::transform(A.begin(), A.end(), A.begin(), [a0](double v)
 		               {
 			               return v / a0;
 		               });
-		std::transform(std::execution::par_unseq, B.begin(), B.end(), B.begin(), [a0](double v)
+		std::transform(B.begin(), B.end(), B.begin(), [a0](double v)
 		               {
 			               return v / a0;
 		               });
@@ -306,14 +305,14 @@ void filtfilt(vectord B, vectord A, const vectord& X, vectord& Y)
 
 	vectord leftpad = subvector_reverse(X, nfact, 1);
 	double _2x0 = 2 * X[0];
-	std::transform(std::execution::par_unseq, leftpad.begin(), leftpad.end(), leftpad.begin(), [_2x0](double val)
+	std::transform(leftpad.begin(), leftpad.end(), leftpad.begin(), [_2x0](double val)
 	               {
 		               return _2x0 - val;
 	               });
 
 	vectord rightpad = subvector_reverse(X, len - 2, len - nfact - 1);
 	double _2xl = 2 * X[len - 1];
-	std::transform(std::execution::par_unseq, rightpad.begin(), rightpad.end(), rightpad.begin(), [_2xl](double val)
+	std::transform(rightpad.begin(), rightpad.end(), rightpad.begin(), [_2xl](double val)
 	               {
 		               return _2xl - val;
 	               });
@@ -338,14 +337,14 @@ void filtfilt(vectord B, vectord A, const vectord& X, vectord& Y)
 
 	// Do the forward and backward filtering
 	y0 = signal1[0];
-	std::transform(std::execution::par_unseq, zzi.begin<double>(), zzi.end<double>(), zi.begin(), [y0](double val)
+	std::transform(zzi.begin<double>(), zzi.end<double>(), zi.begin(), [y0](double val)
 	               {
 		               return val * y0;
 	               });
 	filter(B, A, signal1, signal2, zi);
-	std::reverse(std::execution::par_unseq, signal2.begin(), signal2.end());
+	std::reverse(signal2.begin(), signal2.end());
 	y0 = signal2[0];
-	std::transform(std::execution::par_unseq, zzi.begin<double>(), zzi.end<double>(), zi.begin(), [y0](double val)
+	std::transform(zzi.begin<double>(), zzi.end<double>(), zi.begin(), [y0](double val)
 	               {
 		               return val * y0;
 	               });

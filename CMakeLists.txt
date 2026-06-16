@@ -42,6 +42,48 @@ IF(APPLE AND CMAKE_INSTALL_PREFIX MATCHES "/usr/local")
 	SET(CMAKE_INSTALL_PREFIX "/Applications")
 ENDIF()
 
+# Auto-Resolve macOS Search Paths
+if(APPLE AND NOT CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg.cmake")
+	message(STATUS "macOS non-vcpkg build detected. Auto-resolving search paths...")
+	
+	# Append Homebrew path
+	list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew" "/usr/local")
+	
+	# Scan for custom directories under ~/Documents and ~/Qt
+	file(GLOB DOCS_SUBDIRS LIST_DIRECTORIES true "$ENV{HOME}/Documents/*")
+	file(GLOB QT_SUBDIRS LIST_DIRECTORIES true "$ENV{HOME}/Qt/*" "$ENV{HOME}/Qt/*/macos" "$ENV{HOME}/Qt/*/*/macos")
+	
+	foreach(DIR_PATH ${DOCS_SUBDIRS} ${QT_SUBDIRS})
+		if(IS_DIRECTORY "${DIR_PATH}")
+			list(APPEND CMAKE_PREFIX_PATH "${DIR_PATH}")
+			list(APPEND CMAKE_LIBRARY_PATH "${DIR_PATH}")
+			list(APPEND CMAKE_INCLUDE_PATH "${DIR_PATH}")
+			# Also include build/quazip and build as prefix subdirs in case libraries/headers are in build trees
+			if(IS_DIRECTORY "${DIR_PATH}/build")
+				list(APPEND CMAKE_PREFIX_PATH "${DIR_PATH}/build")
+				list(APPEND CMAKE_LIBRARY_PATH "${DIR_PATH}/build")
+			endif()
+			if(IS_DIRECTORY "${DIR_PATH}/build/quazip")
+				list(APPEND CMAKE_PREFIX_PATH "${DIR_PATH}/build/quazip")
+				list(APPEND CMAKE_LIBRARY_PATH "${DIR_PATH}/build/quazip")
+			endif()
+		endif()
+	endforeach()
+	
+	if(CMAKE_PREFIX_PATH)
+		list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
+	endif()
+	if(CMAKE_LIBRARY_PATH)
+		list(REMOVE_DUPLICATES CMAKE_LIBRARY_PATH)
+	endif()
+	if(CMAKE_INCLUDE_PATH)
+		list(REMOVE_DUPLICATES CMAKE_INCLUDE_PATH)
+	endif()
+	message(STATUS "Resolved CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+	message(STATUS "Resolved CMAKE_LIBRARY_PATH: ${CMAKE_LIBRARY_PATH}")
+	message(STATUS "Resolved CMAKE_INCLUDE_PATH: ${CMAKE_INCLUDE_PATH}")
+endif()
+
 #Add definitions for Apple
 IF(CMAKE_COMPILER_IS_GNUCXX OR APPLE)
 	ADD_DEFINITIONS( -Wno-deprecated-register)
@@ -64,11 +106,17 @@ set(MY_LIBRARY_DIR "" CACHE PATH "Optional: path to extra library directories (l
 # ---------------------------------------------------------------------------
 
 # QuaZip - use config mode if available (vcpkg provides QuaZip-Qt6Config.cmake)
-find_package(QuaZip-Qt6 QUIET)
+# Bypass: Skip calling find_package(QuaZip-Qt6) when not using vcpkg to avoid loading incomplete/broken config files.
+if(CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg.cmake")
+	find_package(QuaZip-Qt6 QUIET)
+else()
+	set(QuaZip-Qt6_FOUND FALSE)
+endif()
+
 if(NOT QuaZip-Qt6_FOUND)
 	# Fallback: manual detection for non-vcpkg builds
 	find_path(QUAZIP_INCLUDE_DIR NAMES quazip.h PATH_SUFFIXES quazip quazip1-qt6)
-	find_library(QUAZIP_LIBRARIES NAMES quazip1-qt6 quazip)
+	find_library(QUAZIP_LIBRARIES NAMES quazip1-qt6 quazip PATH_SUFFIXES build/quazip build)
 	if(NOT QUAZIP_INCLUDE_DIR OR NOT QUAZIP_LIBRARIES)
 		message(FATAL_ERROR "QuaZip not found. Install via vcpkg (vcpkg install quazip) or set QUAZIP_INCLUDE_DIR/QUAZIP_LIBRARIES.")
 	endif()
@@ -227,7 +275,8 @@ IF(APPLE)
 	if(MACDEPLOYQT_EXECUTABLE)
 		add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 			COMMAND "${MACDEPLOYQT_EXECUTABLE}" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/../.." -always-overwrite
-			COMMENT "Deploying Qt dependencies with macdeployqt..."
+			COMMAND codesign --force --deep --sign - "$<TARGET_FILE_DIR:${PROJECT_NAME}>/../.."
+			COMMENT "Deploying and code signing Qt dependencies..."
 		)
 	endif()
 ENDIF()
@@ -293,6 +342,12 @@ endif()
 
 if(LEVMAR_LIBRARY)
 	target_link_libraries(${PROJECT_NAME} ${LEVMAR_LIBRARY})
+	if(APPLE)
+		find_library(ACCELERATE_FRAMEWORK Accelerate)
+		if(ACCELERATE_FRAMEWORK)
+			target_link_libraries(${PROJECT_NAME} ${ACCELERATE_FRAMEWORK})
+		endif()
+	endif()
 endif()
 
 if(MY_LIBRARY_DIR)
