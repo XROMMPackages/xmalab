@@ -99,8 +99,9 @@ We use `appdmg` to package the app bundle into a user-friendly installer image:
    cp xmalab_template.json xmalab.json
    sed -i '' 's/VERSION/3.0.0/g' xmalab.json
    ```
-3. Run `appdmg` to generate the package:
+2. Run `appdmg` to generate the package. You must copy the compiled `.app` to the `deployment/MAC` folder first:
    ```bash
+   cp -R ../../build/macos/bin/XMALab.app .
    appdmg xmalab.json ../../build/macos/bin/XMALab_3.0.0_macOS.dmg
    ```
 
