@@ -283,7 +283,7 @@ MainWindow::MainWindow(QWidget* parent) :
 #ifndef PROJECT_BETA_VERSION
 	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
 #else 
-	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA" PROJECT_BETA_VERSION);
+	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - beta" PROJECT_BETA_VERSION);
 #endif
 
 	if (Settings::getInstance()->getQStringSetting("WelcomeDialog") < PROJECT_VERSION)
@@ -740,7 +740,7 @@ void MainWindow::newProjectFromXMALab(QString filename)
 #ifndef PROJECT_BETA_VERSION
 	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
 #else 
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA" PROJECT_BETA_VERSION);
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - beta" PROJECT_BETA_VERSION);
 #endif
 }
 
@@ -846,7 +846,7 @@ void MainWindow::loadProjectFinished()
 #ifndef PROJECT_BETA_VERSION
 		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
 #else 
-		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION " - BETA" + PROJECT_BETA_VERSION);
+		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION " - beta" + PROJECT_BETA_VERSION);
 #endif
 	}
 	else if (m_FutureWatcher->result() == 1)
@@ -958,7 +958,7 @@ void MainWindow::closeProject()
 #ifndef PROJECT_BETA_VERSION
 	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
 #else 
-	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - BETA" + PROJECT_BETA_VERSION);
+	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - beta" + PROJECT_BETA_VERSION);
 #endif
 
 	ConsoleDockWidget::getInstance()->clear();
@@ -1244,7 +1244,7 @@ void MainWindow::saveProjectFinished()
 #ifndef PROJECT_BETA_VERSION
 	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
 #else 
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - BETA" + PROJECT_BETA_VERSION);
+	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - beta" + PROJECT_BETA_VERSION);
 #endif
 }
 
