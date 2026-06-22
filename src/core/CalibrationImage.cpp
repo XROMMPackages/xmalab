@@ -574,7 +574,7 @@ QString CalibrationImage::getFilenameTranslationVector()
 void CalibrationImage::savePoints(std::vector<cv::Point2d>& points, QString filename)
 {
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	for (std::vector<cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it)
 	{
 		outfile << (*it).x << ", " << (*it).y << std::endl;
@@ -585,7 +585,7 @@ void CalibrationImage::savePoints(std::vector<cv::Point2d>& points, QString file
 void CalibrationImage::savePointsInlier(QString filename)
 {
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	for (std::vector<int>::const_iterator it = Inlier.begin(); it != Inlier.end(); ++it)
 	{
 		outfile << (*it) << std::endl;
@@ -610,7 +610,7 @@ void CalibrationImage::saveRotationMatrix(QString filename)
 	cv::Rodrigues(rotationvector, rotationmatrix);
 
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	for (unsigned int i = 0; i < 3; ++i)
 	{
 		outfile << rotationmatrix.at<double>(i, 0) << ", " << rotationmatrix.at<double>(i, 1) << ", " << rotationmatrix.at<double>(i, 2) << std::endl;
@@ -623,7 +623,7 @@ void CalibrationImage::saveRotationMatrix(QString filename)
 void CalibrationImage::saveTranslationVector(QString filename)
 {
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	for (unsigned int i = 0; i < 3; ++i)
 	{
 		outfile << translationvector.at<double>(i, 0) << std::endl;

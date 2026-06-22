@@ -898,7 +898,7 @@ void Trial::loadRigidBodies(QString filename)
 void Trial::saveMarkers(QString filename)
 {
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	for (unsigned int i = 0; i < this->getMarkers().size(); i++)
 	{
 		outfile << this->getMarkers()[i]->getDescription().toStdString() << '\n';
@@ -909,7 +909,7 @@ void Trial::saveMarkers(QString filename)
 void Trial::saveRigidBodies(QString filename)
 {
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	for (unsigned int i = 0; i < this->getRigidBodies().size(); i++)
 	{
 		outfile << this->getRigidBodies()[i]->getDescription().toStdString() << "[";
@@ -957,7 +957,7 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 	if (onefile)
 	{
 		std::ofstream outfile(outputfolder.toStdString());
-		outfile.precision(12);
+		outfile.precision(17);
 		if (headerRow)
 		{
 			if (saveColumn)
@@ -1072,7 +1072,7 @@ void Trial::saveRigidBodyTransformations(std::vector<int> _bodies, QString outpu
 			}
 
 			std::ofstream outfile(filename.toStdString());
-			outfile.precision(12);
+			outfile.precision(17);
 			if (headerRow)
 			{
 				if (saveColumn)
@@ -1317,7 +1317,7 @@ void Trial::saveTrialImages(QString outputfolder, int from, int to, QString form
 void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 {
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	outfile << "Mean";
 	for (unsigned int i = 0; i < markers.size(); i++)
 	{
@@ -1491,7 +1491,7 @@ void Trial::saveMarkerToMarkerDistances(QString filename, int from, int to)
 void Trial::savePrecisionInfo(QString filename, int from, int to)
 {
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	outfile << "RigidBodies,nb tracked frames,marker to marker sd,error 3d Unfiltered,error 3D filtered" << '\n';
 	for (auto rb : rigidBodies)
 	{
@@ -1559,7 +1559,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 	if (onefile)
 	{
 		std::ofstream outfile(outputfolder.toStdString());
-		outfile.precision(12);
+		outfile.precision(17);
 		if (headerRow)
 		{
 			if (saveColumn)
@@ -1642,7 +1642,7 @@ bool Trial::save3dPoints(std::vector<int> _markers, QString outputfolder, bool o
 			filename = filename + ".csv";
 
 			std::ofstream outfile(filename.toStdString());
-			outfile.precision(12);
+			outfile.precision(17);
 			if (headerRow)
 			{
 				if (saveColumn)
@@ -1713,7 +1713,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 	if (onefile)
 	{
 		std::ofstream outfile(outputfolder.toStdString());
-		outfile.precision(12);
+		outfile.precision(17);
 		if (headerRow)
 		{
 			if (offsetCols)
@@ -1817,7 +1817,7 @@ void Trial::save2dPoints(QString outputfolder, bool onefile, bool distorted, boo
 		{
 			QString filename = outputfolder + "Marker" + QString("%1").arg(i + 1, 3, 10, QChar('0')) + "_" + getMarkers()[i]->getDescription() + "_points2d.csv";
 			std::ofstream outfile(filename.toStdString());
-			outfile.precision(12);
+			outfile.precision(17);
 			if (headerRow)
 			{
 				if (offsetCols)
@@ -2022,7 +2022,7 @@ void Trial::saveReprojectionErrors(QString outputfolder) {
 	{
 		QString filename = outputfolder + "Marker" + QString("%1").arg(i + 1, 3, 10, QChar('0')) + "_" + getMarkers()[i]->getDescription() + "_reprojectionError.csv";
 		std::ofstream outfile(filename.toStdString());
-		outfile.precision(12);
+		outfile.precision(17);
 
 		for (int f = 0; f < nbImages; f++)
 		{

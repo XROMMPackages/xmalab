@@ -413,7 +413,7 @@ QString Camera::getFilenameCameraMatrix()
 void Camera::saveCameraMatrix(QString filename)
 {
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	for (unsigned int i = 0; i < 3; ++i)
 	{
 		outfile << cameramatrix.at<double>(i, 0) << ", " << cameramatrix.at<double>(i, 1) << ", " << cameramatrix.at<double>(i, 2) << std::endl;
@@ -463,7 +463,7 @@ QString Camera::getFilenameUndistortionParam()
 void Camera::saveUndistortionParam(QString filename)
 {
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	for (unsigned int i = 0; i < 8; ++i)
 	{
 		if (distortion_coeffs.rows > i)
@@ -514,7 +514,7 @@ void Camera::loadUndistortionParam(QString filename)
 void Camera::saveMayaCamVersion2(int ImageId, QString filename)
 {
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	outfile << "image size" << std::endl;
 	outfile << getWidth() << "," << getHeight() << std::endl;
 	outfile << std::endl;

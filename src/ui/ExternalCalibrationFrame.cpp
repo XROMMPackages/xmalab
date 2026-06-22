@@ -195,22 +195,22 @@ void ExternalCalibrationFrame::on_pushButton_MayaCam_clicked()
 		fscanf(pfile, "%d,%d\n",&w,&h);
 		std::cerr << w << " " << h << std::endl;
 		fscanf(pfile, "\ncamera matrix\n");
-		float C11,C12,C13,C21,C22,C23,C31,C32,C33;
-		fscanf(pfile, "%f,%f,%f\n", &C11, &C12, &C13);
-		fscanf(pfile, "%f,%f,%f\n", &C21, &C22, &C23);
-		fscanf(pfile, "%f,%f,%f\n", &C31, &C32, &C33);
+		double C11,C12,C13,C21,C22,C23,C31,C32,C33;
+		fscanf(pfile, "%lf,%lf,%lf\n", &C11, &C12, &C13);
+		fscanf(pfile, "%lf,%lf,%lf\n", &C21, &C22, &C23);
+		fscanf(pfile, "%lf,%lf,%lf\n", &C31, &C32, &C33);
 
 		fscanf(pfile, "\nrotation\n");
-		float R11,R12,R13,R21,R22,R23,R31,R32,R33;
-		fscanf(pfile, "%f,%f,%f\n", &R11, &R12, &R13);
-		fscanf(pfile, "%f,%f,%f\n", &R21, &R22, &R23);
-		fscanf(pfile, "%f,%f,%f\n", &R31, &R32, &R33);
+		double R11,R12,R13,R21,R22,R23,R31,R32,R33;
+		fscanf(pfile, "%lf,%lf,%lf\n", &R11, &R12, &R13);
+		fscanf(pfile, "%lf,%lf,%lf\n", &R21, &R22, &R23);
+		fscanf(pfile, "%lf,%lf,%lf\n", &R31, &R32, &R33);
 
 		fscanf(pfile, "\ntranslation\n");
-		float tx, ty, tz;
-		fscanf(pfile, "%f\n", &tx);
-		fscanf(pfile, "%f\n", &ty);
-		fscanf(pfile, "%f\n", &tz);
+		double tx, ty, tz;
+		fscanf(pfile, "%lf\n", &tx);
+		fscanf(pfile, "%lf\n", &ty);
+		fscanf(pfile, "%lf\n", &tz);
 		
 		frame->spinBox_width->setValue(w);
 		frame->spinBox_height->setValue(h);
@@ -258,8 +258,8 @@ void ExternalCalibrationFrame::on_pushButton_MayaCam_clicked()
 		else
 		{
 			frame->checkBox_hasDistortion->setChecked(true);
-			float k1, k2, p1, p2, k3, k4, k5, k6;
-			fscanf(pfile, "%f,%f,%f,%f,%f,%f,%f,%f\n", &k1, &k2, &p1,&p2,&k3,&k4,&k5,&k6);
+			double k1, k2, p1, p2, k3, k4, k5, k6;
+			fscanf(pfile, "%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf\n", &k1, &k2, &p1,&p2,&k3,&k4,&k5,&k6);
 			frame->doubleSpinBox_k1->setValue(k1);
 			frame->doubleSpinBox_k2->setValue(k2);
 			frame->doubleSpinBox_p1->setValue(p1);

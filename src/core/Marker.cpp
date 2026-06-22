@@ -129,7 +129,7 @@ void Marker::loadReference3DPoint(QString filename)
 void Marker::saveReference3DPoint(QString filename)
 {
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	outfile << point3D_ref.x << "," << point3D_ref.y << "," << point3D_ref.z << std::endl;
 	outfile.close();
 }
@@ -636,7 +636,7 @@ void Marker::save(QString points_filename, QString status_filename, QString mark
 	if (!points_filename.isEmpty())
 	{
 		std::ofstream outfile(points_filename.toStdString());
-		outfile.precision(12);
+		outfile.precision(17);
 		for (unsigned int j = 0; j < points2D[0].size(); j++)
 		{
 			for (unsigned int i = 0; i < points2D.size(); i++)
@@ -652,7 +652,7 @@ void Marker::save(QString points_filename, QString status_filename, QString mark
 	if (!status_filename.isEmpty())
 	{
 		std::ofstream outfile_status(status_filename.toStdString());
-		outfile_status.precision(12);
+		outfile_status.precision(17);
 		for (unsigned int j = 0; j < status2D[0].size(); j++)
 		{
 			for (unsigned int i = 0; i < status2D.size(); i++)
@@ -668,7 +668,7 @@ void Marker::save(QString points_filename, QString status_filename, QString mark
 	if (!markersize_filename.isEmpty())
 	{
 		std::ofstream outfile_size(markersize_filename.toStdString());
-		outfile_size.precision(12);
+		outfile_size.precision(17);
 		for (unsigned int j = 0; j < markerSize[0].size(); j++)
 		{
 			for (unsigned int i = 0; i < markerSize.size(); i++)
@@ -684,7 +684,7 @@ void Marker::save(QString points_filename, QString status_filename, QString mark
 	if (!pointsWorld_filename.isEmpty())
 	{
 		std::ofstream outfile_world(pointsWorld_filename.toStdString());
-		outfile_world.precision(12);
+		outfile_world.precision(17);
 		for (unsigned int j = 0; j < points3D.size(); j++)
 		{
 			if (status3D[j] <= 0)
@@ -785,7 +785,7 @@ void Marker::save3DPoints(QString points_filename, QString status_filename)
 	if (!points_filename.isEmpty())
 	{
 		std::ofstream outfile_world(points_filename.toStdString());
-		outfile_world.precision(12);
+		outfile_world.precision(17);
 		for (unsigned int j = 0; j < points3D.size(); j++)
 		{
 			outfile_world << points3D[j].x << "," << points3D[j].y << "," << points3D[j].z << std::endl;
@@ -796,7 +796,7 @@ void Marker::save3DPoints(QString points_filename, QString status_filename)
 	if (!status_filename.isEmpty())
 	{
 		std::ofstream outfile_status(status_filename.toStdString());
-		outfile_status.precision(12);
+		outfile_status.precision(17);
 		for (unsigned int i = 0; i < status3D.size(); i++)
 		{
 			outfile_status << status3D[i] << std::endl;
@@ -941,7 +941,7 @@ void Marker::saveInterpolation(QString filename)
 	if (!filename.isEmpty())
 	{
 		std::ofstream outfile(filename.toStdString());
-		outfile.precision(12);		
+		outfile.precision(17);		
 		for (unsigned int i = 0; i < interpolation.size(); i++)
 		{
 			outfile << interpolation[i] << std::endl;

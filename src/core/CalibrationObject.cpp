@@ -186,7 +186,7 @@ void CalibrationObject::saveCoords(QString folder)
 	QString references = folder + referencesFilenameInfo.fileName();
 
 	std::ofstream outfile(cubefilename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	if (whiteBlobs)
 	{
 		outfile << "white" << std::endl;
@@ -202,7 +202,7 @@ void CalibrationObject::saveCoords(QString folder)
 	outfile.close();
 
 	std::ofstream outfile_references(references.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	for (unsigned int i = 0; i < referenceIDs.size(); i++)
 	{
 		outfile_references << referenceIDs[i] + 1 << " " << referenceNames[i].toStdString() << std::endl;

@@ -844,7 +844,7 @@ QString UndistortionObject::getFilenameGridPointsInlier()
 void UndistortionObject::savePoints(std::vector<cv::Point2d>& points, QString filename)
 {
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	for (std::vector<cv::Point2d>::const_iterator it = points.begin(); it != points.end(); ++it)
 	{
 		outfile << (*it).x << ", " << (*it).y << std::endl;
@@ -870,7 +870,7 @@ void UndistortionObject::saveGridPointsReferences(QString filename)
 void UndistortionObject::saveGridPointsInlier(QString filename)
 {
 	std::ofstream outfile(filename.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	for (std::vector<bool>::const_iterator it = points_grid_inlier.begin(); it != points_grid_inlier.end(); ++it)
 	{
 		if ((*it))
@@ -888,13 +888,13 @@ void UndistortionObject::saveGridPointsInlier(QString filename)
 void UndistortionObject::exportData(QString csvFileNameLUT, QString csvFileNameInPoints, QString csvFileNameBasePoints)
 {
 	std::ofstream outfile(csvFileNameLUT.toStdString());
-	outfile.precision(12);
+	outfile.precision(17);
 	outfile << cv::format(undistortionMapX, cv::Formatter::FMT_CSV) << std::endl;
 	outfile << cv::format(undistortionMapY, cv::Formatter::FMT_CSV) << std::endl;
 	outfile.close();
 
 	std::ofstream outfile2(csvFileNameInPoints.toStdString().c_str());
-	outfile2.precision(12);
+	outfile2.precision(17);
 	int count = 0;
 	for (std::vector<bool>::const_iterator it = points_grid_inlier.begin(); it != points_grid_inlier.end(); ++it)
 	{
@@ -907,7 +907,7 @@ void UndistortionObject::exportData(QString csvFileNameLUT, QString csvFileNameI
 	outfile2.close();
 
 	std::ofstream outfile3(csvFileNameBasePoints.toStdString().c_str());
-	outfile3.precision(12);
+	outfile3.precision(17);
 	count = 0;
 	for (std::vector<bool>::const_iterator it = points_grid_inlier.begin(); it != points_grid_inlier.end(); ++it)
 	{

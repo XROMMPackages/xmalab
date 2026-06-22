@@ -135,7 +135,7 @@ void PlotWindow::saveData()
 	if (fileName.isNull() == false)
 	{
 		std::ofstream outfile(fileName.toStdString());
-		outfile.precision(12);
+		outfile.precision(17);
 		
 		if (dock->comboBoxPlotType->currentIndex() == 0)
 		{

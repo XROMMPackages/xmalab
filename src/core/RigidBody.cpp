@@ -1439,14 +1439,14 @@ double RigidBody::fitAndComputeError(std::vector<cv::Point3d> src, std::vector<c
 void RigidBody::save(QString filename_referenceNames, QString filename_points3D)
 {
 	std::ofstream outfile_Names(filename_referenceNames.toStdString());
-	outfile_Names.precision(12);
+	outfile_Names.precision(17);
 	for (unsigned int i = 0; i < referenceNames.size(); i++)
 	{
 		outfile_Names << referenceNames[i].toStdString() << std::endl;
 	}
 	outfile_Names.close();
 	std::ofstream outfile_Points(filename_points3D.toStdString());
-	outfile_Points.precision(12);
+	outfile_Points.precision(17);
 	for (unsigned int j = 0; j < points3D.size(); j++)
 	{
 		if (hasOptimizedCoordinates){
@@ -1464,7 +1464,7 @@ void RigidBody::save(QString filename_referenceNames, QString filename_points3D)
 void RigidBody::saveOptimized(QString filename_points3DOptimized, bool withHeader)
 {
 	std::ofstream outfile_Points(filename_points3DOptimized.toStdString());
-	outfile_Points.precision(12);
+	outfile_Points.precision(17);
 	if (withHeader)
 	{
 		for (unsigned int j = 0; j < points3D.size(); j++)
@@ -2020,14 +2020,14 @@ void RigidBody::addDummyPoint(QString name, QString filenamePointRef, QString fi
 void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenamePointRef2, QString filenamePointCoords)
 {
 	std::ofstream outfileRef(filenamePointRef.toStdString());
-	outfileRef.precision(12);
+	outfileRef.precision(17);
 	outfileRef << "x,y,z" << std::endl;
 	outfileRef << dummypoints[count].x << "," << dummypoints[count].y << "," << dummypoints[count].z << "," << dummyRBIndex[count] << std::endl;
 	outfileRef.close();
 	
 	if(dummyRBIndex[count] < 0){
 		std::ofstream outfileCoords(filenamePointCoords.toStdString());
-		outfileCoords.precision(12);
+		outfileCoords.precision(17);
 		outfileCoords << "x,y,z" << std::endl;
 		for (unsigned int i = 0; i < dummypointsCoords[count].size(); i++)
 		{
@@ -2044,7 +2044,7 @@ void RigidBody::saveDummy(int count, QString filenamePointRef, QString filenameP
 	else
 	{
 		std::ofstream outfileRef2(filenamePointRef2.toStdString());
-		outfileRef2.precision(12);
+		outfileRef2.precision(17);
 		outfileRef2 << "x,y,z" << std::endl;
 		outfileRef2 << dummypoints2[count].x << "," << dummypoints2[count].y << "," << dummypoints2[count].z << std::endl;
 		outfileRef2.close();
@@ -2164,7 +2164,7 @@ void RigidBody::saveTransformations(QString filename, bool inverse, bool filtere
 	if (!filename.isEmpty())
 	{
 		std::ofstream outfile(filename.toStdString());
-		outfile.precision(12);
+		outfile.precision(17);
 		for (int i = 0; i < trial->getNbImages(); i++)
 		{
 			if ((poseComputed[i] && !filtered) || (poseFiltered[i] && filtered))

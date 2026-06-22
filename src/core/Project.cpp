@@ -496,7 +496,7 @@ void Project::exportDLT(QString foldername)
 		if (allCamsSet)
 		{
 			std::ofstream outfile((foldername + QDir::separator() + "MergedDlts_Frame" + QString::number(frame) + ".csv").toStdString());
-			outfile.precision(12);
+			outfile.precision(17);
 			for (unsigned int i = 0; i < 11; i++)
 			{
 				for (unsigned int c = 0; c < dlts.size(); c++)
@@ -538,7 +538,7 @@ void Project::exportMayaCam(QString foldername, int frame)
 				double out[15];
 				cam->getMayaCam(&out[0], f);
 				std::ofstream outfile((foldername + QDir::separator() + cam->getCalibrationImages()[f]->getFilenameBase() + "_MayaCam.csv").toStdString());
-				outfile.precision(12);
+				outfile.precision(17);
 				for (unsigned int i = 0; i < 5; i++)
 				{
 					outfile << out[i * 3] << "," << out[i * 3 + 1] << "," << out[i * 3 + 2] << "\n";
