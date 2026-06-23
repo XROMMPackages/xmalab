@@ -490,58 +490,6 @@
     </widget>
    </item>
    <item row="8" column="0" colspan="2">
-    <layout class="QHBoxLayout" name="horizontalLayout_VolumetricRadius">
-     <item>
-      <widget class="QLabel" name="label_VolumetricSearchArea">
-       <property name="text">
-        <string>   Radius (mm):</string>
-       </property>
-       <property name="visible">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_VolumetricSearchArea">
-       <property name="toolTip">
-        <string>3D search radius in millimeters. This should be set to the maximum physical distance a marker might move between two consecutive frames</string>
-       </property>
-       <property name="decimals">
-        <number>1</number>
-       </property>
-       <property name="minimum">
-        <double>0.1000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>200.0000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>0.5000000000000</double>
-       </property>
-       <property name="value">
-        <double>10.0000000000000</double>
-       </property>
-       <property name="visible">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_VolumetricRadius">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
-   </item>
-   <item row="9" column="0" colspan="2">
     <widget class="QGroupBox" name="groupBox_VolumetricSelected">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">

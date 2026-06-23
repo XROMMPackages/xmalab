@@ -1063,13 +1063,6 @@ void WizardDigitizationFrame::on_checkBox_VolumetricTracking_stateChanged(int st
 	bool visible = (state == Qt::Checked);
 	frame->groupBox_VolumetricSelected->setVisible(visible);
 	frame->groupBox_VolumetricAll->setVisible(visible);
-	frame->label_VolumetricSearchArea->setVisible(visible);
-	frame->doubleSpinBox_VolumetricSearchArea->setVisible(visible);
-}
-
-void WizardDigitizationFrame::on_doubleSpinBox_VolumetricSearchArea_valueChanged(double arg1)
-{
-	xma::MarkerTracking3D::s_searchArea = arg1;
 }
 
 void WizardDigitizationFrame::on_toolButton_VolumetricSelected_Next_clicked()

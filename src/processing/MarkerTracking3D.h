@@ -22,8 +22,6 @@ namespace xma
 			return (nbInstances > 0);
 		}
 
-		static double s_searchArea;
-
 		signals:
 		void trackMarker_finished();
 

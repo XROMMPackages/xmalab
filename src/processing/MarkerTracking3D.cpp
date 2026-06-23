@@ -24,8 +24,6 @@
 using namespace xma;
 
 int MarkerTracking3D::nbInstances = 0;
-double MarkerTracking3D::s_searchArea = 10.0;
-
 namespace
 {
     struct PenaltyCacheEntry
@@ -236,7 +234,7 @@ double MarkerTracking3D::evaluate3D(const cv::Point3d& p3d, const cv::Point3d& p
     double dist_sq = (p3d.x - pred3D.x) * (p3d.x - pred3D.x) +
                      (p3d.y - pred3D.y) * (p3d.y - pred3D.y) +
                      (p3d.z - pred3D.z) * (p3d.z - pred3D.z);
-    double penalty_sigma = (s_searchArea > 0) ? s_searchArea * 0.5 : 5.0;
+    double penalty_sigma = 5.0;
     double penalty = exp(-dist_sq / (2.0 * penalty_sigma * penalty_sigma));
     score *= (0.5 + 0.5 * penalty);
 
