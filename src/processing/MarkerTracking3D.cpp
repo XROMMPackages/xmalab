@@ -26,45 +26,26 @@ using namespace xma;
 int MarkerTracking3D::nbInstances = 0;
 namespace
 {
-    struct PenaltyCacheEntry
+    void applySpatialWeight(cv::Mat& ncc_map, int search_radius_px)
     {
-        cv::Mat mat;
-    };
-
-    const PenaltyCacheEntry& getPenaltySurface(int rows, int cols)
-    {
-        static std::mutex cacheMutex;
-        static std::map<std::pair<int, int>, PenaltyCacheEntry> cache;
-
-        std::lock_guard<std::mutex> lock(cacheMutex);
-        const auto key = std::make_pair(rows, cols);
-        auto it = cache.find(key);
-        if (it != cache.end())
-            return it->second;
-
-        auto [insertIt, inserted] = cache.emplace(std::piecewise_construct,
-            std::forward_as_tuple(key), std::forward_as_tuple());
-        PenaltyCacheEntry& entry = insertIt->second;
-        entry.mat.create(rows, cols, CV_32FC1);
-
-        double halfcol = 0.5 * cols;
-        double halfrow = 0.5 * rows;
-        double sigma = halfcol * 3.0;
+        int rows = ncc_map.rows;
+        int cols = ncc_map.cols;
+        double pred_cx = search_radius_px - 0.5;
+        double pred_cy = search_radius_px - 0.5;
+        double sigma = search_radius_px * 2.0;
         double inv_2sigma_sq = 1.0 / (2.0 * sigma * sigma);
 
-        float* data = entry.mat.ptr<float>();
+        float* data = ncc_map.ptr<float>();
         for (int i = 0; i < rows; ++i)
         {
-            double di = halfrow - i;
-            double di_sq = di * di;
+            double di = pred_cy - i;
             for (int j = 0; j < cols; ++j)
             {
-                double dj = halfcol - j;
-                double val = exp((di_sq + dj * dj) * inv_2sigma_sq);
-                data[i * cols + j] = static_cast<float>(val);
+                double dj = pred_cx - j;
+                double w = exp((di * di + dj * dj) * -inv_2sigma_sq);
+                data[i * cols + j] *= static_cast<float>(w);
             }
         }
-        return entry;
     }
 }
 
@@ -267,9 +248,9 @@ void MarkerTracking3D::trackMarker_thread()
     int marker_size = static_cast<int>(marker->getSize() + 0.5);
     marker_size = (marker_size < 5) ? 5 : marker_size;
 
-    double min_radius = marker_size * 2.0;
+    double min_radius = 5.0;
     double dynamic_radius = speed * 2.0 + min_radius;
-    int search_radius_px = 30;
+    int search_radius_px = std::max(30, marker_size * 3);
 
     const auto& cameras = Project::getInstance()->getCameras();
     unsigned int num_cameras = cameras.size();
@@ -309,13 +290,12 @@ void MarkerTracking3D::trackMarker_thread()
         result.create(result_rows, result_cols, CV_32FC1);
         cv::matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
 
-        const auto& entry = getPenaltySurface(result_rows, result_cols);
-        cv::subtract(result, entry.mat, result);
+        applySpatialWeight(result, search_radius_px);
 
         cam_results[i].ncc_map = result;
         cam_results[i].offset = cv::Point2d(off_x + used_template_size, off_y + used_template_size);
 
-        cam_results[i].peaks = extractPeaks(result, 3, 3.0);
+        cam_results[i].peaks = extractPeaks(result, 2, 3.0);
 
         ROI_to.release();
         templ.release();

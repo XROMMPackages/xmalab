@@ -16,7 +16,7 @@ Section "Install"
   ${If} ${RunningX64}
     SetOutPath $INSTDIR
     ; Recursively include everything from the Release folder
-    File /r "..\..\build\bin\Release\*"
+    File /r "D:\XMALab code\xmalab\build\windows\bin\Release\*"
     WriteUninstaller "$INSTDIR\Uninstall.exe"
     CreateShortcut "$SMPROGRAMS\XMALab.lnk" "$INSTDIR\XMALab.exe"
     ; Register in Add/Remove Programs
@@ -25,7 +25,7 @@ Section "Install"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "InstallLocation" "$INSTDIR"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "DisplayIcon" "$INSTDIR\XMALab.exe"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "Publisher" "XROMM"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "DisplayVersion" "3.0.0"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "DisplayVersion" "3.0.0-beta.2"
   ${Else}
     MessageBox MB_OK "This application requires a 64-bit version of Windows."
     Abort
