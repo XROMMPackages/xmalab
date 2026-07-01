@@ -99,6 +99,7 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 
 	frame->groupBox_VolumetricSelected->hide();
 	frame->groupBox_VolumetricAll->hide();
+	frame->label_VolumetricHint->hide();
 
 	trackID = 0;
 	trackType = 0;
@@ -1063,6 +1064,7 @@ void WizardDigitizationFrame::on_checkBox_VolumetricTracking_stateChanged(int st
 	bool visible = (state == Qt::Checked);
 	frame->groupBox_VolumetricSelected->setVisible(visible);
 	frame->groupBox_VolumetricAll->setVisible(visible);
+	frame->label_VolumetricHint->setVisible(visible);
 }
 
 void WizardDigitizationFrame::on_toolButton_VolumetricSelected_Next_clicked()

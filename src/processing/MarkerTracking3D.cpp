@@ -226,8 +226,15 @@ void MarkerTracking3D::trackMarker_thread()
 {
     Marker* marker = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker];
 
-    cv::Point3d pred3D = marker->getPoints3D()[m_frame_from];
-    cv::Point3d pred3D_prev;
+	cv::Point3d pred3D = marker->getPoints3D()[m_frame_from];
+
+	if (pred3D.x == 0 && pred3D.y == 0 && pred3D.z == 0)
+	{
+		m_best3D = cv::Point3d(0, 0, 0);
+		return;
+	}
+
+	cv::Point3d pred3D_prev;
     bool have_velocity = false;
     cv::Point3d velocity(0, 0, 0);
 
@@ -439,8 +446,19 @@ void MarkerTracking3D::trackMarker_thread()
 
 void MarkerTracking3D::trackMarker_threadFinished()
 {
-    Marker* marker = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker];
-    for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
+	Marker* marker = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker];
+
+	if (m_best2D.empty())
+	{
+		delete m_FutureWatcher;
+		nbInstances--;
+		if (nbInstances == 0)
+			emit trackMarker_finished();
+		delete this;
+		return;
+	}
+
+	for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
     {
         if (Project::getInstance()->getCameras()[i]->isVisible())
         {
