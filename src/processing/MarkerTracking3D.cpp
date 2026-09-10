@@ -143,13 +143,13 @@ namespace
     // sigma = 0.6 r, which flattens the neighbour's own NCC peak (width ~r) while
     // leaving a touching marker's peak, one full radius away, at ~80% or more.
     void applyOtherMarkerSuppression(cv::Mat& ncc_map, const cv::Point2d& offset,
-                                     const std::vector<cv::Point2d>& claims, int marker_size)
+                                     const std::vector<cv::Point2d>& claims, double marker_radius)
     {
         if (claims.empty())
             return;
 
         const double amplitude = 0.75;
-        const double sigma = 0.6 * marker_size;
+        const double sigma = std::max(1.0, 0.6 * marker_radius);
         const double inv_2sigma_sq = 1.0 / (2.0 * sigma * sigma);
         const double cutoff_sq = (4.0 * sigma) * (4.0 * sigma);
 
@@ -464,6 +464,14 @@ void MarkerTracking3D::trackMarker_thread()
     int marker_size = static_cast<int>(marker->getSize() + 0.5);
     marker_size = (marker_size < 5) ? 5 : marker_size;
 
+    // marker_size is clamped to >= 5 for template and search-window sizing, as in the 2D
+    // tracker. Geometric decisions (how close two distinct peaks may be, which neighbour
+    // claims to honour, how wide to suppress them) use the marker's actual radius, since
+    // small markers can sit closer together than 5 px.
+    double marker_radius = marker->getSizeOverride() > 0 ? marker->getSizeOverride()
+                         : (marker->getSize() > 0 ? marker->getSize() : marker_size);
+    marker_radius = std::max(1.0, marker_radius);
+
     double min_radius = 5.0;
     double dynamic_radius = speed * 2.0 + min_radius;
     int search_radius_px = std::max(30, marker_size * 3);
@@ -578,7 +586,7 @@ void MarkerTracking3D::trackMarker_thread()
                 }
                 double ddx = claim.x - x_to;
                 double ddy = claim.y - y_to;
-                if (ddx * ddx + ddy * ddy < static_cast<double>(marker_size) * marker_size)
+                if (ddx * ddx + ddy * ddy < marker_radius * marker_radius)
                     continue;
                 // Only claims that can touch the search map matter.
                 if (std::abs(ddx) > search_radius_px + 3.0 * marker_size ||
@@ -587,7 +595,7 @@ void MarkerTracking3D::trackMarker_thread()
                 claims.push_back(claim);
             }
         }
-        applyOtherMarkerSuppression(result, cam_results[i].offset, claims, marker_size);
+        applyOtherMarkerSuppression(result, cam_results[i].offset, claims, marker_radius);
 
         if (debugEnabled() && !claims.empty())
         {
@@ -601,8 +609,9 @@ void MarkerTracking3D::trackMarker_thread()
         cam_results[i].ncc_map = result;
 
         // Two distinct markers are at least ~2 radii apart, so a minimum peak separation
-        // of one radius drops sub-peaks of the same blob without merging neighbours.
-        cam_results[i].peaks = extractPeaks(result, 2, featureDisabled("nms") ? 3.0 : marker_size);
+        // of one actual radius (at least 2 px) drops sub-peaks of the same blob without
+        // merging neighbours.
+        cam_results[i].peaks = extractPeaks(result, 2, featureDisabled("nms") ? 3.0 : std::max(2.0, marker_radius));
 
         if (debugEnabled())
         {
