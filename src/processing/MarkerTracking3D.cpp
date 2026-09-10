@@ -107,6 +107,48 @@ namespace
         return s.str();
     }
 
+    // Down-weight map locations near positions claimed by other markers (image
+    // coordinates). Each claim multiplies the map by 1 - a*exp(-d^2/(2 sigma^2)) with
+    // sigma = 0.6 r, which flattens the neighbour's own NCC peak (width ~r) while
+    // leaving a touching marker's peak, one full radius away, at ~80% or more.
+    void applyOtherMarkerSuppression(cv::Mat& ncc_map, const cv::Point2d& offset,
+                                     const std::vector<cv::Point2d>& claims, int marker_size)
+    {
+        if (claims.empty())
+            return;
+
+        const double amplitude = 0.75;
+        const double sigma = 0.6 * marker_size;
+        const double inv_2sigma_sq = 1.0 / (2.0 * sigma * sigma);
+        const double cutoff_sq = (4.0 * sigma) * (4.0 * sigma);
+
+        int rows = ncc_map.rows;
+        int cols = ncc_map.cols;
+        float* data = ncc_map.ptr<float>();
+        for (const auto& c : claims)
+        {
+            double cx = c.x - offset.x;
+            double cy = c.y - offset.y;
+            int i0 = std::max(0, static_cast<int>(std::floor(cy - 4.0 * sigma)));
+            int i1 = std::min(rows - 1, static_cast<int>(std::ceil(cy + 4.0 * sigma)));
+            int j0 = std::max(0, static_cast<int>(std::floor(cx - 4.0 * sigma)));
+            int j1 = std::min(cols - 1, static_cast<int>(std::ceil(cx + 4.0 * sigma)));
+            for (int i = i0; i <= i1; ++i)
+            {
+                double di = cy - i;
+                for (int j = j0; j <= j1; ++j)
+                {
+                    double dj = cx - j;
+                    double d_sq = di * di + dj * dj;
+                    if (d_sq > cutoff_sq)
+                        continue;
+                    double w = 1.0 - amplitude * exp(-d_sq * inv_2sigma_sq);
+                    data[i * cols + j] *= static_cast<float>(w);
+                }
+            }
+        }
+    }
+
     // Gaussian prior around the 2D prediction, given in NCC-map coordinates.
     void applySpatialWeight(cv::Mat& ncc_map, double pred_cx, double pred_cy, int search_radius_px)
     {
@@ -457,6 +499,52 @@ void MarkerTracking3D::trackMarker_thread()
         cam_results[i].offset = cv::Point2d(off_x + used_template_size, off_y + used_template_size);
 
         applySpatialWeight(result, x_to - cam_results[i].offset.x, y_to - cam_results[i].offset.y, search_radius_px);
+
+        // Positions the trial's other markers claim in this camera at the target frame:
+        // their point there if already defined, otherwise their own 2D prediction.
+        // A claim within one radius of our prediction is ignored, because then one of
+        // the two markers has already jumped and we cannot tell which.
+        std::vector<cv::Point2d> claims;
+        {
+            const auto& all_markers = Project::getInstance()->getTrials()[m_trial]->getMarkers();
+            for (unsigned int j = 0; j < all_markers.size(); j++)
+            {
+                if (static_cast<int>(j) == m_marker)
+                    continue;
+                Marker* other = all_markers[j];
+                cv::Point2d claim;
+                if (other->getStatus2D()[i][m_frame_to] > UNDEFINED)
+                {
+                    claim = other->getPoints2D()[i][m_frame_to];
+                }
+                else
+                {
+                    double ox, oy;
+                    if (other->getMarkerPrediction(i, m_frame_to, ox, oy, m_forward) == 0)
+                        continue;
+                    claim = cv::Point2d(ox, oy);
+                }
+                double ddx = claim.x - x_to;
+                double ddy = claim.y - y_to;
+                if (ddx * ddx + ddy * ddy < static_cast<double>(marker_size) * marker_size)
+                    continue;
+                // Only claims that can touch the search map matter.
+                if (std::abs(ddx) > search_radius_px + 3.0 * marker_size ||
+                    std::abs(ddy) > search_radius_px + 3.0 * marker_size)
+                    continue;
+                claims.push_back(claim);
+            }
+        }
+        applyOtherMarkerSuppression(result, cam_results[i].offset, claims, marker_size);
+
+        if (debugEnabled() && !claims.empty())
+        {
+            std::ostringstream s;
+            s << "f" << m_frame_to << " m" << m_marker << " c" << i << " suppressing claims:";
+            for (const auto& c : claims)
+                s << " " << fmtPt(c);
+            debugLog(s.str());
+        }
 
         cam_results[i].ncc_map = result;
 
