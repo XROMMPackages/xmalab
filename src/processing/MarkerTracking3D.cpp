@@ -632,6 +632,33 @@ void MarkerTracking3D::trackMarker_thread()
             visible_cams.push_back(static_cast<int>(i));
     }
 
+    // Image-space scale of one world unit at the prediction: the largest reprojected
+    // displacement, over the visible cameras and the three world axes, per unit of
+    // world distance. World units differ between calibrations (mm, cm, ...), so all
+    // step sizes and distance priors below are expressed in pixels and converted.
+    double px_per_unit = 0.0;
+    {
+        const int refCal = Project::getInstance()->getTrials()[m_trial]->getReferenceCalibrationImage();
+        const double delta = 1e-3;
+        for (int cam : visible_cams)
+        {
+            cv::Point2d base = cameras[cam]->projectPoint(pred3D, refCal);
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                cv::Point3d q = pred3D;
+                if (axis == 0) q.x += delta;
+                else if (axis == 1) q.y += delta;
+                else q.z += delta;
+                cv::Point2d p = cameras[cam]->projectPoint(q, refCal);
+                px_per_unit = std::max(px_per_unit, cv::norm(p - base) / delta);
+            }
+        }
+        if (!(px_per_unit > 1e-12) || !std::isfinite(px_per_unit))
+            px_per_unit = 1.0;
+    }
+    // World-space step that moves the reprojection ~0.5 px in the most sensitive camera.
+    const double fine_step = 0.5 / px_per_unit;
+
     double best_score = -1e9;
     cv::Point3d best_p3d = pred3D;
     bool found_valid = false;
@@ -707,7 +734,6 @@ void MarkerTracking3D::trackMarker_thread()
 
         for (int iter = 0; iter < 5; iter++)
         {
-            const double fine_step = 0.5;
             cv::Point3d best_neighbor = refined_p3d;
             bool improved = false;
 
@@ -750,6 +776,16 @@ void MarkerTracking3D::trackMarker_thread()
         if (refined)
         {
             best_p3d = refined_p3d;
+        }
+
+        if (debugEnabled())
+        {
+            std::ostringstream s;
+            s << "f" << m_frame_to << " m" << m_marker
+              << " refine px/unit " << px_per_unit << " step " << fine_step
+              << " score " << refine_score << " -> " << best_refine_score
+              << (refined ? " moved" : " unchanged");
+            debugLog(s.str());
         }
     }
     else if (have_velocity)
