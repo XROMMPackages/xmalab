@@ -219,6 +219,7 @@ MarkerTracking3D::MarkerTracking3D(int trial, int frame_from, int frame_to, int 
     // The per-marker tracking penalty (0..100, default 50) sets how much the
     // distance-from-prediction prior weighs against the reprojected NCC score.
     m_penaltyWeight = std::min(100, std::max(0, mkr->getMaxPenalty())) / 100.0;
+    m_penaltySigma = 5.0; // replaced per frame by a pixel-derived value in trackMarker_thread
 
     // Disc mask for the (2*(size+3)+1) square template: keep the marker (radius ~size)
     // plus a 2 px ring of background, drop the corners where a touching neighbour
@@ -416,8 +417,7 @@ double MarkerTracking3D::evaluate3D(const cv::Point3d& p3d, const cv::Point3d& p
     double dist_sq = (p3d.x - pred3D.x) * (p3d.x - pred3D.x) +
                      (p3d.y - pred3D.y) * (p3d.y - pred3D.y) +
                      (p3d.z - pred3D.z) * (p3d.z - pred3D.z);
-    double penalty_sigma = 5.0;
-    double penalty = exp(-dist_sq / (2.0 * penalty_sigma * penalty_sigma));
+    double penalty = exp(-dist_sq / (2.0 * m_penaltySigma * m_penaltySigma));
     // With the default penalty of 50 this is the former fixed 0.5 + 0.5 * penalty.
     score *= ((1.0 - m_penaltyWeight) + m_penaltyWeight * penalty);
 
@@ -472,8 +472,6 @@ void MarkerTracking3D::trackMarker_thread()
                          : (marker->getSize() > 0 ? marker->getSize() : marker_size);
     marker_radius = std::max(1.0, marker_radius);
 
-    double min_radius = 5.0;
-    double dynamic_radius = speed * 2.0 + min_radius;
     int search_radius_px = std::max(30, marker_size * 3);
 
     const auto& cameras = Project::getInstance()->getCameras();
@@ -668,6 +666,15 @@ void MarkerTracking3D::trackMarker_thread()
     // World-space step that moves the reprojection ~0.5 px in the most sensitive camera.
     const double fine_step = 0.5 / px_per_unit;
 
+    // Distance-from-prediction prior: one sigma is the 2D search radius, so a candidate
+    // at the edge of the search window is down-weighted to exp(-0.5) before the penalty
+    // blend, and candidates within a few pixels are essentially unaffected.
+    m_penaltySigma = search_radius_px / px_per_unit;
+
+    // Velocity gate for candidates: half the search radius plus twice the last step.
+    double min_radius = 0.5 * search_radius_px / px_per_unit;
+    double dynamic_radius = speed * 2.0 + min_radius;
+
     double best_score = -1e9;
     cv::Point3d best_p3d = pred3D;
     bool found_valid = false;
@@ -792,6 +799,7 @@ void MarkerTracking3D::trackMarker_thread()
             std::ostringstream s;
             s << "f" << m_frame_to << " m" << m_marker
               << " refine px/unit " << px_per_unit << " step " << fine_step
+              << " prior sigma " << m_penaltySigma << " gate " << 2.0 * dynamic_radius
               << " score " << refine_score << " -> " << best_refine_score
               << (refined ? " moved" : " unchanged");
             debugLog(s.str());
