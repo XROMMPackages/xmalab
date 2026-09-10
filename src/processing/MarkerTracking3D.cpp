@@ -694,9 +694,11 @@ void MarkerTracking3D::trackMarker_thread()
 
     // A candidate is only a real correspondence if its 3D point reprojects back onto
     // both generating peaks. Peaks are integer pixels and calibrations carry ~1 px of
-    // error, so allow a couple of pixels plus the marker radius. Pairs that fail this
-    // are two different features (or a feature and background) and must not compete.
-    const double consistency_tol = std::max(2.0, marker_radius + 1.0);
+    // error, so allow a few pixels. This must not scale with marker size: peak
+    // localisation error does not, and a wrong pairing of two touching markers has a
+    // residual of about one radius, which a radius-scaled tolerance would accept.
+    // Pairs that fail are two different features (or a feature and background).
+    const double consistency_tol = 3.0;
     const int refCal = Project::getInstance()->getTrials()[m_trial]->getReferenceCalibrationImage();
 
     if (visible_cams.size() >= 2)
