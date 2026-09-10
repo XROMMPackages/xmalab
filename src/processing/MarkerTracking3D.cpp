@@ -145,7 +145,11 @@ MarkerTracking3D::MarkerTracking3D(int trial, int frame_from, int frame_to, int 
 
     for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
     {
-        if (Project::getInstance()->getCameras()[i]->isVisible())
+        // A camera in which the marker is undefined at the source frame has its 2D point
+        // at the (-2,-2) placeholder; cutting a template there yields garbage, so leave the
+        // template empty and the camera is skipped by trackMarker_thread.
+        if (Project::getInstance()->getCameras()[i]->isVisible() &&
+            mkr->getStatus2D()[i][m_frame_from] > UNDEFINED)
         {
             double x_from = mkr->getPoints2D()[i][m_frame_from].x;
             double y_from = mkr->getPoints2D()[i][m_frame_from].y;
@@ -372,7 +376,18 @@ void MarkerTracking3D::trackMarker_thread()
 
         cv::Mat templ = m_templates[i];
         double x_to, y_to;
-        marker->getMarkerPrediction(i, m_frame_to, x_to, y_to, m_forward);
+        int prediction = marker->getMarkerPrediction(i, m_frame_to, x_to, y_to, m_forward);
+        if (prediction == 0)
+        {
+            // No 2D history in this camera (can only happen if the source frame is undefined
+            // here, which the constructor already excludes; kept as a safety net so x_to/y_to
+            // are never read uninitialised). Predict from the 3D point instead.
+            cv::Point2d proj = cameras[i]->projectPoint(pred3D,
+                Project::getInstance()->getTrials()[m_trial]->getReferenceCalibrationImage());
+            x_to = proj.x;
+            y_to = proj.y;
+        }
+        cam_results[i].pred2D = cv::Point2d(x_to, y_to);
 
         // Image::getSubImage(mat, half, off_x, off_y) returns a (2*half+1) square whose
         // top-left is (off_x, off_y). To search +-search_radius_px around the prediction

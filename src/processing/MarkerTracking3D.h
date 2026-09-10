@@ -39,6 +39,7 @@ namespace xma
 		{
 			cv::Mat ncc_map;
 			cv::Point2d offset;
+			cv::Point2d pred2D;
 			std::vector<Peak> peaks;
 		};
 
