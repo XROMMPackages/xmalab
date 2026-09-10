@@ -107,12 +107,11 @@ namespace
         return s.str();
     }
 
-    void applySpatialWeight(cv::Mat& ncc_map, int search_radius_px)
+    // Gaussian prior around the 2D prediction, given in NCC-map coordinates.
+    void applySpatialWeight(cv::Mat& ncc_map, double pred_cx, double pred_cy, int search_radius_px)
     {
         int rows = ncc_map.rows;
         int cols = ncc_map.cols;
-        double pred_cx = search_radius_px - 0.5;
-        double pred_cy = search_radius_px - 0.5;
         double sigma = search_radius_px * 2.0;
         double inv_2sigma_sq = 1.0 / (2.0 * sigma * sigma);
 
@@ -368,12 +367,17 @@ void MarkerTracking3D::trackMarker_thread()
         double x_to, y_to;
         marker->getMarkerPrediction(i, m_frame_to, x_to, y_to, m_forward);
 
+        // Image::getSubImage(mat, half, off_x, off_y) returns a (2*half+1) square whose
+        // top-left is (off_x, off_y). To search +-search_radius_px around the prediction
+        // with a template of half-size used_template_size, the ROI half-size is
+        // search_radius_px + used_template_size; the resulting NCC map is then
+        // (2*search_radius_px+1) square with the prediction at its centre.
         int off_x = static_cast<int>(x_to - search_radius_px - used_template_size + 0.5);
         int off_y = static_cast<int>(y_to - search_radius_px - used_template_size + 0.5);
 
         cv::Mat ROI_to;
         Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[i]->getImage()->getSubImage(
-            ROI_to, 2 * search_radius_px + used_template_size, off_x, off_y);
+            ROI_to, search_radius_px + used_template_size, off_x, off_y);
 
         int result_cols = ROI_to.cols - templ.cols + 1;
         int result_rows = ROI_to.rows - templ.rows + 1;
@@ -394,10 +398,12 @@ void MarkerTracking3D::trackMarker_thread()
             debugWriteImage(debugPath(m_frame_to, m_marker, i, "ncc_raw"), result);
         }
 
-        applySpatialWeight(result, search_radius_px);
+        // Map pixel (k, l) corresponds to a template centre at image (off_x + t + k, off_y + t + l).
+        cam_results[i].offset = cv::Point2d(off_x + used_template_size, off_y + used_template_size);
+
+        applySpatialWeight(result, x_to - cam_results[i].offset.x, y_to - cam_results[i].offset.y, search_radius_px);
 
         cam_results[i].ncc_map = result;
-        cam_results[i].offset = cv::Point2d(off_x + used_template_size, off_y + used_template_size);
 
         cam_results[i].peaks = extractPeaks(result, 2, 3.0);
 
