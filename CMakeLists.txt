@@ -189,7 +189,6 @@ IF("${PROJECT_BETA_VERSION}" GREATER 0)
 ENDIF()
 
 ADD_DEFINITIONS(-DQCUSTOMPLOT_USE_OPENGL)
-ADD_DEFINITIONS(-DGLEW_STATIC)
 
 #Set Includes and CMAKE_CURRENT_SOURCE_DIR
 SET(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -259,6 +258,19 @@ IF(WIN32)
 			COMMAND "${WINDEPLOYQT_EXECUTABLE}" --no-compiler-runtime --no-system-d3d-compiler --no-translations --no-opengl-sw --verbose 0 "$<TARGET_FILE:${PROJECT_NAME}>"
 			COMMENT "Deploying Qt dependencies with windeployqt..."
 		)
+	endif()
+
+	# Copy GLEW DLL to output directory
+	if(GLEW_FOUND)
+		set(_GLEW_DLL_PATH "$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/bin/glew32.dll")
+		if(EXISTS "${_GLEW_DLL_PATH}")
+			add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					"${_GLEW_DLL_PATH}"
+					"$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+				COMMENT "Copying GLEW DLL to output directory..."
+			)
+		endif()
 	endif()
 ENDIF()
 
