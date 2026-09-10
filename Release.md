@@ -48,6 +48,9 @@ All changes are confined to `src/processing/MarkerTracking3D.cpp/.h`; the 2D tra
 
 New behaviour: disc-masked template, suppression of other markers' claimed locations, ray-consistency gate on candidate pairs with 2D fallback, merged-blob snap guard, per-marker penalty controlling the 3D prior weight, and the diagnostics described above.
 
+## Version labelling (issue #26)
+The version string, including the beta number, is now consistent everywhere on Windows: main window title and About dialog (`3.0.0 - beta4`), `XMALab.exe` file properties (new `VERSIONINFO` resource generated from `CMakeLists.txt`, flagged pre-release), the installer's own file properties, its file name (`XMALab-v3.0.0-beta4.Windows.x64.Setup.exe`, matching the release asset convention) and the Add/Remove Programs entry. The installer script takes the version from a single `!define VERSION` at its top, which must be kept in step with `PROJECT_VERSION` / `PROJECT_BETA_VERSION` in `CMakeLists.txt` when bumping.
+
 ## Currently Broken
 - ~~**MacOS (maybe all OS) in 'force close' macos menu, XMALab doesn't have a title** — fixed by adding `MACOSX_BUNDLE_BUNDLE_NAME` and related properties to CMakeLists.txt.~~
 - ~~**Linux Crashing a lot**: Crashes if you close the 3D world view — fixed by accepting the close event instead of ignoring it, guarding division by zero in paintGL, and moving quadric allocation to initializeGL.~~ 

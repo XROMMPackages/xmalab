@@ -1,7 +1,21 @@
 ; Ensure 64-bit installation
 !include "x64.nsh"
 
-OutFile "XMALab-Setup.exe"
+; Single source of truth for the version shown by the installer. Keep in step with
+; PROJECT_VERSION / PROJECT_BETA_VERSION in CMakeLists.txt and the release tag.
+!define VERSION "3.0.0-beta4"
+!define VERSION_NUMERIC "3.0.0.4" ; major.minor.patch.beta, required X.X.X.X form
+
+OutFile "XMALab-v${VERSION}.Windows.x64.Setup.exe"
+
+; Version resource of the setup executable itself (Properties > Details)
+VIProductVersion "${VERSION_NUMERIC}"
+VIAddVersionKey "ProductName" "XMALab"
+VIAddVersionKey "ProductVersion" "${VERSION}"
+VIAddVersionKey "FileVersion" "${VERSION}"
+VIAddVersionKey "FileDescription" "XMALab ${VERSION} installer"
+VIAddVersionKey "CompanyName" "XROMM"
+VIAddVersionKey "LegalCopyright" "Copyright (c) 2015, Brown University. GPL v3."
 InstallDir "$PROGRAMFILES64\XMALab"
 InstallDirRegKey HKLM "Software\XMALab" "Install_Dir"
 RequestExecutionLevel admin
@@ -25,7 +39,7 @@ Section "Install"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "InstallLocation" "$INSTDIR"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "DisplayIcon" "$INSTDIR\XMALab.exe"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "Publisher" "XROMM"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "DisplayVersion" "3.0.0-beta.4"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XMALab" "DisplayVersion" "${VERSION}"
   ${Else}
     MessageBox MB_OK "This application requires a 64-bit version of Windows."
     Abort

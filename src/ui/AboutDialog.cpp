@@ -42,7 +42,12 @@ AboutDialog::AboutDialog(QWidget* parent) :
 {
 	diag->setupUi(this);
 	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+	// Same format as the main window title, so the beta number is visible here too.
+#ifdef PROJECT_BETA_VERSION
+	diag->version_label->setText(QString(PROJECT_VERSION) + " - beta" + PROJECT_BETA_VERSION);
+#else
 	diag->version_label->setText(PROJECT_VERSION);
+#endif
 	diag->date_label->setText(PROJECT_BUILD_TIME);
 }
 
