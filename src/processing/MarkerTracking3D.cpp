@@ -659,6 +659,9 @@ void MarkerTracking3D::trackMarker_threadFinished()
                 int masksize = marker->getSize() * 2;
                 double threshold = marker->getThresholdOffset();
 
+                // detectionPoint returns the input centre unchanged (and leaves *size
+                // uninitialised) when it finds nothing, so "found" is an exact comparison.
+                double detected_size = -1.0;
                 cv::Point2d refined = MarkerDetection::detectionPoint(
                     Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[i]->getImage(),
                     method,
@@ -666,12 +669,13 @@ void MarkerTracking3D::trackMarker_threadFinished()
                     searchArea,
                     masksize,
                     threshold,
-                    NULL,
+                    &detected_size,
                     NULL,
                     false
                 );
+                bool found = (refined.x != m_best2D[i].x || refined.y != m_best2D[i].y);
 
-                bool accepted = refined.x > 0 && refined.y > 0 &&
+                bool accepted = found && refined.x > 0 && refined.y > 0 &&
                     std::abs(refined.x - m_best2D[i].x) <= searchArea &&
                     std::abs(refined.y - m_best2D[i].y) <= searchArea;
 
@@ -680,6 +684,7 @@ void MarkerTracking3D::trackMarker_threadFinished()
                     std::ostringstream s;
                     s << "f" << m_frame_to << " m" << m_marker << " c" << i
                       << " snap from " << fmtPt(m_best2D[i]) << " to " << fmtPt(refined)
+                      << " size " << (found ? detected_size : -1.0)
                       << (accepted ? " accepted" : " rejected");
                     debugLog(s.str());
                 }
@@ -687,6 +692,9 @@ void MarkerTracking3D::trackMarker_threadFinished()
                 if (accepted)
                 {
                     m_best2D[i] = refined;
+                    // Same order as MarkerDetection::detectMarker_threadFinished: size first,
+                    // then the point (setPoint triggers the 3D reconstruction).
+                    marker->setSize(i, m_frame_to, detected_size);
                 }
 
                 marker->setPoint(i, m_frame_to, m_best2D[i].x, m_best2D[i].y, TRACKED);
