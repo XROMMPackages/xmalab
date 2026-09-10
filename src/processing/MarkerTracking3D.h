@@ -66,6 +66,7 @@ namespace xma
 
 		std::vector<cv::Mat> m_templates;
 		cv::Mat m_templateMask;
+		double m_penaltyWeight;
 
 		cv::Point3d m_best3D;
 		std::vector<cv::Point2d> m_best2D;

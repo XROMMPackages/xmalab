@@ -185,6 +185,10 @@ MarkerTracking3D::MarkerTracking3D(int trial, int frame_from, int frame_to, int 
     int size = static_cast<int>(mkr->getSize() + 0.5);
     size = (size < 5) ? 5 : size;
 
+    // The per-marker tracking penalty (0..100, default 50) sets how much the
+    // distance-from-prediction prior weighs against the reprojected NCC score.
+    m_penaltyWeight = std::min(100, std::max(0, mkr->getMaxPenalty())) / 100.0;
+
     // Disc mask for the (2*(size+3)+1) square template: keep the marker (radius ~size)
     // plus a 2 px ring of background, drop the corners where a touching neighbour
     // intrudes most, so it cannot bias the normalised cross-correlation.
@@ -383,7 +387,8 @@ double MarkerTracking3D::evaluate3D(const cv::Point3d& p3d, const cv::Point3d& p
                      (p3d.z - pred3D.z) * (p3d.z - pred3D.z);
     double penalty_sigma = 5.0;
     double penalty = exp(-dist_sq / (2.0 * penalty_sigma * penalty_sigma));
-    score *= (0.5 + 0.5 * penalty);
+    // With the default penalty of 50 this is the former fixed 0.5 + 0.5 * penalty.
+    score *= ((1.0 - m_penaltyWeight) + m_penaltyWeight * penalty);
 
     return score;
 }
