@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <cctype>
 #include <fstream>
 #include <sstream>
 
@@ -52,6 +53,36 @@ namespace
     bool debugEnabled()
     {
         return !debugDir().empty();
+    }
+
+    // Runtime A/B switches for diagnosis. XMALAB_TRACK3D_DISABLE is a comma-separated
+    // list of feature names to turn off: "mask" (disc-masked template), "claims"
+    // (down-weighting of other markers' positions), "guard" (merged-blob snap guard),
+    // "nms" (peak separation by marker radius, reverts to 3 px), "size" (recording the
+    // marker size for 3D-tracked frames). Unset means everything is on.
+    bool featureDisabled(const char* name)
+    {
+        static const std::vector<std::string> disabled = []() {
+            std::vector<std::string> out;
+            const char* env = std::getenv("XMALAB_TRACK3D_DISABLE");
+            if (!env)
+                return out;
+            std::string s(env);
+            std::string::size_type start = 0;
+            while (start <= s.size())
+            {
+                std::string::size_type end = s.find(',', start);
+                if (end == std::string::npos)
+                    end = s.size();
+                std::string tok = s.substr(start, end - start);
+                tok.erase(std::remove_if(tok.begin(), tok.end(), [](unsigned char c) { return std::isspace(c); }), tok.end());
+                if (!tok.empty())
+                    out.push_back(tok);
+                start = end + 1;
+            }
+            return out;
+        }();
+        return std::find(disabled.begin(), disabled.end(), std::string(name)) != disabled.end();
     }
 
     std::string debugPath(int frame, int marker, int cam, const char* what, const char* ext = ".png")
@@ -489,7 +520,10 @@ void MarkerTracking3D::trackMarker_thread()
 
         cv::Mat result;
         result.create(result_rows, result_cols, CV_32FC1);
-        cv::matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED, m_templateMask);
+        if (featureDisabled("mask"))
+            cv::matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
+        else
+            cv::matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED, m_templateMask);
 
         if (debugEnabled())
         {
@@ -510,6 +544,7 @@ void MarkerTracking3D::trackMarker_thread()
         // A claim within one radius of our prediction is ignored, because then one of
         // the two markers has already jumped and we cannot tell which.
         std::vector<cv::Point2d> claims;
+        if (!featureDisabled("claims"))
         {
             const auto& all_markers = Project::getInstance()->getTrials()[m_trial]->getMarkers();
             for (unsigned int j = 0; j < all_markers.size(); j++)
@@ -555,7 +590,7 @@ void MarkerTracking3D::trackMarker_thread()
 
         // Two distinct markers are at least ~2 radii apart, so a minimum peak separation
         // of one radius drops sub-peaks of the same blob without merging neighbours.
-        cam_results[i].peaks = extractPeaks(result, 2, marker_size);
+        cam_results[i].peaks = extractPeaks(result, 2, featureDisabled("nms") ? 3.0 : marker_size);
 
         if (debugEnabled())
         {
@@ -784,7 +819,7 @@ void MarkerTracking3D::trackMarker_threadFinished()
                 // onto such a blob and keep the projected 3D position instead. The mean
                 // size is only trusted once it has a history (updateMeanSize accepts 1..50).
                 double mean_size = marker->getSize();
-                bool merged = found && mean_size > 1.0 && detected_size > 1.5 * mean_size;
+                bool merged = found && mean_size > 1.0 && detected_size > 1.5 * mean_size && !featureDisabled("guard");
 
                 bool accepted = found && !merged && refined.x > 0 && refined.y > 0 &&
                     std::abs(refined.x - m_best2D[i].x) <= searchArea &&
@@ -805,7 +840,8 @@ void MarkerTracking3D::trackMarker_threadFinished()
                     m_best2D[i] = refined;
                     // Same order as MarkerDetection::detectMarker_threadFinished: size first,
                     // then the point (setPoint triggers the 3D reconstruction).
-                    marker->setSize(i, m_frame_to, detected_size);
+                    if (!featureDisabled("size"))
+                        marker->setSize(i, m_frame_to, detected_size);
                 }
 
                 marker->setPoint(i, m_frame_to, m_best2D[i].x, m_best2D[i].y, TRACKED);
