@@ -917,10 +917,34 @@ void MarkerTracking3D::trackMarker_threadFinished()
 
                 // Two touching markers threshold into one blob whose enclosing circle is
                 // about twice the marker's; its centroid sits between them. Refuse to snap
-                // onto such a blob and keep the projected 3D position instead. The mean
-                // size is only trusted once it has a history (updateMeanSize accepts 1..50).
+                // onto such a blob and keep the projected 3D position instead.
+                //
+                // The reference is the most recent recorded size in this camera, not the
+                // trial-wide mean: a marker moving towards the source or a non-spherical
+                // marker rotating changes size gradually, a few percent per frame, and must
+                // keep snapping (and recording sizes, so the reference follows it). A merged
+                // blob is a ~2x jump within one frame. The mean is the fallback only when no
+                // size was recorded nearby. Valid sizes are 1..50, as in updateMeanSize.
                 double mean_size = marker->getSize();
-                bool merged = found && mean_size > 1.0 && detected_size > 1.5 * mean_size && !featureDisabled("guard");
+                double ref_size = -1.0;
+                {
+                    const std::vector<double>& sizes = marker->markerSize[i];
+                    int back = m_forward ? -1 : 1; // earlier frames lie behind the tracking direction
+                    for (int k = 1; k <= 10; ++k)
+                    {
+                        int f = m_frame_to + back * k;
+                        if (f < 0 || f >= static_cast<int>(sizes.size()))
+                            break;
+                        if (sizes[f] > 1.0 && sizes[f] < 50.0)
+                        {
+                            ref_size = sizes[f];
+                            break;
+                        }
+                    }
+                    if (ref_size <= 0.0)
+                        ref_size = mean_size;
+                }
+                bool merged = found && ref_size > 1.0 && detected_size > 1.5 * ref_size && !featureDisabled("guard");
 
                 bool accepted = found && !merged && refined.x > 0 && refined.y > 0 &&
                     std::abs(refined.x - m_best2D[i].x) <= searchArea &&
@@ -931,7 +955,7 @@ void MarkerTracking3D::trackMarker_threadFinished()
                     std::ostringstream s;
                     s << "f" << m_frame_to << " m" << m_marker << " c" << i
                       << " snap from " << fmtPt(m_best2D[i]) << " to " << fmtPt(refined)
-                      << " size " << (found ? detected_size : -1.0) << " mean " << mean_size
+                      << " size " << (found ? detected_size : -1.0) << " ref " << ref_size << " mean " << mean_size
                       << (accepted ? " accepted" : (merged ? " rejected (merged blob)" : " rejected"));
                     debugLog(s.str());
                 }
