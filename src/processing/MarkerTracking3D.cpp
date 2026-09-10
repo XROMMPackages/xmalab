@@ -208,10 +208,32 @@ std::vector<MarkerTracking3D::Peak> MarkerTracking3D::extractPeaks(const cv::Mat
         return a.score > b.score;
     });
 
-    if (max_peaks > 0 && static_cast<int>(peaks.size()) > max_peaks)
-        peaks.resize(max_peaks);
+    // Greedy non-maximum suppression: keep a peak only if it is at least min_dist
+    // from every stronger peak already kept, so max_peaks slots go to distinct blobs.
+    std::vector<Peak> kept;
+    double min_dist_sq = min_dist * min_dist;
+    for (const auto& p : peaks)
+    {
+        bool suppressed = false;
+        for (const auto& k : kept)
+        {
+            double dx = p.pt.x - k.pt.x;
+            double dy = p.pt.y - k.pt.y;
+            if (dx * dx + dy * dy < min_dist_sq)
+            {
+                suppressed = true;
+                break;
+            }
+        }
+        if (!suppressed)
+        {
+            kept.push_back(p);
+            if (max_peaks > 0 && static_cast<int>(kept.size()) >= max_peaks)
+                break;
+        }
+    }
 
-    return peaks;
+    return kept;
 }
 
 bool MarkerTracking3D::triangulatePair(const cv::Point2d& pt1, int cam1,
@@ -427,7 +449,9 @@ void MarkerTracking3D::trackMarker_thread()
 
         cam_results[i].ncc_map = result;
 
-        cam_results[i].peaks = extractPeaks(result, 2, 3.0);
+        // Two distinct markers are at least ~2 radii apart, so a minimum peak separation
+        // of one radius drops sub-peaks of the same blob without merging neighbours.
+        cam_results[i].peaks = extractPeaks(result, 2, marker_size);
 
         if (debugEnabled())
         {
