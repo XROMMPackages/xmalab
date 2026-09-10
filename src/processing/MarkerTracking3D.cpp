@@ -688,6 +688,13 @@ void MarkerTracking3D::trackMarker_thread()
     cv::Point3d best_p3d = pred3D;
     bool found_valid = false;
 
+    // A candidate is only a real correspondence if its 3D point reprojects back onto
+    // both generating peaks. Peaks are integer pixels and calibrations carry ~1 px of
+    // error, so allow a couple of pixels plus the marker radius. Pairs that fail this
+    // are two different features (or a feature and background) and must not compete.
+    const double consistency_tol = std::max(2.0, marker_radius + 1.0);
+    const int refCal = Project::getInstance()->getTrials()[m_trial]->getReferenceCalibrationImage();
+
     if (visible_cams.size() >= 2)
     {
         for (size_t ai = 0; ai < visible_cams.size(); ai++)
@@ -722,6 +729,11 @@ void MarkerTracking3D::trackMarker_thread()
                             if (have_velocity && dist3D > dynamic_radius * 2.0)
                                 continue;
 
+                            double res_a = cv::norm(cameras[cam_a]->projectPoint(p3d_candidate, refCal) - img_pt_a);
+                            double res_b = cv::norm(cameras[cam_b]->projectPoint(p3d_candidate, refCal) - img_pt_b);
+                            double residual = std::max(res_a, res_b);
+                            bool consistent = residual <= consistency_tol;
+
                             int valid_cams;
                             double score = evaluate3D(p3d_candidate, pred3D, cam_results, valid_cams);
 
@@ -731,11 +743,12 @@ void MarkerTracking3D::trackMarker_thread()
                                 s << "f" << m_frame_to << " m" << m_marker
                                   << " cand c" << cam_a << fmtPt(img_pt_a) << " x c" << cam_b << fmtPt(img_pt_b)
                                   << " -> " << fmtPt(p3d_candidate) << " dist " << dist3D
+                                  << " residual " << residual << (consistent ? "" : " INCONSISTENT")
                                   << " score " << score << " cams " << valid_cams;
                                 debugLog(s.str());
                             }
 
-                            if (valid_cams >= 2 && score > best_score)
+                            if (consistent && valid_cams >= 2 && score > best_score)
                             {
                                 best_score = score;
                                 best_p3d = p3d_candidate;
@@ -821,14 +834,22 @@ void MarkerTracking3D::trackMarker_thread()
         best_p3d.z = pred3D.z + velocity.z;
     }
 
+    // Without a consistent 3D candidate (fewer than two cameras, no peaks, or only
+    // ray-inconsistent pairs) there is no 3D solution the images support. Projecting a
+    // guessed 3D point would then move every camera off its marker at once, so instead
+    // each camera takes its own best NCC peak, exactly as the 2D tracker would.
     m_best3D = best_p3d;
     m_best2D.resize(num_cameras);
     for (unsigned int i = 0; i < num_cameras; i++)
     {
         if (cameras[i]->isVisible() && !cam_results[i].ncc_map.empty())
         {
-            m_best2D[i] = cameras[i]->projectPoint(
-                best_p3d, Project::getInstance()->getTrials()[m_trial]->getReferenceCalibrationImage());
+            if (found_valid)
+                m_best2D[i] = cameras[i]->projectPoint(best_p3d, refCal);
+            else if (!cam_results[i].peaks.empty())
+                m_best2D[i] = cam_results[i].peaks[0].pt + cam_results[i].offset;
+            else
+                m_best2D[i] = cam_results[i].pred2D;
         }
     }
 
@@ -838,7 +859,7 @@ void MarkerTracking3D::trackMarker_thread()
         s << "f" << m_frame_to << " m" << m_marker
           << " pred3D " << fmtPt(pred3D) << " velocity " << fmtPt(velocity)
           << " result3D " << fmtPt(best_p3d)
-          << (found_valid ? " (candidate)" : (have_velocity ? " (velocity fallback)" : " (prediction fallback)"))
+          << (found_valid ? " (candidate)" : " (2D fallback: top peak per camera)")
           << " score " << best_score;
         for (unsigned int i = 0; i < num_cameras; i++)
             if (cameras[i]->isVisible() && !cam_results[i].ncc_map.empty())
