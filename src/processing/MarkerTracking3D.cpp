@@ -316,24 +316,31 @@ void MarkerTracking3D::trackMarker_thread()
 {
     Marker* marker = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker];
 
-	cv::Point3d pred3D = marker->getPoints3D()[m_frame_from];
+    // Marker stores an undefined 3D point as (-1000,-1000,-1000) with status3D <= UNDEFINED,
+    // so the status is the reliable test (a literal (0,0,0) check never fired).
+    if (marker->getStatus3D()[m_frame_from] <= UNDEFINED)
+    {
+        m_best3D = cv::Point3d(-1000, -1000, -1000);
+        if (debugEnabled())
+        {
+            std::ostringstream s;
+            s << "f" << m_frame_to << " m" << m_marker << " no 3D point at frame " << m_frame_from << ", nothing written";
+            debugLog(s.str());
+        }
+        return;
+    }
 
-	if (pred3D.x == 0 && pred3D.y == 0 && pred3D.z == 0)
-	{
-		m_best3D = cv::Point3d(0, 0, 0);
-		return;
-	}
+    cv::Point3d pred3D = marker->getPoints3D()[m_frame_from];
 
-	cv::Point3d pred3D_prev;
     bool have_velocity = false;
     cv::Point3d velocity(0, 0, 0);
 
     int prev_frame = m_forward ? m_frame_from - 1 : m_frame_from + 1;
     if (prev_frame >= 0 && prev_frame < static_cast<int>(marker->getPoints3D().size()))
     {
-        cv::Point3d prev3D = marker->getPoints3D()[prev_frame];
-        if (prev3D.x != 0 || prev3D.y != 0 || prev3D.z != 0)
+        if (marker->getStatus3D()[prev_frame] > UNDEFINED)
         {
+            cv::Point3d prev3D = marker->getPoints3D()[prev_frame];
             velocity.x = pred3D.x - prev3D.x;
             velocity.y = pred3D.y - prev3D.y;
             velocity.z = pred3D.z - prev3D.z;
