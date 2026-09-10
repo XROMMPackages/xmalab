@@ -20,12 +20,93 @@
 #include <mutex>
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
 
 using namespace xma;
 
 int MarkerTracking3D::nbInstances = 0;
 namespace
 {
+    // ------------------------------------------------------------------
+    // Diagnostics. Set the environment variable XMALAB_TRACK3D_DEBUG to a
+    // directory before launching XMALab and the tracker writes, per tracked
+    // (frame, marker, camera): the template, the search ROI, the raw NCC map
+    // and the spatially weighted NCC map as PNGs, plus a text log
+    // (track3d_log.txt) with predictions, peaks, 3D candidates and results.
+    // Leaving the variable unset disables all of this at negligible cost.
+    // ------------------------------------------------------------------
+    const std::string& debugDir()
+    {
+        static const std::string dir = []() {
+            const char* env = std::getenv("XMALAB_TRACK3D_DEBUG");
+            std::string d = env ? env : "";
+            if (!d.empty())
+                QDir().mkpath(QString::fromStdString(d));
+            return d;
+        }();
+        return dir;
+    }
+
+    bool debugEnabled()
+    {
+        return !debugDir().empty();
+    }
+
+    std::string debugPath(int frame, int marker, int cam, const char* what, const char* ext = ".png")
+    {
+        std::ostringstream s;
+        s << debugDir() << "/f" << frame << "_m" << marker;
+        if (cam >= 0)
+            s << "_c" << cam;
+        s << "_" << what << ext;
+        return s.str();
+    }
+
+    void debugLog(const std::string& line)
+    {
+        if (!debugEnabled())
+            return;
+        static std::mutex log_mutex;
+        std::lock_guard<std::mutex> lock(log_mutex);
+        std::ofstream out(debugDir() + "/track3d_log.txt", std::ios::app);
+        out << line << "\n";
+    }
+
+    // Writes a float map scaled to 0..255 (or an 8-bit image as is).
+    void debugWriteImage(const std::string& path, const cv::Mat& m)
+    {
+        if (m.empty())
+            return;
+        cv::Mat out8;
+        if (m.depth() == CV_8U)
+        {
+            out8 = m;
+        }
+        else
+        {
+            cv::normalize(m, out8, 0, 255, cv::NORM_MINMAX, CV_8U);
+        }
+        cv::imwrite(path, out8);
+    }
+
+    std::string fmtPt(const cv::Point2d& p)
+    {
+        std::ostringstream s;
+        s.precision(3);
+        s << std::fixed << "(" << p.x << ", " << p.y << ")";
+        return s.str();
+    }
+
+    std::string fmtPt(const cv::Point3d& p)
+    {
+        std::ostringstream s;
+        s.precision(3);
+        s << std::fixed << "(" << p.x << ", " << p.y << ", " << p.z << ")";
+        return s.str();
+    }
+
     void applySpatialWeight(cv::Mat& ncc_map, int search_radius_px)
     {
         int rows = ncc_map.rows;
@@ -72,6 +153,16 @@ MarkerTracking3D::MarkerTracking3D(int trial, int frame_from, int frame_to, int 
             cv::Mat templ;
             Project::getInstance()->getTrials()[m_trial]->getVideoStreams()[i]->getImage()->getSubImage(templ, size + 3, x_from, y_from);
             m_templates.push_back(templ);
+
+            if (debugEnabled())
+            {
+                debugWriteImage(debugPath(m_frame_to, m_marker, i, "templ"), templ);
+                std::ostringstream s;
+                s << "f" << m_frame_to << " m" << m_marker << " c" << i
+                  << " template from frame " << m_frame_from << " at " << fmtPt(cv::Point2d(x_from, y_from))
+                  << " half-size " << size + 3;
+                debugLog(s.str());
+            }
         }
         else
         {
@@ -297,12 +388,35 @@ void MarkerTracking3D::trackMarker_thread()
         result.create(result_rows, result_cols, CV_32FC1);
         cv::matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
 
+        if (debugEnabled())
+        {
+            debugWriteImage(debugPath(m_frame_to, m_marker, i, "roi"), ROI_to);
+            debugWriteImage(debugPath(m_frame_to, m_marker, i, "ncc_raw"), result);
+        }
+
         applySpatialWeight(result, search_radius_px);
 
         cam_results[i].ncc_map = result;
         cam_results[i].offset = cv::Point2d(off_x + used_template_size, off_y + used_template_size);
 
         cam_results[i].peaks = extractPeaks(result, 2, 3.0);
+
+        if (debugEnabled())
+        {
+            debugWriteImage(debugPath(m_frame_to, m_marker, i, "ncc_weighted"), result);
+            double mn, mx;
+            cv::minMaxLoc(result, &mn, &mx);
+            std::ostringstream s;
+            s << "f" << m_frame_to << " m" << m_marker << " c" << i
+              << " pred2D " << fmtPt(cv::Point2d(x_to, y_to))
+              << " roi off " << fmtPt(cv::Point2d(off_x, off_y))
+              << " map " << result.cols << "x" << result.rows
+              << " ncc range [" << mn << ", " << mx << "]"
+              << " peaks:";
+            for (const auto& p : cam_results[i].peaks)
+                s << " " << fmtPt(p.pt + cam_results[i].offset) << "=" << p.score;
+            debugLog(s.str());
+        }
 
         ROI_to.release();
         templ.release();
@@ -355,6 +469,16 @@ void MarkerTracking3D::trackMarker_thread()
 
                             int valid_cams;
                             double score = evaluate3D(p3d_candidate, pred3D, cam_results, valid_cams);
+
+                            if (debugEnabled())
+                            {
+                                std::ostringstream s;
+                                s << "f" << m_frame_to << " m" << m_marker
+                                  << " cand c" << cam_a << fmtPt(img_pt_a) << " x c" << cam_b << fmtPt(img_pt_b)
+                                  << " -> " << fmtPt(p3d_candidate) << " dist " << dist3D
+                                  << " score " << score << " cams " << valid_cams;
+                                debugLog(s.str());
+                            }
 
                             if (valid_cams >= 2 && score > best_score)
                             {
@@ -442,6 +566,20 @@ void MarkerTracking3D::trackMarker_thread()
                 best_p3d, Project::getInstance()->getTrials()[m_trial]->getReferenceCalibrationImage());
         }
     }
+
+    if (debugEnabled())
+    {
+        std::ostringstream s;
+        s << "f" << m_frame_to << " m" << m_marker
+          << " pred3D " << fmtPt(pred3D) << " velocity " << fmtPt(velocity)
+          << " result3D " << fmtPt(best_p3d)
+          << (found_valid ? " (candidate)" : (have_velocity ? " (velocity fallback)" : " (prediction fallback)"))
+          << " score " << best_score;
+        for (unsigned int i = 0; i < num_cameras; i++)
+            if (cameras[i]->isVisible() && !cam_results[i].ncc_map.empty())
+                s << " c" << i << fmtPt(m_best2D[i]);
+        debugLog(s.str());
+    }
 }
 
 void MarkerTracking3D::trackMarker_threadFinished()
@@ -481,9 +619,20 @@ void MarkerTracking3D::trackMarker_threadFinished()
                     false
                 );
 
-                if (refined.x > 0 && refined.y > 0 &&
+                bool accepted = refined.x > 0 && refined.y > 0 &&
                     std::abs(refined.x - m_best2D[i].x) <= searchArea &&
-                    std::abs(refined.y - m_best2D[i].y) <= searchArea)
+                    std::abs(refined.y - m_best2D[i].y) <= searchArea;
+
+                if (debugEnabled())
+                {
+                    std::ostringstream s;
+                    s << "f" << m_frame_to << " m" << m_marker << " c" << i
+                      << " snap from " << fmtPt(m_best2D[i]) << " to " << fmtPt(refined)
+                      << (accepted ? " accepted" : " rejected");
+                    debugLog(s.str());
+                }
+
+                if (accepted)
                 {
                     m_best2D[i] = refined;
                 }
