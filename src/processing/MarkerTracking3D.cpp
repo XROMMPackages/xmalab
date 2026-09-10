@@ -470,6 +470,10 @@ void MarkerTracking3D::trackMarker_thread()
     // small markers can sit closer together than 5 px.
     double marker_radius = marker->getSizeOverride() > 0 ? marker->getSizeOverride()
                          : (marker->getSize() > 0 ? marker->getSize() : marker_size);
+    // The default detection methods store the enclosing-circle radius, but the blob
+    // detector methods (1 and 6) store the keypoint size, which is a diameter.
+    if (marker->getSizeOverride() <= 0 && (marker->getMethod() == 1 || marker->getMethod() == 6))
+        marker_radius *= 0.5;
     marker_radius = std::max(1.0, marker_radius);
 
     int search_radius_px = std::max(30, marker_size * 3);
