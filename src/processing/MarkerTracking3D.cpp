@@ -586,6 +586,15 @@ void MarkerTracking3D::trackMarker_thread()
                 double ddy = claim.y - y_to;
                 if (ddx * ddx + ddy * ddy < marker_radius * marker_radius)
                     continue;
+                // Never suppress the blob our own template was cut from. If another marker
+                // sits on it at the source frame, the two already share a blob there;
+                // suppressing it removes the only thing the template matches and leaves
+                // background peaks, which is strictly worse than staying put.
+                const cv::Point2d& src = marker->getPoints2D()[i][m_frame_from];
+                double sdx = claim.x - src.x;
+                double sdy = claim.y - src.y;
+                if (sdx * sdx + sdy * sdy < marker_radius * marker_radius)
+                    continue;
                 // Only claims that can touch the search map matter.
                 if (std::abs(ddx) > search_radius_px + 3.0 * marker_size ||
                     std::abs(ddy) > search_radius_px + 3.0 * marker_size)
