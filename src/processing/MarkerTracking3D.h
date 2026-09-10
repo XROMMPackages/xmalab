@@ -65,6 +65,7 @@ namespace xma
 		bool m_forward;
 
 		std::vector<cv::Mat> m_templates;
+		cv::Mat m_templateMask;
 
 		cv::Point3d m_best3D;
 		std::vector<cv::Point2d> m_best2D;

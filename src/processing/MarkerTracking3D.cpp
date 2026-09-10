@@ -143,6 +143,14 @@ MarkerTracking3D::MarkerTracking3D(int trial, int frame_from, int frame_to, int 
     int size = static_cast<int>(mkr->getSize() + 0.5);
     size = (size < 5) ? 5 : size;
 
+    // Disc mask for the (2*(size+3)+1) square template: keep the marker (radius ~size)
+    // plus a 2 px ring of background, drop the corners where a touching neighbour
+    // intrudes most, so it cannot bias the normalised cross-correlation.
+    int templ_half = size + 3;
+    int templ_dim = 2 * templ_half + 1;
+    m_templateMask = cv::Mat::zeros(templ_dim, templ_dim, CV_8UC1);
+    cv::circle(m_templateMask, cv::Point(templ_half, templ_half), size + 2, cv::Scalar(255), cv::FILLED);
+
     for (unsigned int i = 0; i < Project::getInstance()->getCameras().size(); i++)
     {
         // A camera in which the marker is undefined at the source frame has its 2D point
@@ -434,10 +442,13 @@ void MarkerTracking3D::trackMarker_thread()
 
         cv::Mat result;
         result.create(result_rows, result_cols, CV_32FC1);
-        cv::matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED);
+        cv::matchTemplate(ROI_to, templ, result, cv::TM_CCORR_NORMED, m_templateMask);
 
         if (debugEnabled())
         {
+            cv::Mat masked_templ;
+            templ.copyTo(masked_templ, m_templateMask);
+            debugWriteImage(debugPath(m_frame_to, m_marker, i, "templ_masked"), masked_templ);
             debugWriteImage(debugPath(m_frame_to, m_marker, i, "roi"), ROI_to);
             debugWriteImage(debugPath(m_frame_to, m_marker, i, "ncc_raw"), result);
         }
