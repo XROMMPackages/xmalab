@@ -532,7 +532,19 @@ void MarkerTracking3D::trackMarker_thread()
             debugWriteImage(debugPath(m_frame_to, m_marker, i, "templ_masked"), masked_templ);
             debugWriteImage(debugPath(m_frame_to, m_marker, i, "roi"), ROI_to);
             debugWriteImage(debugPath(m_frame_to, m_marker, i, "ncc_raw"), result);
+            double mn, mx;
+            cv::minMaxLoc(result, &mn, &mx);
+            std::ostringstream s;
+            s << "f" << m_frame_to << " m" << m_marker << " c" << i
+              << " raw ncc range [" << mn << ", " << mx << "]";
+            debugLog(s.str());
         }
+
+        // TM_CCORR_NORMED without mean subtraction is ~0.98-0.99 everywhere on grey X-ray
+        // background, so the true peak beats the background by well under 1%. Any
+        // multiplicative prior applied to that raw map dominates it. Stretch the map to
+        // [0, 1] first, as the 2D tracker does, so the priors act on the real contrast.
+        cv::normalize(result, result, 0.0, 1.0, cv::NORM_MINMAX);
 
         // Map pixel (k, l) corresponds to a template centre at image (off_x + t + k, off_y + t + l).
         cam_results[i].offset = cv::Point2d(off_x + used_template_size, off_y + used_template_size);
