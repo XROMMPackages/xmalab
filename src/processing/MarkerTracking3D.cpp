@@ -774,7 +774,14 @@ void MarkerTracking3D::trackMarker_threadFinished()
                 );
                 bool found = (refined.x != m_best2D[i].x || refined.y != m_best2D[i].y);
 
-                bool accepted = found && refined.x > 0 && refined.y > 0 &&
+                // Two touching markers threshold into one blob whose enclosing circle is
+                // about twice the marker's; its centroid sits between them. Refuse to snap
+                // onto such a blob and keep the projected 3D position instead. The mean
+                // size is only trusted once it has a history (updateMeanSize accepts 1..50).
+                double mean_size = marker->getSize();
+                bool merged = found && mean_size > 1.0 && detected_size > 1.5 * mean_size;
+
+                bool accepted = found && !merged && refined.x > 0 && refined.y > 0 &&
                     std::abs(refined.x - m_best2D[i].x) <= searchArea &&
                     std::abs(refined.y - m_best2D[i].y) <= searchArea;
 
@@ -783,8 +790,8 @@ void MarkerTracking3D::trackMarker_threadFinished()
                     std::ostringstream s;
                     s << "f" << m_frame_to << " m" << m_marker << " c" << i
                       << " snap from " << fmtPt(m_best2D[i]) << " to " << fmtPt(refined)
-                      << " size " << (found ? detected_size : -1.0)
-                      << (accepted ? " accepted" : " rejected");
+                      << " size " << (found ? detected_size : -1.0) << " mean " << mean_size
+                      << (accepted ? " accepted" : (merged ? " rejected (merged blob)" : " rejected"));
                     debugLog(s.str());
                 }
 
