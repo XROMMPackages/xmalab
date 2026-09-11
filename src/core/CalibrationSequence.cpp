@@ -119,7 +119,7 @@ void CalibrationSequence::loadImages(QStringList fileNames)
 	{
 		calibrationImages.push_back(new CalibrationImage(m_camera, "", false));
 	}
-	else if (fileNames.at(0).endsWith(".cine"))
+	else if (fileNames.at(0).endsWith(".cine", Qt::CaseInsensitive))
 	{	
 		sequence_filename = fileNames.at(0);
 		sequence = new CineVideo(fileNames);
@@ -130,7 +130,7 @@ void CalibrationSequence::loadImages(QStringList fileNames)
 		for (int i = 0; i < sequence->getNbImages(); i++)
 			calibrationImages.push_back(new CalibrationImage(m_camera, sequence_filename + "/Frame" + QString("%1").arg(i, 6, 10, QChar('0')),false));
 	}
-	else if (fileNames.at(0).endsWith(".avi") || fileNames.at(0).endsWith(".mp4") || fileNames.at(0).endsWith(".mov"))
+	else if (fileNames.at(0).endsWith(".avi", Qt::CaseInsensitive) || fileNames.at(0).endsWith(".mp4", Qt::CaseInsensitive) || fileNames.at(0).endsWith(".mov", Qt::CaseInsensitive))
 	{
 		sequence_filename = fileNames.at(0);
 		sequence = new AviVideo(fileNames);
@@ -189,13 +189,13 @@ void CalibrationSequence::loadTextures()
 
 		QStringList list;
 		list << sequence_filename;
-		if (sequence_filename.endsWith(".cine"))
+		if (sequence_filename.endsWith(".cine", Qt::CaseInsensitive))
 		{
 			sequence = new CineVideo(list);
 			sequence->setFlipped(m_camera->isFlipped());
 			undistortedImage = new Image(sequence->getImage());
 		}
-		else if (sequence_filename.endsWith(".avi") || sequence_filename.endsWith(".mp4") || sequence_filename.endsWith(".mov"))	{
+		else if (sequence_filename.endsWith(".avi", Qt::CaseInsensitive) || sequence_filename.endsWith(".mp4", Qt::CaseInsensitive) || sequence_filename.endsWith(".mov", Qt::CaseInsensitive))	{
 			sequence = new AviVideo(list);
 			sequence->setFlipped(m_camera->isFlipped());
 			undistortedImage = new Image(sequence->getImage());

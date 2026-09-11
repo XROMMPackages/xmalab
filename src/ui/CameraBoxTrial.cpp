@@ -55,7 +55,7 @@ CameraBoxTrial::~CameraBoxTrial()
 void CameraBoxTrial::setFilename(const QString& filename)
 {
 	imageFileNames.clear();
-	if (filename.endsWith(".zip"))
+	if (filename.endsWith(".zip", Qt::CaseInsensitive))
 	{
 		QString zipBase = filename;
 		zipBase.chop(4); // Remove ".zip"

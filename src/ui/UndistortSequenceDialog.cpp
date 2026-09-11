@@ -228,11 +228,11 @@ void UndistortSequenceDialog::on_pushButtonUndist_clicked()
 			QFileInfo info(item.input);
 			QStringList names;
 			names << item.input;
-			if (info.suffix() == "cine")
+			if (info.suffix().compare("cine", Qt::CaseInsensitive) == 0)
 			{
 				stream = new CineVideo(names);
 			}
-			else if (info.suffix() == "avi" || info.suffix() == "mp4" || info.suffix() == "mov")
+			else if (info.suffix().compare("avi", Qt::CaseInsensitive) == 0 || info.suffix().compare("mp4", Qt::CaseInsensitive) == 0 || info.suffix().compare("mov", Qt::CaseInsensitive) == 0)
 			{
 				stream = new AviVideo(names);
 			}

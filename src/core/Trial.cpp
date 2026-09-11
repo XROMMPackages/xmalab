@@ -84,11 +84,11 @@ Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
 		else
 		{
 			QFileInfo info(filenameList.at(0));
-			if (info.suffix() == "cine")
+			if (info.suffix().compare("cine", Qt::CaseInsensitive) == 0)
 			{
 				newSequence = new CineVideo(filenameList);
 			}
-			else if (info.suffix() == "avi" || info.suffix() == "mp4" || info.suffix() == "mov")
+			else if (info.suffix().compare("avi", Qt::CaseInsensitive) == 0 || info.suffix().compare("mp4", Qt::CaseInsensitive) == 0 || info.suffix().compare("mov", Qt::CaseInsensitive) == 0)
 			{
 				newSequence = new AviVideo(filenameList);
 			}
@@ -152,11 +152,11 @@ Trial::Trial(QString trialname, QString folder)
 		else
 		{
 			QFileInfo info(filenameList.at(0));
-			if (info.suffix() == "cine")
+			if (info.suffix().compare("cine", Qt::CaseInsensitive) == 0)
 			{
 				newSequence = new CineVideo(filenameList);
 			}
-			else if (info.suffix() == "avi" || info.suffix() == "mp4" || info.suffix() == "mov")
+			else if (info.suffix().compare("avi", Qt::CaseInsensitive) == 0 || info.suffix().compare("mp4", Qt::CaseInsensitive) == 0 || info.suffix().compare("mov", Qt::CaseInsensitive) == 0)
 			{
 				newSequence = new AviVideo(filenameList);
 			}
@@ -240,11 +240,11 @@ bool Trial::changeTrialData(QString trialname, std::vector<QStringList>& imageFi
 		else
 		{
 			QFileInfo info(filenameList.at(0));
-			if (info.suffix() == "cine")
+			if (info.suffix().compare("cine", Qt::CaseInsensitive) == 0)
 			{
 				newSequence = new CineVideo(filenameList);
 			}
-			else if (info.suffix() == "avi" || info.suffix() == "mp4" || info.suffix() == "mov")
+			else if (info.suffix().compare("avi", Qt::CaseInsensitive) == 0 || info.suffix().compare("mp4", Qt::CaseInsensitive) == 0 || info.suffix().compare("mov", Qt::CaseInsensitive) == 0)
 			{
 				newSequence = new AviVideo(filenameList);
 			}
