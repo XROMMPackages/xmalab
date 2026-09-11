@@ -19,6 +19,12 @@ echo "Binary: ${BINARY}"
 echo "AppDir: ${APPDIR}"
 echo "Output: ${OUTPUT}"
 
+# Never let inherited library paths leak into linuxdeploy's dependency
+# resolution (e.g. appimagetool's bundled ancient glib), which would produce
+# a version-mismatched bundle. appimagetool gets its path below explicitly.
+NATIVE_LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
+unset LD_LIBRARY_PATH
+
 if [ ! -f "${BINARY}" ]; then
     echo "ERROR: Binary not found at ${BINARY}"
     echo "Build the project first with: cmake --build --preset linux-system-release"
@@ -43,13 +49,15 @@ cp "${DEPLOY_DIR}/AppRun" "${APPDIR}/"
 chmod +x "${APPDIR}/AppRun"
 
 echo "=== Step 3: Bundle dependencies with linuxdeploy ==="
-LINUXDEPLOY_PLUGIN_CONFIG_TYPE=qt6 \
-    "${LINUXDEPLOY}" \
+# Note: the qt plugin is intentionally NOT used. It follows libsmbclient
+# into samba's private libs and aborts on an unresolvable dependency
+# (libreplace-private-samba.so). Qt libs are bundled by linuxdeploy core,
+# plugins are copied manually in Step 6, and QT_PLUGIN_PATH is set in AppRun.
+"${LINUXDEPLOY}" \
     --appdir "${APPDIR}" \
     --executable "${APPDIR}/usr/bin/XMALab" \
     --desktop-file "${APPDIR}/XMALab.desktop" \
     --icon-file "${APPDIR}/XMALab.png" \
-    --plugin qt \
     --exclude-library="*samba*" \
     --exclude-library="*libnss_*" \
     --exclude-library="*libpam*" \
@@ -80,6 +88,10 @@ if [ -d "${QT_PLUGINS_SRC}" ]; then
     mkdir -p "${QT_PLUGINS_DST}"
     cp -r "${QT_PLUGINS_SRC}/platforms" "${QT_PLUGINS_DST}/"
     cp -r "${QT_PLUGINS_SRC}/platformthemes" "${QT_PLUGINS_DST}/" 2>/dev/null || true
+    cp -r "${QT_PLUGINS_SRC}/wayland-shell-integration" "${QT_PLUGINS_DST}/" 2>/dev/null || true
+    cp -r "${QT_PLUGINS_SRC}/wayland-decoration-client" "${QT_PLUGINS_DST}/" 2>/dev/null || true
+    cp -r "${QT_PLUGINS_SRC}/wayland-graphics-integration-client" "${QT_PLUGINS_DST}/" 2>/dev/null || true
+    cp -r "${QT_PLUGINS_SRC}/platforminputcontexts" "${QT_PLUGINS_DST}/" 2>/dev/null || true
     cp -r "${QT_PLUGINS_SRC}/imageformats" "${QT_PLUGINS_DST}/" 2>/dev/null || true
     cp -r "${QT_PLUGINS_SRC}/iconengines" "${QT_PLUGINS_DST}/" 2>/dev/null || true
     cp -r "${QT_PLUGINS_SRC}/xcbglintegrations" "${QT_PLUGINS_DST}/" 2>/dev/null || true
@@ -124,6 +136,19 @@ done
 echo "Qt internal libraries copied"
 
 echo ""
+echo "=== Step 7c: Copy Qt Wayland libraries (Qt6WaylandClient, wayland-client, wayland-cursor, xkbcommon) ==="
+# libqwayland.so (copied in Step 6) NEEDs libQt6WaylandClient.so.6, which is
+# NOT pulled in by linuxdeploy. Without it the plugin resolves the HOST's
+# differently-versioned libQt6WaylandClient at runtime and fails with
+# "version 'Qt_6_PRIVATE_API' not found". Bundle the whole Wayland Qt stack.
+for lib in libQt6WaylandClient libQt6WlShellIntegration libwayland-client libwayland-cursor libxkbcommon; do
+    for link in $(find /usr/lib64 -name "${lib}*" -not -name "*.prl" -not -name "*x11*" 2>/dev/null); do
+        cp -a "$link" "${APPDIR}/usr/lib/" 2>/dev/null || true
+    done
+done
+echo "Qt Wayland libraries copied"
+
+echo ""
 echo "=== Step 8: Aggressively remove Samba libraries ==="
 find "${APPDIR}" -type f \( \
     -name "*samba*" -o -name "*smbclient*" -o -name "*libsmb*" -o \
@@ -160,7 +185,10 @@ echo "=== Step 9: Create AppImage ==="
 rm -f "${OUTPUT}"
 export ARCH=x86_64
 export PATH="/tmp/appimagetool-extracted/usr/bin:${PATH}"
-"${APPIMAGETOOL}" "${APPDIR}" "${OUTPUT}" 2>&1
+# appimagetool is built on an old base and bundles old glib/gpgme libs;
+# give it its own bundled lib dir only for this single invocation.
+LD_LIBRARY_PATH="/tmp/appimagetool-extracted/usr/lib${NATIVE_LD_LIBRARY_PATH:+:$NATIVE_LD_LIBRARY_PATH}" \
+    "${APPIMAGETOOL}" "${APPDIR}" "${OUTPUT}" 2>&1
 
 echo ""
 echo "=== Done! ==="
