@@ -48,6 +48,10 @@ All changes are confined to `src/processing/MarkerTracking3D.cpp/.h`; the 2D tra
 
 New behaviour: disc-masked template, suppression of other markers' claimed locations, ray-consistency gate on candidate pairs with 2D fallback, merged-blob snap guard, per-marker penalty controlling the 3D prior weight, and the diagnostics described above.
 
+## Video formats (beta.4)
+- **mp4 and mov input**: accepted wherever avi was (camera setup, trials, calibration sequences, undistortion). On Windows decoding goes through OpenCV's Media Foundation backend, so codecs Windows can decode natively (H.264, HEVC) work; others (e.g. ProRes) will not open. Mac and Linux builds use whatever backend their OpenCV was built with.
+- **Extension matching is case-insensitive**: `.MOV`, `.MP4`, `.AVI`, `.CINE` and `.ZIP` are recognised as well as lowercase.
+
 ## Version labelling (issue #26)
 The version string, including the beta number, is now consistent everywhere on Windows: main window title and About dialog (`3.0.0 - beta4`), `XMALab.exe` file properties (new `VERSIONINFO` resource generated from `CMakeLists.txt`, flagged pre-release), the installer's own file properties, its file name (`XMALab-v3.0.0-beta4.Windows.x64.Setup.exe`, matching the release asset convention) and the Add/Remove Programs entry. The installer script takes the version from a single `!define VERSION` at its top, which must be kept in step with `PROJECT_VERSION` / `PROJECT_BETA_VERSION` in `CMakeLists.txt` when bumping.
 
