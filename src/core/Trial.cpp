@@ -88,7 +88,7 @@ Trial::Trial(QString trialname, std::vector<QStringList>& imageFilenames)
 			{
 				newSequence = new CineVideo(filenameList);
 			}
-			else if (info.suffix() == "avi")
+			else if (info.suffix() == "avi" || info.suffix() == "mp4" || info.suffix() == "mov")
 			{
 				newSequence = new AviVideo(filenameList);
 			}
@@ -156,7 +156,7 @@ Trial::Trial(QString trialname, QString folder)
 			{
 				newSequence = new CineVideo(filenameList);
 			}
-			else if (info.suffix() == "avi")
+			else if (info.suffix() == "avi" || info.suffix() == "mp4" || info.suffix() == "mov")
 			{
 				newSequence = new AviVideo(filenameList);
 			}
@@ -244,7 +244,7 @@ bool Trial::changeTrialData(QString trialname, std::vector<QStringList>& imageFi
 			{
 				newSequence = new CineVideo(filenameList);
 			}
-			else if (info.suffix() == "avi")
+			else if (info.suffix() == "avi" || info.suffix() == "mp4" || info.suffix() == "mov")
 			{
 				newSequence = new AviVideo(filenameList);
 			}

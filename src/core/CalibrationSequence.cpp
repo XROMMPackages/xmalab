@@ -130,7 +130,8 @@ void CalibrationSequence::loadImages(QStringList fileNames)
 		for (int i = 0; i < sequence->getNbImages(); i++)
 			calibrationImages.push_back(new CalibrationImage(m_camera, sequence_filename + "/Frame" + QString("%1").arg(i, 6, 10, QChar('0')),false));
 	}
-	else if (fileNames.at(0).endsWith(".avi"))	{
+	else if (fileNames.at(0).endsWith(".avi") || fileNames.at(0).endsWith(".mp4") || fileNames.at(0).endsWith(".mov"))
+	{
 		sequence_filename = fileNames.at(0);
 		sequence = new AviVideo(fileNames);
 		sequence->setFlipped(m_camera->isFlipped());
@@ -179,7 +180,7 @@ void CalibrationSequence::loadTextures()
 		if (!file.exists())
 		{
 			QFileInfo info(sequence_filename);
-			QString name = QFileDialog::getOpenFileName(NULL, info.fileName() + " not found. Locate and select file " + info.fileName(), Settings::getInstance()->getLastUsedDirectory(), ("Video Files (*.avi *.cine)"));
+			QString name = QFileDialog::getOpenFileName(NULL, info.fileName() + " not found. Locate and select file " + info.fileName(), Settings::getInstance()->getLastUsedDirectory(), ("Video Files (*.avi *.cine *.mp4 *.mov)"));
 			if (!name.isEmpty())
 			{
 				sequence_filename = name;
@@ -194,7 +195,7 @@ void CalibrationSequence::loadTextures()
 			sequence->setFlipped(m_camera->isFlipped());
 			undistortedImage = new Image(sequence->getImage());
 		}
-		else if (sequence_filename.endsWith(".avi"))	{
+		else if (sequence_filename.endsWith(".avi") || sequence_filename.endsWith(".mp4") || sequence_filename.endsWith(".mov"))	{
 			sequence = new AviVideo(list);
 			sequence->setFlipped(m_camera->isFlipped());
 			undistortedImage = new Image(sequence->getImage());

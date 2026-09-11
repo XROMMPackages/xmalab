@@ -182,7 +182,7 @@ void UndistortSequenceDialog::on_pushButtonAddFolder_clicked()
 void UndistortSequenceDialog::on_pushButtonAddVideo_clicked()
 {
 	QString videofile = QFileDialog::getOpenFileName(this,
-		tr("Open video stream movie file"), lastInputDir, tr("Video Files (*.cine *.avi)"));
+		tr("Open video stream movie file"), lastInputDir, tr("Video Files (*.cine *.avi *.mp4 *.mov)"));
 
 	if (!videofile.isEmpty())
 	{
@@ -232,7 +232,7 @@ void UndistortSequenceDialog::on_pushButtonUndist_clicked()
 			{
 				stream = new CineVideo(names);
 			}
-			else if (info.suffix() == "avi")
+			else if (info.suffix() == "avi" || info.suffix() == "mp4" || info.suffix() == "mov")
 			{
 				stream = new AviVideo(names);
 			}

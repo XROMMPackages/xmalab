@@ -144,7 +144,7 @@ void CameraBoxTrial::on_toolButtonImage_clicked()
 void CameraBoxTrial::on_toolButtonVideo_clicked()
 {
 	imageFileNames = QFileDialog::getOpenFileNames(this,
-	                                               tr("Open video stream movie file or images"), Settings::getInstance()->getLastUsedDirectory(), tr("Image and Video Files (*.cine *.avi *.png *.jpg *.jpeg *.bmp *.tif)"));
+	                                               tr("Open video stream movie file or images"), Settings::getInstance()->getLastUsedDirectory(), tr("Image and Video Files (*.cine *.avi *.mp4 *.mov *.png *.jpg *.jpeg *.bmp *.tif)"));
 
 	std::sort(imageFileNames.begin(), imageFileNames.end(), littleHelper::compareNames);
 
