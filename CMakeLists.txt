@@ -115,7 +115,7 @@ endif()
 
 if(NOT QuaZip-Qt6_FOUND)
 	# Fallback: manual detection for non-vcpkg builds
-	find_path(QUAZIP_INCLUDE_DIR NAMES quazip.h PATH_SUFFIXES quazip quazip1-qt6)
+	find_path(QUAZIP_INCLUDE_DIR NAMES quazip.h PATH_SUFFIXES quazip quazip1-qt6 QuaZip-Qt6-1.4/quazip)
 	find_library(QUAZIP_LIBRARIES NAMES quazip1-qt6 quazip PATH_SUFFIXES build/quazip build)
 	if(NOT QUAZIP_INCLUDE_DIR OR NOT QUAZIP_LIBRARIES)
 		message(FATAL_ERROR "QuaZip not found. Install via vcpkg (vcpkg install quazip) or set QUAZIP_INCLUDE_DIR/QUAZIP_LIBRARIES.")
