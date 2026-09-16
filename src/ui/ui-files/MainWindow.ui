@@ -443,7 +443,11 @@ from another xma-file</string>
      <addaction name="separator"/>
      <addaction name="actionExport_Undistorted_Trial_images_for_Maya"/>
      <addaction name="actionMayaCams_2_0"/>
+     <!-- MayaCams (v1 format) deliberately removed from the menu (issue #31): the v1
+          standard is obsolete. The action and MainWindow::on_actionMayaCams_triggered
+          remain so it can be restored by re-adding the line below if anyone needs it.
      <addaction name="actionMayaCams"/>
+     -->
      <addaction name="separator"/>
      <addaction name="actionExportAll"/>
      <addaction name="separator"/>

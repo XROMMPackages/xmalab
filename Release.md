@@ -9,6 +9,8 @@ This document tracks all backend and user-facing changes made during the `c++upg
 - **Consistent Dark Mode Styling**: Implemented a global stylesheet application (`MainWindow::applyTheme`) to fix native Windows widget styling bugs and ensure a clean, consistent dark mode experience.
 - **Improved Tracking UI**: Cleaned up the tracking UI to remove confusing and broken epipolar constraint models, and added an explicit checkbox to toggle the experimental 3D volumetric tracking buttons.
 - **Interpolation UX**: Added an explicit "Set Interpolation" button with clear tooltips and a safety warning to guide the user to shift-select a range on the plot before attempting to assign an interpolation method to missing frames.
+- **Volumetric tracking controls** (issue #31): the "Enable Volumetric Tracking" checkbox and its button groups now appear only when the active trial has markers, matching the 2D tracking controls; previously they showed in the toolbox even before any points existed.
+- **MayaCams (v1) export removed from the File > Export menu** (issue #31): the v1 format is obsolete. The action and its code remain and the menu line is left commented in `MainWindow.ui`, so it can be restored if anyone still needs it. MayaCams 2.0 is unaffected.
 
 ## Backend & Tracking Algorithms
 - **Pointer Safety Enhancements**: Migrated unsafe UI pointer-chaining to robust, modernized functional wrappers (`State::getActiveTrialData()` and `Trial::withActiveMarker()`). These use lambdas to ensure bounds checking and prevent null pointer dereferences.

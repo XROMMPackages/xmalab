@@ -2029,6 +2029,8 @@ void MainWindow::on_actionExport_Undistorted_Trial_images_for_Maya_triggered(boo
 	delete fromTo;
 }
 
+// MayaCams v1 export. Not reachable from the menu since issue #31 (the entry is commented
+// out in MainWindow.ui); kept intact so it can be restored if anyone still needs the v1 format.
 void MainWindow::on_actionMayaCams_triggered(bool checked)
 {
 	if (Project::getInstance()->isCalibrated())
