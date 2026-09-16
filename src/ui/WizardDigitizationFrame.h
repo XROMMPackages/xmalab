@@ -61,6 +61,11 @@ namespace xma
 	private:
 		Ui::WizardDigitizationFrame* frame;
 
+		// Volumetric tracking controls follow the same rule as the 2D tracking groups:
+		// shown only when the active trial has markers. The expanded groups additionally
+		// require the enable checkbox to be checked.
+		void setVolumetricControlsVisible(bool markersAvailable);
+
 		bool canUndo;
 		cv::Point2d lastPoint;
 		int lastStatus;

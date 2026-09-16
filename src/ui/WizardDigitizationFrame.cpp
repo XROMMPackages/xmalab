@@ -97,9 +97,7 @@ WizardDigitizationFrame::WizardDigitizationFrame(QWidget* parent) :
 	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameTrialChanged(int)));
 	connect(State::getInstance(), SIGNAL(workspaceChanged(work_state)), this, SLOT(workspaceChanged(work_state)));
 
-	frame->groupBox_VolumetricSelected->hide();
-	frame->groupBox_VolumetricAll->hide();
-	frame->label_VolumetricHint->hide();
+	setVolumetricControlsVisible(false);
 
 	trackID = 0;
 	trackType = 0;
@@ -777,6 +775,7 @@ void WizardDigitizationFrame::setDialog()
 				frame->groupBox_Point->show();
 				frame->groupBox_RB->show();
 				frame->groupBox_Interpolation->show();
+				setVolumetricControlsVisible(true);
 				if (trackDirection == 0)
 				{
 					if (Project::getInstance()->getTrials()[State::getInstance()->getActiveTrial()]->getActiveMarkerIdx() >= 0)
@@ -826,6 +825,7 @@ void WizardDigitizationFrame::setDialog()
 				frame->groupBox_Point->hide();
 				frame->groupBox_RB->hide();
 				frame->groupBox_Interpolation->hide();
+				setVolumetricControlsVisible(false);
 			}
 		}
 		else
@@ -838,6 +838,7 @@ void WizardDigitizationFrame::setDialog()
 			frame->groupBox_Point->hide();
 			frame->groupBox_RB->hide();
 			frame->groupBox_Interpolation->hide();
+			setVolumetricControlsVisible(false);
 		}
 	}
 	else
@@ -849,6 +850,7 @@ void WizardDigitizationFrame::setDialog()
 		frame->groupBox_Point->hide();
 		frame->groupBox_RB->hide();
 		frame->groupBox_Interpolation->hide();
+		setVolumetricControlsVisible(false);
 	}
 }
 
@@ -1061,10 +1063,19 @@ void WizardDigitizationFrame::on_toolButton_PointBack_clicked(bool checked)
 
 void WizardDigitizationFrame::on_checkBox_VolumetricTracking_stateChanged(int state)
 {
-	bool visible = (state == Qt::Checked);
-	frame->groupBox_VolumetricSelected->setVisible(visible);
-	frame->groupBox_VolumetricAll->setVisible(visible);
-	frame->label_VolumetricHint->setVisible(visible);
+	Q_UNUSED(state);
+	// The checkbox is only shown when markers exist, so its hidden state stands in for
+	// "markers available" here; setDialog() re-evaluates the real condition on every change.
+	setVolumetricControlsVisible(!frame->checkBox_VolumetricTracking->isHidden());
+}
+
+void WizardDigitizationFrame::setVolumetricControlsVisible(bool markersAvailable)
+{
+	frame->checkBox_VolumetricTracking->setVisible(markersAvailable);
+	bool expanded = markersAvailable && frame->checkBox_VolumetricTracking->isChecked();
+	frame->groupBox_VolumetricSelected->setVisible(expanded);
+	frame->groupBox_VolumetricAll->setVisible(expanded);
+	frame->label_VolumetricHint->setVisible(expanded);
 }
 
 void WizardDigitizationFrame::on_toolButton_VolumetricSelected_Next_clicked()
