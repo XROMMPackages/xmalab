@@ -19,12 +19,22 @@ This document tracks all backend and user-facing changes made during the `c++upg
 ## Build Infrastructure & Maintenance
 - **Standardized Build Process**: Cleared out outdated legacy build directories and completely standardized the cross-platform CMake build process using `CMakePresets.json`. 
 - **Build Documentation**: Created a comprehensive `BUILD.md` file at the repository root detailing the exact steps to compile XMALab from scratch on Windows using vcpkg.
-- **Versioning**: Incremented software versioning to `3.0.0` across `CMakeLists.txt` and installer scripts (`XMALabInstaller.nsi`).
+- **Versioning**: Incremented software versioning to `3.0.0` across `CMakeLists.txt` and installer scripts (`XMALabInstaller.nsi`). Currently `3.0.0-beta.4`.
 - **macOS bundle metadata**: Added `MACOSX_BUNDLE_BUNDLE_NAME`, `BUNDLE_VERSION`, and `GUI_IDENTIFIER` to `CMakeLists.txt` so the app appears with proper name/version in the macOS menu bar and About dialog.
 - **ESC-tracking crash fix**: Pressing ESC during marker tracking left `disableDraw = true` permanently and frame state inconsistent, causing a crash on next mouse click. Fixed by adding `setDisableDraw(false)` and frame state refresh to `WizardDigitizationFrame::stopTracking()`. Also removed duplicate ESC handler from `Shortcuts::eventFilter` (QShortcut already handles it) and added `disableDraw` guard to `GLCameraView::mousePressEvent`.
 - **AppImage libxkbcommon fix**: Bundled `libxkbcommon` 1.6.0 from Fedora 40 could not parse the host's newer XKB keymap data (`xkeyboard-config`), crashing on any keyboard event. Fixed by excluding libxkbcommon from the AppImage so the host's version is used at runtime.
 - **Camera calibration import/export precision fix**: Fixed precision loss when importing/exporting camera calibration data (`ExternalCalibrationFrame.cpp`). Changed `float`→`double` and `%f`→`%lf` in `fscanf` calls to preserve 64-bit precision. Updated all `precision(12)`→`precision(17)` across 10 files for lossless round-tripping of 64-bit doubles on export.
 
+
+## Video formats (beta.4)
+- **mp4 and mov input**: accepted wherever avi was (camera setup, trials, calibration sequences, undistortion). On Windows decoding goes through OpenCV's Media Foundation backend, so codecs Windows can decode natively (H.264, HEVC) work; others (e.g. ProRes) will not open. Mac and Linux builds use whatever backend their OpenCV was built with.
+- **Extension matching is case-insensitive**: `.MOV`, `.MP4`, `.AVI`, `.CINE` and `.ZIP` are recognised as well as lowercase.
+
+## Version labelling (issue #26)
+The version string, including the beta number, is now consistent everywhere on Windows: main window title and About dialog (`3.0.0 - beta4`), `XMALab.exe` file properties (new `VERSIONINFO` resource generated from `CMakeLists.txt`, flagged pre-release), the installer's own file properties, its file name (`XMALab-v3.0.0-beta4.Windows.x64.Setup.exe`, matching the release asset convention) and the Add/Remove Programs entry. The installer script takes the version from a single `!define VERSION` at its top, which must be kept in step with `PROJECT_VERSION` / `PROJECT_BETA_VERSION` in `CMakeLists.txt` when bumping.
+
+## Volumetric (3D) tracker
+Unchanged from beta.3. A series of changes to it was trialled and reverted before this release after testing against a 2D-tracked reference showed no improvement; that work is preserved on the `backup/tracker-work-beta4` branch.
 
 ## Currently Broken
 - ~~**MacOS (maybe all OS) in 'force close' macos menu, XMALab doesn't have a title** — fixed by adding `MACOSX_BUNDLE_BUNDLE_NAME` and related properties to CMakeLists.txt.~~
