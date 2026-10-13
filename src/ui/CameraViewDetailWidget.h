@@ -69,6 +69,8 @@ namespace xma
 		void activePointChanged(int);
 
 	private:
+		void restoreImageAdjustment();
+
 		Camera* camera;
 
 		Ui::CameraViewDetailWidget* widget;

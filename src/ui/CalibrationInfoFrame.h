@@ -49,7 +49,7 @@ namespace xma
 
 		void update(Camera* camera);
 		void updateFrame(Camera* camera);
-		void reset();
+		void showImageAdjustment(double scale, double bias);
 		
 	public slots:
 		void on_doubleSpinBoxBias_valueChanged(double value);

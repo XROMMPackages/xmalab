@@ -34,6 +34,8 @@
 #include "core/Camera.h"
 #include "ui/DoubleClickReset.h"
 
+#include <QSignalBlocker>
+
 
 using namespace xma;
 
@@ -53,6 +55,7 @@ CameraViewDetailWidget::CameraViewDetailWidget(Camera* _camera, QWidget* parent)
 	DoubleClickReset::install(widget->horizontalSliderScale, resetScale);
 	DoubleClickReset::install(widget->label, resetBias);
 	DoubleClickReset::install(widget->horizontalSliderBias, resetBias);
+	restoreImageAdjustment();
 
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameTrialChanged(int)));
@@ -102,6 +105,7 @@ void CameraViewDetailWidget::on_doubleSpinBoxBias_valueChanged(double value)
 	{
 		widget->horizontalSliderBias->setValue(value * 100);
 		widget->glCameraView->setBias(value);
+		camera->getImageAdjustment(Camera::DetailView).bias = value;
 	}
 }
 
@@ -111,6 +115,7 @@ void CameraViewDetailWidget::on_horizontalSliderBias_valueChanged(int value)
 	{
 		widget->doubleSpinBoxBias->setValue(0.01 * value);
 		widget->glCameraView->setBias(0.01 * value);
+		camera->getImageAdjustment(Camera::DetailView).bias = 0.01 * value;
 	}
 }
 
@@ -120,6 +125,7 @@ void CameraViewDetailWidget::on_doubleSpinBoxScale_valueChanged(double value)
 	{
 		widget->horizontalSliderScale->setValue(value * 100);
 		widget->glCameraView->setScale(value);
+		camera->getImageAdjustment(Camera::DetailView).scale = value;
 	}
 }
 
@@ -129,12 +135,29 @@ void CameraViewDetailWidget::on_horizontalSliderScale_valueChanged(int value)
 	{
 		widget->doubleSpinBoxScale->setValue(0.01 * value);
 		widget->glCameraView->setScale(0.01 * value);
+		camera->getImageAdjustment(Camera::DetailView).scale = 0.01 * value;
 	}
 }
 
 
+void CameraViewDetailWidget::restoreImageAdjustment()
+{
+	const Camera::ImageAdjustment& adj = camera->getImageAdjustment(Camera::DetailView);
+	{
+		const QSignalBlocker b1(widget->doubleSpinBoxScale), b2(widget->horizontalSliderScale),
+			b3(widget->doubleSpinBoxBias), b4(widget->horizontalSliderBias);
+		widget->doubleSpinBoxScale->setValue(adj.scale);
+		widget->horizontalSliderScale->setValue(qRound(adj.scale * 100));
+		widget->doubleSpinBoxBias->setValue(adj.bias);
+		widget->horizontalSliderBias->setValue(qRound(adj.bias * 100));
+	}
+	widget->glCameraView->setScale(adj.scale);
+	widget->glCameraView->setBias(adj.bias);
+}
+
 void CameraViewDetailWidget::workspaceChanged(work_state workspace)
 {
+	restoreImageAdjustment();
 	widget->glCameraView->centerViewToPoint(true);
 	if (m_visible) widget->glCameraView->update();
 }

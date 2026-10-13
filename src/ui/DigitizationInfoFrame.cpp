@@ -35,6 +35,8 @@
 #include "ui/CameraViewWidget.h"
 #include "ui/DoubleClickReset.h"
 
+#include <QSignalBlocker>
+
 using namespace xma;
 
 DigitizationInfoFrame::DigitizationInfoFrame(QWidget* parent) :
@@ -55,17 +57,33 @@ DigitizationInfoFrame::DigitizationInfoFrame(QWidget* parent) :
 
 void DigitizationInfoFrame::reset()
 {
-	frame->horizontalSliderTransparency->setValue(50.0);
 	frame->horizontalSliderBias->setValue(0.0);
 	frame->horizontalSliderScale->setValue(100.0);
-	frame->doubleSpinBoxTransparency->setValue(0.5);
 	frame->doubleSpinBoxBias->setValue(0.0);
 	frame->doubleSpinBoxScale->setValue(1.0);
-	frame->checkBoxTransparentModels->setChecked(true);
 	cameraWidget->setScale(1.0);
 	cameraWidget->setBias(0.0);
+	resetTransparency();
+}
+
+void DigitizationInfoFrame::resetTransparency()
+{
+	frame->horizontalSliderTransparency->setValue(50.0);
+	frame->doubleSpinBoxTransparency->setValue(0.5);
+	frame->checkBoxTransparentModels->setChecked(true);
 	cameraWidget->setTransparency(0.5);
 	cameraWidget->setRenderTransparentModels(true);
+}
+
+void DigitizationInfoFrame::showImageAdjustment(double scale, double bias)
+{
+	// Display only: the caller applies the values to the view
+	const QSignalBlocker b1(frame->doubleSpinBoxScale), b2(frame->horizontalSliderScale),
+		b3(frame->doubleSpinBoxBias), b4(frame->horizontalSliderBias);
+	frame->doubleSpinBoxScale->setValue(scale);
+	frame->horizontalSliderScale->setValue(qRound(scale * 100));
+	frame->doubleSpinBoxBias->setValue(bias);
+	frame->horizontalSliderBias->setValue(qRound(bias * 100));
 }
 
 void DigitizationInfoFrame::setTransparency(double value)

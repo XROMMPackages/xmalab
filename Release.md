@@ -32,7 +32,11 @@ This document tracks all backend and user-facing changes made during the `c++upg
 - **Calibration point IDs** (issue #32): ID/name/error labels are now placed on the crosses being shown. In the projected-point views, projected-only (blue) points get their ID or marker name in blue; in the detected-point views only detected points are labelled. Clicked points during manual calibration now show their IDs (previously drawn off-screen because projected positions are unset until the frame is calibrated). The `calibrationVisPoints_state` enum names were corrected to match the dropdown order.
 - **Scale/bias black image** (issue #33): a negative bias left the GL blend equation on reverse-subtract, so on some drivers the next scale pass subtracted the image from itself and the view went black. The blend equation is now set explicitly for every pass and restored afterwards, using core `glBlendEquation` where available.
 - **Reset scale/bias**: double-click the Scale or Bias label, or its slider, to reset it to the default (1.00 / 0.00), in the detail view, digitization and calibration panels.
+- **Scale/bias saved with the project**: each camera's scale and bias are saved separately for the calibration view, digitization view and detail view, and restored when the project is opened. Switching workspace now restores that workspace's values instead of resetting them. They are stored as optional `<Camera>` attributes (only when not default), which older versions ignore.
 - Volumetric tracking controls and MayaCams v1 export changes (issue #31), listed above.
+
+### Compatibility with older versions
+Projects saved by beta.5 open in older XMALab versions, with one exception: trials, calibration or undistortion sequences using mp4/mov videos, or videos with an upper-case extension (e.g. `.AVI`), will not load there, because older versions only recognise lower-case `.avi` and `.cine`. Convert such videos to avi before opening the project in an older version.
 
 ## Video formats (beta.4)
 - **mp4 and mov input**: accepted wherever avi was (camera setup, trials, calibration sequences, undistortion). On Windows decoding goes through OpenCV's Media Foundation backend, so codecs Windows can decode natively (H.264, HEVC) work; others (e.g. ProRes) will not open. Mac and Linux builds use whatever backend their OpenCV was built with.

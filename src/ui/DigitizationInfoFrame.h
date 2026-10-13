@@ -47,6 +47,8 @@ namespace xma
 		explicit DigitizationInfoFrame(QWidget* parent = nullptr);
 
 		void reset();
+		void resetTransparency();
+		void showImageAdjustment(double scale, double bias);
 		void setTransparency(double value);
 
 	private:

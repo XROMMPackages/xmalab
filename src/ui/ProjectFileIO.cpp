@@ -61,6 +61,9 @@
 
 using namespace xma;
 
+// Camera attribute prefixes for the saved display scale/bias, indexed by Camera::AdjustedView
+static const QString imageAdjustmentNames[Camera::NbAdjustedViews] = { "Calibration", "Digitization", "Detail" };
+
 ProjectFileIO* ProjectFileIO::instance = NULL;
 
 ProjectFileIO::ProjectFileIO()
@@ -1478,6 +1481,12 @@ bool ProjectFileIO::writeProjectFile(QString filename, std::vector<Trial*> trial
 				xmlWriter.writeAttribute("isCalibrated", QString::number((*it)->isCalibrated()));
 				xmlWriter.writeAttribute("isOptimized", QString::number((*it)->isOptimized()));
 				xmlWriter.writeAttribute("isFlipped", QString::number((*it)->isFlipped()));
+				for (int v = 0; v < Camera::NbAdjustedViews; v++)
+				{
+					const Camera::ImageAdjustment& adj = (*it)->getImageAdjustment(Camera::AdjustedView(v));
+					if (adj.scale != 1.0) xmlWriter.writeAttribute(imageAdjustmentNames[v] + "Scale", QString::number(adj.scale));
+					if (adj.bias != 0.0) xmlWriter.writeAttribute(imageAdjustmentNames[v] + "Bias", QString::number(adj.bias));
+				}
 				if ((*it)->isCalibrated())
 				{
 					xmlWriter.writeAttribute("CameraMatrix", (*it)->getName() + QDir::separator() + "data" + QDir::separator() + (*it)->getFilenameCameraMatrix());
@@ -1782,8 +1791,17 @@ bool ProjectFileIO::readProjectFile(QString filename)
 							if (!isFlipped.isEmpty())
 								cam->setFlipped(isFlipped.toInt());
 							
-							if (old_flip_images) 
+							if (old_flip_images)
 								cam->setFlipped(old_flip_images);
+
+							for (int v = 0; v < Camera::NbAdjustedViews; v++)
+							{
+								Camera::ImageAdjustment& adj = cam->getImageAdjustment(Camera::AdjustedView(v));
+								QString scale = attr.value(imageAdjustmentNames[v] + "Scale").toString();
+								if (!scale.isEmpty()) adj.scale = scale.toDouble();
+								QString bias = attr.value(imageAdjustmentNames[v] + "Bias").toString();
+								if (!bias.isEmpty()) adj.bias = bias.toDouble();
+							}
 
 							if (cam->isCalibrated())
 							{

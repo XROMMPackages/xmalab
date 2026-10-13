@@ -37,6 +37,8 @@
 #include "ui/CameraViewWidget.h"
 #include "ui/DoubleClickReset.h"
 
+#include <QSignalBlocker>
+
 using namespace xma;
 
 CalibrationInfoFrame::CalibrationInfoFrame(QWidget* parent) :
@@ -280,14 +282,15 @@ QString CalibrationInfoFrame::getInfoInlier(Camera* camera, int frame)
 	return QString::number(countInlier) + " / " + QString::number(countInlierAll);
 }
 
-void CalibrationInfoFrame::reset()
+void CalibrationInfoFrame::showImageAdjustment(double scale, double bias)
 {
-	frame->horizontalSliderBias->setValue(0.0);
-	frame->horizontalSliderScale->setValue(100.0);
-	frame->doubleSpinBoxBias->setValue(0.0);
-	frame->doubleSpinBoxScale->setValue(1.0);
-	cameraWidget->setScale(1.0);
-	cameraWidget->setBias(0.0);
+	// Display only: the caller applies the values to the view
+	const QSignalBlocker b1(frame->doubleSpinBoxScale), b2(frame->horizontalSliderScale),
+		b3(frame->doubleSpinBoxBias), b4(frame->horizontalSliderBias);
+	frame->doubleSpinBoxScale->setValue(scale);
+	frame->horizontalSliderScale->setValue(qRound(scale * 100));
+	frame->doubleSpinBoxBias->setValue(bias);
+	frame->horizontalSliderBias->setValue(qRound(bias * 100));
 }
 
 void CalibrationInfoFrame::on_doubleSpinBoxBias_valueChanged(double value)

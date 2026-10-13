@@ -97,16 +97,48 @@ void CameraViewWidget::setImageName(const QString& name)
 	widget->imageTitleLabel->setText(cameraName + " - " + name);
 }
 
+// The camera's stored scale/bias for the current workspace. Undistortion has
+// no scale/bias controls, so nothing is stored for it.
+static Camera::ImageAdjustment* activeImageAdjustment(Camera* camera)
+{
+	switch (State::getInstance()->getWorkspace())
+	{
+	case CALIBRATION:
+		return &camera->getImageAdjustment(Camera::CalibrationView);
+	case DIGITIZATION:
+		return &camera->getImageAdjustment(Camera::DigitizationView);
+	default:
+		return nullptr;
+	}
+}
+
 void CameraViewWidget::setBias(double value)
 {
+	if (Camera::ImageAdjustment* adj = activeImageAdjustment(camera)) adj->bias = value;
 	if (widget && widget->glCameraView)
 		widget->glCameraView->setBias(value);
 }
 
 void CameraViewWidget::setScale(double value)
 {
+	if (Camera::ImageAdjustment* adj = activeImageAdjustment(camera)) adj->scale = value;
 	if (widget && widget->glCameraView)
 		widget->glCameraView->setScale(value);
+}
+
+void CameraViewWidget::restoreImageAdjustment()
+{
+	Camera::ImageAdjustment* adj = activeImageAdjustment(camera);
+	double scale = adj ? adj->scale : 1.0;
+	double bias = adj ? adj->bias : 0.0;
+
+	if (State::getInstance()->getWorkspace() == CALIBRATION)
+		calibrationFrame->showImageAdjustment(scale, bias);
+	else if (State::getInstance()->getWorkspace() == DIGITIZATION)
+		digitizationFrame->showImageAdjustment(scale, bias);
+
+	widget->glCameraView->setScale(scale);
+	widget->glCameraView->setBias(bias);
 }
 
 void CameraViewWidget::setTransparency(double value)
@@ -206,9 +238,8 @@ void CameraViewWidget::workspaceChanged(work_state workspace)
 	{
 		undistortionFrame->show();
 		calibrationFrame->hide();
-		calibrationFrame->reset();
 		digitizationFrame->hide();
-		digitizationFrame->reset();
+		digitizationFrame->resetTransparency();
 		widget->frame_calibration->hide();
 		widget->glCameraView->show();
 	}
@@ -216,9 +247,8 @@ void CameraViewWidget::workspaceChanged(work_state workspace)
 	{
 		undistortionFrame->hide();
 		calibrationFrame->show();
-		calibrationFrame->reset();
 		digitizationFrame->hide();
-		digitizationFrame->reset();
+		digitizationFrame->resetTransparency();
 		if (Project::getInstance()->getCalibration() == EXTERNAL){
 			widget->frame_calibration->show();
 			widget->frame_calibration->update();
@@ -234,12 +264,12 @@ void CameraViewWidget::workspaceChanged(work_state workspace)
 	{
 		undistortionFrame->hide();
 		calibrationFrame->hide();
-		calibrationFrame->reset();
 		digitizationFrame->show();
-		digitizationFrame->reset();
+		digitizationFrame->resetTransparency();
 		widget->glCameraView->show();
 		widget->frame_calibration->hide();
 	}
+	restoreImageAdjustment();
 }
 
 void CameraViewWidget::activeFrameCalibrationChanged(int activeFrame)

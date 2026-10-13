@@ -173,7 +173,21 @@ namespace xma
 		{
 			flipped = value;
 		}
-		
+
+		// Display scale/bias the user last set for each view of this camera;
+		// saved with the project so the views reopen as they were left.
+		enum AdjustedView { CalibrationView = 0, DigitizationView = 1, DetailView = 2, NbAdjustedViews = 3 };
+		struct ImageAdjustment
+		{
+			double scale = 1.0;
+			double bias = 0.0;
+		};
+
+		ImageAdjustment& getImageAdjustment(AdjustedView view)
+		{
+			return imageAdjustments[view];
+		}
+
 
 		QString getFilenameCameraMatrix();
 		void saveCameraMatrix(QString filename);
@@ -218,7 +232,8 @@ namespace xma
 		bool updateInfoRequired;
 		bool optimized;
 		bool flipped;
-		
+		ImageAdjustment imageAdjustments[NbAdjustedViews];
+
 		cv::Mat cameramatrix;
 		cv::Mat distortion_coeffs;
 		bool model_distortion;

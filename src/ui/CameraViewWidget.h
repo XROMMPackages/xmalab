@@ -88,6 +88,8 @@ namespace xma
 
 	private:
 
+		void restoreImageAdjustment();
+
 		bool m_visible;
 		UndistortionInfoFrame* undistortionFrame;
 		CalibrationInfoFrame* calibrationFrame;
