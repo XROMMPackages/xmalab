@@ -33,6 +33,7 @@
 #include "core/Camera.h"
 #include "core/UndistortionObject.h"
 #include "core/HelperFunctions.h"
+#include "core/CalibrationObject.h"
 
 #include <QFileInfo>
 #include <fstream>
@@ -320,41 +321,46 @@ void CalibrationImage::draw(int type)
 	}
 }
 
-void CalibrationImage::getDrawTextData(int type, bool distorted, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text, std::vector<bool>& inlier)
+void CalibrationImage::getDrawTextData(int type, bool distorted, bool atProjected, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text, std::vector<int>& inlier)
 {
 	x.clear();
 	y.clear();
 	text.clear();
 	inlier.clear();
-	if (Inlier.size() == projectedPoints.size() &&
-		Inlier.size() == projectedPointsUndistorted.size())
+
+	const std::vector<cv::Point2d>& projected = distorted ? projectedPoints : projectedPointsUndistorted;
+	const std::vector<cv::Point2d>& detected = distorted ? detectedPoints : detectedPointsUndistorted;
+	const std::vector<double>& err = distorted ? error : errorUndistorted;
+
+	if (Inlier.size() != projected.size() || Inlier.size() != detected.size())
+		return;
+
+	for (unsigned int i = 0; i < Inlier.size(); i++)
 	{
-		for (unsigned int i = 0; i < Inlier.size(); i++)
+		// Label the cross that is drawn. Projected positions are unset until the frame
+		// is calibrated, so fall back to the detected (clicked) position in that case.
+		if (!atProjected && Inlier[i] < 0) continue; // not drawn in detected views
+		const cv::Point2d unset(-1, -1);
+		cv::Point2d pt = atProjected ? projected[i] : detected[i];
+		if (pt == unset && atProjected) pt = detected[i];
+		if (pt == unset) continue;
+
+		x.push_back(pt.x);
+		y.push_back(pt.y);
+		inlier.push_back(Inlier[i]);
+
+		if (type == 2 || type == 3)
 		{
-			if (Inlier[i] == 1)
-			{
-				inlier.push_back(true);
-			}
-			else
-			{
-				inlier.push_back(false);
-				if (Inlier[i] < 0) text.push_back("");
-			}
-
-			if (distorted)
-			{
-				x.push_back(projectedPoints[i].x);
-				y.push_back(projectedPoints[i].y);
-				if (type >= 2 && Inlier[i] >= 0) text.push_back(QString::number(error[i], 'f', 2));
-			}
-			else
-			{
-				x.push_back(projectedPointsUndistorted[i].x);
-				y.push_back(projectedPointsUndistorted[i].y);
-				if (type >= 2 && Inlier[i] >= 0) text.push_back(QString::number(errorUndistorted[i], 'f', 2));
-			}
-
-			if (type == 1 && Inlier[i] >= 0) text.push_back(QString::number(i + 1));
+			// Projected-only points have no error
+			text.push_back((Inlier[i] >= 0 && i < err.size()) ? QString::number(err[i], 'f', 2) : QString());
+		}
+		else if (type == 4 && i < CalibrationObject::getInstance()->getMarkerNames().size())
+		{
+			text.push_back(CalibrationObject::getInstance()->getMarkerNames()[i]);
+		}
+		else
+		{
+			text.push_back(QString::number(i + 1));
 		}
 	}
 }

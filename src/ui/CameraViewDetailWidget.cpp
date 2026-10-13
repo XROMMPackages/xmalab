@@ -32,6 +32,7 @@
 #include "ui_CameraViewDetailWidget.h"
 #include "ui/PointsDockWidget.h"
 #include "core/Camera.h"
+#include "ui/DoubleClickReset.h"
 
 
 using namespace xma;
@@ -45,6 +46,13 @@ CameraViewDetailWidget::CameraViewDetailWidget(Camera* _camera, QWidget* parent)
 	widget->setupUi(this);
 	widget->glCameraView->setCamera(camera);
 	widget->glCameraView->setDetailedView();
+
+	auto resetScale = [this]() { widget->doubleSpinBoxScale->setValue(1.0); };
+	auto resetBias = [this]() { widget->doubleSpinBoxBias->setValue(0.0); };
+	DoubleClickReset::install(widget->label_3, resetScale);
+	DoubleClickReset::install(widget->horizontalSliderScale, resetScale);
+	DoubleClickReset::install(widget->label, resetBias);
+	DoubleClickReset::install(widget->horizontalSliderBias, resetBias);
 
 	connect(State::getInstance(), SIGNAL(activeTrialChanged(int)), this, SLOT(activeTrialChanged(int)));
 	connect(State::getInstance(), SIGNAL(activeFrameTrialChanged(int)), this, SLOT(activeFrameTrialChanged(int)));

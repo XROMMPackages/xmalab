@@ -3,8 +3,8 @@
 
 ; Single source of truth for the version shown by the installer. Keep in step with
 ; PROJECT_VERSION / PROJECT_BETA_VERSION in CMakeLists.txt and the release tag.
-!define VERSION "3.0.0-beta4"
-!define VERSION_NUMERIC "3.0.0.4" ; major.minor.patch.beta, required X.X.X.X form
+!define VERSION "3.0.0-beta5"
+!define VERSION_NUMERIC "3.0.0.5" ; major.minor.patch.beta, required X.X.X.X form
 
 OutFile "XMALab-v${VERSION}.Windows.x64.Setup.exe"
 

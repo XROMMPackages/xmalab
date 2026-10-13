@@ -33,6 +33,7 @@
 
 #include "core/Camera.h"
 #include "ui/CameraViewWidget.h"
+#include "ui/DoubleClickReset.h"
 
 using namespace xma;
 
@@ -43,6 +44,13 @@ DigitizationInfoFrame::DigitizationInfoFrame(QWidget* parent) :
 
 	frame->setupUi(this);
 	cameraWidget = qobject_cast<CameraViewWidget*>(parent);
+
+	auto resetScale = [this]() { frame->doubleSpinBoxScale->setValue(1.0); };
+	auto resetBias = [this]() { frame->doubleSpinBoxBias->setValue(0.0); };
+	DoubleClickReset::install(frame->label_3, resetScale);
+	DoubleClickReset::install(frame->horizontalSliderScale, resetScale);
+	DoubleClickReset::install(frame->label, resetBias);
+	DoubleClickReset::install(frame->horizontalSliderBias, resetBias);
 }
 
 void DigitizationInfoFrame::reset()

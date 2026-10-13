@@ -21,12 +21,18 @@ This document tracks all backend and user-facing changes made during the `c++upg
 ## Build Infrastructure & Maintenance
 - **Standardized Build Process**: Cleared out outdated legacy build directories and completely standardized the cross-platform CMake build process using `CMakePresets.json`. 
 - **Build Documentation**: Created a comprehensive `BUILD.md` file at the repository root detailing the exact steps to compile XMALab from scratch on Windows using vcpkg.
-- **Versioning**: Incremented software versioning to `3.0.0` across `CMakeLists.txt` and installer scripts (`XMALabInstaller.nsi`). Currently `3.0.0-beta.4`.
+- **Versioning**: Incremented software versioning to `3.0.0` across `CMakeLists.txt` and installer scripts (`XMALabInstaller.nsi`). Currently `3.0.0-beta.5`.
 - **macOS bundle metadata**: Added `MACOSX_BUNDLE_BUNDLE_NAME`, `BUNDLE_VERSION`, and `GUI_IDENTIFIER` to `CMakeLists.txt` so the app appears with proper name/version in the macOS menu bar and About dialog.
 - **ESC-tracking crash fix**: Pressing ESC during marker tracking left `disableDraw = true` permanently and frame state inconsistent, causing a crash on next mouse click. Fixed by adding `setDisableDraw(false)` and frame state refresh to `WizardDigitizationFrame::stopTracking()`. Also removed duplicate ESC handler from `Shortcuts::eventFilter` (QShortcut already handles it) and added `disableDraw` guard to `GLCameraView::mousePressEvent`.
 - **AppImage libxkbcommon fix**: Bundled `libxkbcommon` 1.6.0 from Fedora 40 could not parse the host's newer XKB keymap data (`xkeyboard-config`), crashing on any keyboard event. Fixed by excluding libxkbcommon from the AppImage so the host's version is used at runtime.
 - **Camera calibration import/export precision fix**: Fixed precision loss when importing/exporting camera calibration data (`ExternalCalibrationFrame.cpp`). Changed `float`→`double` and `%f`→`%lf` in `fscanf` calls to preserve 64-bit precision. Updated all `precision(12)`→`precision(17)` across 10 files for lossless round-tripping of 64-bit doubles on export.
 
+
+## Fixes and tweaks (beta.5)
+- **Calibration point IDs** (issue #32): ID/name/error labels are now placed on the crosses being shown. In the projected-point views, projected-only (blue) points get their ID or marker name in blue; in the detected-point views only detected points are labelled. Clicked points during manual calibration now show their IDs (previously drawn off-screen because projected positions are unset until the frame is calibrated). The `calibrationVisPoints_state` enum names were corrected to match the dropdown order.
+- **Scale/bias black image** (issue #33): a negative bias left the GL blend equation on reverse-subtract, so on some drivers the next scale pass subtracted the image from itself and the view went black. The blend equation is now set explicitly for every pass and restored afterwards, using core `glBlendEquation` where available.
+- **Reset scale/bias**: double-click the Scale or Bias label, or its slider, to reset it to the default (1.00 / 0.00), in the detail view, digitization and calibration panels.
+- Volumetric tracking controls and MayaCams v1 export changes (issue #31), listed above.
 
 ## Video formats (beta.4)
 - **mp4 and mov input**: accepted wherever avi was (camera setup, trials, calibration sequences, undistortion). On Windows decoding goes through OpenCV's Media Foundation backend, so codecs Windows can decode natively (H.264, HEVC) work; others (e.g. ProRes) will not open. Mac and Linux builds use whatever backend their OpenCV was built with.

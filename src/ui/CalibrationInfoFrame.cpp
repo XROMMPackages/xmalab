@@ -35,6 +35,7 @@
 #include "core/Camera.h"
 #include "core/CalibrationImage.h"
 #include "ui/CameraViewWidget.h"
+#include "ui/DoubleClickReset.h"
 
 using namespace xma;
 
@@ -44,6 +45,13 @@ CalibrationInfoFrame::CalibrationInfoFrame(QWidget* parent) :
 {
 	frame->setupUi(this);
 	cameraWidget = qobject_cast<CameraViewWidget*>(parent);
+
+	auto resetScale = [this]() { frame->doubleSpinBoxScale->setValue(1.0); };
+	auto resetBias = [this]() { frame->doubleSpinBoxBias->setValue(0.0); };
+	DoubleClickReset::install(frame->label_4, resetScale);
+	DoubleClickReset::install(frame->horizontalSliderScale, resetScale);
+	DoubleClickReset::install(frame->label_13, resetBias);
+	DoubleClickReset::install(frame->horizontalSliderBias, resetBias);
 }
 
 CalibrationInfoFrame::~CalibrationInfoFrame()

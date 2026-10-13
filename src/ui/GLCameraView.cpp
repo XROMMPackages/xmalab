@@ -549,28 +549,29 @@ void GLCameraView::renderPointText(bool calibration)
 	std::vector<QString> text;
 	if (calibration)
 	{
-		std::vector<bool> inlier;
+		std::vector<int> inlier;
+		calibrationVisText_state textType = ((!camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() == 1)
+			&& WizardDockWidget::getInstance()->manualCalibrationRunning()) ? IDCALIBTEXT : State::getInstance()->getCalibrationVisText();
+		calibrationVisPoints_state visPoints = State::getInstance()->getCalibrationVisPoints();
+		bool atProjected = visPoints == PROJCUBEDISTORTEDCALIBPOINTS || visPoints == PROJCUBEUNDISTORTEDCALIBPOINTS;
 		camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->getDrawTextData(
-			((!camera->getCalibrationImages()[State::getInstance()->getActiveFrameCalibration()]->isCalibrated() == 1)
-				&& WizardDockWidget::getInstance()->manualCalibrationRunning()) ? IDCALIBTEXT : State::getInstance()->getCalibrationVisText(), State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE, x, y, text, inlier);
+			textType, State::getInstance()->getCalibrationVisImage() == DISTORTEDCALIBIMAGE, atProjected, x, y, text, inlier);
 		setFont(QFont(this->font().family(), 15.0));
 		QFontMetrics fm(this->font());
 
-		if (State::getInstance()->getCalibrationVisText() == 4) {
-			for (unsigned int i = 0; i < x.size(); i++)
-			{
-				text[i] = CalibrationObject::getInstance()->getMarkerNames()[i];
-			}
-		}
-
-		if (State::getInstance()->getCalibrationVisText() != 3)
+		if (textType != ERRORCOLORCALIBTEXT)
 		{
 			for (unsigned int i = 0; i < x.size(); i++)
 			{
+				// Match the cross colours: green inlier, red outlier, blue projected-only
 				QColor color;
-				if (inlier[i])
+				if (inlier[i] == 1)
 				{
 					color =  QColor(0, 255, 0);
+				}
+				else if (inlier[i] < 0)
+				{
+					color = QColor(80, 140, 255);
 				}
 				else
 				{
@@ -586,8 +587,10 @@ void GLCameraView::renderPointText(bool calibration)
 			{
 				if (text[i].toDouble() > max) max = text[i].toDouble();
 			}
+			if (max <= 0) max = 1;
 			for (unsigned int i = 0; i < x.size(); i++)
 			{
+				if (text[i].isEmpty()) continue;
 				double val = text[i].toDouble();
 				renderText(x[i] + 3, y[i], 0.0, text[i], QColor(255.0 * val / max, 255.0 * (1.0 - val / max), 0));
 			}
@@ -868,16 +871,22 @@ void GLCameraView::paintGL()
 		partial scaling or biasing results leave the 0.0 to
 		1.0 range (example, scale=5.47, bias=-1.2). */
 
+		/* Always set the blend equation explicitly and restore it afterwards.
+		Leaving it on REVERSE_SUBTRACT after a negative bias made the next
+		scale pass subtract the image from itself (black image, issue #33). */
+		auto setBlendEquation = [](GLenum mode)
+		{
+			if (glBlendEquation) glBlendEquation(mode);
+			else glBlendEquationEXT(mode);
+		};
+
 		glEnable(GL_BLEND);
 		if (scale > 1.0)
 		{
 			float remainingScale;
 
 			remainingScale = scale;
-			if (GLSharedWidget::getInstance()->getHasBlendExt())
-			{
-				glBlendEquationEXT(GL_FUNC_ADD_EXT);
-			}
+			setBlendEquation(GL_FUNC_ADD);
 			glBlendFunc(GL_DST_COLOR, GL_ONE);
 			if (remainingScale > 2.0)
 			{
@@ -902,10 +911,7 @@ void GLCameraView::paintGL()
 				}
 				else
 				{
-					if (GLSharedWidget::getInstance()->getHasBlendSubtract())
-					{
-						glBlendEquationEXT(GL_FUNC_REVERSE_SUBTRACT_EXT);
-					}
+					setBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
 					glColor4f(-bias, -bias, -bias, 0.0);
 				}
 				drawQuad();
@@ -913,25 +919,20 @@ void GLCameraView::paintGL()
 		}
 		else
 		{
-			if (bias > 0)
+			if (bias >= 0)
 			{
-				if (GLSharedWidget::getInstance()->getHasBlendExt())
-				{
-					glBlendEquationEXT(GL_FUNC_ADD_EXT);
-				}
+				setBlendEquation(GL_FUNC_ADD);
 				glColor4f(bias, bias, bias, scale);
 			}
 			else
 			{
-				if (GLSharedWidget::getInstance()->getHasBlendSubtract())
-				{
-					glBlendEquationEXT(GL_FUNC_REVERSE_SUBTRACT_EXT);
-				}
+				setBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
 				glColor4f(-bias, -bias, -bias, scale);
 			}
 			glBlendFunc(GL_ONE, GL_SRC_ALPHA);
 			drawQuad();
 		}
+		setBlendEquation(GL_FUNC_ADD);
 		glDisable(GL_BLEND);
 	}
 	if (State::getInstance()->getWorkspace() == UNDISTORTION)

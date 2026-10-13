@@ -100,7 +100,8 @@ void GLSharedWidget::initializeGL()
 	QString version_string = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_VERSION)), 3);
 	version = version_string.toDouble();
 
-	hasBlendSubtract = glewGetExtension("GL_EXT_blend_subtract");
+	// glBlendEquation is core since GL 1.4, so drivers may not advertise the old extension
+	hasBlendSubtract = glewGetExtension("GL_EXT_blend_subtract") || glBlendEquation != nullptr;
 	hasBlendExt = glewGetExtension("GL_EXT_blend_minmax");
 }
 

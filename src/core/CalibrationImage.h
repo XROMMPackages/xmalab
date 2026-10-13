@@ -122,7 +122,7 @@ namespace xma
 		cv::Mat getTranslationVector();
 
 		void draw(int type);
-		void getDrawTextData(int type, bool distorted, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text, std::vector<bool>& inlier);
+		void getDrawTextData(int type, bool distorted, bool atProjected, std::vector<double>& x, std::vector<double>& y, std::vector<QString>& text, std::vector<int>& inlier);
 		void bindTexture(int type);
 
 		cv::Mat getTransformationMatrix();
