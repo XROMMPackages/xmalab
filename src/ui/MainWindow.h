@@ -97,6 +97,7 @@ namespace xma
 		void newTrial();
 		void checkTrialImagePaths();
 		void setCameraViewWidgetTitles();
+		void updateWindowTitle(bool showProjectName);
 
 		QFutureWatcher<int>* m_FutureWatcher;
 		NewProjectDialog* newProjectdialog;

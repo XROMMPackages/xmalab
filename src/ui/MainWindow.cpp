@@ -280,11 +280,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->actionLock_UI_Panes->setChecked(Settings::getInstance()->getBoolSetting("LockUIPanes"));
 
 	Shortcuts::getInstance()->bindApplicationShortcuts();
-#ifndef PROJECT_BETA_VERSION
-	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
-#else 
-	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - beta" PROJECT_BETA_VERSION);
-#endif
+	updateWindowTitle(false);
 
 	if (Settings::getInstance()->getQStringSetting("WelcomeDialog") < PROJECT_VERSION)
 	{
@@ -737,11 +733,7 @@ void MainWindow::newProjectFromXMALab(QString filename)
 		project = NULL;
 	}
 
-#ifndef PROJECT_BETA_VERSION
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
-#else 
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - beta" PROJECT_BETA_VERSION);
-#endif
+	updateWindowTitle(true);
 }
 
 void MainWindow::loadProject()
@@ -843,11 +835,7 @@ void MainWindow::loadProjectFinished()
 			UndistortionAfterloadProjectFinished();
 		}
 
-#ifndef PROJECT_BETA_VERSION
-		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
-#else 
-		this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION " - beta" + PROJECT_BETA_VERSION);
-#endif
+		updateWindowTitle(true);
 	}
 	else if (m_FutureWatcher->result() == 1)
 	{
@@ -955,11 +943,7 @@ void MainWindow::closeProject()
 	PlotWindow::getInstance()->hide();
 	EventDockWidget::getInstance()->hide();
 
-#ifndef PROJECT_BETA_VERSION
-	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION));
-#else 
-	this->setWindowTitle("XMALab " + QString(PROJECT_VERSION) + " - beta" + PROJECT_BETA_VERSION);
-#endif
+	updateWindowTitle(false);
 
 	ConsoleDockWidget::getInstance()->clear();
 
@@ -1241,11 +1225,7 @@ void MainWindow::saveProjectFinished()
 	ProgressDialog::getInstance()->closeProgressbar();
 
 
-#ifndef PROJECT_BETA_VERSION
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION);
-#else 
-	this->setWindowTitle(Project::getInstance()->getProjectBasename() + " - XMALab " + PROJECT_VERSION + " - beta" + PROJECT_BETA_VERSION);
-#endif
+	updateWindowTitle(true);
 }
 
 void MainWindow::redrawGL()
@@ -1286,6 +1266,17 @@ void MainWindow::setCameraVisible(int idx, bool visible)
 {
 	cameraViews[idx]->setIsVisible(visible);
 	DetailViewDockWidget::getInstance()->setCameraVisible(idx, visible);
+}
+
+void MainWindow::updateWindowTitle(bool showProjectName)
+{
+	QString title = "XMALab " + QString(PROJECT_VERSION);
+#ifdef PROJECT_BETA_VERSION
+	title += " - beta" + QString(PROJECT_BETA_VERSION);
+#endif
+	if (showProjectName)
+		title = Project::getInstance()->getProjectBasename() + " - " + title;
+	setWindowTitle(title);
 }
 
 void MainWindow::setCameraViewWidgetTitles()
