@@ -93,6 +93,12 @@ Settings::Settings()
 	addBoolSetting("ShowEpiLineDetailView", true);
 	addIntSetting("TriangulationMethod", 1);
 	addFloatSetting("MaximumReprojectionError", 5.0);
+	// Merge-aware tracking (see docs/merge-aware-tracking-design.md); all in pixels
+	addFloatSetting("MergeEpipolarThreshold", 3.0);
+	addFloatSetting("MergeAuditThreshold", 4.0);
+	addIntSetting("MergeMaxPendingFrames", 10);
+	addIntSetting("MergeMaxHoldFrames", 10);
+	addIntSetting("MergeMaxOverlapFrames", 20);
 	addBoolSetting("RetrackOptimizedTrackedPoints", true);
 	addBoolSetting("TrackInterpolatedPoints", true);
 	addBoolSetting("OptimizeRigidBody", true);
@@ -110,6 +116,7 @@ Settings::Settings()
 	addQStringSetting("ColorTracked", QColor::fromRgb(0, 100, 200).name());
 	addQStringSetting("ColorTrackedAndOpt", QColor::fromRgb(0, 128, 255).name());
 	addQStringSetting("ColorUndefined", QColor::fromRgb(210, 210, 210).name());
+	addQStringSetting("ColorPredicted", QColor::fromRgb(255, 140, 0).name());
 
 	addQStringSetting("ColorInterNone", QColor::fromRgb(255, 255, 255).name());
 	addQStringSetting("ColorInterRepeat", QColor::fromRgb(230 ,128, 128).name());

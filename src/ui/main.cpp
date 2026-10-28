@@ -29,6 +29,7 @@
 #endif
 
 #include "ui/MainWindow.h"
+#include "ui/MergeTestDriver.h"
 #include "ui/ErrorDialog.h"
 
 #include "core/Settings.h"
@@ -43,6 +44,7 @@
 #endif
 
 #include <iostream>
+#include <cstdlib>
 #include <opencv2/opencv.hpp>
 
 #if (_MSC_VER >= 1915)
@@ -138,6 +140,16 @@ int main(int argc, char** argv)
 
 	Settings::getInstance();
 	MainWindow* widget = MainWindow::getInstance();
+	if (argc >= 6 && QString(argv[1]) == "--merge-test")
+	{
+		// XMALab --merge-test project.xma startFrame endFrame output.xma   (0-based frames)
+		qputenv("XMALAB_MERGE_DEBUG", "1");
+		QString projectFile = QString::fromLocal8Bit(argv[2]);
+		widget->showAndLoad(projectFile);
+		bool plain2D = (argc >= 7 && QString(argv[6]) == "2d");
+		new MergeTestDriver(projectFile, atoi(argv[3]), atoi(argv[4]), QString::fromLocal8Bit(argv[5]), plain2D, widget);
+		return app.exec();
+	}
 	if (argc > 1)
 	{
 		widget->showAndLoad(argv[1]);

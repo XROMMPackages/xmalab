@@ -1493,7 +1493,7 @@ QColor Marker::getStatusColor(int camera, int frame)
 		case UNDEFINED:
 			return QColor(Settings::getInstance()->getQStringSetting("ColorUndefined"));
 		case PREDICTED:
-			return QColor(Settings::getInstance()->getQStringSetting("ColorUndefined"));
+			return QColor(Settings::getInstance()->getQStringSetting("ColorPredicted"));
 		case INTERPOLATED:
 			return QColor(Settings::getInstance()->getQStringSetting("ColorInterpolated"));
 		case TRACKED:
@@ -1922,3 +1922,60 @@ void Marker::addFrame()
 	interpolation.push_back(NONE);
 }
 
+double Marker::getSize(int camera, int frame)
+{
+	if (camera < 0 || camera >= (int)markerSize.size()) return -1;
+	if (frame < 0 || frame >= (int)markerSize[camera].size()) return -1;
+	return markerSize[camera][frame];
+}
+
+bool Marker::getEpipolarLineUndistorted(int cameraOrigin, int cameraDestination, cv::Point2d pt_origin, cv::Vec3d& line)
+{
+	if (Project::getInstance()->getCalibration() == NO_CALIBRATION)
+		return false;
+
+	cv::Mat tmp = (cv::Mat_<double>(1, 4) << 0, 0, 0, 1.0);
+	cv::Mat proj1;
+	cv::Mat proj2;
+	cv::vconcat(Project::getInstance()->getCameras()[cameraOrigin]->getProjectionMatrix(trial->getReferenceCalibrationImage()), tmp, proj1);
+	cv::vconcat(Project::getInstance()->getCameras()[cameraDestination]->getProjectionMatrix(trial->getReferenceCalibrationImage()), tmp, proj2);
+	cv::Mat proj = proj2 * proj1.inv();
+
+	cv::Point2d u = Project::getInstance()->getCameras()[cameraOrigin]->undistortPoint(pt_origin, true);
+
+	cv::Mat in = (cv::Mat_<double>(4, 1) << u.x, u.y, 1, 1);
+	cv::Mat out = proj * in;
+	if (std::abs(out.at<double>(2, 0)) < 1e-12) return false;
+	cv::Point2d p1(out.at<double>(0, 0) / out.at<double>(2, 0), out.at<double>(1, 0) / out.at<double>(2, 0));
+
+	in = (cv::Mat_<double>(4, 1) << 100 * u.x, 100 * u.y, 100, 1);
+	out = proj * in;
+	if (std::abs(out.at<double>(2, 0)) < 1e-12) return false;
+	cv::Point2d p2(out.at<double>(0, 0) / out.at<double>(2, 0), out.at<double>(1, 0) / out.at<double>(2, 0));
+
+	double a = p1.y - p2.y;
+	double b = p2.x - p1.x;
+	double c = p1.x * p2.y - p2.x * p1.y;
+	double n = std::sqrt(a * a + b * b);
+	if (n < 1e-12) return false;
+	line = cv::Vec3d(a / n, b / n, c / n);
+	return true;
+}
+
+double Marker::distanceToEpipolarLine(int cameraOrigin, int cameraDestination, cv::Point2d pt_origin, cv::Point2d pt_destination)
+{
+	cv::Vec3d l;
+	if (!getEpipolarLineUndistorted(cameraOrigin, cameraDestination, pt_origin, l)) return -1.0;
+	cv::Point2d u = Project::getInstance()->getCameras()[cameraDestination]->undistortPoint(pt_destination, true);
+	return std::abs(l[0] * u.x + l[1] * u.y + l[2]);
+}
+
+cv::Point2d Marker::projectOntoEpipolarLine(int cameraOrigin, int cameraDestination, cv::Point2d pt_origin, cv::Point2d pt_destination)
+{
+	cv::Vec3d l;
+	if (!getEpipolarLineUndistorted(cameraOrigin, cameraDestination, pt_origin, l)) return pt_destination;
+	cv::Point2d u = Project::getInstance()->getCameras()[cameraDestination]->undistortPoint(pt_destination, true);
+	double d = l[0] * u.x + l[1] * u.y + l[2];
+	cv::Point2d foot(u.x - d * l[0], u.y - d * l[1]);
+	return Project::getInstance()->getCameras()[cameraDestination]->undistortPoint(foot, false);
+}

@@ -140,6 +140,9 @@ namespace xma
 		bool allReferenceMarkerReferencesSet();
 
 		bool transformPoint(cv::Point3d in, cv::Point3d& out, int frame, bool filtered = false);
+		// Predict a member marker's 3D position at `frame` from the pose fitted to the body's other markers
+		// (excluding `excludeMarkers`). Needs at least three usable markers; `nbUsed` reports how many were used.
+		bool predictMarkerPosition(int markerIdx, int frame, const std::vector<int>& excludeMarkers, cv::Point3d& out, int* nbUsed = nullptr);
 
 		bool addMeshModel(QString filename);
 		bool hasMeshModel();
@@ -166,6 +169,7 @@ namespace xma
 		void filterData(std::vector<int> idx);
 
 		void updateError(int Frame, bool filtered = false);
+		static bool fitRigidTransform(const std::vector<cv::Point3d>& src, const std::vector<cv::Point3d>& dst, cv::Vec3d& rotVec, cv::Vec3d& transVec);
 
 		bool visible;
 		QColor color;

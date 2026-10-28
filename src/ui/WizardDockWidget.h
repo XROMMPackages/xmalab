@@ -63,6 +63,10 @@ namespace xma
 		void stop();
 		void undoLastPoint();
 		void trackPointsShortcut(bool direction, bool selected, bool continous);
+		WizardDigitizationFrame* getDigitizationFrame()
+		{
+			return digitizationFrame;
+		}
 
 	private:
 		Ui::WizardDockWidget* dock;

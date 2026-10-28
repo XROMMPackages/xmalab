@@ -103,6 +103,10 @@ void StatusColorDialog::updateColors()
 	QPixmap pix13(16, 16);
 	pix13.fill(QColor(Settings::getInstance()->getQStringSetting("ColorUntrackable")));
 	diag->toolButton_Untrackable->setIcon(pix13);
+
+	QPixmap pix14(16, 16);
+	pix14.fill(QColor(Settings::getInstance()->getQStringSetting("ColorPredicted")));
+	diag->toolButton_Predicted->setIcon(pix14);
 }
 
 void StatusColorDialog::setColor(QString name)
@@ -162,6 +166,11 @@ void StatusColorDialog::on_toolButton_TrackedAndOpt_clicked()
 void StatusColorDialog::on_toolButton_Undefined_clicked()
 {
 	setColor("ColorUndefined");
+}
+
+void StatusColorDialog::on_toolButton_Predicted_clicked()
+{
+	setColor("ColorPredicted");
 }
 
 void StatusColorDialog::on_toolButton_InterNone_clicked()

@@ -122,7 +122,7 @@ namespace
 int MarkerTracking::nbInstances = 0;
 
 MarkerTracking::MarkerTracking(int camera, int trial, int frame_from, int frame_to, int marker, bool forward) : QObject(),
-m_camera(camera), m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to), m_marker(marker), m_forward(forward)
+m_camera(camera), m_trial(trial), m_frame_from(frame_from), m_frame_to(frame_to), m_marker(marker), m_forward(forward), m_hasOverride(false), m_overrideX(0.0), m_overrideY(0.0)
 {
     nbInstances++;
     ensureOpenClInitialized();
@@ -161,6 +161,12 @@ void MarkerTracking::trackMarker_thread()
     int used_size = size + searchArea + 3;
 
     int prediction = Project::getInstance()->getTrials()[m_trial]->getMarkers()[m_marker]->getMarkerPrediction(m_camera, m_frame_to, x_to, y_to, m_forward);
+    if (m_hasOverride)
+    {
+        x_to = m_overrideX;
+        y_to = m_overrideY;
+        prediction = 1;
+    }
 
     if (prediction <= 1) maxPenalty /= 3;
 

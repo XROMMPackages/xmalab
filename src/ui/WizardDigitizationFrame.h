@@ -30,6 +30,7 @@
 #include <QFrame>
 #include "ui/State.h"
 #include "opencv2/opencv.hpp"
+#include <vector>
 
 
 namespace Ui
@@ -58,6 +59,13 @@ namespace xma
 		void trackPointsShortcut(bool direction, bool selected, bool continous);
 		void goToLastTrackedFrame();
 		void goToFirstTrackedFrame();
+		// Programmatic entry to merge-aware tracking (used by the --merge-test driver).
+		void startMergeTracking(bool allMarkers, bool forward);
+		void startPlainTracking(bool forward);   // plain 2D track-all, for baselines
+		bool isTracking() const
+		{
+			return trackDirection != 0;
+		}
 	private:
 		Ui::WizardDigitizationFrame* frame;
 
@@ -78,11 +86,11 @@ namespace xma
 		//bool isTracking;
 
 		void trackSinglePoint();
-		void trackSinglePoint3D();
 		void trackRB();
-		void trackRB3D();
 		void trackAll();
-		void trackAll3D();
+		// Merge-aware tracking: 2D tracking of the selected (or all) markers followed by MergeMonitor.
+		void trackMerge(bool allMarkers);
+		std::vector<int> mergeMarkers;
 
 		void uncheckTrackButtons();
 
@@ -128,6 +136,8 @@ namespace xma
 		void trackSinglePointFinished();
 		void trackRBFinished();
 		void trackAllFinished();
+		void trackMergeFinished();
+		void checkIfValidMerge();
 
 		void checkIfValid();
 		void track();

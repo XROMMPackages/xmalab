@@ -42,6 +42,13 @@ namespace xma
 		MarkerTracking(int camera, int trial, int frame_from, int frame_to, int marker, bool forward);
 		virtual ~MarkerTracking();
 		void trackMarker();
+		// Use this position as the search centre instead of extrapolating from earlier frames.
+		void setPredictionOverride(double x, double y)
+		{
+			m_hasOverride = true;
+			m_overrideX = x;
+			m_overrideY = y;
+		}
 
 		static bool isRunning()
 		{
@@ -65,6 +72,9 @@ namespace xma
 		int m_trial;
 		int m_marker;
 		bool m_forward;
+		bool m_hasOverride;
+		double m_overrideX;
+		double m_overrideY;
 
 		double x_from;
 		double y_from;

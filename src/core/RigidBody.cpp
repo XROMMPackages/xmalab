@@ -43,6 +43,7 @@
 #include "processing/RigidBodyPoseFrom2D.h"
 
 #include <fstream>
+#include <algorithm>
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
@@ -976,6 +977,91 @@ void RigidBody::computeCoordinateSystem(int Frame)
 }
 
 
+bool RigidBody::fitRigidTransform(const std::vector<cv::Point3d>& src, const std::vector<cv::Point3d>& dst, cv::Vec3d& rotVec, cv::Vec3d& transVec)
+{
+	if (src.size() < 3 || src.size() != dst.size()) return false;
+	std::vector<std::vector<double> > y, x;
+	std::vector<std::vector<double> > Y, X;
+	std::vector<double> vnl_tmp(3), yg(3, 0), xg(3, 0);
+	std::vector<double> tmp;
+	cv::Mat K = cv::Mat::zeros(3, 3, CV_64F);
+
+	//set Data
+	for (unsigned int i = 0; i < src.size(); i++)
+	{
+		vnl_tmp[0] = src[i].x;
+		vnl_tmp[1] = src[i].y;
+		vnl_tmp[2] = src[i].z;
+		X.push_back(vnl_tmp);
+
+		vnl_tmp[0] = dst[i].x;
+		vnl_tmp[1] = dst[i].y;
+		vnl_tmp[2] = dst[i].z;
+		Y.push_back(vnl_tmp);
+	}
+	// Compute the new coordinates of the 3D points
+	// relative to each coordinate frame
+	for (unsigned int i = 0; i < X.size(); i++)
+	{
+		vnl_tmp = X[i];
+		for (int m = 0; m < 3; m++)xg[m] = xg[m] + vnl_tmp[m];
+		x.push_back(vnl_tmp);
+
+		vnl_tmp = Y[i];
+		for (int m = 0; m < 3; m++)yg[m] = yg[m] + vnl_tmp[m];
+		y.push_back(vnl_tmp);
+	}
+	// Compute the gravity center
+	for (int m = 0; m < 3; m++)xg[m] /= X.size();
+	for (int m = 0; m < 3; m++)yg[m] /= Y.size();
+
+	// Barycentric coordinates
+	for (unsigned int i = 0; i < x.size(); i++)
+	{
+		for (int m = 0; m < 3; m++) x[i][m] = x[i][m] - xg[m];
+		for (int m = 0; m < 3; m++) y[i][m] = y[i][m] - yg[m];
+	}
+
+	// Compute the cavariance matrix K = Sum_i( yi.xi' )
+	for (unsigned int i = 0; i < x.size(); i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			for (int l = 0; l < 3; l++)
+			{
+				vnl_tmp[l] = x[i][j] * y[i][l];
+				K.at<double>(l, j) = vnl_tmp[l] + K.at<double>(l, j);
+			}
+		}
+	}
+
+	cv::SVD svd;
+	cv::Mat W;
+	cv::Mat U;
+	cv::Mat VT;
+
+	svd.compute(K, W, U, VT);
+	cv::Mat V = VT.t();
+	double detU = cv::determinant(U);
+	double detV = cv::determinant(V);
+
+	cv::Mat Sd = cv::Mat::zeros(3, 3, CV_64F);
+	Sd.at<double>(0, 0) = 1.0;
+	Sd.at<double>(1, 1) = 1.0;
+	Sd.at<double>(2, 2) = detU * detV;
+
+	cv::Mat rotMatTmp;
+	rotMatTmp = U * Sd * VT;
+	cv::Rodrigues(rotMatTmp, rotVec);
+
+	cv::Mat xgmat = cv::Mat(xg, true);
+	cv::Mat ygmat = cv::Mat(yg, true);
+	cv::Mat t = ygmat - rotMatTmp * xgmat;
+	transVec = cv::Vec3d(t);
+
+	return true;
+}
+
 void RigidBody::computePose(int Frame)
 {
 	while (Frame >= (int) poseComputed.size()) addFrame();
@@ -1041,86 +1127,13 @@ void RigidBody::computePose(int Frame)
 
 		if (dst.size() >= 3)
 		{
-			std::vector<std::vector<double> > y, x;
-			std::vector<std::vector<double> > Y, X;
-			std::vector<double> vnl_tmp(3), yg(3, 0), xg(3, 0);
-			std::vector<double> tmp;
-			cv::Mat K = cv::Mat::zeros(3, 3, CV_64F);
-
-			//set Data
-			for (unsigned int i = 0; i < src.size(); i++)
+			cv::Vec3d rotVec, transVec;
+			if (fitRigidTransform(src, dst, rotVec, transVec))
 			{
-				vnl_tmp[0] = src[i].x;
-				vnl_tmp[1] = src[i].y;
-				vnl_tmp[2] = src[i].z;
-				X.push_back(vnl_tmp);
-
-				vnl_tmp[0] = dst[i].x;
-				vnl_tmp[1] = dst[i].y;
-				vnl_tmp[2] = dst[i].z;
-				Y.push_back(vnl_tmp);
+				rotationvectors[Frame] = rotVec;
+				translationvectors[Frame] = transVec;
+				success = 1;
 			}
-			// Compute the new coordinates of the 3D points
-			// relative to each coordinate frame
-			for (unsigned int i = 0; i < X.size(); i++)
-			{
-				vnl_tmp = X[i];
-				for (int m = 0; m < 3; m++)xg[m] = xg[m] + vnl_tmp[m];
-				x.push_back(vnl_tmp);
-
-				vnl_tmp = Y[i];
-				for (int m = 0; m < 3; m++)yg[m] = yg[m] + vnl_tmp[m];
-				y.push_back(vnl_tmp);
-			}
-			// Compute the gravity center
-			for (int m = 0; m < 3; m++)xg[m] /= X.size();
-			for (int m = 0; m < 3; m++)yg[m] /= Y.size();
-
-			// Barycentric coordinates
-			for (unsigned int i = 0; i < x.size(); i++)
-			{
-				for (int m = 0; m < 3; m++) x[i][m] = x[i][m] - xg[m];
-				for (int m = 0; m < 3; m++) y[i][m] = y[i][m] - yg[m];
-			}
-
-			// Compute the cavariance matrix K = Sum_i( yi.xi' )
-			for (unsigned int i = 0; i < x.size(); i++)
-			{
-				for (int j = 0; j < 3; j++)
-				{
-					for (int l = 0; l < 3; l++)
-					{
-						vnl_tmp[l] = x[i][j] * y[i][l];
-						K.at<double>(l, j) = vnl_tmp[l] + K.at<double>(l, j);
-					}
-				}
-			}
-
-			cv::SVD svd;
-			cv::Mat W;
-			cv::Mat U;
-			cv::Mat VT;
-
-			svd.compute(K, W, U, VT);
-			cv::Mat V = VT.t();
-			double detU = cv::determinant(U);
-			double detV = cv::determinant(V);
-
-			cv::Mat Sd = cv::Mat::zeros(3, 3, CV_64F);
-			Sd.at<double>(0, 0) = 1.0;
-			Sd.at<double>(1, 1) = 1.0;
-			Sd.at<double>(2, 2) = detU * detV;
-
-			cv::Mat rotMatTmp;
-			rotMatTmp = U * Sd * VT;
-			cv::Rodrigues(rotMatTmp, rotationvectors[Frame]);
-
-			cv::Mat xgmat = cv::Mat(xg, true);
-			cv::Mat ygmat = cv::Mat(yg, true);
-			cv::Mat t = ygmat - rotMatTmp * xgmat;
-			translationvectors[Frame] = cv::Vec3d(t);
-
-			success = 1;
 		}
 		else if (!Settings::getInstance()->getBoolSetting("DisableRBComputeAdvanced"))
 		{
@@ -2890,5 +2903,38 @@ void RigidBody::draw3D(int frame)
 //	}
 //}
 
+bool RigidBody::predictMarkerPosition(int markerIdx, int frame, const std::vector<int>& excludeMarkers, cv::Point3d& out, int* nbUsed)
+{
+	if (nbUsed) *nbUsed = 0;
+	if (!initialised || Project::getInstance()->getCalibration() == NO_CALIBRATION) return false;
 
+	int target = -1;
+	std::vector<cv::Point3d> src;
+	std::vector<cv::Point3d> dst;
+	for (unsigned int i = 0; i < pointsIdx.size(); i++)
+	{
+		if (pointsIdx[i] == markerIdx)
+		{
+			target = (int)i;
+			continue;
+		}
+		if (std::find(excludeMarkers.begin(), excludeMarkers.end(), pointsIdx[i]) != excludeMarkers.end()) continue;
+		if (pointsIdx[i] < 0 || pointsIdx[i] >= (int)trial->getMarkers().size()) continue;
+		Marker* m = trial->getMarkers()[pointsIdx[i]];
+		if (frame < 0 || frame >= (int)m->getStatus3D().size() || m->getStatus3D()[frame] <= UNDEFINED) continue;
+		src.push_back(m->getPoints3D()[frame]);
+		dst.push_back(points3D[i]);
+	}
+	if (target < 0 || target >= (int)points3D.size() || src.size() < 3) return false;
 
+	cv::Vec3d rotVec;
+	cv::Vec3d transVec;
+	if (!fitRigidTransform(src, dst, rotVec, transVec)) return false;
+
+	cv::Mat rotationMatrix;
+	cv::Rodrigues(rotVec, rotationMatrix);
+	cv::Mat tmp = rotationMatrix.t() * (cv::Mat(points3D[target], true) - cv::Mat(transVec));
+	out = cv::Point3d(tmp.at<double>(0, 0), tmp.at<double>(1, 0), tmp.at<double>(2, 0));
+	if (nbUsed) *nbUsed = (int)src.size();
+	return true;
+}

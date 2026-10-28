@@ -99,12 +99,14 @@ void MarkerDetection::detectMarker()
 	m_FutureWatcher->setFuture(future);
 }
 
-cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2d center, int searchArea, int masksize, double threshold, double* size, std::vector <cv::Mat> * images, bool drawCrosshairs)
+cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2d center, int searchArea, int masksize, double threshold, double* size, std::vector <cv::Mat> * images, bool drawCrosshairs, std::vector<cv::Point2d>* allCentres, std::vector<double>* allSizes)
 {
 	if (images != NULL) images->clear();
+	if (allCentres != NULL) allCentres->clear();
+	if (allSizes != NULL) allSizes->clear();
 
 	cv::Point2d point_out(center.x, center.y);
-	double tmp_size;
+	double tmp_size = -1.0;   // stays -1 when no blob is found
 
 	int off_x = (int)(center.x - searchArea + 0.5);
 	int off_y = (int)(center.y - searchArea + 0.5);
@@ -232,6 +234,15 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 			else{
 				float circle_radius;
 				cv::minEnclosingCircle(contours[i], detected_center, circle_radius);
+			}
+
+			if (allCentres != NULL)
+			{
+				cv::Point2f cc;
+				float cr;
+				cv::minEnclosingCircle(contours[i], cc, cr);
+				allCentres->push_back(cv::Point2d(detected_center.x, detected_center.y));
+				if (allSizes != NULL) allSizes->push_back(cr);
 			}
 
 			double distTmp = sqrt((center.x - detected_center.x) * (center.x - detected_center.x) + (center.y - detected_center.y) * (center.y - detected_center.y));
@@ -380,6 +391,11 @@ cv::Point2d MarkerDetection::detectionPoint(Image* image, int method, cv::Point2
 			double dx = keypoints[i].pt.x - search_center;
 			double dy = keypoints[i].pt.y - search_center;
 			dist_sq = dx * dx + dy * dy;
+			if (allCentres != NULL)
+			{
+				allCentres->push_back(cv::Point2d(off_x + keypoints[i].pt.x, off_y + keypoints[i].pt.y));
+				if (allSizes != NULL) allSizes->push_back(keypoints[i].size);
+			}
 			if (dist_sq < dist_min_sq)
 			{
 				point_out.x = off_x + keypoints[i].pt.x;

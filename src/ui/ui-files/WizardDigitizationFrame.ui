@@ -479,10 +479,10 @@
    <item row="7" column="0" colspan="2">
     <widget class="QCheckBox" name="checkBox_VolumetricTracking">
      <property name="toolTip">
-      <string>Enables 3D Volumetric Tracking. This searches a 3D physical volume around the marker's last known position, and should be able to keep track of markers even if they overlap/occlude in one camera</string>
+      <string>Tracks with the normal 2D tracker and uses the other cameras to keep marker identities when two markers overlap in one view. Overlapping markers are held on their epipolar lines and assigned when they separate; unresolved splits are cleared rather than guessed.</string>
      </property>
      <property name="text">
-      <string>Enable Volumetric Tracking</string>
+      <string>Enable merge-aware tracking</string>
      </property>
      <property name="checked">
       <bool>false</bool>
@@ -492,7 +492,7 @@
     <item row="8" column="0" colspan="2">
      <widget class="QLabel" name="label_VolumetricHint">
       <property name="text">
-       <string>Requires 2 prior tracked frames</string>
+       <string>Resolves overlapping markers using the other cameras</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -511,7 +511,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>volumetric selected</string>
+      <string>merge-aware selected</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_VolumetricSelected">
       <property name="horizontalSpacing">
@@ -606,7 +606,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>volumetric all</string>
+      <string>merge-aware all</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_VolumetricAll">
       <property name="horizontalSpacing">

@@ -80,7 +80,6 @@ namespace xma
 	class Marker
 	{
 	public:
-		friend class MarkerTracking3D;
 
 		Marker(int nbCameras, int size, Trial* _trial);
 		virtual ~Marker();
@@ -106,6 +105,12 @@ namespace xma
 		void setPoint(int camera, int activeFrame, double x, double y, markerStatus status);
 		std::vector<cv::Point2d> getEpipolarLine(int cameraOrigin, int CameraDestination, int frame);
 		std::vector<cv::Point2d> getEpipolarLine(int cameraOrigin, int CameraDestination, cv::Point2d pt_origin);
+		// Epipolar line in the destination camera's undistorted image space, as a normalised (a, b, c) with a*x + b*y + c = 0.
+		bool getEpipolarLineUndistorted(int cameraOrigin, int cameraDestination, cv::Point2d pt_origin, cv::Vec3d& line);
+		// Distance (px, undistorted space) of a destination-camera point from the epipolar line of an origin-camera point; -1 if unavailable.
+		double distanceToEpipolarLine(int cameraOrigin, int cameraDestination, cv::Point2d pt_origin, cv::Point2d pt_destination);
+		// Closest point on that epipolar line, returned in the destination camera's distorted image coordinates.
+		cv::Point2d projectOntoEpipolarLine(int cameraOrigin, int cameraDestination, cv::Point2d pt_origin, cv::Point2d pt_destination);
 		void reconstruct3DPoint(int frame, bool updateAll = false);
 		void reconstruct3DPointZisserman(int frame);
 		void reconstruct3DPointZissermanIncremental(int frame);
@@ -116,6 +121,7 @@ namespace xma
 
 		double getSize();
 		double getSizeRange();
+		double getSize(int camera, int frame);
 		void setSize(int camera, int frame, double size_value);
 		void save(QString points_filename, QString status_filename = "", QString markersize_filename = "", QString pointsWorld_filename = "");
 		void load(QString points_filename, QString status_filename, QString markersize_filename);
