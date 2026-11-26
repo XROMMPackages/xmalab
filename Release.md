@@ -28,7 +28,7 @@ This document tracks all backend and user-facing changes made during the `c++upg
 - **Camera calibration import/export precision fix**: Fixed precision loss when importing/exporting camera calibration data (`ExternalCalibrationFrame.cpp`). Changed `float`→`double` and `%f`→`%lf` in `fscanf` calls to preserve 64-bit precision. Updated all `precision(12)`→`precision(17)` across 10 files for lossless round-tripping of 64-bit doubles on export.
 
 
-## Fixes and tweaks (beta.5)
+## Fixes and tweaks (3.0.0)
 - **Calibration point IDs** (issue #32): ID/name/error labels are now placed on the crosses being shown. In the projected-point views, projected-only (blue) points get their ID or marker name in blue; in the detected-point views only detected points are labelled. Clicked points during manual calibration now show their IDs (previously drawn off-screen because projected positions are unset until the frame is calibrated). The `calibrationVisPoints_state` enum names were corrected to match the dropdown order.
 - **Scale/bias black image** (issue #33): a negative bias left the GL blend equation on reverse-subtract, so on some drivers the next scale pass subtracted the image from itself and the view went black. The blend equation is now set explicitly for every pass and restored afterwards, using core `glBlendEquation` where available.
 - **Reset scale/bias**: double-click the Scale or Bias label, or its slider, to reset it to the default (1.00 / 0.00), in the detail view, digitization and calibration panels.
@@ -36,7 +36,7 @@ This document tracks all backend and user-facing changes made during the `c++upg
 - Volumetric tracking controls and MayaCams v1 export changes (issue #31), listed above.
 
 ### Compatibility with older versions
-Projects saved by beta.5 open in older XMALab versions, with one exception: trials, calibration or undistortion sequences using mp4/mov videos, or videos with an upper-case extension (e.g. `.AVI`), will not load there, because older versions only recognise lower-case `.avi` and `.cine`. Convert such videos to avi before opening the project in an older version.
+Projects saved by 3.0.0 open in older XMALab versions, with one exception: trials, calibration or undistortion sequences using mp4/mov videos, or videos with an upper-case extension (e.g. `.AVI`), will not load there, because older versions only recognise lower-case `.avi` and `.cine`. Convert such videos to avi before opening the project in an older version.
 
 ## Video formats (beta.4)
 - **mp4 and mov input**: accepted wherever avi was (camera setup, trials, calibration sequences, undistortion). On Windows decoding goes through OpenCV's Media Foundation backend, so codecs Windows can decode natively (H.264, HEVC) work; others (e.g. ProRes) will not open. Mac and Linux builds use whatever backend their OpenCV was built with.
@@ -65,8 +65,8 @@ The beta.3 volumetric tracker (`MarkerTracking3D`) is removed. Its button group 
 
 ## Todos for Next Phase
 1. **Automate/Calibrate Marker Detection**: Investigate sampling a user-identified "good" frame to automatically estimate and set ideal `Threshold` and `Penalty` detection settings based on pixel profile.
-2. **Implement Autosave**: Build a robust background autosave feature to prevent data loss. create .xma1 while working.  save in background every 10 minutes (configurable in settings). On clean save and exit, save to .xma and remove .xma1.  
-3. **mark change to file with asterix in the title bar**: let people know if a file has been changed.
+2. **Implement Autosave**: Build a robust background autosave feature to prevent data loss. Create .xma1 while working.  Save in background every 10 minutes (configurable in settings). On clean save and exit, save to .xma and remove .xma1.  
+3. **Mark change to file with asterisk in the title bar**: let people know if a file has been changed.
 4. **Save image slider state (bias etc)**
 
 
