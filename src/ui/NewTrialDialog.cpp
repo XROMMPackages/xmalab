@@ -137,7 +137,7 @@ bool NewTrialDialog::createTrial()
 		}
 		if(!m_trial->changeTrialData(trialname, list))
 		{
-			ErrorDialog::getInstance()->showErrorDialog("Width and Height of the videos does is not equal to the calibration images. Cannot change data for Trial.");
+			ErrorDialog::getInstance()->showErrorDialog("Width and Height of the videos is not equal to the calibration images. Cannot change data for Trial.");
 			return false;
 		}
 
@@ -174,7 +174,7 @@ bool NewTrialDialog::createTrial()
 		else if (!t->checkTrialImageSizeValid())
 		{
 			delete t;
-			ErrorDialog::getInstance()->showErrorDialog("Width and Height of the videos does is not equal to the calibration images. Cannot create Trial.");
+			ErrorDialog::getInstance()->showErrorDialog("Width and Height of the videos is not equal to the calibration images. Cannot create Trial.");
 			return false;
 		}
 
