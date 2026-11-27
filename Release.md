@@ -1,6 +1,9 @@
 # Release Notes (v3.0.0 Nov 2026)
 
 This document tracks all backend and user-facing changes made during the `c++upgrade` modernization branch. 
+
+<details><summary>Full v3.0.0 release notes</summary>
+
 ## User-Facing UI/UX Changes
 - **Lock UI Panes**: Added a toggle option to the `View` menu allowing users to lock all dockable widgets in place to prevent accidental undocking/movement.
 - **Improved Detection Tooltips**: Added detailed, explanatory tooltips to the "Detection Method" dropdowns across the application (`Detection Settings`, `Marker Settings`, and `Global Settings`). Users can now hover over options like "default Xray marker" or "Blobdetection" to understand exactly what algorithm is used under the hood. Clarified that the "Input" dropdown is strictly a visualization preview.
@@ -67,3 +70,5 @@ The beta.3 volumetric tracker (`MarkerTracking3D`) is removed. Its button group 
 1. **Automate/Calibrate Marker Detection**: Investigate sampling a user-identified "good" frame to automatically estimate and set ideal `Threshold` and `Penalty` detection settings based on pixel profile.
 2. **Implement Autosave**: Build a robust background autosave feature to prevent data loss. Create .xma1 while working.  Save in background every 10 minutes (configurable in settings). On clean save and exit, save to .xma and remove .xma1.  
 3. **Mark change to file with asterisk in the title bar**: let people know if a file has been changed. Related to the above - no means of tracking changes.
+
+</details>
