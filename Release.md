@@ -1,7 +1,6 @@
-# Release Notes (v3.0.0 In-Progress)
+# Release Notes (v3.0.0 Nov 2026)
 
-This document tracks all backend and user-facing changes made during the `c++upgrade` modernization branch. It will be used to compile the final release notes when merged into the main release.
-
+This document tracks all backend and user-facing changes made during the `c++upgrade` modernization branch. 
 ## User-Facing UI/UX Changes
 - **Lock UI Panes**: Added a toggle option to the `View` menu allowing users to lock all dockable widgets in place to prevent accidental undocking/movement.
 - **Improved Detection Tooltips**: Added detailed, explanatory tooltips to the "Detection Method" dropdowns across the application (`Detection Settings`, `Marker Settings`, and `Global Settings`). Users can now hover over options like "default Xray marker" or "Blobdetection" to understand exactly what algorithm is used under the hood. Clarified that the "Input" dropdown is strictly a visualization preview.
@@ -16,7 +15,7 @@ This document tracks all backend and user-facing changes made during the `c++upg
 - **Pointer Safety Enhancements**: Migrated unsafe UI pointer-chaining to robust, modernized functional wrappers (`State::getActiveTrialData()` and `Trial::withActiveMarker()`). These use lambdas to ensure bounds checking and prevent null pointer dereferences.
 - **Crash Fixes**: Resolved a crash relating to `RigidBody` interpolation by utilizing the new pointer safety patterns.
 - **Video Decoding Resilience**: Added an interception layer to OpenCV's `VideoCapture` (`AviVideo.cpp`) to prevent the video decoder from entering a permanent unrecoverable error state when seeking to improperly encoded frames (such as EOF overestimations common in AVIs).
-- **MarkerTracking3D (2D + Triangulation + RANSAC)**: A hybrid 2D-per-camera + RANSAC triangulation approach. Per camera, the previous frame's 2D position is extrapolated to define a search window, NCC template matching extracts up to 2 peak candidates, and a RANSAC-like exhaustive search over camera-pair × candidate combinations triangulates then scores by reprojected NCC consistency + 3D distance-from-prediction regularization. The best 3D point is refined via local hill-climbing in 3D, then `MarkerDetection::detectionPoint` snaps each 2D projection to sub-pixel precision. Requires a 3D point at the current frame to work (skips silently if absent) — velocity-based candidate filtering kicks in automatically once two consecutive frames have been tracked.
+- **Merge-aware tracking**: Tracking now runs the normal per-camera 2D tracker (correlation with the user's penalty), followed by a `MergeMonitor` pass that uses the other cameras to keep marker identities when two markers overlap in one view. Blobs within `2r + 1` px (or a size jump above `1.5 × meanSize`) form a merge group; each merged camera's points are held on the epipolar line of the clean camera and written PREDICTED (never TRACKED), with the next-frame template kept from a validated single blob. At the split, markers are assigned to blobs by summed distance to each clean camera's epipolar line, plus a rigid-body prediction when the marker belongs to a body; a margin above `MergeEpipolarThreshold` (3 px) commits, a smaller margin stays provisional and upgrades later if the margin grows. An unresolved split after `MergeMaxPendingFrames` (10) frames is cleared in that camera. Clean tracks are audited instead of reset: a point whose cameras disagree by more than `MergeAuditThreshold` (4 px), that moved against the other markers, or that has not returned after a hold is kept as PREDICTED on its epipolar line while the tracker retries, and is reset only after `MergeMaxHoldFrames` (10) frames. A marker tracked in one camera only stops. Every decision is logged to the console; thresholds are settings without a dialog entry yet. The beta.3 volumetric tracker  (`src/processing/MarkerTracking3D`) was tested, then removed.
 
 ## Build Infrastructure & Maintenance
 - **Standardized Build Process**: Cleared out outdated legacy build directories and completely standardized the cross-platform CMake build process using `CMakePresets.json`. 
@@ -39,13 +38,13 @@ This document tracks all backend and user-facing changes made during the `c++upg
 Projects saved by 3.0.0 open in older XMALab versions, with one exception: trials, calibration or undistortion sequences using mp4/mov videos, or videos with an upper-case extension (e.g. `.AVI`), will not load there, because older versions only recognise lower-case `.avi` and `.cine`. Convert such videos to avi before opening the project in an older version.
 
 ## Video formats (beta.4)
-- **mp4 and mov input**: accepted wherever avi was (camera setup, trials, calibration sequences, undistortion). On Windows decoding goes through OpenCV's Media Foundation backend, so codecs Windows can decode natively (H.264, HEVC) work; others (e.g. ProRes) will not open. Mac and Linux builds use whatever backend their OpenCV was built with.
+- **mp4 and mov input**: accepted wherever avi was (camera setup, trials, calibration sequences, undistortion). On Windows decoding goes through OpenCV's Media Foundation backend, so codecs Windows can decode natively (H.264, HEVC) work; others (e.g. ProRes) will not open. Mac and Linux builds use whatever backend their OpenCV was built with. Note that avis have poor compatibility on recent MacOS versions. This is a MacOS problem, not an XMALab one, and can't be fixed without bringing in more third party libraries (e.g. ffmpeg)
 - **Extension matching is case-insensitive**: `.MOV`, `.MP4`, `.AVI`, `.CINE` and `.ZIP` are recognised as well as lowercase.
 
 ## Version labelling (issue #26)
-The version string, including the beta number, is now consistent everywhere on Windows: main window title and About dialog (`3.0.0 - beta4`), `XMALab.exe` file properties (new `VERSIONINFO` resource generated from `CMakeLists.txt`, flagged pre-release), the installer's own file properties, its file name (`XMALab-v3.0.0-beta4.Windows.x64.Setup.exe`, matching the release asset convention) and the Add/Remove Programs entry. The installer script takes the version from a single `!define VERSION` at its top, which must be kept in step with `PROJECT_VERSION` / `PROJECT_BETA_VERSION` in `CMakeLists.txt` when bumping.
+The version string, including the beta number, is now consistent everywhere on Windows: main window title and About dialog (`3.0.0`, `XMALab.exe` file properties (new `VERSIONINFO` resource generated from `CMakeLists.txt`, flagged pre-release), the installer's own file properties, its file name (`XMALab-v3.0.0.Windows.x64.Setup.exe`, matching the release asset convention) and the Add/Remove Programs entry. The installer script takes the version from a single `!define VERSION` at its top, which must be kept in step with `PROJECT_VERSION` / `PROJECT_BETA_VERSION` in `CMakeLists.txt` when bumping.
 
-## Merge-aware tracking (replaces the volumetric tracker)
+## Merge-aware tracking
 The beta.3 volumetric tracker (`MarkerTracking3D`) is removed. Its button group now runs **merge-aware tracking**: the normal 2D tracker per camera, followed by a `MergeMonitor` pass that uses the other cameras to keep marker identities when two markers overlap in one view. Design, measurements and thresholds are in `docs/merge-aware-tracking-design.md`.
 - Overlapping markers are detected from touching blobs or a blob size jump. While overlapped, each marker's point in that camera is held on the epipolar line of its point in a clean camera and written with the new **PREDICTED** status (own colour, settable in the status colour dialog), never TRACKED.
 - When the blobs separate, markers are assigned to blobs by distance to their epipolar lines, plus a rigid-body prediction when the marker belongs to a body. A margin above `MergeEpipolarThreshold` (2 px) commits; a smaller margin keeps the assignment provisional and later frames decide, swapping the provisional frames if needed. A split still unresolved after `MergeMaxPendingFrames` (10) frames is cleared in that camera, which stops the marker there rather than guessing.
@@ -61,13 +60,10 @@ The beta.3 volumetric tracker (`MarkerTracking3D`) is removed. Its button group 
 - ~~**MacOS Theming (maybe all OS)** - light theme on MacOS does not match 'follow system theme' when MacOS is in light mode. Fixed by replacing hardcoded grey palette with `QPalette()` for light theme, making it identical to system theme.~~
 - ~~**Settings button crash**: clicking settings button next to marker crashes — fixed by adding bounds checks in `MarkerTreeWidgetButton`.~~
 - ~~**Set interpolation crash**: clicking set interpolation crashes — fixed by bounds-safe `Marker::setInterpolation/getInterpolation` and safe access in `PlotWindow::setInterpolation`.~~
+- ~~**Save image slider state (bias etc)**
 
 
-## Todos for Next Phase
+## Ideas not implemented (too difficult/not possible currently)
 1. **Automate/Calibrate Marker Detection**: Investigate sampling a user-identified "good" frame to automatically estimate and set ideal `Threshold` and `Penalty` detection settings based on pixel profile.
 2. **Implement Autosave**: Build a robust background autosave feature to prevent data loss. Create .xma1 while working.  Save in background every 10 minutes (configurable in settings). On clean save and exit, save to .xma and remove .xma1.  
-3. **Mark change to file with asterisk in the title bar**: let people know if a file has been changed.
-4. **Save image slider state (bias etc)**
-
-
-gitbook wiki blender animation stuff
+3. **Mark change to file with asterisk in the title bar**: let people know if a file has been changed. Related to the above - no means of tracking changes.
